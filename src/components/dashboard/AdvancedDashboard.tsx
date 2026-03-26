@@ -1,0 +1,454 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  Mic, PenTool, Headphones, BookOpen, ChevronRight, 
+  Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
+  Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
+  BarChart2, History, Settings, BookMarked, ArrowRight
+} from 'lucide-react';
+
+import { AdvancedDashboardPayload } from '../../types/dashboard';
+import { LearnerModelSnapshot } from '../../types/learner-model';
+
+interface AdvancedDashboardProps {
+  learnerModel: LearnerModelSnapshot;
+  dashboardData: AdvancedDashboardPayload;
+  onStartSession: () => void;
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
+
+const skillIcons: Record<string, React.ReactNode> = {
+  speaking: <Mic className="w-5 h-5" />,
+  writing: <PenTool className="w-5 h-5" />,
+  listening: <Headphones className="w-5 h-5" />,
+  vocabulary: <BookOpen className="w-5 h-5" />,
+};
+
+// Sidebar nav items
+const sidebarItems = [
+  { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-5 h-5" /> },
+  { id: 'hub', label: 'Practice', icon: <Dumbbell className="w-5 h-5" /> },
+  { id: 'review', label: 'Review', icon: <BookMarked className="w-5 h-5" /> },
+  { id: 'history', label: 'History', icon: <History className="w-5 h-5" /> },
+  { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
+];
+
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerModel, dashboardData, onStartSession }) => {
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col py-6 px-4 hidden md:flex">
+        <div className="flex items-center gap-3 px-3 mb-8">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <BrainCircuit className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">AI Tutor</h1>
+            <p className="text-xs text-slate-400 font-bold">{learnerModel.overallLevel} Learner</p>
+          </div>
+        </div>
+
+        <nav className="space-y-1 flex-1">
+          {sidebarItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                activeTab === item.id
+                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Quick Stats */}
+        <div className="bg-slate-900 rounded-2xl p-4 text-white mt-4">
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">Streak</p>
+          <p className="text-2xl font-extrabold text-orange-400 mb-1">{dashboardData.weeklyRhythm.streakDays} <span className="text-sm text-slate-500">days</span></p>
+          <p className="text-xs text-slate-400">{dashboardData.weeklyRhythm.sessionsThisWeek} sessions this week</p>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 py-8 px-6 md:px-10 overflow-y-auto max-w-5xl">
+        {/* Mobile Tab Bar */}
+        <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-4 mb-6">
+          {sidebarItems.slice(0, 4).map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap ${
+                activeTab === item.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200'
+              }`}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {/* ========= OVERVIEW ========= */}
+          {activeTab === 'overview' && (
+            <motion.div key="overview" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              {/* Header */}
+              <motion.div variants={staggerItem} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div>
+                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">Welcome Back</h1>
+                  <p className="text-slate-500 font-medium">{dashboardData.primaryGoalText}</p>
+                </div>
+                <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
+                  <Play className="w-5 h-5 fill-white" /> {dashboardData.recommendedNextAction.label}
+                </button>
+              </motion.div>
+
+              {/* Journey Card */}
+              <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><MapIcon className="w-5 h-5"/></div>
+                  <h2 className="text-xl font-bold text-slate-900">{dashboardData.journey.journeyTitle}</h2>
+                </div>
+                <div className="relative z-10 flex flex-col md:flex-row gap-8">
+                  <div className="flex-1 space-y-3">
+                    {dashboardData.journey.milestones.map((m, i) => (
+                      <div key={m.id} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${m.status === 'completed' ? 'bg-emerald-500 border-emerald-500' : m.status === 'current' ? 'bg-white border-indigo-600' : 'bg-slate-100 border-slate-200'}`}>
+                            {m.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            {m.status === 'current' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                          </div>
+                          {i < dashboardData.journey.milestones.length - 1 && <div className={`w-0.5 h-full my-1 ${m.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
+                        </div>
+                        <div className={`pb-3 ${m.status === 'locked' ? 'opacity-50' : ''}`}>
+                          <h4 className={`font-bold ${m.status === 'current' ? 'text-indigo-900' : 'text-slate-700'}`}>{m.title}</h4>
+                          <p className="text-sm text-slate-500">{m.description} • {m.estimatedDuration}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="w-full md:w-1/3 bg-slate-50 p-5 rounded-2xl border border-slate-100 h-max">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Current Strengths</h3>
+                    <ul className="space-y-2 text-slate-700 text-sm font-medium">
+                      {learnerModel.interpretation.currentCapacities.map((cap, i) => (
+                        <li key={i} className="flex gap-2"><span className="text-emerald-500">✓</span>{cap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </motion.section>
+
+              {/* Skill Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {dashboardData.skillAnalytics.map(skill => (
+                  <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${skill.isPriority ? 'border-indigo-200 shadow-md shadow-indigo-100/50' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
+                    {skill.isPriority && <div className="absolute top-0 right-0 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Priority</div>}
+                    <div className="flex items-center gap-2 text-slate-600 font-bold capitalize mb-3">{skillIcons[skill.skillId]} {skill.skillId}</div>
+                    <div className="flex items-end gap-2 mb-2">
+                      <span className="text-3xl font-extrabold text-slate-900">{skill.currentScore}</span>
+                      {skill.progressDirection === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
+                      {skill.stability === 'fragile' && <AlertCircle className="w-4 h-4 text-amber-500 mb-1" />}
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+                      <div className={`h-full ${skill.isPriority ? 'bg-indigo-500' : 'bg-slate-400'}`} style={{ width: `${skill.currentScore}%` }} />
+                    </div>
+                    <div className="flex justify-between text-xs font-bold text-slate-400">
+                      <span>Confidence</span>
+                      <span className={`px-1.5 py-0.5 rounded ${skill.confidenceBand === 'high' ? 'bg-emerald-50 text-emerald-600' : skill.confidenceBand === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>{skill.confidenceBand}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Focus Areas */}
+              {dashboardData.focusAreas.length > 0 && (
+                <motion.section variants={staggerItem} className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
+                  <h3 className="font-bold text-indigo-900 mb-3 flex items-center gap-2"><Target className="w-4 h-4" /> Active Focus Areas</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {dashboardData.focusAreas.map((area, i) => (
+                      <span key={i} className="bg-white text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-indigo-100">{area}</span>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+            </motion.div>
+          )}
+
+          {/* ========= ANALYTICS ========= */}
+          {activeTab === 'analytics' && (
+            <motion.div key="analytics" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Deep Analytics</h2>
+                <p className="text-slate-500 text-sm">Detailed breakdowns of your learning signals and patterns.</p>
+              </motion.div>
+
+              {/* Per-Skill Deep Cards */}
+              {(Object.entries(learnerModel.skills) as [string, typeof learnerModel.skills.speaking][]).map(([id, dim]) => (
+                <motion.section key={id} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3 font-bold capitalize text-slate-800">{skillIcons[id]} {id}</div>
+                    <span className="text-xl font-extrabold text-indigo-600">{dim.level}</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
+                      <p className="text-2xl font-extrabold text-slate-900">{dim.score}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
+                      <p className="text-2xl font-extrabold text-slate-900">{Math.round(dim.confidence * 100)}%</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stability</p>
+                      <p className="text-lg font-bold text-slate-800 capitalize">{dim.confidence > 0.6 ? 'Stable' : 'Fragile'}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Trend</p>
+                      <p className="text-lg font-bold text-emerald-600">↑ Improving</p>
+                    </div>
+                  </div>
+                  {/* Subskill Bars */}
+                  <div className="space-y-2">
+                    {getSubskills(id).map(sub => (
+                      <div key={sub.name} className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
+                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${sub.value}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-600 w-8">{sub.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              ))}
+
+              {/* Error Patterns */}
+              {learnerModel.errors.length > 0 && (
+                <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-500" /> Monitored Patterns</h3>
+                  <div className="space-y-3">
+                    {learnerModel.errors.map((err, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                        <div>
+                          <p className="font-bold text-slate-800 text-sm">{err.type}</p>
+                          <p className="text-xs text-slate-500">Affects: {err.affectedSkills.join(', ')}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className={`text-xs font-bold px-2 py-1 rounded ${err.severity === 'high' ? 'bg-red-50 text-red-600' : err.severity === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>{err.severity}</span>
+                          <span className="text-xs font-bold px-2 py-1 rounded bg-indigo-50 text-indigo-600">{Math.round(err.evidenceStrength * 100)}% evidence</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {/* Behavioral Signals */}
+              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-indigo-500" /> Behavioral Profile</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pacing</p>
+                    <p className="text-lg font-bold text-slate-800 capitalize">{learnerModel.pacing.profile}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Avg Latency</p>
+                    <p className="text-lg font-bold text-slate-800">{(learnerModel.pacing.avgLatencyMs / 1000).toFixed(1)}s</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
+                    <p className="text-lg font-bold text-slate-800 capitalize">{learnerModel.confidence.state}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Self-Correction</p>
+                    <p className="text-lg font-bold text-slate-800">{Math.round(learnerModel.confidence.selfCorrectionRate * 100)}%</p>
+                  </div>
+                </div>
+              </motion.section>
+            </motion.div>
+          )}
+
+          {/* ========= PRACTICE HUB ========= */}
+          {activeTab === 'hub' && (
+            <motion.div key="hub" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Practice Hub</h2>
+                <p className="text-slate-500 text-sm">Curated exercises shaped by your learner state.</p>
+              </motion.div>
+
+              {/* Curated Skill Sections */}
+              {[
+                { skill: 'Speaking', icon: <Mic className="w-5 h-5" />, color: 'indigo', exercises: [
+                  { title: 'Daily Conversation', type: 'Recommended', reason: 'Based on your current focus' },
+                  { title: 'Roleplay: Coffee Shop', type: 'Confidence Builder', reason: 'Safe real-world scenario' },
+                ]},
+                { skill: 'Writing', icon: <PenTool className="w-5 h-5" />, color: 'emerald', exercises: [
+                  { title: 'Formal Register Rewrite', type: 'Focus Area', reason: 'Addresses a growth zone' },
+                  { title: 'Short Description', type: 'Warm-up', reason: 'Good for building rhythm' },
+                ]},
+                { skill: 'Listening', icon: <Headphones className="w-5 h-5" />, color: 'blue', exercises: [
+                  { title: 'Detail Extraction', type: 'Stretch Challenge', reason: 'Push beyond your comfort zone' },
+                  { title: 'Gist Comprehension', type: 'Review', reason: 'Strengthen a fragile area' },
+                ]},
+                { skill: 'Vocabulary', icon: <BookOpen className="w-5 h-5" />, color: 'amber', exercises: [
+                  { title: 'Contextual Fill-in', type: 'Due for Review', reason: 'Items at risk of forgetting' },
+                  { title: 'Contrast Pairs', type: 'Next Step', reason: 'Builds discriminative ability' },
+                ]},
+              ].map(section => (
+                <motion.section key={section.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2 bg-${section.color}-50 text-${section.color}-600 rounded-lg border border-${section.color}-100`}>{section.icon}</div>
+                    <h3 className="font-bold text-lg text-slate-900">{section.skill}</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {section.exercises.map((ex, i) => (
+                      <button key={i} onClick={onStartSession} className="flex flex-col text-left p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">{ex.type}</span>
+                        <h4 className="font-bold text-slate-800 mb-1">{ex.title}</h4>
+                        <p className="text-xs text-slate-400">{ex.reason}</p>
+                      </button>
+                    ))}
+                  </div>
+                </motion.section>
+              ))}
+            </motion.div>
+          )}
+
+          {/* ========= REVIEW ========= */}
+          {activeTab === 'review' && (
+            <motion.div key="review" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Review Queue</h2>
+                <p className="text-slate-500 text-sm">Items that need reinforcement before they fade.</p>
+              </motion.div>
+
+              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                {dashboardData.reviewQueue.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-300 mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium">No items due for review right now.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    {dashboardData.reviewQueue.map(item => (
+                      <li key={item.itemId} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                          <p className="font-bold text-slate-800">{item.label}</p>
+                          <p className="text-xs text-slate-400 capitalize">{item.type}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          {item.dueStatus === 'overdue' && <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">Overdue</span>}
+                          {item.fragility === 'high' && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded">Fragile</span>}
+                          <button onClick={onStartSession} className="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                            Practice <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button onClick={onStartSession} className="w-full mt-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-colors">Start Review Session</button>
+              </motion.section>
+
+              {/* Weekly Rhythm */}
+              <motion.section variants={staggerItem} className="bg-slate-900 rounded-2xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-slate-800 text-indigo-400 rounded-lg"><Flame className="w-5 h-5"/></div>
+                  <h3 className="font-bold text-lg">Weekly Rhythm</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
+                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Streak</p>
+                    <p className="text-2xl font-extrabold text-orange-400">{dashboardData.weeklyRhythm.streakDays}</p>
+                  </div>
+                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
+                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Sessions</p>
+                    <p className="text-2xl font-extrabold">{dashboardData.weeklyRhythm.sessionsThisWeek}</p>
+                  </div>
+                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
+                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Momentum</p>
+                    <p className="text-lg font-bold text-emerald-400 capitalize">{dashboardData.weeklyRhythm.momentumState}</p>
+                  </div>
+                </div>
+                <div className="h-2 bg-slate-800 rounded-full overflow-hidden w-full">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500" style={{ width: '60%' }} />
+                </div>
+              </motion.section>
+            </motion.div>
+          )}
+
+          {/* ========= HISTORY ========= */}
+          {activeTab === 'history' && (
+            <motion.div key="history" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Session History</h2>
+                <p className="text-slate-500 text-sm">Your recent learning sessions and outcomes.</p>
+              </motion.div>
+              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                <div className="text-center py-12">
+                  <History className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                  <p className="text-slate-500 font-medium">Complete your first practice session to see history here.</p>
+                  <button onClick={onStartSession} className="mt-4 text-indigo-600 font-bold text-sm hover:text-indigo-800">Start a Session →</button>
+                </div>
+              </motion.section>
+            </motion.div>
+          )}
+
+          {/* ========= SETTINGS ========= */}
+          {activeTab === 'settings' && (
+            <motion.div key="settings" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Settings</h2>
+                <p className="text-slate-500 text-sm">Manage your learning preferences.</p>
+              </motion.div>
+              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                <div className="text-center py-12">
+                  <Settings className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                  <p className="text-slate-500 font-medium">Settings will be available soon.</p>
+                </div>
+              </motion.section>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+};
+
+// Helper: Generate mock subskill data per skill
+function getSubskills(skillId: string): { name: string; value: number }[] {
+  const map: Record<string, { name: string; value: number }[]> = {
+    speaking: [
+      { name: 'Fluency', value: 68 }, { name: 'Pronunciation', value: 55 },
+      { name: 'Task Completion', value: 72 }, { name: 'Grammar in Speech', value: 60 },
+    ],
+    writing: [
+      { name: 'Grammar Accuracy', value: 78 }, { name: 'Clarity', value: 70 },
+      { name: 'Word Choice', value: 65 }, { name: 'Tone/Register', value: 58 },
+    ],
+    listening: [
+      { name: 'Gist Understanding', value: 62 }, { name: 'Detail Capture', value: 48 },
+      { name: 'Inference', value: 45 }, { name: 'Replay Dependence', value: 35 },
+    ],
+    vocabulary: [
+      { name: 'Recall', value: 72 }, { name: 'Recognition', value: 80 },
+      { name: 'Contextual Use', value: 60 }, { name: 'Confusion Pairs', value: 50 },
+    ],
+  };
+  return map[skillId] || [];
+}

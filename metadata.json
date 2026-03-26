@@ -1,0 +1,8 @@
+{
+  "name": "AI Language Tutor",
+  "description": "An AI-native language learning platform with a minimalist, adaptive, and high-tech interface.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
