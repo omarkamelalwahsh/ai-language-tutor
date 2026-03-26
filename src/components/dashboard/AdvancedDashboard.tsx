@@ -9,6 +9,7 @@ import {
 
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { LearnerModelSnapshot } from '../../types/learner-model';
+import { DashboardService } from '../../services/DashboardService';
 
 interface AdvancedDashboardProps {
   learnerModel: LearnerModelSnapshot;
@@ -224,7 +225,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                   </div>
                   {/* Subskill Bars */}
                   <div className="space-y-2">
-                    {getSubskills(id).map(sub => (
+                    {DashboardService.getSubskills(id, learnerModel).map(sub => (
                       <div key={sub.name} className="flex items-center gap-3">
                         <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
                         <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -429,26 +430,3 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
     </div>
   );
 };
-
-// Helper: Generate mock subskill data per skill
-function getSubskills(skillId: string): { name: string; value: number }[] {
-  const map: Record<string, { name: string; value: number }[]> = {
-    speaking: [
-      { name: 'Fluency', value: 68 }, { name: 'Pronunciation', value: 55 },
-      { name: 'Task Completion', value: 72 }, { name: 'Grammar in Speech', value: 60 },
-    ],
-    writing: [
-      { name: 'Grammar Accuracy', value: 78 }, { name: 'Clarity', value: 70 },
-      { name: 'Word Choice', value: 65 }, { name: 'Tone/Register', value: 58 },
-    ],
-    listening: [
-      { name: 'Gist Understanding', value: 62 }, { name: 'Detail Capture', value: 48 },
-      { name: 'Inference', value: 45 }, { name: 'Replay Dependence', value: 35 },
-    ],
-    vocabulary: [
-      { name: 'Recall', value: 72 }, { name: 'Recognition', value: 80 },
-      { name: 'Contextual Use', value: 60 }, { name: 'Confusion Pairs', value: 50 },
-    ],
-  };
-  return map[skillId] || [];
-}
