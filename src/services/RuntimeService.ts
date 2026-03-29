@@ -1,4 +1,6 @@
 import { SessionTask, TaskEvaluationResult, TaskFeedbackPayload } from '../types/runtime';
+import { LearnerModelSnapshot } from '../types/learner-model';
+import { LearningPlanService } from './LearningPlanService';
 
 /** Text analysis helper (mirrors AnalysisService.analyzeText logic) */
 function analyzeResponse(text: string): {
@@ -49,51 +51,107 @@ export class RuntimeService {
    * Returns structured session tasks. In production, this would pull from
    * LearnerModel state to identify what needs review, focus, or challenge.
    */
-  public static generateSessionTasks(): SessionTask[] {
-    return [
-      {
-        taskId: 'v1',
+  public static generateSessionTasks(model: LearnerModelSnapshot): SessionTask[] {
+    // 1. Identify priority areas via LearningPlanService logic
+    const plan = LearningPlanService.generatePlan(model, 'serious'); // Use default segment for now
+    const focusSkill = plan.recommendedSessionBlueprint.focusSkill;
+    const supportLevel = plan.recommendedSessionBlueprint.supportLevel;
+    const taskCount = model.pacing.profile === 'slow' || model.pacing.profile === 'fragile' ? 2 : 3;
+
+    const tasks: SessionTask[] = [];
+
+    // 2. Generate a task structure based on the focus skill & support profile
+    
+    // Task 1: Warm-up / Scaffolded task based on focus skill
+    if (focusSkill === 'vocabulary') {
+      tasks.push({
+        taskId: `vocab_${Date.now()}_1`,
         taskType: 'vocabulary',
         targetSkill: 'vocabulary',
-        learningObjective: 'Contextual Use of Target Phrasal Verbs',
-        prompt: 'Fill in the blank with the correct form of "Look forward to".\n"I really ____ the meeting next week."',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 2 },
-        difficultyTarget: 'B1',
-        completionCondition: 'Correct answer provided or max retries hit',
-        payload: { targetWord: 'look forward to', distractors: ['look for', 'look after'] }
-      },
-      {
-        taskId: 'l1',
+        learningObjective: 'Contextual Use of Target Words',
+        prompt: 'Fill in the blank: "The new software update will ________ the performance of the system." (Options: improve, delay, abandon, compromise)',
+        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 1 },
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Correct answer provided',
+        payload: { targetWord: 'improve', distractors: ['delay', 'abandon'] }
+      });
+    } else if (focusSkill === 'listening') {
+      tasks.push({
+        taskId: `listen_${Date.now()}_1`,
         taskType: 'listening',
         targetSkill: 'listening',
-        learningObjective: 'Identify speaker intent',
-        prompt: 'Listen to the audio. Why is the speaker calling?',
-        supportSettings: { allowHints: false, allowReplay: true, allowSlowAudio: true, maxRetries: 1 },
-        difficultyTarget: 'A2+',
+        learningObjective: 'Gist comprehension',
+        prompt: 'Listen to the audio. What is the speaker primarily discussing?',
+        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: true, allowSlowAudio: supportLevel === 'high', maxRetries: 2 },
+        difficultyTarget: model.overallLevel,
         completionCondition: 'Identify the gist successfully',
         payload: { audioSrc: 'https://cdn.pixabay.com/audio/2022/10/25/audio_24911f32a6.mp3' }
-      },
-      {
-        taskId: 's1',
-        taskType: 'speaking',
-        targetSkill: 'speaking',
-        learningObjective: 'Roleplay a real-life scenario',
-        prompt: 'You are at a coffee shop. Order a large cappuccino and ask if they have oat milk.',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
-        difficultyTarget: 'A2',
-        completionCondition: 'Communicated meaning successfully'
-      },
-      {
-        taskId: 'w1',
+      });
+    } else if (focusSkill === 'writing') {
+      tasks.push({
+        taskId: `write_${Date.now()}_1`,
         taskType: 'writing',
         targetSkill: 'writing',
-        learningObjective: 'Rewrite for formal tone',
-        prompt: 'Rewrite this message to be appropriate for a professional email to your boss:\n"Hey, I\'m gonna be late today cuz my car broke down."',
+        learningObjective: 'Sentence building and connector use',
+        prompt: 'Write two sentences explaining why you prefer working from home or from an office. You MUST use at least one linking word (e.g., however, because, therefore).',
         supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
-        difficultyTarget: 'B1',
-        completionCondition: 'Register matches professional workplace standard'
-      }
-    ];
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Use of connector and complete sentence structure'
+      });
+    } else {
+      tasks.push({
+        taskId: `speak_${Date.now()}_1`,
+        taskType: 'speaking',
+        targetSkill: 'speaking',
+        learningObjective: 'Fluency in routine scenarios',
+        prompt: 'You need to reschedule your dentist appointment. Leave a short voice message explaining why you cannot make it.',
+        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 2 },
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Clear communication of intent and reason'
+      });
+    }
+
+    // Task 2: Secondary / Cross-skill task
+    if (model.skills.writing.score < 50 || focusSkill !== 'writing') {
+      tasks.push({
+        taskId: `write_${Date.now()}_2`,
+        taskType: 'writing',
+        targetSkill: 'writing',
+        learningObjective: 'Formal register adaption',
+        prompt: 'Rewrite this casual message for your manager: "Hey, I\'m gonna be late today cuz my car broke down."',
+        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 2 },
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Appropriate professional register'
+      });
+    } else {
+      tasks.push({
+        taskId: `vocab_${Date.now()}_2`,
+        taskType: 'vocabulary',
+        targetSkill: 'vocabulary',
+        learningObjective: 'Precision in word choice',
+        prompt: 'Replace the word "good" with a more descriptive adjective: "The presentation was very good."',
+        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 2 },
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Provide an advanced synonym',
+        payload: { targetWord: 'excellent', distractors: [] }
+      });
+    }
+
+    // Task 3: Challenge task (if pacing/confidence allows)
+    if (taskCount === 3) {
+      tasks.push({
+        taskId: `speak_${Date.now()}_2`,
+        taskType: 'speaking',
+        targetSkill: 'speaking',
+        learningObjective: 'Spontaneous elaboration',
+        prompt: 'Topic: Describe the biggest challenge your industry faces today. Speak for at least 30 seconds.',
+        supportSettings: { allowHints: false, allowReplay: false, maxRetries: 1 },
+        difficultyTarget: model.overallLevel,
+        completionCondition: 'Extended response without heavy hesitation'
+      });
+    }
+
+    return tasks;
   }
 
   /**

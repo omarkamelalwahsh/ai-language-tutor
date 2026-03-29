@@ -1,5 +1,6 @@
 import { LearnerModelSnapshot } from '../types/learner-model';
 import { AdvancedDashboardPayload } from '../types/dashboard';
+import { JourneyService } from './JourneyService';
 
 const nextLevelMap: Record<string, string> = {
   'Pre-A1': 'A1', 'A1': 'A2', 'A1+': 'A2', 'A2': 'B1', 'A2+': 'B1',
@@ -52,17 +53,9 @@ export class DashboardService {
         reason: 'Based on your diagnostic, structured practice is the best next step.'
       },
       journey: {
-        currentStage: currentLevel,
-        targetStage: targetLevel,
-        journeyTitle: `Your Path from ${currentLevel} to ${targetLevel}`,
+        ...JourneyService.buildJourney(currentLevel),
         currentCapabilitiesSummary: model.interpretation.currentCapacities.join('. '),
         targetCapabilitiesSummary: `Confident everyday communication, clearer sentence building, and stronger follow-up interaction at the ${targetLevel} level.`,
-        milestones: [
-          { id: 'm1', title: 'Daily Conversation Basics', description: 'Greetings, introductions, simple questions', status: 'completed', estimatedDuration: '~1 week' },
-          { id: 'm2', title: 'Practical Vocabulary Growth', description: 'Core nouns, verbs, and connectors for routine use', status: 'current', estimatedDuration: '~2 weeks' },
-          { id: 'm3', title: 'Stronger Sentence Building', description: 'Compound sentences, conjunctions, and time markers', status: 'locked', estimatedDuration: '~2 weeks' },
-          { id: 'm4', title: 'Routine Communication', description: 'Ordering food, asking directions, making plans', status: 'locked', estimatedDuration: '~2 weeks' },
-        ]
       },
       skillAnalytics: (['speaking', 'writing', 'listening', 'vocabulary'] as const).map(skillId => {
         const dim = model.skills[skillId];

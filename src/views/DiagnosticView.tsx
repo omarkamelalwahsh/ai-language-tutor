@@ -60,6 +60,7 @@ const TaskQuestion: React.FC<{
   const startTime = useRef(Date.now());
 
   const isVisual = task.taskType === 'visual_description';
+  const isListening = task.taskType === 'listening_comprehension';
 
   useEffect(() => {
     if (isVisual) {
@@ -124,6 +125,20 @@ const TaskQuestion: React.FC<{
               </motion.div>
             )}
           </AnimatePresence>
+        </motion.div>
+      )}
+
+      {isListening && (
+        <motion.div variants={staggerItem} className="w-full bg-slate-100 rounded-2xl border border-slate-200 p-6 flex items-center gap-4 mb-8 shadow-inner">
+          <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+            <Mic className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-slate-800 text-sm mb-2">Audio Scenario</p>
+            <audio controls className="w-full h-10 outline-none" src="https://cdn.pixabay.com/audio/2022/10/25/audio_24911f32a6.mp3">
+              Your browser does not support the audio element.
+            </audio>
+          </div>
         </motion.div>
       )}
 

@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Mic, PenTool, Headphones, BookOpen, ChevronRight, 
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
-  BarChart2, History, Settings, BookMarked, ArrowRight
+  BarChart2, History, Settings, BookMarked, ArrowRight, Route
 } from 'lucide-react';
 
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { LearnerModelSnapshot } from '../../types/learner-model';
 import { DashboardService } from '../../services/DashboardService';
+import { mockTrainingProgress } from '../../data/mock-journey';
+import { generateForecast } from '../../lib/forecast-logic';
+import { ProgressForecastCard } from '../journey/ProgressForecastCard';
+import { ProgressSummaryCard } from '../journey/ProgressSummaryCard';
+import { TrainingConsistencyCard } from '../journey/TrainingConsistencyCard';
 
 interface AdvancedDashboardProps {
   learnerModel: LearnerModelSnapshot;
@@ -37,6 +42,7 @@ const skillIcons: Record<string, React.ReactNode> = {
 // Sidebar nav items
 const sidebarItems = [
   { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { id: 'journey', label: 'Journey', icon: <Route className="w-5 h-5" /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-5 h-5" /> },
   { id: 'hub', label: 'Practice', icon: <Dumbbell className="w-5 h-5" /> },
   { id: 'review', label: 'Review', icon: <BookMarked className="w-5 h-5" /> },
@@ -46,6 +52,7 @@ const sidebarItems = [
 
 export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerModel, dashboardData, onStartSession }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const forecast = useMemo(() => generateForecast(mockTrainingProgress), []);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -390,6 +397,25 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                   <div className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500" style={{ width: '60%' }} />
                 </div>
               </motion.section>
+            </motion.div>
+          )}
+
+          {/* ========= JOURNEY ========= */}
+          {activeTab === 'journey' && (
+            <motion.div key="journey" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-6">
+              <motion.div variants={staggerItem}>
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Level Journey</h2>
+                <p className="text-slate-500 text-sm">Track your progress, consistency, and path to your next level.</p>
+              </motion.div>
+
+              <motion.div variants={staggerItem}>
+                <ProgressForecastCard forecast={forecast} />
+              </motion.div>
+
+              <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ProgressSummaryCard progress={mockTrainingProgress} />
+                <TrainingConsistencyCard progress={mockTrainingProgress} />
+              </motion.div>
             </motion.div>
           )}
 

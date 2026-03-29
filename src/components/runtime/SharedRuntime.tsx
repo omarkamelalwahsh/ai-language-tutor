@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SessionTask, TaskFeedbackPayload, TaskEvaluationResult } from '../../types/runtime';
+import { LearnerModelSnapshot } from '../../types/learner-model';
 import { RuntimeService } from '../../services/RuntimeService';
 import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw } from 'lucide-react';
 
@@ -12,10 +13,11 @@ import { VocabularyModule } from './modules/VocabularyModule';
 
 interface SharedRuntimeProps {
   onExit: () => void;
+  learnerModel: LearnerModelSnapshot;
 }
 
-export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit }) => {
-  const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks());
+export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, learnerModel }) => {
+  const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(learnerModel));
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   
   const [feedback, setFeedback] = useState<TaskFeedbackPayload | null>(null);

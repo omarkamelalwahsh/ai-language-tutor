@@ -113,8 +113,8 @@ export default function App() {
           </FadeTransition>
         )}
 
-        {view === 'LEARNING_LOOP' && (
-          <SharedRuntime key="learning_loop" onExit={() => navigateTo('DASHBOARD')} />
+        {view === 'LEARNING_LOOP' && learnerModel && (
+          <SharedRuntime key="learning_loop" learnerModel={learnerModel} onExit={() => navigateTo('DASHBOARD')} />
         )}
       </AnimatePresence>
     </div>

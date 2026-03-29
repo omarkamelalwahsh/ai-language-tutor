@@ -1,0 +1,319 @@
+{
+  "speaking": {
+    "C2": {
+      "skill": "speaking",
+      "level": "C2",
+      "capabilityStatements": [
+        "Can produce clear, smoothly flowing, well-structured discourse with an effective logical structure which helps the recipient to notice and remember significant points.",
+        "Can present a complex topic confidently and articulately to an audience unfamiliar with it, structuring and adapting the talk flexibly to meet the audience’s needs.",
+        "Can handle difficult and even hostile questioning."
+      ],
+      "signals": []
+    },
+    "C1": {
+      "skill": "speaking",
+      "level": "C1",
+      "capabilityStatements": [
+        "Can give clear, detailed descriptions and presentations on complex subjects, integrating sub-themes, developing particular points and rounding off with an appropriate conclusion.",
+        "Can give a clear, well-structured presentation on a complex subject, expanding and supporting points of view at some length with subsidiary points, reasons and relevant examples.",
+        "Can structure a longer presentation appropriately in order to help the audience follow the sequence of ideas and understand the overall argumentation.",
+        "Can speculate or hypothesise in presenting a complex subject, comparing and evaluating alternative proposals and arguments.",
+        "Can handle interjections well, responding spontaneously and almost effortlessly."
+      ],
+      "signals": []
+    },
+    "B2+": {
+      "skill": "speaking",
+      "level": "B2+",
+      "capabilityStatements": [
+        "Can give clear, systematically developed descriptions and presentations, with appropriate highlighting of significant points, and relevant supporting detail.",
+        "Can give a clear, systematically developed presentation, with highlighting of significant points, and relevant supporting detail.",
+        "Can depart spontaneously from a prepared text and follow up interesting points raised by members of the audience, often showing remarkable fluency and ease of expression."
+      ],
+      "signals": []
+    },
+    "B2": {
+      "skill": "speaking",
+      "level": "B2",
+      "capabilityStatements": [
+        "Can give clear, detailed descriptions and presentations on a wide range of subjects related to their field of interest, expanding and supporting ideas with subsidiary points and relevant examples.",
+        "Can give a clear, prepared presentation, giving reasons in support of or against a particular point of view and giving the advantages and disadvantages of various options.",
+        "Can take a series of follow-up questions with a degree of fluency and spontaneity which poses no strain for either themselves or the audience."
+      ],
+      "signals": []
+    },
+    "B1": {
+      "skill": "speaking",
+      "level": "B1",
+      "capabilityStatements": [
+        "Can reasonably fluently sustain a straightforward description of one of a variety of subjects within their field of interest, presenting it as a linear sequence of points.",
+        "Can give a prepared straightforward presentation on a familiar topic within their field which is clear enough to be followed without difficulty most of the time, and in which the main points are explained with reasonable precision.",
+        "Can take follow-up questions, but may have to ask for repetition if the delivery is rapid."
+      ],
+      "signals": []
+    },
+    "A2": {
+      "skill": "speaking",
+      "level": "A2",
+      "capabilityStatements": [
+        "Can give a simple description or presentation of people, living or working conditions, daily routines. likes/dislikes, etc. as a short series of simple phrases and sentences linked into a list.",
+        "Can give a short, rehearsed, basic presentation on a familiar subject.",
+        "Can answer straightforward follow-up questions if they can ask for repetition and if some help with the formulation of their reply is possible."
+      ],
+      "signals": []
+    },
+    "A1": {
+      "skill": "speaking",
+      "level": "A1",
+      "capabilityStatements": [
+        "Can produce simple, mainly isolated phrases about people and places.",
+        "Can use a very short prepared text to deliver a rehearsed statement (e.g. to formally introduce someone, to propose a toast)."
+      ],
+      "signals": []
+    },
+    "Pre-A1": {
+      "skill": "speaking",
+      "level": "Pre-A1",
+      "capabilityStatements": [
+        "Can produce short phrases about themselves, giving basic personal information (e.g. name, address, family, nationality).",
+        "No descriptors available"
+      ],
+      "signals": []
+    },
+    "B1+": {
+      "skill": "speaking",
+      "level": "B1+",
+      "capabilityStatements": [
+        "Can give a prepared presentation on a familiar topic within their field, outlining similarities and differences (e.g. between products, countries/regions, plans)."
+      ],
+      "signals": []
+    },
+    "A2+": {
+      "skill": "speaking",
+      "level": "A2+",
+      "capabilityStatements": [
+        "Can give a short, rehearsed presentation on a topic pertinent to their everyday life, and briefly give reasons and explanations for opinions, plans and actions.",
+        "Can cope with a limited number of straightforward follow-up questions."
+      ],
+      "signals": []
+    }
+  },
+  "writing": {
+    "C2": {
+      "skill": "writing",
+      "level": "C2",
+      "capabilityStatements": [
+        "Can produce clear, smoothly flowing, complex texts in an appropriate and effective style and a logical structure which helps the reader identify significant points.",
+        "Can relate clear, smoothly flowing and engaging stories and descriptions of experience in a style appropriate to the genre adopted.",
+        "Can exploit idiom and humour appropriately to enhance the impact of the text.",
+        "Can produce clear, smoothly flowing, complex reports, articles or essays which present a case, or give critical appreciation of proposals or literary works.",
+        "Can provide an appropriate and effective logical structure which helps the reader identify significant points.",
+        "Can set out multiple perspectives on complex academic or professional topics, clearly distinguishing their own ideas and opinions from those in the sources."
+      ],
+      "signals": []
+    },
+    "C1": {
+      "skill": "writing",
+      "level": "C1",
+      "capabilityStatements": [
+        "Can produce clear, well-structured texts of complex subjects, underlining the relevant salient issues, expanding and supporting points of view at some length with subsidiary points, reasons and relevant examples, and rounding off with an appropriate conclusion.",
+        "Can employ the structure and conventions of a variety of genres, varying the tone, style and register according to addressee, text type and theme.",
+        "Can produce clear, detailed, well-structured and developed descriptions and imaginative texts in an assured, personal, natural style appropriate to the reader in mind.",
+        "Can incorporate idiom and humour, though use of the latter is not always appropriate.",
+        "Can give a detailed critical review of cultural events (e.g. plays, films, concerts) or literary works.",
+        "Can produce clear, well-structured expositions of complex subjects, underlining the relevant salient issues.",
+        "Can expand and support points of view at some length with subsidiary points, reasons and relevant examples.",
+        "Can produce a suitable introduction and conclusion to a longer report, article or dissertation on a complex academic or professional topic provided the topic is within their field of interest and there are opportunities for redrafting and revision."
+      ],
+      "signals": []
+    },
+    "B2": {
+      "skill": "writing",
+      "level": "B2",
+      "capabilityStatements": [
+        "Can produce clear, detailed texts on a variety of subjects related to their field of interest, synthesising and evaluating information and arguments from a number of sources.",
+        "Can give clear, detailed descriptions on a variety of subjects related to their field of interest.",
+        "Can give a review of a film, book or play.",
+        "Can produce an essay or report which develops an argument, giving reasons in support of or against a particular point of view and explaining the advantages and disadvantages of various options.",
+        "Can synthesise information and arguments from a number of sources."
+      ],
+      "signals": []
+    },
+    "B1": {
+      "skill": "writing",
+      "level": "B1",
+      "capabilityStatements": [
+        "Can produce straightforward connected texts on a range of familiar subjects within their field of interest, by linking a series of shorter discrete elements into a linear sequence.",
+        "Can give straightforward, detailed descriptions on a range of familiar subjects within their field of interest.",
+        "Can give accounts of experiences, describing feelings and reactions in simple, connected text.",
+        "Can give a description of an event, a recent trip – real or imagined.",
+        "Can narrate a story.",
+        "Can produce very brief reports in a standard conventionalised format, which pass on routine factual information and state reasons for actions.",
+        "Can present a topic in a short report or poster, using photographs and short blocks of text."
+      ],
+      "signals": []
+    },
+    "A2": {
+      "skill": "writing",
+      "level": "A2",
+      "capabilityStatements": [
+        "Can produce a series of simple phrases and sentences linked with simple connectors like “and”, “but” and “because”.",
+        "Can produce a series of simple phrases and sentences about their family, living conditions, educational background, or present or most recent job.",
+        "Can create short, simple imaginary biographies and simple poems about people.",
+        "Can create diary entries that describe activities (e.g. daily routine, outings, sports, hobbies), people and places, using basic, concrete vocabulary and simple phrases and sentences with simple connectives like “and”, “but” and “because”.",
+        "Can compose an introduction to a story or continue a story, provided they can consult a dictionary and references (e.g. tables of verb tenses in a course book).",
+        "Can produce simple texts on familiar subjects of interest, linking sentences with connectors like “and”, “because” or “then”.",
+        "Can give their impressions and opinions about topics of personal interest (e.g. lifestyles and culture, stories), using basic everyday vocabulary and expressions."
+      ],
+      "signals": []
+    },
+    "A1": {
+      "skill": "writing",
+      "level": "A1",
+      "capabilityStatements": [
+        "Can give information about matters of personal relevance (e.g. likes and dislikes, family, pets) using simple words/signs and basic expressions.",
+        "Can produce simple isolated phrases and sentences.",
+        "Can produce simple phrases and sentences about themselves and imaginary people, where they live and what they do.",
+        "Can describe in very simple language what a room looks like.",
+        "Can use simple words/signs and phrases to describe certain everyday objects (e.g. the colour of a car, whether it is big or small).",
+        "No descriptors available"
+      ],
+      "signals": []
+    },
+    "Pre-A1": {
+      "skill": "writing",
+      "level": "Pre-A1",
+      "capabilityStatements": [
+        "Can give basic personal information (e.g. name, address, nationality), perhaps with the use of a dictionary.",
+        "No descriptors available",
+        "No descriptors available"
+      ],
+      "signals": []
+    },
+    "B2+": {
+      "skill": "writing",
+      "level": "B2+",
+      "capabilityStatements": [
+        "Can give clear, detailed descriptions of real or imaginary events and experiences marking the relationship between ideas in clear connected text, and following established conventions of the genre concerned.",
+        "Can produce an essay or report which develops an argument systematically with appropriate highlighting of significant points and relevant supporting detail.",
+        "Can produce a detailed description of a complex process.",
+        "Can evaluate different ideas or solutions to a problem."
+      ],
+      "signals": []
+    },
+    "B1+": {
+      "skill": "writing",
+      "level": "B1+",
+      "capabilityStatements": [
+        "Can clearly signal chronological sequence in narrative text.",
+        "Can give a simple review of a film, book or TV programme using a limited range of language.",
+        "Can produce short, simple essays on topics of interest.",
+        "Can produce a text on a topical subject of personal interest, using simple language to list advantages and disadvantages, and give and justify their opinion.",
+        "Can summarise, report and give their opinion about accumulated factual information on familiar routine and non-routine matters within their field with some confidence."
+      ],
+      "signals": []
+    },
+    "A2+": {
+      "skill": "writing",
+      "level": "A2+",
+      "capabilityStatements": [
+        "Can describe everyday aspects of their environment e.g. people, places, a job or study experience in linked sentences.",
+        "Can give very short, basic descriptions of events, past activities and personal experiences.",
+        "Can tell a simple story (e.g. about events on a holiday or about life in the distant future)."
+      ],
+      "signals": []
+    }
+  },
+  "listening": {},
+  "vocabulary": {
+    "C2": {
+      "skill": "vocabulary",
+      "level": "C2",
+      "capabilityStatements": [
+        "Has a good command of a very broad lexical repertoire including idiomatic expressions and colloquialisms; shows awareness of connotative levels of meaning.",
+        "Consistently correct and appropriate use of vocabulary."
+      ],
+      "signals": []
+    },
+    "C1": {
+      "skill": "vocabulary",
+      "level": "C1",
+      "capabilityStatements": [
+        "Has a good command of a broad lexical repertoire allowing gaps to be readily overcome with circumlocutions; little obvious searching for expressions or avoidance strategies.",
+        "Can select from several vocabulary options in almost all situations by exploiting synonyms of even words/signs less commonly encountered.",
+        "Has a good command of common idiomatic expressions and colloquialisms; can play with words/signs fairly well.",
+        "Can understand and use appropriately the range of technical vocabulary and idiomatic expressions common to their area of specialisation.",
+        "Uses less common vocabulary idiomatically and appropriately.",
+        "Occasional minor slips, but no significant vocabulary errors."
+      ],
+      "signals": []
+    },
+    "B2+": {
+      "skill": "vocabulary",
+      "level": "B2+",
+      "capabilityStatements": [
+        "Can understand and use the main technical terminology of their field, when discussing their area of specialisation with other specialists."
+      ],
+      "signals": []
+    },
+    "B2": {
+      "skill": "vocabulary",
+      "level": "B2",
+      "capabilityStatements": [
+        "Has a good range of vocabulary for matters connected to their field and most general topics.",
+        "Can vary formulation to avoid frequent repetition, but lexical gaps can still cause hesitation and circumlocution.",
+        "Can produce appropriate collocations of many words/signs in most contexts fairly systematically.",
+        "Can understand and use much of the specialist vocabulary of their field but has problems with specialist terminology outside it.",
+        "Lexical accuracy is generally high, though some confusion and incorrect word/sign choice does occur without hindering communication."
+      ],
+      "signals": []
+    },
+    "B1": {
+      "skill": "vocabulary",
+      "level": "B1",
+      "capabilityStatements": [
+        "Has a good range of vocabulary related to familiar topics and everyday situations.",
+        "Has sufficient vocabulary to express themselves with some circumlocutions on most topics pertinent to their everyday life such as family, hobbies and interests, work, travel and current events.",
+        "Shows good control of elementary vocabulary but major errors still occur when expressing more complex thoughts or handling unfamiliar topics and situations.",
+        "Uses a wide range of simple vocabulary appropriately when discussing familiar topics."
+      ],
+      "signals": []
+    },
+    "A2+": {
+      "skill": "vocabulary",
+      "level": "A2+",
+      "capabilityStatements": [
+        "Has sufficient vocabulary to conduct routine everyday transactions involving familiar situations and topics."
+      ],
+      "signals": []
+    },
+    "A2": {
+      "skill": "vocabulary",
+      "level": "A2",
+      "capabilityStatements": [
+        "Has sufficient vocabulary for the expression of basic communicative needs.",
+        "Has sufficient vocabulary for coping with simple survival needs.",
+        "Can control a narrow repertoire dealing with concrete, everyday needs."
+      ],
+      "signals": []
+    },
+    "A1": {
+      "skill": "vocabulary",
+      "level": "A1",
+      "capabilityStatements": [
+        "Has a basic vocabulary repertoire of words/signs and phrases related to particular concrete situations.",
+        "No descriptors available"
+      ],
+      "signals": []
+    },
+    "Pre-A1": {
+      "skill": "vocabulary",
+      "level": "Pre-A1",
+      "capabilityStatements": [
+        "No descriptors available",
+        "No descriptors available"
+      ],
+      "signals": []
+    }
+  }
+}
