@@ -8,6 +8,7 @@ import { DashboardService } from './services/DashboardService';
 // Views
 import { AuthView } from './views/AuthView';
 import { OnboardingView } from './views/OnboardingView';
+import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
 import { DiagnosticView } from './views/DiagnosticView';
 import { AnalyzingView } from './views/AnalyzingView';
 import { FadeTransition } from './lib/animations';
@@ -75,8 +76,16 @@ export default function App() {
         {view === 'ONBOARDING' && (
           <OnboardingView key="onboarding" onComplete={(state) => {
             setOnboardingState(state);
-            navigateTo('DIAGNOSTIC');
+            navigateTo('PRE_ASSESSMENT_INTRO');
           }} />
+        )}
+
+        {view === 'PRE_ASSESSMENT_INTRO' && (
+          <PreAssessmentIntroView
+            key="pre-assessment-intro"
+            onStartAssessment={() => navigateTo('DIAGNOSTIC')}
+            onBack={() => navigateTo('ONBOARDING')}
+          />
         )}
 
         {view === 'DIAGNOSTIC' && (

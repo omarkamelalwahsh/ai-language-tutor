@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Mic, PenTool, Headphones, BookOpen, ChevronRight,
-  Coffee, Briefcase, GraduationCap, CheckCircle2, Clock, Flame
+  Coffee, Briefcase, GraduationCap, CheckCircle2, Clock, Flame, Heart
 } from 'lucide-react';
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
+import { TOPIC_DEFINITIONS, TopicId } from '../data/topics';
 
 interface OnboardingViewProps {
   onComplete: (state: OnboardingState) => void;
@@ -18,9 +19,10 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     nativeLanguage: 'English',
     targetLanguage: 'Spanish',
     focusSkills: [],
+    topics: [],
     sessionIntensity: null,
   });
-  const totalOnboardingSteps = 4;
+  const totalOnboardingSteps = 5;
 
   const handleNext = () => {
     if (step < totalOnboardingSteps) {
@@ -49,7 +51,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     { id: 'intensive', label: 'Intensive', icon: <Flame className="w-5 h-5" />, desc: 'Daily sessions, ~20 min each', subtext: 'Fast-track to next level' },
   ] as const;
 
-  const stepLabels = ['Goal', 'Languages', 'Skills', 'Intensity'];
+  const stepLabels = ['Goal', 'Languages', 'Skills', 'Topics', 'Intensity'];
 
   return (
     <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center pt-16 px-4 pb-12 relative">
@@ -192,8 +194,59 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               </motion.div>
             )}
 
-            {/* Step 4: Session Intensity (NEW) */}
+            {/* Step 4: Topics / Interests */}
             {step === 4 && (
+              <motion.div key="s4" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
+                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">What topics interest you most?</motion.h2>
+                <motion.p variants={staggerItem} className="text-slate-500 mb-2">Choose the subjects you'd like to practice in your lessons.</motion.p>
+                <motion.p variants={staggerItem} className="text-xs text-slate-400 font-medium mb-6 flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-indigo-400" /> Select at least one. You can choose multiple.
+                </motion.p>
+                
+                <motion.div variants={staggerItem} className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-auto">
+                  {TOPIC_DEFINITIONS.map(topic => {
+                    const isSelected = state.topics.includes(topic.id);
+                    return (
+                      <button
+                        key={topic.id}
+                        onClick={() => {
+                          const newTopics: TopicId[] = isSelected 
+                            ? state.topics.filter(id => id !== topic.id)
+                            : [...state.topics, topic.id];
+                          setState({ ...state, topics: newTopics });
+                        }}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all relative ${
+                          isSelected 
+                            ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100' 
+                            : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'
+                        }`}
+                      >
+                        <span className="text-xl mb-2 block">{topic.emoji}</span>
+                        <span className={`font-semibold text-sm block ${
+                          isSelected ? 'text-indigo-900' : 'text-slate-700'
+                        }`}>{topic.label}</span>
+                        <span className={`text-[10px] leading-tight block mt-0.5 ${
+                          isSelected ? 'text-indigo-600/70' : 'text-slate-400'
+                        }`}>{topic.description}</span>
+                        {isSelected && <CheckCircle2 className="absolute top-2.5 right-2.5 w-4 h-4 text-indigo-600" />}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+                
+                <motion.button
+                  variants={staggerItem}
+                  disabled={state.topics.length === 0}
+                  onClick={handleNext}
+                  className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  Continue <ChevronRight className="w-5 h-5" />
+                </motion.button>
+              </motion.div>
+            )}
+
+            {/* Step 5: Session Intensity */}
+            {step === 5 && (
               <motion.div key="s4" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
                 <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Session Intensity</motion.h2>
                 <motion.p variants={staggerItem} className="text-slate-500 mb-8">How often do you want to practice? This shapes your session length and review schedule.</motion.p>
