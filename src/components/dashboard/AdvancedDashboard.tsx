@@ -16,7 +16,6 @@ import { ProgressForecastCard } from '../journey/ProgressForecastCard';
 import { ProgressSummaryCard } from '../journey/ProgressSummaryCard';
 import { TrainingConsistencyCard } from '../journey/TrainingConsistencyCard';
 import { NewLearnerJourneyView } from '../journey/NewLearnerJourneyView';
-import { CEFRLevel } from '../../types/learner-model';
 
 interface AdvancedDashboardProps {
   learnerModel: LearnerModelSnapshot;
@@ -414,8 +413,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
 
               {dashboardData.isNewLearner ? (
                 <NewLearnerJourneyView 
-                   currentLevel={learnerModel.overallLevel}
-                   targetLevel={learnerModel.overallLevel === 'C1' ? 'C2' : (['A2', 'B1', 'B2', 'C1'][Math.min(3, ['A1', 'A2', 'B1', 'B2'].indexOf(learnerModel.overallLevel as any) + 1)])}
+                   learnerModel={learnerModel}
                    onStartSession={onStartSession}
                 />
               ) : (

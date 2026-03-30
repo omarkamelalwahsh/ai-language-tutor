@@ -25,6 +25,7 @@ export class AssessmentAnalysisService {
       timestamp: new Date().toISOString(),
       overallLevel,
       hasStartedLearning: false,
+      onboardingIntensity: onboardingData?.sessionIntensity || 'regular',
       skills: skillAnalysis,
       errors: errorAnalysis,
       retention: {
