@@ -1,6 +1,6 @@
 import { TopicId } from '../data/topics';
 
-export type ViewState = 'AUTH' | 'ONBOARDING' | 'PRE_ASSESSMENT_INTRO' | 'DIAGNOSTIC' | 'ANALYZING' | 'RESULTS' | 'DASHBOARD' | 'LEARNING_LOOP';
+export type ViewState = 'AUTH' | 'ONBOARDING' | 'PRE_ASSESSMENT_INTRO' | 'DIAGNOSTIC' | 'ANALYZING' | 'RESULT_ANALYSIS' | 'LEARNING_JOURNEY' | 'DASHBOARD' | 'LEARNING_LOOP';
 
 export interface OnboardingState {
   goal: 'casual' | 'serious' | 'professional' | null;

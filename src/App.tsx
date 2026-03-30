@@ -14,7 +14,8 @@ import { AnalyzingView } from './views/AnalyzingView';
 import { FadeTransition } from './lib/animations';
 
 // Components
-import { LearnerInterpretation } from './components/assessment/AssessmentResults';
+import { ResultAnalysisView } from './views/ResultAnalysisView';
+import { LearningJourneyView } from './views/LearningJourneyView';
 import { AdvancedDashboard } from './components/dashboard/AdvancedDashboard';
 import { SharedRuntime } from './components/runtime/SharedRuntime';
 
@@ -98,15 +99,22 @@ export default function App() {
         {view === 'ANALYZING' && (
           <AnalyzingView key="analyzing" onboardingState={onboardingState} taskResults={taskResults} onComplete={(model) => {
             setLearnerModel(model);
-            navigateTo('RESULTS');
+            navigateTo('RESULT_ANALYSIS');
           }} />
         )}
 
-        {view === 'RESULTS' && learnerModel && (
-          <LearnerInterpretation
-            key="results"
+        {view === 'RESULT_ANALYSIS' && learnerModel && (
+          <ResultAnalysisView
+            key="result_analysis"
             model={learnerModel}
-            segment={onboardingState?.goal || null}
+            onContinue={() => navigateTo('LEARNING_JOURNEY')}
+          />
+        )}
+
+        {view === 'LEARNING_JOURNEY' && learnerModel && (
+          <LearningJourneyView
+            key="learning_journey"
+            model={learnerModel}
             onStartSession={() => navigateTo('LEARNING_LOOP')}
             onViewDashboard={() => navigateTo('DASHBOARD')}
           />

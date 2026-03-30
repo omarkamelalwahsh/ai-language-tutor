@@ -29,3 +29,25 @@ export interface TrainingProgress {
   /** Activity data for the current month view */
   readonly monthlyActivity: readonly DayActivity[];
 }
+
+export type AssessmentOutcome = {
+  estimatedBand: CEFRLevelId;
+  confidence: number;
+  skillScores: Record<string, number>;
+  strengths: string[];
+  weaknesses: string[];
+};
+
+export type LearningJourneyModule = {
+  id: string;
+  title: string;
+  focus: string[];
+  reason: string;
+};
+
+export type LearningJourneyPlan = {
+  currentLevel: string;
+  targetLevel: string;
+  estimatedWeeks: number;
+  modules: LearningJourneyModule[];
+};

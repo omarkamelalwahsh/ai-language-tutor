@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
-import { TOPIC_DEFINITIONS, TopicId } from '../data/topics';
+import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
 
 interface OnboardingViewProps {
   onComplete: (state: OnboardingState) => void;
@@ -198,40 +198,58 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             {step === 4 && (
               <motion.div key="s4" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
                 <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">What topics interest you most?</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-2">Choose the subjects you'd like to practice in your lessons.</motion.p>
+                <motion.p variants={staggerItem} className="text-slate-500 mb-2">
+                  {state.goal ? `Based on your ${state.goal} goal, we've recommended relevant topics.` : "Choose the subjects you'd like to practice in your lessons."}
+                </motion.p>
                 <motion.p variants={staggerItem} className="text-xs text-slate-400 font-medium mb-6 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-indigo-400" /> Select at least one. You can choose multiple.
+                  <Heart className="w-3.5 h-3.5 text-indigo-400" /> Select at least one. You can mix any topics you like.
                 </motion.p>
                 
-                <motion.div variants={staggerItem} className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-auto">
-                  {TOPIC_DEFINITIONS.map(topic => {
-                    const isSelected = state.topics.includes(topic.id);
-                    return (
-                      <button
-                        key={topic.id}
-                        onClick={() => {
-                          const newTopics: TopicId[] = isSelected 
-                            ? state.topics.filter(id => id !== topic.id)
-                            : [...state.topics, topic.id];
-                          setState({ ...state, topics: newTopics });
-                        }}
-                        className={`p-4 rounded-2xl border-2 text-left transition-all relative ${
-                          isSelected 
-                            ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100' 
-                            : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'
-                        }`}
-                      >
-                        <span className="text-xl mb-2 block">{topic.emoji}</span>
-                        <span className={`font-semibold text-sm block ${
-                          isSelected ? 'text-indigo-900' : 'text-slate-700'
-                        }`}>{topic.label}</span>
-                        <span className={`text-[10px] leading-tight block mt-0.5 ${
-                          isSelected ? 'text-indigo-600/70' : 'text-slate-400'
-                        }`}>{topic.description}</span>
-                        {isSelected && <CheckCircle2 className="absolute top-2.5 right-2.5 w-4 h-4 text-indigo-600" />}
-                      </button>
-                    );
-                  })}
+                <motion.div variants={staggerItem} className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-auto pb-4">
+                  {(() => {
+                    const { recommended, other } = getSortedTopicsForGoal(state.goal as GoalId | null);
+                    return [...recommended, ...other].map(topic => {
+                      const isSelected = state.topics.includes(topic.id);
+                      const isRecommended = recommended.some(r => r.id === topic.id);
+                      
+                      return (
+                        <button
+                          key={topic.id}
+                          onClick={() => {
+                            const newTopics: TopicId[] = isSelected 
+                              ? state.topics.filter(id => id !== topic.id)
+                              : [...state.topics, topic.id];
+                            setState({ ...state, topics: newTopics });
+                          }}
+                          className={`p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden ${
+                            isSelected 
+                              ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100' 
+                              : isRecommended 
+                                ? 'border-amber-200 bg-amber-50/30 hover:border-indigo-300 hover:bg-white' 
+                                : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'
+                          }`}
+                        >
+                          {isRecommended && !isSelected && (
+                            <span className="absolute top-0 right-0 bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+                              Rec
+                            </span>
+                          )}
+                          <span className="text-xl mb-2 block relative z-10">{topic.emoji}</span>
+                          <span className={`font-semibold text-sm block relative z-10 ${
+                            isSelected ? 'text-indigo-900' : isRecommended ? 'text-amber-900' : 'text-slate-700'
+                          }`}>{topic.label}</span>
+                          <span className={`text-[10px] leading-tight block mt-0.5 relative z-10 ${
+                            isSelected ? 'text-indigo-600/70' : isRecommended ? 'text-amber-700/70' : 'text-slate-400'
+                          }`}>{topic.description}</span>
+                          {isSelected && <CheckCircle2 className="absolute top-2.5 right-2.5 w-4 h-4 text-indigo-600 z-10" />}
+                          
+                          {isRecommended && (
+                            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent pointer-events-none" />
+                          )}
+                        </button>
+                      );
+                    });
+                  })()}
                 </motion.div>
                 
                 <motion.button

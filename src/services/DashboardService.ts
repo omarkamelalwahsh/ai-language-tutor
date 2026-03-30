@@ -46,6 +46,7 @@ export class DashboardService {
     const targetLevel = nextLevelMap[currentLevel] || 'A2';
 
     return {
+      isNewLearner: !model.hasStartedLearning,
       primaryGoalText: `Solidify your ${currentLevel} foundation and build toward ${targetLevel}.`,
       recommendedNextAction: {
         label: 'Start Next Session',
@@ -77,7 +78,9 @@ export class DashboardService {
         dueStatus: err.severity === 'high' ? 'overdue' as const : 'due' as const,
         fragility: err.severity === 'high' ? 'high' as const : 'medium' as const,
       })),
-      weeklyRhythm: { streakDays: 1, sessionsThisWeek: 0, momentumState: 'building' }
+      weeklyRhythm: model.hasStartedLearning 
+        ? { streakDays: 1, sessionsThisWeek: 0, momentumState: 'building' }
+        : { streakDays: 0, sessionsThisWeek: 0, momentumState: 'building' }
     };
   }
 

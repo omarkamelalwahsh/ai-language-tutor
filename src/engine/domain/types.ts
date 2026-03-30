@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { CEFRLevel, CEFRBand } from './cefr';
+export type { CEFRLevel, CEFRBand };
 import { ErrorCode } from './errors';
 
 // ─── Identifiers ────────────────────────────────────────────────────────────
@@ -673,7 +674,8 @@ export interface PedagogicalDecision {
     | 'challenge'          // Learner is ready for harder material
     | 'review'             // Revisit previously mastered material
     | 'rest'               // Learner shows fatigue/frustration signs
-    | 'replan';            // Significant shift detected, generate new plan
+    | 'replan'             // Significant shift detected, generate new plan
+    | 'transfer';          // Apply skills in a new context
 
   /** Explanation of why this decision was made. */
   readonly reasoning: string;

@@ -15,6 +15,8 @@ import { generateForecast } from '../../lib/forecast-logic';
 import { ProgressForecastCard } from '../journey/ProgressForecastCard';
 import { ProgressSummaryCard } from '../journey/ProgressSummaryCard';
 import { TrainingConsistencyCard } from '../journey/TrainingConsistencyCard';
+import { NewLearnerJourneyView } from '../journey/NewLearnerJourneyView';
+import { CEFRLevel } from '../../types/learner-model';
 
 interface AdvancedDashboardProps {
   learnerModel: LearnerModelSnapshot;
@@ -89,7 +91,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
         <div className="bg-slate-900 rounded-2xl p-4 text-white mt-4">
           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">Streak</p>
           <p className="text-2xl font-extrabold text-orange-400 mb-1">{dashboardData.weeklyRhythm.streakDays} <span className="text-sm text-slate-500">days</span></p>
-          <p className="text-xs text-slate-400">{dashboardData.weeklyRhythm.sessionsThisWeek} sessions this week</p>
+          <p className="text-xs text-slate-400">
+            {dashboardData.isNewLearner ? "Complete first lesson to start" : `${dashboardData.weeklyRhythm.sessionsThisWeek} sessions this week`}
+          </p>
         </div>
       </aside>
 
@@ -408,14 +412,24 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                 <p className="text-slate-500 text-sm">Track your progress, consistency, and path to your next level.</p>
               </motion.div>
 
-              <motion.div variants={staggerItem}>
-                <ProgressForecastCard forecast={forecast} />
-              </motion.div>
+              {dashboardData.isNewLearner ? (
+                <NewLearnerJourneyView 
+                   currentLevel={learnerModel.overallLevel}
+                   targetLevel={learnerModel.overallLevel === 'C1' ? 'C2' : (['A2', 'B1', 'B2', 'C1'][Math.min(3, ['A1', 'A2', 'B1', 'B2'].indexOf(learnerModel.overallLevel as any) + 1)])}
+                   onStartSession={onStartSession}
+                />
+              ) : (
+                <div className="space-y-6">
+                  <motion.div variants={staggerItem}>
+                    <ProgressForecastCard forecast={forecast} />
+                  </motion.div>
 
-              <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProgressSummaryCard progress={mockTrainingProgress} />
-                <TrainingConsistencyCard progress={mockTrainingProgress} />
-              </motion.div>
+                  <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <ProgressSummaryCard progress={mockTrainingProgress} />
+                    <TrainingConsistencyCard progress={mockTrainingProgress} />
+                  </motion.div>
+                </div>
+              )}
             </motion.div>
           )}
 

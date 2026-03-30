@@ -22,7 +22,7 @@ const outcomes = [
   { icon: <Award className="w-4 h-4" />, text: 'Your estimated starting level' },
   { icon: <BarChart2 className="w-4 h-4" />, text: 'A breakdown of your skill strengths' },
   { icon: <Target className="w-4 h-4" />, text: 'Clear growth areas to focus on' },
-  { icon: <Sparkles className="w-4 h-4" />, text: 'A personalized learning plan' },
+  { icon: <Sparkles className="w-4 h-4" />, text: 'A personalized study plan' },
 ];
 
 export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
@@ -47,7 +47,7 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
             Before we begin, let's find<br />your starting level
           </h1>
           <p className="text-lg text-slate-500 max-w-lg mx-auto leading-relaxed">
-            This short pre-assessment helps us understand your current English level so we can build the right learning path for you.
+            This short pre-assessment helps us understand your current English level so we can personalize your learning journey.
           </p>
         </motion.div>
 

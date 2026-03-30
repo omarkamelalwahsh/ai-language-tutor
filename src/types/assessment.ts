@@ -38,3 +38,42 @@ export interface AssessmentSignals {
   accuracy: number;          // 0-1
   latencyMs: number;
 }
+
+// --- NEW ADAPTIVE TYPES ---
+
+export type DifficultyBand = "A1" | "A2" | "B1" | "B2" | "C1";
+
+export type AssessmentSkill =
+  | "grammar"
+  | "vocabulary"
+  | "reading"
+  | "listening_proxy"
+  | "writing"
+  | "speaking_proxy";
+
+export type AssessmentQuestion = {
+  id: string;
+  skill: AssessmentSkill;
+  difficulty: DifficultyBand;
+  type: "multiple_choice" | "short_text";
+  prompt: string;
+  options?: string[]; // strictly for multiple_choice
+  correctAnswer?: string | string[]; // for exact match or includes
+  evaluationMode: "exact" | "includes" | "manual_rule";
+};
+
+export type QuestionResult = {
+  questionId: string;
+  isCorrect: boolean;
+  score: number;
+  answer: string;
+  responseTimeMs: number;
+};
+
+export type AdaptiveState = {
+  currentBand: DifficultyBand;
+  consecutiveCorrect: number;
+  consecutiveIncorrect: number;
+  questionsAnswered: number;
+  history: QuestionResult[];
+};

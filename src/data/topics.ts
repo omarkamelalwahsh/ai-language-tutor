@@ -44,3 +44,24 @@ export function getTopicsByIds(ids: readonly TopicId[]): TopicDefinition[] {
 
 /** All topic IDs for validation */
 export const ALL_TOPIC_IDS: readonly TopicId[] = TOPIC_DEFINITIONS.map(t => t.id);
+
+export type GoalId = 'casual' | 'serious' | 'professional';
+
+export const GOAL_TOPIC_MAPPING: Record<GoalId, readonly TopicId[]> = {
+  casual: ['daily_life', 'travel', 'culture', 'entertainment', 'sports'],
+  serious: ['education', 'science', 'technology', 'culture', 'health'],
+  professional: ['business', 'technology', 'education', 'daily_life', 'travel'],
+} as const;
+
+/** Sort topics prioritizing recommended topics for a given goal */
+export function getSortedTopicsForGoal(goal: GoalId | null): { recommended: TopicDefinition[], other: TopicDefinition[] } {
+  if (!goal) return { recommended: [], other: [...TOPIC_DEFINITIONS] };
+  
+  const recommendedIds = GOAL_TOPIC_MAPPING[goal];
+  const recommended = TOPIC_DEFINITIONS.filter(t => recommendedIds.includes(t.id))
+    .sort((a, b) => recommendedIds.indexOf(a.id) - recommendedIds.indexOf(b.id));
+    
+  const other = TOPIC_DEFINITIONS.filter(t => !recommendedIds.includes(t.id));
+  
+  return { recommended, other };
+}

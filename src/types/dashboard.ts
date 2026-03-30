@@ -34,6 +34,7 @@ export interface ReviewItemPayload {
 }
 
 export interface AdvancedDashboardPayload {
+  isNewLearner: boolean;
   primaryGoalText: string;
   recommendedNextAction: {
     label: string;

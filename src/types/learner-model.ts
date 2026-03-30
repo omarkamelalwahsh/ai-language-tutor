@@ -19,6 +19,8 @@ export interface LearnerModelSnapshot {
   version: string;
   timestamp: string;
   overallLevel: CEFRLevel;
+  hasStartedLearning: boolean;
+  onboardingIntensity: 'light' | 'regular' | 'intensive';
   
   // The 5 Core Sub-models
   skills: {
@@ -50,6 +52,20 @@ export interface LearnerModelSnapshot {
 }
 
 // ---- Learning Plan (Prompt 03) ---- //
+export interface AdvancedDashboardPayload {
+  isNewLearner: boolean;
+  primaryGoalText: string;
+  secondaryObjective?: string;
+  targetSkills: string[];
+  initialSupportProfile: 'scaffolded' | 'guided' | 'independent';
+  recommendedSessionBlueprint: SessionBlueprint;
+  earlyReviewTargets: string[];
+  motivationStyleHint: 'encouragement-heavy' | 'progress-driven' | 'challenge-seeking';
+  pacingHint: string;
+  confidenceSupportHint: string;
+  suggestedDashboardPriorities: string[];
+}
+
 export interface LearningPlan {
   primaryObjective: string;
   secondaryObjective?: string;
