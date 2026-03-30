@@ -11,7 +11,12 @@ import { OnboardingView } from './views/OnboardingView';
 import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
 import { DiagnosticView } from './views/DiagnosticView';
 import { AnalyzingView } from './views/AnalyzingView';
+import { LandingView } from './views/LandingView';
 import { FadeTransition } from './lib/animations';
+
+import { AdminDashboardView } from './views/AdminDashboardView';
+import { AdminLeaderboardView } from './views/AdminLeaderboardView';
+import { UserLeaderboardView } from './views/UserLeaderboardView';
 
 // Components
 import { ResultAnalysisView } from './views/ResultAnalysisView';
@@ -54,7 +59,8 @@ const DevModeOverlay = ({ model, show, onClose }: { model: LearnerModelSnapshot 
 );
 
 export default function App() {
-  const [view, setView] = useState<ViewState>('AUTH');
+  const [view, setView] = useState<ViewState>('LANDING');
+  const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
   const [taskResults, setTaskResults] = useState<any[]>([]);
   const [learnerModel, setLearnerModel] = useState<LearnerModelSnapshot | null>(null);
@@ -70,8 +76,23 @@ export default function App() {
       <DevModeOverlay model={learnerModel} show={devModeActive} onClose={() => setDevModeActive(false)} />
 
       <AnimatePresence mode="wait">
+        {view === 'LANDING' && (
+          <LandingView 
+            key="landing" 
+            onGetStarted={() => navigateTo('AUTH')} 
+            onSignIn={() => navigateTo('AUTH')} 
+          />
+        )}
+
         {view === 'AUTH' && (
-          <AuthView key="auth" onLogin={() => navigateTo('ONBOARDING')} />
+          <AuthView key="auth" onLogin={(role) => {
+            setUserRole(role);
+            if (role === 'admin') {
+              navigateTo('ADMIN_DASHBOARD');
+            } else {
+              navigateTo('ONBOARDING');
+            }
+          }} />
         )}
 
         {view === 'ONBOARDING' && (
@@ -126,8 +147,35 @@ export default function App() {
               learnerModel={learnerModel}
               dashboardData={DashboardService.buildPayload(learnerModel)}
               onStartSession={() => navigateTo('LEARNING_LOOP')}
+              onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
             />
           </FadeTransition>
+        )}
+
+        {view === 'ADMIN_DASHBOARD' && userRole === 'admin' && (
+          <AdminDashboardView 
+            key="admin_dashboard" 
+            onNavigateLeaderboard={() => navigateTo('ADMIN_LEADERBOARD')} 
+            onNavigateHome={() => navigateTo('LANDING')}
+            onLogout={() => navigateTo('AUTH')}
+          />
+        )}
+
+        {view === 'ADMIN_LEADERBOARD' && userRole === 'admin' && (
+          <AdminLeaderboardView 
+            key="admin_leaderboard" 
+            onNavigateDashboard={() => navigateTo('ADMIN_DASHBOARD')}
+            onNavigateHome={() => navigateTo('LANDING')}
+            onLogout={() => navigateTo('AUTH')}
+          />
+        )}
+
+        {view === 'USER_LEADERBOARD' && (
+          <UserLeaderboardView 
+            key="user_leaderboard" 
+            onBack={() => navigateTo('DASHBOARD')}
+            currentUserId="u3"
+          />
         )}
 
         {view === 'LEARNING_LOOP' && learnerModel && (

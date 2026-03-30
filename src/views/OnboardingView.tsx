@@ -7,6 +7,7 @@ import {
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
 import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
+import { GoalFollowUpModal } from '../components/onboarding/GoalFollowUpModal';
 
 interface OnboardingViewProps {
   onComplete: (state: OnboardingState) => void;
@@ -21,7 +22,9 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     focusSkills: [],
     topics: [],
     sessionIntensity: null,
+    goalContext: null,
   });
+  const [pendingGoal, setPendingGoal] = useState<string | null>(null);
   const totalOnboardingSteps = 5;
 
   const handleNext = () => {
@@ -94,7 +97,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   {goals.map(g => (
                     <button
                       key={g.id}
-                      onClick={() => setState({ ...state, goal: g.id })}
+                      onClick={() => setPendingGoal(g.id)}
                       className={`p-6 rounded-2xl border-2 text-left transition-all ${state.goal === g.id ? 'border-indigo-600 bg-indigo-50 shadow-md shadow-indigo-100' : 'border-slate-100 hover:border-indigo-200 hover:bg-slate-50'}`}
                     >
                       <div className={`mb-4 w-12 h-12 rounded-full flex items-center justify-center ${state.goal === g.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
@@ -299,6 +302,20 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               </motion.div>
             )}
 
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {pendingGoal && (
+              <GoalFollowUpModal 
+                goalId={pendingGoal}
+                onComplete={(context) => {
+                  setState({ ...state, goal: pendingGoal as any, goalContext: context });
+                  setPendingGoal(null);
+                  setStep(2); // Automatically proceed after follow-up
+                }}
+                onClose={() => setPendingGoal(null)}
+              />
+            )}
           </AnimatePresence>
         </div>
       </div>

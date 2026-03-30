@@ -4,7 +4,7 @@ import {
   Mic, PenTool, Headphones, BookOpen, ChevronRight, 
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
-  BarChart2, History, Settings, BookMarked, ArrowRight, Route
+  BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown
 } from 'lucide-react';
 
 import { AdvancedDashboardPayload } from '../../types/dashboard';
@@ -21,6 +21,7 @@ interface AdvancedDashboardProps {
   learnerModel: LearnerModelSnapshot;
   dashboardData: AdvancedDashboardPayload;
   onStartSession: () => void;
+  onNavigateLeaderboard: () => void;
 }
 
 const staggerContainer = {
@@ -51,7 +52,7 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerModel, dashboardData, onStartSession }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerModel, dashboardData, onStartSession, onNavigateLeaderboard }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const forecast = useMemo(() => generateForecast(mockTrainingProgress), []);
 
@@ -84,6 +85,13 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
               {item.label}
             </button>
           ))}
+          <button
+            onClick={onNavigateLeaderboard}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent transition-all"
+          >
+            <Crown className="w-5 h-5" />
+            Leaderboard
+          </button>
         </nav>
 
         {/* Quick Stats */}

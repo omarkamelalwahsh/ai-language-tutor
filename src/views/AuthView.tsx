@@ -3,7 +3,7 @@ import { FadeTransition } from '../lib/animations';
 import { User, Lock, Sparkles } from 'lucide-react';
 
 interface AuthViewProps {
-  onLogin: () => void;
+  onLogin: (role: 'user' | 'admin') => void;
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
@@ -21,7 +21,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           <p className="text-slate-500 text-sm font-medium">Sign in to begin your personalized language journey.</p>
         </div>
 
-        <form className="space-y-5 relative z-10" onSubmit={(e) => { e.preventDefault(); onLogin(); }}>
+        <form className="space-y-5 relative z-10" onSubmit={(e) => { e.preventDefault(); }}>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Email</label>
             <div className="relative">
@@ -44,12 +44,22 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]"
-          >
-            Sign In & Continue
-          </button>
+          <div className="pt-2 flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => onLogin('user')}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 rounded-xl transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]"
+            >
+              Sign In as Learner
+            </button>
+            <button
+              type="button"
+              onClick={() => onLogin('admin')}
+              className="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-4 rounded-xl transition-all shadow-md active:scale-[0.98]"
+            >
+              Sign In as Admin
+            </button>
+          </div>
         </form>
       </div>
     </FadeTransition>

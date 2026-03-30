@@ -1,6 +1,8 @@
 import { TopicId } from '../data/topics';
 
-export type ViewState = 'AUTH' | 'ONBOARDING' | 'PRE_ASSESSMENT_INTRO' | 'DIAGNOSTIC' | 'ANALYZING' | 'RESULT_ANALYSIS' | 'LEARNING_JOURNEY' | 'DASHBOARD' | 'LEARNING_LOOP';
+export type ViewState = 'LANDING' | 'AUTH' | 'ONBOARDING' | 'PRE_ASSESSMENT_INTRO' | 'DIAGNOSTIC' | 'ANALYZING' | 'RESULT_ANALYSIS' | 'LEARNING_JOURNEY' | 'DASHBOARD' | 'LEARNING_LOOP' | 'ADMIN_DASHBOARD' | 'ADMIN_LEADERBOARD' | 'USER_LEADERBOARD';
+
+export type UserRole = 'user' | 'admin';
 
 export interface OnboardingState {
   goal: 'casual' | 'serious' | 'professional' | null;
@@ -9,6 +11,7 @@ export interface OnboardingState {
   focusSkills: string[];
   topics: TopicId[];
   sessionIntensity?: 'light' | 'regular' | 'intensive' | null;
+  goalContext?: string | null;
 }
 
 export interface TaskModel {

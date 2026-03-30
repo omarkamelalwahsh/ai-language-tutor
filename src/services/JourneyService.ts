@@ -1,19 +1,6 @@
 import { LearnerModelSnapshot, CEFRLevel } from '../types/learner-model';
 
-export interface JourneyMilestone {
-  id: string;
-  title: string;
-  description: string;
-  status: 'completed' | 'current' | 'locked';
-  estimatedDuration: string;
-}
-
-export interface LearnerJourney {
-  currentStage: CEFRLevel;
-  targetStage: CEFRLevel;
-  journeyTitle: string;
-  milestones: JourneyMilestone[];
-}
+// (Types removed from here to use unified types/dashboard.ts)
 
 const NEXT_LEVEL_MAP: Record<CEFRLevel, CEFRLevel> = {
   'Pre-A1': 'A1', 'A1': 'A2', 'A1+': 'A2', 
@@ -21,61 +8,77 @@ const NEXT_LEVEL_MAP: Record<CEFRLevel, CEFRLevel> = {
   'B2': 'C1', 'B2+': 'C1', 'C1': 'C2', 'C2': 'C2'
 };
 
-/**
- * Dynamically generates a learner's curriculum journey based on their CEFR level.
- */
+import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
+
 export class JourneyService {
   
-  public static buildJourney(currentLevel: CEFRLevel): LearnerJourney {
+  public static buildJourney(currentLevel: CEFRLevel): LearnerJourneyPayload {
     const targetLevel = NEXT_LEVEL_MAP[currentLevel];
-    const milestones = this.getMilestonesForTransition(currentLevel, targetLevel);
+    const nodes = this.generateNodesForLevel(currentLevel);
 
     return {
       currentStage: currentLevel,
       targetStage: targetLevel,
-      journeyTitle: `Your Path from ${currentLevel} to ${targetLevel}`,
-      milestones
+      journeyTitle: `Your Path to ${targetLevel}`,
+      currentCapabilitiesSummary: `Building foundation in ${currentLevel} core skills.`,
+      targetCapabilitiesSummary: `Achieving full competence at ${targetLevel} level.`,
+      nodes
     };
   }
 
-  private static getMilestonesForTransition(current: CEFRLevel, target: CEFRLevel): JourneyMilestone[] {
-    const baseID = `journey_${current}_${target}`;
+  private static generateNodesForLevel(level: CEFRLevel): JourneyNode[] {
+    const baseID = `node_${level}`;
     
-    // A2 -> B1 (Foundation -> Intermediate)
-    if (current.includes('A2')) {
-      return [
-        { id: `${baseID}_m1`, title: 'Daily Conversation Basics', description: 'Expanding common verbs and daily routines', status: 'completed', estimatedDuration: '~1 week' },
-        { id: `${baseID}_m2`, title: 'Sentence Building', description: 'Compound sentences and linking words (because, but, so)', status: 'current', estimatedDuration: '~2 weeks' },
-        { id: `${baseID}_m3`, title: 'Basic Storytelling', description: 'Using past tense to describe recent events clearly', status: 'locked', estimatedDuration: '~2 weeks' },
-        { id: `${baseID}_m4`, title: 'Listening Comprehension', description: 'Catching the main gist of short audio clips', status: 'locked', estimatedDuration: '~1 week' }
-      ];
-    }
+    // Core curriculum components based on level
+    const curriculm = this.getCurriculumTemplate(level);
+    const nodes: JourneyNode[] = [];
     
-    // B1 -> B2 (Intermediate -> Advanced)
-    if (current.includes('B1')) {
+    curriculm.forEach((item, index) => {
+      // Add Task Node
+      nodes.push({
+        id: `${baseID}_t${index}`,
+        type: 'task',
+        status: index === 0 ? 'current' : 'locked',
+        title: item.title,
+        description: item.desc,
+        iconType: item.icon as any,
+      });
+
+      // Inject Checkpoint every 3 tasks
+      if ((index + 1) % 3 === 0 && index !== curriculm.length - 1) {
+        nodes.push({
+          id: `${baseID}_cp${index}`,
+          type: 'checkpoint',
+          status: 'locked',
+          title: `Checkpoint: ${item.skill} Mastery`,
+          description: `Validate your progress in ${item.skill} before moving forward.`,
+          iconType: 'assessment',
+        });
+      }
+    });
+
+    return nodes;
+  }
+
+  private static getCurriculumTemplate(level: string) {
+    if (level.includes('A')) {
       return [
-        { id: `${baseID}_m1`, title: 'Expressing Opinions', description: 'Structuring arguments and defending viewpoints', status: 'completed', estimatedDuration: '~1 week' },
-        { id: `${baseID}_m2`, title: 'Advanced Connectors', description: 'Using however, although, furthermore correctly', status: 'current', estimatedDuration: '~2 weeks' },
-        { id: `${baseID}_m3`, title: 'Professional Tone', description: 'Adjusting register for workplace communication', status: 'locked', estimatedDuration: '~2 weeks' },
-        { id: `${baseID}_m4`, title: 'Detail Extraction', description: 'Catching specific reasons and nuances in fast audio', status: 'locked', estimatedDuration: '~2 weeks' }
+        { title: 'Sentence Basics', desc: 'SVO structure and basic word order', icon: 'grammar', skill: 'Grammar' },
+        { title: 'Daily Routines', desc: 'Describing your day with frequency adverbs', icon: 'speaking', skill: 'Speaking' },
+        { title: 'Simple Requests', desc: 'How to ask for things politely', icon: 'listening', skill: 'Listening' },
+        { title: 'Connective Words', desc: 'Using and/but/because correctly', icon: 'writing', skill: 'Writing' },
+        { title: 'Past Events', desc: 'Talking about what you did yesterday', icon: 'speaking', skill: 'Speaking' },
+        { title: 'Basic Description', desc: 'Using adjectives for people and places', icon: 'vocabulary', skill: 'Vocabulary' },
       ];
     }
-
-    // B2 -> C1 (Advanced -> Mastery)
-    if (current.includes('B2')) {
-      return [
-        { id: `${baseID}_m1`, title: 'Complex Argumentation', description: 'Discussing abstract topics with precision', status: 'completed', estimatedDuration: '~2 weeks' },
-        { id: `${baseID}_m2`, title: 'Nuance & Tone Control', description: 'Using vocabulary to imply emotion and stance', status: 'current', estimatedDuration: '~3 weeks' },
-        { id: `${baseID}_m3`, title: 'Idiomatic Fluency', description: 'Natural phrasal verbs and cultural idioms', status: 'locked', estimatedDuration: '~3 weeks' },
-        { id: `${baseID}_m4`, title: 'Native-Speed Comprehension', description: 'Following multiple speakers in noisy environments', status: 'locked', estimatedDuration: '~2 weeks' }
-      ];
-    }
-
-    // Default (A1 / C1 / C2)
     return [
-      { id: `${baseID}_m1`, title: 'Foundational Vocabulary', description: 'Core words and phrases for survival', status: 'completed', estimatedDuration: '~1 week' },
-      { id: `${baseID}_m2`, title: 'Simple Exchanges', description: 'Asking and answering basic questions', status: 'current', estimatedDuration: '~2 weeks' },
-      { id: `${baseID}_m3`, title: 'Practical Survival', description: 'Ordering food, directions, basic transactions', status: 'locked', estimatedDuration: '~2 weeks' }
+      { title: 'Nuanced Debate', desc: 'Expressing pros and cons with precision', icon: 'speaking', skill: 'Speaking' },
+      { title: 'Complex Conditionals', desc: 'Hypothetical situations and regrets', icon: 'grammar', skill: 'Grammar' },
+      { title: 'Professional Drafting', desc: 'Writing formal emails and reports', icon: 'writing', skill: 'Writing' },
+      { title: 'Inference Skills', desc: 'Understanding subtext in fast speech', icon: 'listening', skill: 'Listening' },
+      { title: 'Idiomatic Range', desc: 'Natural expressions and metaphors', icon: 'vocabulary', skill: 'Vocabulary' },
+      { title: 'Topic Deep Dive', desc: 'Sustained monologue on abstract topics', icon: 'speaking', skill: 'Speaking' },
     ];
   }
+
 }

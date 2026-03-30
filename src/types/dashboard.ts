@@ -1,9 +1,11 @@
-export interface MilestoneBlock {
+export interface JourneyNode {
   id: string;
+  type: 'task' | 'checkpoint' | 'milestone';
+  status: 'completed' | 'current' | 'locked';
   title: string;
   description: string;
-  status: 'completed' | 'current' | 'locked';
-  estimatedDuration: string;
+  iconType: 'speaking' | 'writing' | 'listening' | 'vocabulary' | 'assessment' | 'grammar';
+  estimatedDuration?: string;
 }
 
 export interface LearnerJourneyPayload {
@@ -12,7 +14,7 @@ export interface LearnerJourneyPayload {
   journeyTitle: string;
   currentCapabilitiesSummary: string;
   targetCapabilitiesSummary: string;
-  milestones: MilestoneBlock[];
+  nodes: JourneyNode[];
 }
 
 export interface SkillAnalyticsPayload {
