@@ -112,11 +112,15 @@ export default function App() {
         )}
 
         {view === 'DIAGNOSTIC' && (
-          <DiagnosticView key="diagnostic" onComplete={(results, outcome) => {
-            setTaskResults(results);
-            setAssessmentOutcome(outcome);
-            navigateTo('ANALYZING');
-          }} />
+          <DiagnosticView 
+            key="diagnostic" 
+            onboardingState={onboardingState}
+            onComplete={(results, outcome) => {
+              setTaskResults(results);
+              setAssessmentOutcome(outcome);
+              navigateTo('ANALYZING');
+            }} 
+          />
         )}
 
         {view === 'ANALYZING' && (

@@ -1,7 +1,7 @@
 import { AssessmentSessionResult, SkillName, CefrLevel } from '../types/assessment';
 import { getNextBand, normalizeBand } from '../lib/cefr-utils';
 import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
-import { CEFR_CATALOG, CefrDescriptor } from '../data/cefr-catalog';
+import { CEFR_CATALOG, CefrDescriptor, getDescriptorById } from '../data/cefr-catalog';
 
 export class JourneyService {
   
@@ -31,21 +31,22 @@ export class JourneyService {
     const gaps: CefrDescriptor[] = [];
     
     Object.values(result.skills).forEach(skillResult => {
-      const currentLevel = skillResult.estimatedLevel;
-      const allForLevel = CEFR_CATALOG.filter(d => 
-        d.skill === skillResult.skill && d.level === currentLevel
-      );
+      // Use the explicit missingDescriptors from the engine's Layer 6 inference
+      if (!skillResult.weaknesses) return;
 
-      allForLevel.forEach(desc => {
-        const evidence = skillResult.descriptors.find(d => d.descriptorId === desc.id);
-        // If not tested OR tested and weak (< 0.5)
-        if (!evidence || (evidence.strength < 0.5)) {
+      skillResult.weaknesses.forEach(descId => {
+        const desc = getDescriptorById(descId); // Use catalog helper
+        if (desc) {
           gaps.push(desc);
+        } else {
+          // Fallback fuzzy search if catalog ID mismatch
+          const fuzzy = CEFR_CATALOG.find(d => d.id.includes(descId));
+          if (fuzzy) gaps.push(fuzzy);
         }
       });
     });
-
-    return gaps.slice(0, 4); // Limit to top 4 gaps for clarity
+    
+    return gaps.slice(0, 5); // Limit to top 5 primary gaps
   }
 
   private static identifyObjectives(targetLevel: CefrLevel): CefrDescriptor[] {

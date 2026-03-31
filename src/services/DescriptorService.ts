@@ -1,5 +1,7 @@
 import * as xlsx from 'xlsx';
 
+import { AssessmentFeatures, DescriptorEvidence, CefrLevel } from '../types/assessment';
+
 export type CEFRDescriptor = {
   id: string;
   scheme: string;
@@ -8,6 +10,12 @@ export type CEFRDescriptor = {
   scale: string;
   level: string;
   descriptor: string;
+};
+
+export type DescriptorRule = {
+  id: string;
+  match: (f: AssessmentFeatures) => number; // 0..1 support score
+  contradict?: (f: AssessmentFeatures) => number; // 0..1 contradiction score
 };
 
 export type SkillMapping = 'reading' | 'writing' | 'listening' | 'speaking' | 'vocabulary' | 'grammar';
@@ -137,5 +145,70 @@ export class DescriptorService {
 
     // Limit to a reasonable size so we don't blow up the LLM context (max ~30 per level)
     return subset.slice(0, 50);
+  }
+
+  /**
+   * Layer 3: Deterministic Descriptor Matcher
+   * Matches extracted features to specific descriptor evidence.
+   */
+  public matchFeatures(
+    descriptorIds: string[],
+    features: AssessmentFeatures
+  ): DescriptorEvidence[] {
+    const evidence: DescriptorEvidence[] = [];
+    
+    for (const id of descriptorIds) {
+      const desc = this.descriptors.find(d => d.id === id) || 
+                   this.descriptors.find(d => d.descriptor.includes(id)); // Fallback for fuzzy IDs
+      
+      if (!desc) continue;
+
+      const rule = this.rules[id] || this.getDefaultRule(id, desc.level as any);
+      const support = rule.match(features);
+      const contradiction = rule.contradict ? rule.contradict(features) : 0;
+
+      if (support > 0 || contradiction > 0) {
+        evidence.push({
+          descriptorId: id,
+          descriptorText: desc.descriptor,
+          level: desc.level as CefrLevel,
+          supported: support > contradiction,
+          strength: Math.abs(support - contradiction),
+          sourceTaskIds: [] // Will be filled by the engine
+        });
+      }
+    }
+
+    return evidence;
+  }
+
+  private rules: Record<string, DescriptorRule> = {
+    'gram_A1_accuracy_01': {
+      id: 'gram_A1_accuracy_01',
+      match: (f) => f.correctness > 0.7 ? 1.0 : 0,
+      contradict: (f) => f.correctness < 0.3 ? 1.0 : 0
+    },
+    'list_A1_gist_01': {
+      id: 'list_A1_gist_01',
+      match: (f) => f.correctness > 0.8 ? 1.0 : 0.5,
+      contradict: (f) => f.correctness === 0 ? 1.0 : 0
+    },
+    'list_B2_animated_01': {
+      id: 'list_B2_animated_01',
+      match: (f) => (f.correctness > 0.7 && f.lexicalDiversity > 0.3) ? 1.0 : 0,
+      contradict: (f) => f.correctness < 0.4 ? 1.0 : 0
+    }
+  };
+
+  private getDefaultRule(id: string, level: CefrLevel): DescriptorRule {
+    // Simple heuristic rule if no explicit rule exists
+    return {
+      id,
+      match: (f) => {
+        const threshold = level.startsWith('C') ? 0.8 : level.startsWith('B') ? 0.7 : 0.6;
+        return f.correctness >= threshold ? 1.0 : 0.4;
+      },
+      contradict: (f) => f.correctness < 0.3 ? 1.0 : 0
+    };
   }
 }

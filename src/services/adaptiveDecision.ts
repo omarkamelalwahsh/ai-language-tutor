@@ -23,12 +23,14 @@ export function decideNextBand(
   const isHighConfidence = result.confidence > 0.85;
   const isSignificantlyHigher = matchedIdx > currentIdx + 1;
 
-  if (
-    (matchedIdx > currentIdx) && 
-    (isHighConfidence || isSignificantlyHigher || recentStrongResults >= 2) &&
-    currentIdx < BAND_ORDER.length - 1
-  ) {
-    return BAND_ORDER[currentIdx + 1];
+  if (matchedIdx > currentIdx) {
+    if (isHighConfidence && matchedIdx > currentIdx + 1) {
+      // DOUBLE JUMP
+      return BAND_ORDER[Math.min(currentIdx + 2, BAND_ORDER.length - 1)];
+    }
+    if (isHighConfidence || isSignificantlyHigher || recentStrongResults >= 2) {
+      return BAND_ORDER[currentIdx + 1];
+    }
   }
 
   // --- DEMOTION ---

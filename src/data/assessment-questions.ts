@@ -29,6 +29,9 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['am', 'is', 'are', 'be'],
     correctAnswer: 'is',
     subskills: ['subject-verb agreement', 'be-verb conjugation'],
+    discriminationValue: 0.8,
+    scaffoldingLevel: 0,
+    targetDescriptorIds: ['gram_A1_accuracy_01'], // Can use simple words and phrases
   },
   {
     id: 'a1-gram-02',
@@ -45,6 +48,9 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     ],
     correctAnswer: 'They are happy.',
     subskills: ['subject-verb agreement', 'plural subjects'],
+    discriminationValue: 0.7,
+    scaffoldingLevel: 0,
+    targetDescriptorIds: ['gram_A1_accuracy_01'],
   },
 
   // Vocabulary A1
@@ -98,6 +104,9 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['Paris', 'London', 'New York', 'Berlin'],
     correctAnswer: 'London',
     subskills: ['basic listening', 'extracting key info'],
+    discriminationValue: 0.85,
+    scaffoldingLevel: 1, // Verbal scenario description
+    targetDescriptorIds: ['list_A1_gist_01'], // Can understand simple greetings and info
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -115,6 +124,9 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['go', 'goes', 'went', 'going'],
     correctAnswer: 'went',
     subskills: ['past simple', 'irregular verbs'],
+    discriminationValue: 0.75,
+    scaffoldingLevel: 0,
+    targetDescriptorIds: ['gram_A2_accuracy_01_past'], // Can use simple grammatical structures correctly
   },
   {
     id: 'a2-gram-02',
@@ -191,6 +203,9 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     correctAnswer: ['late', 'traffic', '30 minutes'],
     acceptedAnswers: ['late', 'traffic', 'delay', 'stuck', '30'],
     subskills: ['gist comprehension', 'summarizing'],
+    discriminationValue: 0.8,
+    scaffoldingLevel: 2, // Summarization help
+    targetDescriptorIds: ['list_A2_gist_01'], // Can catch main points in short simple messages
   },
 
   // Speaking A2
@@ -441,7 +456,6 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     subskills: ['academic listening', 'understanding specialized content'],
   },
 
-  // Speaking B2
   {
     id: 'b2-speak-01',
     skill: 'speaking',
@@ -451,6 +465,25 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     type: 'short_text',
     prompt: "Some people believe that remote work is the future of employment. Do you agree or disagree? Explain your position with at least one supporting reason. Write 4-5 sentences.",
     subskills: ['opinion expression', 'argumentation', 'hedging', 'discourse management'],
+  },
+  {
+    id: 'b2p-list-01',
+    skill: 'listening',
+    primarySkill: 'listening',
+    difficulty: 'B2',
+    type: 'listening_mcq',
+    prompt: "Listen to the scenario: An animated conversation between two tech leads discusses a critical system failure. One says 'If we'd pushed that hotfix without a canary deployment, the cascading failures would have been catastrophic. We dodged a bullet there.' What does 'dodged a bullet' mean in this context?",
+    options: [
+      'They literal avoided a physical projectile',
+      'They narrowly escaped a disastrous situation',
+      'They succeeded in their fix on the first try',
+      'The failure was not as bad as they thought',
+    ],
+    correctAnswer: 'They narrowly escaped a disastrous situation',
+    subskills: ['idiomatic expressions', 'understanding animated conversation', 'contextual inference'],
+    discriminationValue: 0.9,
+    scaffoldingLevel: 1,
+    targetDescriptorIds: ['list_B2_animated_01'], // Can keep up with animated conversation between proficient users
   },
 
   // ═══════════════════════════════════════════════════════════════════════

@@ -6,7 +6,9 @@ import {
   TaskEvaluation, 
   ConfidenceBand,
   DescriptorEvidence,
-  AssessmentMetadata
+  AssessmentMetadata,
+  AssessmentOutcome,
+  AssessmentSkill
 } from '../types/assessment';
 import { getNextBand, getBandOrder, CEFR_ORDER } from '../lib/cefr-utils';
 import { CEFR_CATALOG, getDescriptorById } from '../data/cefr-catalog';
@@ -16,36 +18,80 @@ import { CEFR_CATALOG, getDescriptorById } from '../data/cefr-catalog';
  */
 export class AssessmentAnalysisService {
 
-  public static initializeLearnerModel(
+  /**
+   * Bridges the new AdaptiveAssessmentEngine Outcome to the legacy SessionResult structure.
+   */
+  public static fromAssessmentOutcome(
+    outcome: AssessmentOutcome,
     learnerId: string,
     sessionId: string,
-    taskEvaluations: TaskEvaluation[],
     metadata: AssessmentMetadata = {}
   ): AssessmentSessionResult {
-    const skills: SkillName[] = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
-    
     const skillResults = {} as Record<SkillName, SkillAssessmentResult>;
-    
-    for (const skill of skills) {
-      skillResults[skill] = this.aggregateSkill(skill, taskEvaluations);
+    const ALL_SKILLS: SkillName[] = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
+
+    for (const skill of ALL_SKILLS) {
+      const engineSkill = outcome.skillBreakdown[skill as AssessmentSkill];
+      
+      // Normalize BandLabel to CefrLevel (e.g. A1_A2 -> A1 or A2 based on rounding)
+      const normalizedLevel = this.normalizeEngineBand(engineSkill.band);
+
+      skillResults[skill] = {
+        skill,
+        estimatedLevel: normalizedLevel,
+        confidence: {
+          band: this.valueToConfidenceBand(engineSkill.confidence),
+          score: engineSkill.confidence,
+          reasons: []
+        },
+        evidenceCount: engineSkill.evidenceCount,
+        descriptors: engineSkill.matchedDescriptors,
+        strengths: engineSkill.matchedDescriptors.slice(0, 3).map(d => d.descriptorText),
+        weaknesses: engineSkill.missingDescriptors.slice(0, 2), // Maps directly to engine gaps
+        taskCoverage: {
+          total: 5,
+          completed: engineSkill.evidenceCount,
+          valid: engineSkill.evidenceCount
+        },
+        subscores: [], // Can be extracted from features if needed
+        status: engineSkill.status,
+        isCapped: engineSkill.isCapped,
+        cappedReason: engineSkill.cappedReason
+      };
     }
 
-    const overallLevel = this.inferOverallLevel(skillResults);
-    
     return {
       learnerId,
       sessionId,
       overall: {
-        estimatedLevel: overallLevel,
-        confidence: this.inferOverallConfidence(skillResults),
-        rationale: this.buildOverallRationale(skillResults, overallLevel)
+        estimatedLevel: this.normalizeEngineBand(outcome.overallBand),
+        confidence: outcome.overallConfidence,
+        rationale: this.buildOverallRationale(skillResults, outcome.overallBand as any)
       },
       skills: skillResults,
-      behavioralProfile: this.computeBehavioralProfile(taskEvaluations),
+      behavioralProfile: {
+        pace: "moderate",
+        confidenceStyle: "balanced",
+        selfCorrectionRate: 0
+      },
       metadata,
-      recommendedNextTasks: this.generateNextTasks(overallLevel),
+      recommendedNextTasks: [],
       generatedAt: new Date().toISOString()
     };
+  }
+
+  private static normalizeEngineBand(band: string): CefrLevel {
+    // Basic normalization: use the higher band for intermediate labels
+    if (band.includes('_')) {
+      return band.split('_')[1] as CefrLevel;
+    }
+    return band as CefrLevel;
+  }
+
+  private static valueToConfidenceBand(val: number): ConfidenceBand {
+    if (val > 0.8) return "high";
+    if (val > 0.5) return "medium";
+    return "low";
   }
 
   // ---- 1. Skill Aggregation (Rule Engine) ---- //

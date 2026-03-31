@@ -9,12 +9,17 @@ import {
   AssessmentOutcome,
   SkillName,
   TaskEvaluation,
+  CefrLevel,
+  AssessmentFeatures,
+  DescriptorEvidence,
 } from '../types/assessment';
 import { TaskResult } from '../types/app';
 import { QUESTION_BANK } from '../data/assessment-questions';
 import { DescriptorService } from './DescriptorService';
 import { evaluateWithGroq, DescriptorEvaluationResult, DifficultyBand as GroqBand } from './groqEvaluator';
 import { decideNextBand } from './adaptiveDecision';
+import { FeatureExtractor } from './evaluation/FeatureExtractor';
+import { CefrInferenceEngine } from './inference/CefrInferenceEngine';
 // ============================================================================
 // Constants
 // ============================================================================
@@ -126,6 +131,8 @@ export class AdaptiveAssessmentEngine {
         confidence: 0,
         evidenceCount: 0,
         bandPerformance: {},
+        accumulatedEvidence: [],
+        descriptorSupport: {}
       };
     }
 
@@ -161,84 +168,77 @@ export class AdaptiveAssessmentEngine {
    * Submit an answer and get back whether it was correct + the score.
    * 
    * ARCHITECTURE:
-   * 1. Deterministic scoring (scoreResponse) is the SOLE source of truth.
-   * 2. LLM enrichment is optional metadata — it informs adaptive band
-   *    movement but NEVER overrides the deterministic score.
-   * 3. If LLM returns null, the engine proceeds with zero impact.
+   * 3. State update (Layer 4) persists signals.
    */
   public async submitAnswer(
     question: AssessmentQuestion,
     answer: string,
     responseTimeMs: number
   ): Promise<{ correct: boolean; score: number }> {
-    // ── Step 1: DETERMINISTIC SCORING (immutable source of truth) ──
-    const score = scoreResponse(question, answer);
-    const correct = score >= 0.7;
+    const features = FeatureExtractor.extract(question, answer, responseTimeMs);
+    
+    // ── Step 3: DETERMINISTIC Descriptor Matching (Layer 3) ──
+    const matched = DescriptorService.getInstance().matchFeatures(
+      question.targetDescriptorIds || [],
+      features
+    );
+    
+    // ── Step 4: OPTIONAL LLM enrichment (Layer 5) ──
+    const llmResult = await this.evaluateWithBackend(question, answer);
+    
+    // ── Step 5: Synthesize Evidence (Synthesizer Layer) ──
+    const finalMatches = this.synthesizeEvidence(matched, llmResult);
+    
+    // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
+    const finalScore = this.calculateDeterministicScore(features, finalMatches);
+    const isPass = finalScore > 0.6;
 
     const record: AnswerRecord = {
+      taskId: question.id,
       questionId: question.id,
-      skill: question.primarySkill,
-      difficulty: question.difficulty,
-      correct,
-      score,
+      skill: question.primarySkill as AssessmentSkill,
+      difficulty: BAND_VALUE[question.difficulty],
+      correct: isPass,
+      score: finalScore,
       answer,
       responseTimeMs,
     };
 
     this.state.answerHistory.push(record);
-    this.state.askedQuestionIds.push(question.id);
-    this.state.questionsAnswered++;
+    this.updateSkillEvidence(question, finalMatches, features);
 
-    // ── Step 2: Update skill estimates from DETERMINISTIC data only ──
-    this.updateSkillEstimate(question, record);
-
-    // ── Step 3: OPTIONAL LLM enrichment (non-blocking to scoring) ──
-    // This call may return null. That is expected and handled.
-    const evaluation = await this.evaluateWithBackend(question, answer);
-
-    // ── Step 4: Adaptive band movement ──
-    if (evaluation) {
-      // LLM result informs band movement as a SECONDARY signal.
-      // It does NOT change the score or correctness that was recorded.
-      const recentStrong = this.countRecentStrongResults();
-      this.state.currentTargetBand = decideNextBand(
-        this.state.currentTargetBand as GroqBand,
-        evaluation,
-        recentStrong
-      ) as DifficultyBand;
+    // ── Step 7: Adaptive Selection Logic (Layer 5/6) ──
+    if (llmResult?.difficultyAction) {
+      this.applyLLMDifficultyHint(llmResult.difficultyAction);
     } else {
-      // No LLM data — use deterministic heuristic for band movement.
       this.updateTargetBand();
     }
 
-    // ── Step 5: Task evaluation recording ──
+    // ── Step 8: Task evaluation recording (High Fidelity) ──
     const taskEval: TaskEvaluation = {
       taskId: question.id,
       skill: question.primarySkill as SkillName,
-      validAttempt: responseTimeMs > 2000,
+      validAttempt: responseTimeMs > 1500,
       rawSignals: {
+        ...features,
         responseTimeMs,
-        score,
-        isCorrect: correct,
+        isCorrect: isPass,
         difficulty: question.difficulty,
-        answerLength: answer.length,
       },
       rubricScores: [
-        { criterion: 'correctness', score: correct ? 1 : 0, maxScore: 1 },
-        { criterion: 'quality', score: Math.round(score * 10), maxScore: 10 }
+        { criterion: 'accuracy', score: isPass ? 1 : 0, maxScore: 1 },
+        { criterion: 'complexity', score: features.complexityScore || 0, maxScore: 1 }
       ],
-      matchedDescriptors: evaluation ? [
-        { 
-          descriptorId: `${question.primarySkill}_${evaluation.matchedBand}`, 
-          support: evaluation.confidence 
-        }
-      ] : []
+      matchedDescriptors: finalMatches.map(m => ({
+        descriptorId: m.descriptorId,
+        support: m.strength
+      }))
     };
     this.state.taskEvaluations.push(taskEval);
-
     this.state.overallConfidence = this.computeOverallConfidence();
+    this.state.questionsAnswered++;
 
-    return { correct, score };
+    return { correct: isPass, score: finalScore };
   }
 
   private countRecentStrongResults(): number {
@@ -330,23 +330,42 @@ export class AdaptiveAssessmentEngine {
    * Produce the final structured AssessmentOutcome.
    */
   public getOutcome(): AssessmentOutcome {
-    const overallBand = this.estimateOverallBand();
-    const skillBreakdown = {} as AssessmentOutcome['skillBreakdown'];
+    const skillResults = {} as AssessmentOutcome['skillBreakdown'];
 
+    // Layer 6: Inference & Capping
     for (const skill of ALL_SKILLS) {
       const est = this.state.skillEstimates[skill];
-      skillBreakdown[skill] = {
-        band: est.band,
+      const { status, level: inferredLevel } = CefrInferenceEngine.inferSkillStatus(est);
+      const { level: cappedLevel, isCapped, reason } = CefrInferenceEngine.applyLevelCaps(
+        skill, 
+        inferredLevel as DifficultyBand, 
+        this.state.skillEstimates
+      );
+
+      const matchedDescriptors = est.accumulatedEvidence.filter(e => e.supported);
+      const missingDescriptors = Object.entries(est.descriptorSupport)
+        .filter(([_, s]) => s.contradiction > s.support)
+        .map(([id]) => id);
+
+      skillResults[skill] = {
+        band: cappedLevel,
         score: Math.round(est.score),
         confidence: Math.round(est.confidence * 100) / 100,
         evidenceCount: est.evidenceCount,
+        status,
+        matchedDescriptors,
+        missingDescriptors,
+        isCapped,
+        cappedReason: reason
       };
     }
+
+    const overallBand = this.estimateOverallBand();
 
     return {
       overallBand,
       overallConfidence: Math.round(this.state.overallConfidence * 100) / 100,
-      skillBreakdown,
+      skillBreakdown: skillResults,
       strengths: this.identifyStrengths(),
       weaknesses: this.identifyWeaknesses(),
       answerHistory: [...this.state.answerHistory],
@@ -381,7 +400,7 @@ export class AdaptiveAssessmentEngine {
         hintUsage: 0,
         taskType: skillToTaskType(record.skill),
         metadata: {
-          difficulty: record.difficulty,
+          difficulty: VALUE_TO_BAND[record.difficulty as 1|2|3|4|5|6],
           isCorrect: record.correct,
           skill: q?.skill || record.skill,
           score: record.score,
@@ -398,30 +417,54 @@ export class AdaptiveAssessmentEngine {
   // Skill Estimation
   // ══════════════════════════════════════════════════════════════════════
 
-  private updateSkillEstimate(question: AssessmentQuestion, record: AnswerRecord): void {
+  private updateSkillEstimate(
+    question: AssessmentQuestion, 
+    record: AnswerRecord,
+    evidence: DescriptorEvidence[] = []
+  ): void {
     // Update primary skill
-    this.updateSingleSkillEstimate(question.primarySkill, record);
+    this.updateSingleSkillEstimate(question.primarySkill, record, evidence);
 
     // Update secondary skills with reduced weight
     if (question.secondarySkills) {
       for (const secondary of question.secondarySkills) {
         const reducedRecord = { ...record, score: record.score * 0.5 };
-        this.updateSingleSkillEstimate(secondary, reducedRecord);
+        // Secondary skills get evidence with reduced strength
+        const reducedEvidence = evidence.map(e => ({ ...e, strength: e.strength * 0.5 }));
+        this.updateSingleSkillEstimate(secondary, reducedRecord, reducedEvidence);
       }
     }
   }
 
-  private updateSingleSkillEstimate(skill: AssessmentSkill, record: AnswerRecord): void {
+  private updateSingleSkillEstimate(
+    skill: AssessmentSkill, 
+    record: AnswerRecord,
+    evidence: DescriptorEvidence[] = []
+  ): void {
     const est = this.state.skillEstimates[skill];
     est.evidenceCount++;
 
     // Track band-specific performance
-    if (!est.bandPerformance[record.difficulty]) {
-      est.bandPerformance[record.difficulty] = { correct: 0, total: 0 };
+    const bandLabel = VALUE_TO_BAND[record.difficulty as 1|2|3|4|5|6];
+    if (!est.bandPerformance[bandLabel]) {
+      est.bandPerformance[bandLabel] = { correct: 0, total: 0 };
     }
-    est.bandPerformance[record.difficulty]!.total++;
+    est.bandPerformance[bandLabel]!.total++;
     if (record.correct) {
-      est.bandPerformance[record.difficulty]!.correct++;
+      est.bandPerformance[bandLabel]!.correct++;
+    }
+
+    // Layer 4: Evidence Accumulation
+    for (const e of evidence) {
+      est.accumulatedEvidence.push(e);
+      if (!est.descriptorSupport[e.descriptorId]) {
+        est.descriptorSupport[e.descriptorId] = { support: 0, contradiction: 0 };
+      }
+      if (e.supported) {
+        est.descriptorSupport[e.descriptorId].support += e.strength;
+      } else {
+        est.descriptorSupport[e.descriptorId].contradiction += e.strength;
+      }
     }
 
     // Compute skill score from band performance evidence
@@ -526,7 +569,7 @@ export class AdaptiveAssessmentEngine {
     // Only consider answers near the current target band (±1 band)
     const currentVal = BAND_VALUE[this.state.currentTargetBand];
     const nearBandAnswers = window.filter(a => {
-      const ansVal = BAND_VALUE[a.difficulty];
+      const ansVal = a.difficulty; // It is already numeric (BAND_VALUE)
       return Math.abs(ansVal - currentVal) <= 1;
     });
 
@@ -536,8 +579,14 @@ export class AdaptiveAssessmentEngine {
     const recentIncorrect = nearBandAnswers.length - recentCorrect;
 
     // Check for consistent strong performance → promote
-    if (recentCorrect >= CONFIG.PROMOTE_THRESHOLD && recentIncorrect <= 1) {
-      this.stepBandUp();
+    if (recentCorrect >= CONFIG.PROMOTE_THRESHOLD && recentIncorrect === 0) {
+      // AMBITIOUS: If last 2 answers were perfect (score 1.0) at or above current band, double jump
+      const perfectStreak = window.slice(-2).every(a => a.score === 1.0);
+      if (perfectStreak) {
+        this.jumpBandUp();
+      } else {
+        this.stepBandUp();
+      }
     }
     // Check for consistent weak performance → demote
     else if (recentIncorrect >= CONFIG.DEMOTE_THRESHOLD && recentCorrect <= 1) {
@@ -549,6 +598,15 @@ export class AdaptiveAssessmentEngine {
   private stepBandUp(): void {
     const idx = BAND_ORDER.indexOf(this.state.currentTargetBand);
     if (idx < BAND_ORDER.length - 1) {
+      this.state.currentTargetBand = BAND_ORDER[idx + 1];
+    }
+  }
+
+  private jumpBandUp(): void {
+    const idx = BAND_ORDER.indexOf(this.state.currentTargetBand);
+    if (idx < BAND_ORDER.length - 2) {
+      this.state.currentTargetBand = BAND_ORDER[idx + 2];
+    } else if (idx < BAND_ORDER.length - 1) {
       this.state.currentTargetBand = BAND_ORDER[idx + 1];
     }
   }
@@ -592,7 +650,9 @@ export class AdaptiveAssessmentEngine {
     scored.sort((a, b) => b.score - a.score);
 
     // Take the highest scoring candidate
-    return scored[0].question;
+    const selected = scored[0].question;
+    this.state.askedQuestionIds.push(selected.id);
+    return selected;
   }
 
   /**
@@ -602,44 +662,55 @@ export class AdaptiveAssessmentEngine {
   private scoreCandidate(q: AssessmentQuestion): number {
     let score = 0;
 
-    // ── Factor 1: Difficulty proximity (weight: 40) ──
+    // ── Factor 1: Prerequisite Check (Layer 1) ──
+    if (q.prerequisites && q.prerequisites.length > 0) {
+      const allMet = q.prerequisites.every(id => this.state.askedQuestionIds.includes(id));
+      if (!allMet) return -100; // Hard filter
+    }
+
+    // ── Factor 2: Difficulty proximity (CAT Logic) ──
     const targetVal = BAND_VALUE[this.state.currentTargetBand];
     const qVal = BAND_VALUE[q.difficulty];
     const distance = Math.abs(targetVal - qVal);
     
-    // Exact match = 40, 1 away = 25, 2 away = 10, 3+ away = 0
-    // Moderate preference for questions one step above (probing ceiling)
-    if (qVal === targetVal + 1) score += 12;
-    // Slight preference for questions matching target exact
-    if (qVal === targetVal) score += 10;
+    const currentConfidence = this.state.skillEstimates[q.primarySkill]?.confidence || 0;
     
-    // Penalize large gaps unless desperate
-    if (distance > 1) score -= distance * 5;
+    let difficultyScore = 0;
+    if (currentConfidence < 0.4) {
+      difficultyScore = qVal === targetVal ? 20 : (10 - distance * 5);
+    } else {
+      // Proactive probing for higher bands
+      difficultyScore = (qVal >= targetVal) ? (20 - (qVal - targetVal) * 5) : (10 - distance * 5);
+    }
+    
+    // Apply Item Discrimination (Staff Requirement)
+    score += difficultyScore * (q.discriminationValue || 0.5);
 
-    // ── Factor 2: Skill coverage (weight: 30) ──
-    const { evidenceCount, confidence } = this.state.skillEstimates[q.primarySkill];
+    // ── Factor 3: Uncertainty Reduction (Layer 5) ──
+    const est = this.state.skillEstimates[q.primarySkill];
+    if (q.targetDescriptorIds) {
+      for (const descId of q.targetDescriptorIds) {
+        const support = est.descriptorSupport[descId];
+        if (!support) {
+          score += 15; // New descriptor evidence is high value
+        } else {
+          // High uncertainty if support and contradiction are similar
+          const uncertainty = 1 - Math.abs(support.support - support.contradiction) / Math.max(1, support.support + support.contradiction);
+          score += uncertainty * 10;
+        }
+      }
+    }
 
-    // Under-tested skills get huge priority
-    if (evidenceCount === 0) score += 30;
-    else if (evidenceCount === 1) score += 20;
-    else if (evidenceCount < CONFIG.SKILL_EVIDENCE_TARGET) score += 10;
-    else score += 0; // well-tested
+    // ── Factor 4: Skill coverage ──
+    if (est.evidenceCount === 0) score += 30;
+    else if (est.evidenceCount < CONFIG.SKILL_EVIDENCE_TARGET) score += 15;
 
-    // ── Factor 3: Weak/uncertain skill priority (weight: 20) ──
-    if (confidence < 0.3) score += 20;
-    else if (confidence < 0.5) score += 12;
-    else if (confidence < 0.7) score += 5;
-
-    // ── Factor 4: Question type variety (weight: 10) ──
-    // Prefer question types we haven't seen much
-    const typeCounts = this.state.answerHistory.reduce((acc, r) => {
-      const rq = this.questionPool.find(x => x.id === r.questionId);
-      if (rq) acc[rq.type] = (acc[rq.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const typeCount = typeCounts[q.type] || 0;
-    if (typeCount === 0) score += 10;
-    else if (typeCount === 1) score += 5;
+    // ── Factor 5: Variety ──
+    const typeUsage = this.state.answerHistory.filter(r => {
+        const prevQ = QUESTION_BANK.find(x => x.id === r.questionId);
+        return prevQ?.type === q.type;
+    }).length;
+    score -= typeUsage * 5;
 
     return score;
   }
@@ -695,6 +766,8 @@ export class AdaptiveAssessmentEngine {
         .map(a => a.difficulty);
       
       // If the band hasn't changed in the window, we've stabilized
+      // we map difficulty (number) back to DifficultyBand for BAND_VALUE if needed, 
+      // but here uniqueBands of numbers is enough
       const uniqueBands = new Set(recentBands);
       if (uniqueBands.size <= 2) { // answers from at most 2 adjacent bands
         this.state.stopReason = 'level_stabilized';
@@ -808,7 +881,7 @@ export class AdaptiveAssessmentEngine {
 
     // Check for high-band correct answers
     const highBandCorrect = this.state.answerHistory.filter(
-      a => a.correct && (a.difficulty === 'B2' || a.difficulty === 'C1')
+      a => a.correct && (a.difficulty >= 4) // B2 (4) or above
     );
     if (highBandCorrect.length >= 2) {
       strengths.push('Successfully handled upper-intermediate to advanced questions');
@@ -855,11 +928,11 @@ export class AdaptiveAssessmentEngine {
       weaknesses.push(`${untested.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')} not yet assessed`);
     }
 
-    // Check for failed high-frequency questions
-    const lowBandErrors = this.state.answerHistory.filter(
-      a => !a.correct && (a.difficulty === 'A1' || a.difficulty === 'A2')
+    // Check for lower-band incorrect answers
+    const lowBandIncorrect = this.state.answerHistory.filter(
+      a => !a.correct && (a.difficulty <= 2) // A2 (2) or below
     );
-    if (lowBandErrors.length >= 2) {
+    if (lowBandIncorrect.length >= 2) {
       weaknesses.push('Some foundational areas need reinforcement');
     }
 
@@ -905,5 +978,84 @@ export class AdaptiveAssessmentEngine {
   /** Expose the structured evaluations for the analysis rule engine */
   public getEvaluations(): TaskEvaluation[] {
     return [...this.state.taskEvaluations];
+  }
+
+  private synthesizeEvidence(
+    deterministic: DescriptorEvidence[],
+    llm: any
+  ): DescriptorEvidence[] {
+    if (!llm) return deterministic;
+
+    // Merge LLM descriptors into deterministic ones
+    // LLM acts as a "Verification" signal (boosts or dampens support)
+    const combined = [...deterministic];
+    
+    if (llm.isMatch && llm.matchedBand) {
+       const llmId = `llm_${this.state.currentTargetBand}_${llm.matchedBand.toLowerCase()}`;
+       const existing = combined.find(c => c.descriptorId === llmId);
+       if (!existing) {
+         combined.push({ 
+           descriptorId: llmId, 
+           descriptorText: llm.reasons?.[0] || 'LLM verified proficiency level',
+           level: llm.matchedBand as CefrLevel,
+           supported: llm.isMatch,
+           strength: llm.confidence,
+           sourceTaskIds: []
+         });
+       }
+    }
+    
+    return combined;
+  }
+
+  private calculateDeterministicScore(features: AssessmentFeatures, matches: DescriptorEvidence[]): number {
+    // Basic score derived from feature quality and descriptor match volume
+    const featureScore = (features.lexicalDiversity || 0) * 0.4 + (features.correctness || 0) * 0.6;
+    const matchScore = matches.length > 0 ? Math.max(...matches.map(m => m.strength)) : 0;
+    return (featureScore + matchScore) / 2;
+  }
+
+  private updateSkillEvidence(
+    question: AssessmentQuestion,
+    matches: DescriptorEvidence[],
+    features: AssessmentFeatures
+  ) {
+    const skill = question.primarySkill as AssessmentSkill;
+    const state = this.state.skillEstimates[skill];
+    
+    state.evidenceCount++;
+    matches.forEach(m => {
+      const existing = state.accumulatedEvidence.find(d => d.descriptorId === m.descriptorId);
+      if (existing) {
+        existing.strength = (existing.strength + m.strength) / 2;
+      } else {
+        state.accumulatedEvidence.push({ ...m });
+      }
+
+      // Update descriptorSupport map for Layer 6 inference
+      if (!state.descriptorSupport[m.descriptorId]) {
+        state.descriptorSupport[m.descriptorId] = { support: 0, contradiction: 0 };
+      }
+      if (m.supported) {
+        state.descriptorSupport[m.descriptorId].support += m.strength;
+      } else {
+        state.descriptorSupport[m.descriptorId].contradiction += m.strength;
+      }
+    });
+
+    // Update gaps if features are low
+    // We already moved CefrInferenceEngine logic out, but the engine still needs to track gaps
+  }
+
+  private applyLLMDifficultyHint(action: "increase" | "stay" | "decrease") {
+    // Adaptive Step Size based on action
+    const current = BAND_ORDER.indexOf(this.state.currentTargetBand);
+    let nextIndex = current;
+    
+    if (action === "increase") nextIndex++;
+    if (action === "decrease") nextIndex--;
+    
+    nextIndex = Math.max(0, Math.min(nextIndex, BAND_ORDER.length - 1));
+    this.state.currentTargetBand = BAND_ORDER[nextIndex];
   }
 }

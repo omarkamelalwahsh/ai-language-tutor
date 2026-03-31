@@ -23,6 +23,8 @@ export type AssessmentMetadata = {
   nativeLanguage?: string;
 };
 
+export type SkillAssessmentStatus = "insufficient_data" | "emerging" | "stable" | "fragile";
+
 export type SkillAssessmentResult = {
   skill: SkillName;
   estimatedLevel: CefrLevel;
@@ -45,8 +47,9 @@ export type SkillAssessmentResult = {
     value: number; // 0..1
     label?: string;
   }[];
-  status: "insufficient_data" | "emerging" | "stable" | "fragile";
+  status: SkillAssessmentStatus;
   isCapped?: boolean;
+  cappedReason?: string;
 };
 
 export type AssessmentSessionResult = {
@@ -116,6 +119,22 @@ export interface TaskResponse {
   metadata?: Record<string, any>;
 }
 
+export type AssessmentFeatures = {
+  correctness: number; // 0..1
+  lexicalDiversity: number; // unique/total
+  sentenceComplexity: number;
+  connectorUsage: number;
+  cohesionScore?: number;
+  complexityScore?: number;
+  averageSentenceLength?: number;
+  uniqueWordCount?: number;
+  opinionPresent?: boolean;
+  reasonPresent?: boolean;
+  examplePresent?: boolean;
+  relevance?: number; // 0..1
+  timestamp: string;
+};
+
 export interface AssessmentSignals {
   wordCount: number;
   sentenceComplexity: number;
@@ -173,15 +192,22 @@ export type AssessmentQuestion = {
   acceptedAnswers?: string[];
   rubricId?: string;
   subskills: string[];
+  
+  // High-fidelity Metadata for CAT (Computerized Adaptive Testing)
+  discriminationValue?: number; // 0..1, weight of this question in moving the baseline
+  scaffoldingLevel?: number; // 0..3, level of help provided in the prompt
+  prerequisites?: string[]; // IDs of other questions or subskills
+  targetDescriptorIds?: string[]; // Linked to actual CEFR 2020 descriptors
+  difficultyWeight?: number; // Internal calibration weight
 };
 
 /** Record of a single answered question */
 export type AnswerRecord = {
+  taskId: string;
   questionId: string;
   skill: AssessmentSkill;
-  difficulty: DifficultyBand;
+  difficulty: number;
   correct: boolean;
-  /** 0-1 normalized score (1 = fully correct) */
   score: number;
   answer: string;
   responseTimeMs: number;
@@ -198,6 +224,9 @@ export type SkillEstimate = {
   evidenceCount: number;
   /** History of correct answers at each difficulty for this skill */
   bandPerformance: Partial<Record<DifficultyBand, { correct: number; total: number }>>;
+  /** Evidence-based tracking */
+  accumulatedEvidence: DescriptorEvidence[];
+  descriptorSupport: Record<string, { support: number; contradiction: number }>;
 };
 
 /** Full adaptive state maintained during the assessment */
@@ -223,6 +252,11 @@ export type AssessmentOutcome = {
     score: number;
     confidence: number;
     evidenceCount: number;
+    status: SkillAssessmentStatus;
+    matchedDescriptors: DescriptorEvidence[];
+    missingDescriptors: string[]; // IDs of descriptors where contradiction > support
+    isCapped?: boolean;
+    cappedReason?: string;
   }>;
   strengths: string[];
   weaknesses: string[];

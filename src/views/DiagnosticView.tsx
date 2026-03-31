@@ -88,14 +88,18 @@ const TaskQuestion: React.FC<{
       className="flex flex-col h-full text-slate-900"
     >
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <span className={`px-3 py-1 border font-bold rounded-lg text-sm tracking-wide ${difficultyColors[task.difficulty] || ''}`}>
-          {task.difficulty}
-        </span>
+        <div className="flex items-center gap-1">
+          {questionNumber > 1 && task.difficulty > (window as any)._lastBenchmark && (
+            <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 border border-amber-200 text-amber-700 font-bold rounded-lg text-[10px] uppercase animate-pulse">
+              <TrendingUp className="w-3 h-3" /> Challenge Task
+            </span>
+          )}
+        </div>
         <span className={`px-3 py-1 border font-bold rounded-lg text-sm tracking-wide uppercase ${skillColors[task.skill] || ''}`}>
           {task.skill}
         </span>
         <span className="text-xs text-slate-400 font-mono ml-auto">
-          Q{questionNumber}
+          Progress {questionNumber} / 10
         </span>
       </div>
 
@@ -284,12 +288,25 @@ const AnswerFeedback: React.FC<{
 // Main Diagnostic View
 // ============================================================================
 
+interface OnboardingState {
+  goal: 'casual' | 'serious' | 'professional' | null;
+  nativeLanguage: string;
+  targetLanguage: string;
+}
+
 interface DiagnosticViewProps {
+  onboardingState?: OnboardingState | null;
   onComplete: (results: TaskResult[], outcome: AssessmentOutcome) => void;
 }
 
-export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete }) => {
-  const engine = useMemo(() => new AdaptiveAssessmentEngine('A2'), []);
+export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onboardingState }) => {
+  const engine = useMemo(() => {
+    let startBand: any = 'A2';
+    if (onboardingState?.goal === 'casual') startBand = 'A1';
+    if (onboardingState?.goal === 'professional') startBand = 'B1';
+    
+    return new AdaptiveAssessmentEngine(startBand);
+  }, [onboardingState]);
   const [currentTask, setCurrentTask] = useState<AssessmentQuestion | null>(null);
   const [progress, setProgress] = useState(engine.getProgress());
   const [feedbackState, setFeedbackState] = useState<{ show: boolean; correct: boolean }>({
@@ -301,7 +318,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete }) =>
   useEffect(() => {
     const firstQ = engine.getNextQuestion();
     setCurrentTask(firstQ);
-    setProgress(engine.getProgress());
+    const progress = engine.getProgress();
+    setProgress(progress);
+    (window as any)._lastBenchmark = progress.currentBand;
   }, [engine]);
 
   const handleNextTask = useCallback(
@@ -327,7 +346,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete }) =>
 
           if (nextQ) {
             setCurrentTask(nextQ);
-            setProgress(engine.getProgress());
+            const nextProgress = engine.getProgress();
+            setProgress(nextProgress);
+            (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
             // Assessment complete
             const evaluations = engine.getEvaluations();
@@ -390,12 +411,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete }) =>
               <div className="flex items-center gap-1">
                 <Shield className="w-3 h-3 text-slate-400" />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Confidence: {confidencePercent}%
+                  Reliability: {confidencePercent}%
                 </span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 opacity-50">
-                TARGET: {progress.currentBand}
-              </span>
             </div>
           </div>
         </div>

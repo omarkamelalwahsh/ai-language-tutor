@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Brain, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Brain, Disc, Fingerprint, Activity, Gauge, CheckCircle2 } from 'lucide-react';
 import { FadeTransition } from '../lib/animations';
 import { OnboardingState } from '../types/app';
 import { AssessmentAnalysisService } from '../services/AnalysisService';
@@ -13,14 +13,40 @@ interface AnalyzingViewProps {
   onComplete: (result: AssessmentSessionResult) => void;
 }
 
+const MILESTONES = [
+  { id: 'features', label: 'Extracting linguistic features...', icon: Fingerprint, color: 'text-blue-500' },
+  { id: 'descriptors', label: 'Matching CEFR 2020 descriptors...', icon: Disc, color: 'text-indigo-500' },
+  { id: 'stability', label: 'Verifying evidence stability...', icon: Activity, color: 'text-emerald-500' },
+  { id: 'capping', label: 'Calibrating linguistic anchors...', icon: Gauge, color: 'text-amber-500' },
+  { id: 'finalizing', label: 'Generating evidence-backed roadmap...', icon: CheckCircle2, color: 'text-purple-500' },
+];
+
 export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, taskResults, assessmentOutcome, onComplete }) => {
+  const [currentMilestone, setCurrentMilestone] = useState(0);
+
   useEffect(() => {
+    // Cycle milestones for "WOW" effect and transparency
+    const interval = setInterval(() => {
+      setCurrentMilestone(prev => Math.min(prev + 1, MILESTONES.length - 1));
+    }, 1200);
+
     const timer = setTimeout(() => {
-      // Deterministic evaluation via the new Rule Engine
-      const result = AssessmentAnalysisService.initializeLearnerModel('session_1', onboardingState, taskResults);
-      onComplete(result);
-    }, 4500);
-    return () => clearTimeout(timer);
+      if (assessmentOutcome) {
+        // Use the new deterministic bridge
+        const result = AssessmentAnalysisService.fromAssessmentOutcome(
+          assessmentOutcome, 
+          'user_1', 
+          'session_1', 
+          onboardingState || {}
+        );
+        onComplete(result);
+      }
+    }, 6500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, [onboardingState, taskResults, assessmentOutcome, onComplete]);
 
   return (
@@ -54,11 +80,39 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
           </div>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">Analyzing your responses<br />with the Pedagogical Engine...</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-8 tracking-tight leading-tight">
+          Analyzing your results<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
+            with Pedagogical Precision
+          </span>
+        </h2>
 
-        <div className="flex items-center gap-3 text-indigo-700 font-medium bg-white px-6 py-3.5 rounded-2xl border border-indigo-100 shadow-sm">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Building your Learner Snapshot...</span>
+        <div className="w-full max-w-sm flex flex-col gap-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentMilestone}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-4 text-slate-700 font-medium bg-white px-6 py-4 rounded-2xl border border-indigo-100 shadow-[0_10px_25px_-5px_rgba(79,70,229,0.1)]"
+            >
+              {React.createElement(MILESTONES[currentMilestone].icon, { 
+                className: `w-5 h-5 ${MILESTONES[currentMilestone].color}` 
+              })}
+              <span>{MILESTONES[currentMilestone].label}</span>
+            </motion.div>
+          </AnimatePresence>
+          
+          <div className="flex justify-center gap-1.5 mt-2">
+            {MILESTONES.map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i === currentMilestone ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-200'
+                }`} 
+              />
+            ))}
+          </div>
         </div>
       </div>
     </FadeTransition>

@@ -1,10 +1,70 @@
-import { LearnerModelSnapshot, LearningPlan, CEFRLevel } from '../types/learner-model';
+import { LearnerModelSnapshot, LearningPlan, CEFRLevel, SessionBlueprint } from '../types/learner-model';
+import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 
 /**
- * Generates a structured first learning plan from the LearnerModel.
+ * Generates a structured first learning plan from the LearnerModel or AssessmentOutcome.
  * Adapts by learner segment (casual/serious/professional), confidence, and skill profile.
  */
 export class LearningPlanService {
+
+  public static generatePlanFromAssessment(
+    result: AssessmentSessionResult,
+    segment: 'casual' | 'serious' | 'professional' | null = 'serious'
+  ): LearningPlan {
+    const focusSkill = this.selectFocusSkill(result);
+    const supportProfile = this.getSupportProfileFromResult(result);
+    const segmentLabel = segment || 'serious';
+
+    return {
+      primaryObjective: this.getPrimaryObjective(result.overall.estimatedLevel as CEFRLevel, focusSkill, segmentLabel),
+      secondaryObjective: `Bridge specific gaps in ${focusSkill} identified during assessment.`,
+      targetSkills: Object.keys(result.skills),
+      initialSupportProfile: supportProfile,
+      recommendedSessionBlueprint: {
+        focusSkill,
+        taskSequence: this.buildTaskSequence(focusSkill, supportProfile),
+        estimatedMinutes: segmentLabel === 'casual' ? 10 : 20,
+        supportLevel: supportProfile === 'scaffolded' ? 'high' : 'medium',
+      },
+      earlyReviewTargets: result.skills[focusSkill as any]?.weaknesses || [],
+      motivationStyleHint: 'progress-driven',
+      pacingHint: 'Standard pacing based on assessment result.',
+      confidenceSupportHint: this.getConfidenceHintFromResult(result),
+      suggestedDashboardPriorities: this.getPrioritiesFromResult(result)
+    };
+  }
+
+  private static selectFocusSkill(result: AssessmentSessionResult): string {
+    const priorities = ['fragile', 'emerging', 'insufficient_data'];
+    for (const p of priorities) {
+      const match = Object.values(result.skills).find(s => s.status === p);
+      if (match) return match.skill;
+    }
+    return 'writing';
+  }
+
+  private static getSupportProfileFromResult(result: AssessmentSessionResult): 'scaffolded' | 'guided' | 'independent' {
+    const hasFragile = Object.values(result.skills).some(s => s.status === 'fragile');
+    if (hasFragile) return 'scaffolded';
+    return 'guided';
+  }
+
+  private static getConfidenceHintFromResult(result: AssessmentSessionResult): string {
+    const fragileSkills = Object.values(result.skills).filter(s => s.status === 'fragile').map(s => s.skill);
+    if (fragileSkills.length > 0) {
+      return `Confidence is fragile in ${fragileSkills.join(', ')}. Use scaffolded tasks.`;
+    }
+    return 'Confidence is steady. Ready for independent practice.';
+  }
+
+  private static getPrioritiesFromResult(result: AssessmentSessionResult): string[] {
+    const priorities: string[] = [];
+    Object.values(result.skills).forEach(({ status, skill }) => {
+        if (status === 'fragile') priorities.push(`Urgent: Stabilize ${skill}`);
+        if (status === 'emerging') priorities.push(`Explore: Grow ${skill}`);
+    });
+    return priorities.slice(0, 3);
+  }
 
   public static generatePlan(
     model: LearnerModelSnapshot,
@@ -44,21 +104,21 @@ export class LearningPlanService {
   }
 
   private static findWeakestSkill(model: LearnerModelSnapshot): string {
-    const skills = model.skills;
+    const { skills } = model;
     let weakest = 'speaking';
     let lowestScore = 100;
-    for (const [key, val] of Object.entries(skills)) {
-      if (val.score < lowestScore) { lowestScore = val.score; weakest = key; }
+    for (const [key, { score }] of Object.entries(skills)) {
+      if (score < lowestScore) { lowestScore = score; weakest = key; }
     }
     return weakest;
   }
 
   private static findStrongestSkill(model: LearnerModelSnapshot): string {
-    const skills = model.skills;
+    const { skills } = model;
     let strongest = 'speaking';
     let highestScore = 0;
-    for (const [key, val] of Object.entries(skills)) {
-      if (val.score > highestScore) { highestScore = val.score; strongest = key; }
+    for (const [key, { score }] of Object.entries(skills)) {
+      if (score > highestScore) { highestScore = score; strongest = key; }
     }
     return strongest;
   }
@@ -80,8 +140,9 @@ export class LearningPlanService {
   }
 
   private static getSupportProfile(model: LearnerModelSnapshot): 'scaffolded' | 'guided' | 'independent' {
-    if (model.confidence.state === 'fragile' || model.pacing.profile === 'fragile') return 'scaffolded';
-    if (model.confidence.state === 'resilient' && model.pacing.profile === 'fast') return 'independent';
+    const { confidence, pacing } = model;
+    if (confidence.state === 'fragile' || pacing.profile === 'fragile') return 'scaffolded';
+    if (confidence.state === 'resilient' && pacing.profile === 'fast') return 'independent';
     return 'guided';
   }
 
