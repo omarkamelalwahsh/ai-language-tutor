@@ -18,7 +18,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
   const [state, setState] = useState<OnboardingState>({
     goal: null,
     nativeLanguage: 'English',
-    targetLanguage: 'Spanish',
+    targetLanguage: 'English',
     focusSkills: [],
     topics: [],
     sessionIntensity: null,
@@ -119,38 +119,24 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             {step === 2 && (
               <motion.div key="s2" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
                 <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Language Selection</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-8">We'll adapt assessment tasks and learning content based on your language pair.</motion.p>
+                <motion.p variants={staggerItem} className="text-slate-500 mb-8">Confirm your language selection for the tutoring sessions.</motion.p>
                 
                 <motion.div variants={staggerItem} className="space-y-6 mb-auto">
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">I speak</label>
-                    <select
-                      value={state.nativeLanguage}
-                      onChange={e => setState({ ...state, nativeLanguage: e.target.value })}
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-slate-800 font-medium"
+                    <div
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium"
                     >
-                      <option>English</option>
-                      <option>Arabic</option>
-                      <option>Spanish</option>
-                      <option>French</option>
-                      <option>Chinese</option>
-                    </select>
+                      English
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">I want to learn</label>
-                    <select
-                      value={state.targetLanguage}
-                      onChange={e => setState({ ...state, targetLanguage: e.target.value })}
-                      className="w-full p-4 bg-white border border-indigo-200 shadow-sm shadow-indigo-100/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-slate-900 font-bold text-lg"
+                    <div
+                      className="w-full p-4 bg-white border border-indigo-200 shadow-sm shadow-indigo-100/50 rounded-xl text-slate-900 font-bold text-lg"
                     >
-                      <option>English</option>
-                      <option>Spanish</option>
-                      <option>French</option>
-                      <option>German</option>
-                      <option>Japanese</option>
-                      <option>Arabic</option>
-                      <option>Chinese</option>
-                    </select>
+                      English
+                    </div>
                   </div>
                 </motion.div>
                 

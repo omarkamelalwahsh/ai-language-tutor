@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Rocket, Target, ArrowRight, Star, ShieldCheck, MapPin, Coffee, Clock, Flame, CalendarDays } from 'lucide-react';
 import { CEFRLevel, LearnerModelSnapshot } from '../../types/learner-model';
+import { getNextBand, normalizeBand } from '../../lib/cefr-utils';
 
 interface NewLearnerJourneyViewProps {
   learnerModel: LearnerModelSnapshot;
@@ -13,8 +14,6 @@ const intensityMetadata = {
   regular: { label: 'Regular Pace', icon: <Clock className="w-5 h-5" />, desc: '4–5 sessions per week', detail: '~15 min each' },
   intensive: { label: 'Intensive Pace', icon: <Flame className="w-5 h-5" />, desc: 'Daily sessions', detail: '~20 min each' },
 };
-
-const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -28,7 +27,8 @@ const staggerItem = {
 
 export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ learnerModel, onStartSession }) => {
   const currentLevel = learnerModel.overallLevel;
-  const targetLevel = levels[Math.min(levels.length - 1, levels.indexOf(currentLevel as any) + 1)];
+  const targetLevel = getNextBand(currentLevel);
+  const isC2 = normalizeBand(currentLevel) === 'C2';
   const intensity = intensityMetadata[learnerModel.onboardingIntensity || 'regular'];
 
   return (
@@ -86,7 +86,9 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
             </div>
 
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
-               Your starting point is set at <span className="font-bold text-slate-700">{currentLevel}</span>. We've optimized your first lessons to solidify this level before pushing toward {targetLevel}.
+               Your starting point is set at <span className="font-bold text-slate-700">{currentLevel}</span>. {isC2 
+                ? `You've achieved mastery. We'll focus on maintaining your peak performance across all skills.`
+                : `We'll strengthen your ${normalizeBand(currentLevel)} foundation before progressing your proficiency toward ${targetLevel}.`}
             </p>
 
             <button 

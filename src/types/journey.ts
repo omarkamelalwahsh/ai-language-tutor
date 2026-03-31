@@ -30,13 +30,6 @@ export interface TrainingProgress {
   readonly monthlyActivity: readonly DayActivity[];
 }
 
-export type AssessmentOutcome = {
-  estimatedBand: CEFRLevelId;
-  confidence: number;
-  skillScores: Record<string, number>;
-  strengths: string[];
-  weaknesses: string[];
-};
 
 export type LearningJourneyModule = {
   id: string;

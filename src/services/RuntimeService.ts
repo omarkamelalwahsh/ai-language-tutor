@@ -1,6 +1,5 @@
 import { SessionTask, TaskEvaluationResult, TaskFeedbackPayload } from '../types/runtime';
-import { LearnerModelSnapshot } from '../types/learner-model';
-import { LearningPlanService } from './LearningPlanService';
+import { AssessmentSessionResult, SkillName } from '../types/assessment';
 
 /** Text analysis helper (mirrors AnalysisService.analyzeText logic) */
 function analyzeResponse(text: string): {
@@ -43,112 +42,97 @@ function analyzeResponse(text: string): {
   return { wordCount, sentenceCount, avgWordsPerSentence, uniqueWordRatio, hasConnectors, complexityScore };
 }
 
-/**
- * Orchestrates the lifecycle of learning tasks and generates feedback states.
- */
 export class RuntimeService {
   /**
-   * Returns structured session tasks. In production, this would pull from
-   * LearnerModel state to identify what needs review, focus, or challenge.
+   * Returns structured session tasks based on the deterministic assessment result.
    */
-  public static generateSessionTasks(model: LearnerModelSnapshot): SessionTask[] {
-    // 1. Identify priority areas via LearningPlanService logic
-    const plan = LearningPlanService.generatePlan(model, 'serious'); // Use default segment for now
-    const focusSkill = plan.recommendedSessionBlueprint.focusSkill;
-    const supportLevel = plan.recommendedSessionBlueprint.supportLevel;
-    const taskCount = model.pacing.profile === 'slow' || model.pacing.profile === 'fragile' ? 2 : 3;
+  public static generateSessionTasks(result: AssessmentSessionResult): SessionTask[] {
+    const overallLevel = result.overall.estimatedLevel;
+    const confidence = result.overall.confidence;
+    
+    // 1. Identify Fragile Zones (Descriptors with low support/strength)
+    const fragileDescriptors: { skill: SkillName; desc: any }[] = [];
+    Object.entries(result.skills).forEach(([skillName, skillResult]) => {
+      skillResult.descriptors
+        .filter(d => d.strength < 0.7)
+        .forEach(d => fragileDescriptors.push({ skill: skillName as SkillName, desc: d }));
+    });
+
+    // 2. Identify weakest skill for fallback
+    const sortedSkills = Object.values(result.skills).sort((a, b) => a.confidence.score - b.confidence.score);
+    const weakestSkill = sortedSkills[0].skill as SkillName;
+    
+    // Support level based on confidence: Low confidence = High support
+    const supportLevel = confidence < 0.5 ? 'high' : confidence < 0.8 ? 'medium' : 'low';
+    const taskCount = confidence < 0.6 ? 2 : 3;
 
     const tasks: SessionTask[] = [];
 
-    // 2. Generate a task structure based on the focus skill & support profile
-    
-    // Task 1: Warm-up / Scaffolded task based on focus skill
-    if (focusSkill === 'vocabulary') {
-      tasks.push({
-        taskId: `vocab_${Date.now()}_1`,
-        taskType: 'vocabulary',
-        targetSkill: 'vocabulary',
-        learningObjective: 'Contextual Use of Target Words',
-        prompt: 'Fill in the blank: "The new software update will ________ the performance of the system." (Options: improve, delay, abandon, compromise)',
-        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 1 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Correct answer provided',
-        payload: { targetWord: 'improve', distractors: ['delay', 'abandon'] }
-      });
-    } else if (focusSkill === 'listening') {
-      tasks.push({
-        taskId: `listen_${Date.now()}_1`,
-        taskType: 'listening',
-        targetSkill: 'listening',
-        learningObjective: 'Gist comprehension',
-        prompt: 'Listen to the audio. What is the speaker primarily discussing?',
-        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: true, allowSlowAudio: supportLevel === 'high', maxRetries: 2 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Identify the gist successfully',
-        payload: { audioSrc: 'https://cdn.pixabay.com/audio/2022/10/25/audio_24911f32a6.mp3' }
-      });
-    } else if (focusSkill === 'writing') {
-      tasks.push({
-        taskId: `write_${Date.now()}_1`,
-        taskType: 'writing',
-        targetSkill: 'writing',
-        learningObjective: 'Sentence building and connector use',
-        prompt: 'Write two sentences explaining why you prefer working from home or from an office. You MUST use at least one linking word (e.g., however, because, therefore).',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Use of connector and complete sentence structure'
-      });
-    } else {
-      tasks.push({
-        taskId: `speak_${Date.now()}_1`,
-        taskType: 'speaking',
-        targetSkill: 'speaking',
-        learningObjective: 'Fluency in routine scenarios',
-        prompt: 'You need to reschedule your dentist appointment. Leave a short voice message explaining why you cannot make it.',
-        supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 2 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Clear communication of intent and reason'
-      });
-    }
+    // Prioritize fragile descriptors if any exist
+    const targetZonse = fragileDescriptors.length > 0 ? fragileDescriptors : [{ skill: weakestSkill, desc: null }];
 
-    // Task 2: Secondary / Cross-skill task
-    if (model.skills.writing.score < 50 || focusSkill !== 'writing') {
-      tasks.push({
-        taskId: `write_${Date.now()}_2`,
-        taskType: 'writing',
-        targetSkill: 'writing',
-        learningObjective: 'Formal register adaption',
-        prompt: 'Rewrite this casual message for your manager: "Hey, I\'m gonna be late today cuz my car broke down."',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 2 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Appropriate professional register'
-      });
-    } else {
-      tasks.push({
-        taskId: `vocab_${Date.now()}_2`,
-        taskType: 'vocabulary',
-        targetSkill: 'vocabulary',
-        learningObjective: 'Precision in word choice',
-        prompt: 'Replace the word "good" with a more descriptive adjective: "The presentation was very good."',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 2 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Provide an advanced synonym',
-        payload: { targetWord: 'excellent', distractors: [] }
-      });
-    }
+    for (let i = 0; i < taskCount; i++) {
+      const zone = targetZonse[i % targetZonse.length];
+      const focusSkill = zone.skill;
+      const rationale = zone.desc 
+        ? `Targeting identified gap: ${zone.desc.descriptorText}`
+        : `Building consistency in your primary growth area: ${focusSkill}`;
 
-    // Task 3: Challenge task (if pacing/confidence allows)
-    if (taskCount === 3) {
-      tasks.push({
-        taskId: `speak_${Date.now()}_2`,
-        taskType: 'speaking',
-        targetSkill: 'speaking',
-        learningObjective: 'Spontaneous elaboration',
-        prompt: 'Topic: Describe the biggest challenge your industry faces today. Speak for at least 30 seconds.',
-        supportSettings: { allowHints: false, allowReplay: false, maxRetries: 1 },
-        difficultyTarget: model.overallLevel,
-        completionCondition: 'Extended response without heavy hesitation'
-      });
+      if (focusSkill === 'vocabulary' || focusSkill === 'reading') {
+        tasks.push({
+          taskId: `vocab_${Date.now()}_${i}`,
+          taskType: 'vocabulary',
+          targetSkill: 'vocabulary',
+          learningObjective: 'Contextual Use of Target Words',
+          prompt: 'Fill in the blank: "The new software update will ________ the performance of the system." (Options: improve, delay, abandon, compromise)',
+          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 1 },
+          difficultyTarget: overallLevel,
+          completionCondition: 'Correct answer provided',
+          reason: rationale,
+          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : [],
+          payload: { targetWord: 'improve', distractors: ['delay', 'abandon'] }
+        });
+      } else if (focusSkill === 'listening') {
+        tasks.push({
+          taskId: `listen_${Date.now()}_${i}`,
+          taskType: 'listening',
+          targetSkill: 'listening',
+          learningObjective: 'Gist comprehension',
+          prompt: 'Listen to the audio. What is the speaker primarily discussing?',
+          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: true, allowSlowAudio: supportLevel === 'high', maxRetries: 2 },
+          difficultyTarget: overallLevel,
+          completionCondition: 'Identify the gist successfully',
+          reason: rationale,
+          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : [],
+          payload: { audioSrc: 'https://cdn.pixabay.com/audio/2022/10/25/audio_24911f32a6.mp3' }
+        });
+      } else if (focusSkill === 'writing' || focusSkill === 'grammar') {
+        tasks.push({
+          taskId: `write_${Date.now()}_${i}`,
+          taskType: 'writing',
+          targetSkill: 'writing',
+          learningObjective: 'Sentence building and connector use',
+          prompt: 'Write two sentences explaining why you prefer working from home or from an office. You MUST use at least one linking word (e.g., however, because, therefore).',
+          supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
+          difficultyTarget: overallLevel,
+          completionCondition: 'Use of connector and complete sentence structure',
+          reason: rationale,
+          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : []
+        });
+      } else {
+        tasks.push({
+          taskId: `speak_${Date.now()}_${i}`,
+          taskType: 'speaking',
+          targetSkill: 'speaking',
+          learningObjective: 'Fluency in routine scenarios',
+          prompt: 'You need to reschedule your dentist appointment. Leave a short voice message explaining why you cannot make it.',
+          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 2 },
+          difficultyTarget: overallLevel,
+          completionCondition: 'Clear communication of intent and reason',
+          reason: rationale,
+          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : []
+        });
+      }
     }
 
     return tasks;

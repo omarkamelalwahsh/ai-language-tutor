@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 
 import { OnboardingState, ViewState } from './types/app';
-import { LearnerModelSnapshot } from './types/learner-model';
+import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from './types/assessment';
 import { DashboardService } from './services/DashboardService';
 
 // Views
@@ -28,7 +28,7 @@ import { SharedRuntime } from './components/runtime/SharedRuntime';
 import { motion } from 'motion/react';
 import { Code, X } from 'lucide-react';
 
-const DevModeOverlay = ({ model, show, onClose }: { model: LearnerModelSnapshot | null; show: boolean; onClose: () => void }) => (
+const DevModeOverlay = ({ result, show, onClose }: { result: AssessmentSessionResult | null; show: boolean; onClose: () => void }) => (
   <AnimatePresence>
     {show && (
       <motion.div
@@ -50,7 +50,7 @@ const DevModeOverlay = ({ model, show, onClose }: { model: LearnerModelSnapshot 
             </button>
           </div>
           <div className="p-6 overflow-y-auto flex-1 font-mono text-xs sm:text-sm text-slate-700">
-            <pre>{JSON.stringify({ learnerModelSnapshot: model }, null, 2)}</pre>
+            <pre>{JSON.stringify({ assessmentResult: result }, null, 2)}</pre>
           </div>
         </motion.div>
       </motion.div>
@@ -62,8 +62,9 @@ export default function App() {
   const [view, setView] = useState<ViewState>('LANDING');
   const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
-  const [taskResults, setTaskResults] = useState<any[]>([]);
-  const [learnerModel, setLearnerModel] = useState<LearnerModelSnapshot | null>(null);
+  const [taskResults, setTaskResults] = useState<TaskEvaluation[]>([]);
+  const [assessmentOutcome, setAssessmentOutcome] = useState<AssessmentOutcome | null>(null);
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentSessionResult | null>(null);
   const [devModeActive, setDevModeActive] = useState(false);
 
   const navigateTo = (newView: ViewState) => {
@@ -73,7 +74,7 @@ export default function App() {
 
   return (
     <div className="font-sans antialiased text-slate-900 selection:bg-indigo-500/30 selection:text-indigo-900 bg-slate-50 min-h-screen">
-      <DevModeOverlay model={learnerModel} show={devModeActive} onClose={() => setDevModeActive(false)} />
+      <DevModeOverlay result={assessmentResult} show={devModeActive} onClose={() => setDevModeActive(false)} />
 
       <AnimatePresence mode="wait">
         {view === 'LANDING' && (
@@ -111,41 +112,49 @@ export default function App() {
         )}
 
         {view === 'DIAGNOSTIC' && (
-          <DiagnosticView key="diagnostic" onComplete={(results) => {
+          <DiagnosticView key="diagnostic" onComplete={(results, outcome) => {
             setTaskResults(results);
+            setAssessmentOutcome(outcome);
             navigateTo('ANALYZING');
           }} />
         )}
 
         {view === 'ANALYZING' && (
-          <AnalyzingView key="analyzing" onboardingState={onboardingState} taskResults={taskResults} onComplete={(model) => {
-            setLearnerModel(model);
-            navigateTo('RESULT_ANALYSIS');
-          }} />
+          <AnalyzingView
+            key="analyzing"
+            onboardingState={onboardingState}
+            taskResults={taskResults}
+            assessmentOutcome={assessmentOutcome}
+            onComplete={(result) => {
+              setAssessmentResult(result);
+              navigateTo('RESULT_ANALYSIS');
+            }}
+          />
         )}
 
-        {view === 'RESULT_ANALYSIS' && learnerModel && (
+        {view === 'RESULT_ANALYSIS' && assessmentResult && (
           <ResultAnalysisView
             key="result_analysis"
-            model={learnerModel}
+            result={assessmentResult}
+            assessmentOutcome={assessmentOutcome}
             onContinue={() => navigateTo('LEARNING_JOURNEY')}
           />
         )}
 
-        {view === 'LEARNING_JOURNEY' && learnerModel && (
+        {view === 'LEARNING_JOURNEY' && assessmentResult && (
           <LearningJourneyView
             key="learning_journey"
-            model={learnerModel}
+            result={assessmentResult}
             onStartSession={() => navigateTo('LEARNING_LOOP')}
             onViewDashboard={() => navigateTo('DASHBOARD')}
           />
         )}
 
-        {view === 'DASHBOARD' && learnerModel && (
+        {view === 'DASHBOARD' && assessmentResult && (
           <FadeTransition key="dashboard" className="min-h-screen bg-slate-50">
             <AdvancedDashboard
-              learnerModel={learnerModel}
-              dashboardData={DashboardService.buildPayload(learnerModel)}
+              result={assessmentResult}
+              dashboardData={DashboardService.buildPayload(assessmentResult)}
               onStartSession={() => navigateTo('LEARNING_LOOP')}
               onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
             />
@@ -178,8 +187,8 @@ export default function App() {
           />
         )}
 
-        {view === 'LEARNING_LOOP' && learnerModel && (
-          <SharedRuntime key="learning_loop" learnerModel={learnerModel} onExit={() => navigateTo('DASHBOARD')} />
+        {view === 'LEARNING_LOOP' && assessmentResult && (
+          <SharedRuntime key="learning_loop" result={assessmentResult} onExit={() => navigateTo('DASHBOARD')} />
         )}
       </AnimatePresence>
     </div>

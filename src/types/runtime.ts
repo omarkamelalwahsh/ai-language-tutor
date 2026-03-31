@@ -15,6 +15,8 @@ export interface SessionTask {
   };
   difficultyTarget: string;
   completionCondition: string;
+  reason?: string;
+  fragileDescriptorIds?: string[];
   // Module-specific generic payload for details like audio URLs, vocab lists, etc.
   payload?: any; 
 }

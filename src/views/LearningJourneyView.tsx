@@ -5,12 +5,12 @@ import {
   Layers, ShieldCheck, Star, Mic, PenTool, Headphones, 
   Lock, CheckCircle2, ChevronRight
 } from 'lucide-react';
-import { LearnerModelSnapshot } from '../types/learner-model';
+import { AssessmentSessionResult } from '../types/assessment';
 import { JourneyService } from '../services/JourneyService';
 import { JourneyNode } from '../types/dashboard';
 
 interface LearningJourneyViewProps {
-  model: LearnerModelSnapshot;
+  result: AssessmentSessionResult;
   onStartSession: () => void;
   onViewDashboard: () => void;
 }
@@ -34,8 +34,8 @@ const staggerItem = {
   show: { opacity: 1, y: 0 }
 };
 
-export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ model, onStartSession, onViewDashboard }) => {
-  const journey = useMemo(() => JourneyService.buildJourney(model.overallLevel), [model.overallLevel]);
+export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result, onStartSession, onViewDashboard }) => {
+  const journey = useMemo(() => JourneyService.buildJourney(result), [result]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 selection:bg-indigo-500/30 font-sans text-slate-900 flex flex-col items-center">
@@ -65,12 +65,12 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ model,
             <div className="flex-1 flex flex-col items-center w-full">
               <div className="flex justify-between w-full mb-4 px-2">
                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress to {journey.targetStage}</span>
-                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">25% Complete</span>
+                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Initial Diagnostic (100% Reliable)</span>
               </div>
               <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden flex items-center shadow-inner relative border border-slate-200">
                 <motion.div 
                   initial={{ width: 0 }}
-                  animate={{ width: '25%' }}
+                  animate={{ width: '15%' }}
                   className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full relative"
                 >
                   <div className="absolute top-0 right-0 w-full h-full bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] opacity-20" />

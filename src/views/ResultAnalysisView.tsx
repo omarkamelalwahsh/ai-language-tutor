@@ -1,41 +1,30 @@
 import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, BarChart3, CheckCircle2, Zap, Target, BookOpen, Mic, PenTool, Headphones } from 'lucide-react';
-import { LearnerModelSnapshot } from '../types/learner-model';
-import { AssessmentOutcome } from '../types/journey';
+import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 
 const skillIcons: Record<string, React.ReactNode> = {
-  speaking: <Mic className="w-5 h-5 text-blue-500" />,
+  speaking: <Mic className="w-5 h-5 text-rose-500" />,
   writing: <PenTool className="w-5 h-5 text-purple-500" />,
   listening: <Headphones className="w-5 h-5 text-green-500" />,
   vocabulary: <BookOpen className="w-5 h-5 text-amber-500" />,
+  reading: <BookOpen className="w-5 h-5 text-blue-500" />,
+  grammar: <PenTool className="w-5 h-5 text-violet-500" />,
 };
 
 interface ResultAnalysisViewProps {
-  model: LearnerModelSnapshot;
+  result: AssessmentSessionResult;
   onContinue: () => void;
 }
 
-export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ model, onContinue }) => {
-  // Derive AssessmentOutcome from LearnerModelSnapshot
-  const outcome: AssessmentOutcome = useMemo(() => {
-    return {
-      estimatedBand: model.overallLevel as any,
-      confidence: model.confidence.state === 'fragile' ? 0.3 : model.confidence.state === 'steady' ? 0.7 : 0.9,
-      skillScores: {
-        reading: model.skills.vocabulary.score, // Fallback/proxy
-        writing: model.skills.writing.score,
-        listening: model.skills.listening.score,
-        speaking: model.skills.speaking.score,
-      },
-      strengths: model.interpretation.currentCapacities.slice(0, 3) || ['Completed assessment successfully'],
-      weaknesses: model.interpretation.growthZones.slice(0, 3) || ['Needs more varied practice'],
-    };
-  }, [model]);
+export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, onContinue }) => {
+  const confidenceLabel = result.overall.confidence >= 0.8 ? `Confident ${result.overall.estimatedLevel}` :
+                          result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
+                          `${result.overall.estimatedLevel} emerging`;
 
-  const confidenceLabel = outcome.confidence >= 0.8 ? `Confident ${outcome.estimatedBand}` :
-                          outcome.confidence >= 0.5 ? `Likely ${outcome.estimatedBand}` : 
-                          `${outcome.estimatedBand} emerging`;
+  const skills = useMemo(() => Object.values(result.skills), [result]);
+  const strengths = useMemo(() => skills.flatMap(s => s.strengths).slice(0, 4), [skills]);
+  const weaknesses = useMemo(() => skills.flatMap(s => s.weaknesses).slice(0, 4), [skills]);
 
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -69,24 +58,23 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ model, o
           <div className="relative z-10 flex-1 space-y-3">
             <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Estimated Level</p>
             <div className="flex items-center gap-4">
-              <span className="text-7xl font-black text-indigo-600 tracking-tighter">{outcome.estimatedBand}</span>
+              <span className="text-7xl font-black text-indigo-600 tracking-tighter">{result.overall.estimatedLevel}</span>
               <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold border border-indigo-100">
                 {confidenceLabel}
               </div>
             </div>
             <p className="text-slate-600 leading-relaxed max-w-md pt-2">
-              You demonstrate a {outcome.estimatedBand} level. {model.interpretation.currentCapacities[0] || 'You handled the initial baseline well'}. 
-              However, {model.interpretation.growthZones[0]?.toLowerCase() || 'there are areas to refine'}.
+              {result.overall.rationale[0] || 'You successfully completed the diagnostic evaluation.'}
             </p>
           </div>
           
           <div className="relative z-10 w-full md:w-auto flex-shrink-0 flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-100">
             <div className="w-32 h-32 rounded-full border-[8px] border-indigo-50 flex items-center justify-center relative">
               <svg className="absolute inset-0 w-full h-full -rotate-90">
-                <circle cx="50%" cy="50%" pt="50%" r="42%" className="stroke-indigo-600 fill-none" strokeWidth="8" strokeDasharray="250" strokeDashoffset={250 - (250 * (outcome.confidence * 100)) / 100} strokeLinecap="round" />
+                <circle cx="50%" cy="50%" r="42%" className="stroke-indigo-600 fill-none" strokeWidth="8" strokeDasharray="250" strokeDashoffset={250 - (250 * (result.overall.confidence * 100)) / 100} strokeLinecap="round" />
               </svg>
               <div className="text-center">
-                <span className="block text-2xl font-black text-slate-800">{Math.round(outcome.confidence * 100)}%</span>
+                <span className="block text-2xl font-black text-slate-800">{Math.round(result.overall.confidence * 100)}%</span>
                 <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Confidence</span>
               </div>
             </div>
@@ -100,19 +88,20 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ model, o
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2"><Target className="w-5 h-5 text-indigo-500" /> Skill Breakdown</h3>
             <div className="space-y-4">
-              {Object.entries(outcome.skillScores).map(([skill, score]) => (
-                <div key={skill}>
-                  <div className="flex justify-between items-center mb-1.5 text-sm">
-                    <div className="flex items-center gap-2 font-semibold text-slate-700 capitalize">
-                      {skillIcons[skill] || <Target className="w-4 h-4 text-slate-400" />} {skill}
+              {skills.map((skillRes: SkillAssessmentResult) => (
+                  <div key={skillRes.skill}>
+                    <div className="flex justify-between items-center mb-1.5 text-sm">
+                      <div className="flex items-center gap-2 font-semibold text-slate-700 capitalize">
+                        {skillIcons[skillRes.skill] || <Target className="w-4 h-4 text-slate-400" />} {skillRes.skill}
+                      </div>
+                      <span className="font-bold text-slate-900">{Math.round(skillRes.confidence.score * 100)}/100</span>
                     </div>
-                    <span className="font-bold text-slate-900">{score}/100</span>
+                    <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, skillRes.confidence.score * 100)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${score}%` }} />
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </div>
 
@@ -122,7 +111,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ model, o
               <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-100 blur-xl opacity-50 rounded-bl-full" />
               <h3 className="font-bold text-emerald-900 mb-4 flex items-center gap-2 relative z-10"><CheckCircle2 className="w-5 h-5" /> Detected Strengths</h3>
               <ul className="space-y-3 relative z-10">
-                {outcome.strengths.map((strength, i) => (
+                {(strengths.length > 0 ? strengths : ['Strong base foundation']).map((strength: string, i: number) => (
                   <li key={i} className="flex gap-3 text-emerald-800 text-sm font-medium leading-snug">
                     <span className="text-emerald-500 font-bold shrink-0">✓</span> {strength}
                   </li>
@@ -134,7 +123,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ model, o
               <div className="absolute top-0 right-0 w-20 h-20 bg-amber-100 blur-xl opacity-50 rounded-bl-full" />
               <h3 className="font-bold text-amber-900 mb-4 flex items-center gap-2 relative z-10"><Zap className="w-5 h-5" /> Growth Areas</h3>
               <ul className="space-y-3 relative z-10">
-                {outcome.weaknesses.map((weakness, i) => (
+                {(weaknesses.length > 0 ? weaknesses : ['Pushing toward advanced benchmarks']).map((weakness: string, i: number) => (
                   <li key={i} className="flex gap-3 text-amber-800 text-sm font-medium leading-snug">
                     <span className="text-amber-500 font-bold shrink-0">↗</span> {weakness}
                   </li>

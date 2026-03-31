@@ -4,22 +4,24 @@ import { Brain, Loader2 } from 'lucide-react';
 import { FadeTransition } from '../lib/animations';
 import { OnboardingState } from '../types/app';
 import { AssessmentAnalysisService } from '../services/AnalysisService';
-import { LearnerModelSnapshot } from '../types/learner-model';
+import { AssessmentSessionResult, TaskEvaluation, AssessmentOutcome } from '../types/assessment';
 
 interface AnalyzingViewProps {
   onboardingState: OnboardingState | null;
-  taskResults: any[];
-  onComplete: (model: LearnerModelSnapshot) => void;
+  taskResults: TaskEvaluation[];
+  assessmentOutcome?: AssessmentOutcome | null;
+  onComplete: (result: AssessmentSessionResult) => void;
 }
 
-export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, taskResults, onComplete }) => {
+export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, taskResults, assessmentOutcome, onComplete }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      const model = AssessmentAnalysisService.initializeLearnerModel(onboardingState, taskResults);
-      onComplete(model);
+      // Deterministic evaluation via the new Rule Engine
+      const result = AssessmentAnalysisService.initializeLearnerModel('session_1', onboardingState, taskResults);
+      onComplete(result);
     }, 4500);
     return () => clearTimeout(timer);
-  }, [onboardingState, taskResults, onComplete]);
+  }, [onboardingState, taskResults, assessmentOutcome, onComplete]);
 
   return (
     <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">

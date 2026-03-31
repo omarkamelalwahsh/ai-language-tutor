@@ -1,84 +1,96 @@
-import { LearnerModelSnapshot, CEFRLevel } from '../types/learner-model';
-
-// (Types removed from here to use unified types/dashboard.ts)
-
-const NEXT_LEVEL_MAP: Record<CEFRLevel, CEFRLevel> = {
-  'Pre-A1': 'A1', 'A1': 'A2', 'A1+': 'A2', 
-  'A2': 'B1', 'A2+': 'B1', 'B1': 'B2', 'B1+': 'B2', 
-  'B2': 'C1', 'B2+': 'C1', 'C1': 'C2', 'C2': 'C2'
-};
-
+import { AssessmentSessionResult, SkillName, CefrLevel } from '../types/assessment';
+import { getNextBand, normalizeBand } from '../lib/cefr-utils';
 import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
+import { CEFR_CATALOG, CefrDescriptor } from '../data/cefr-catalog';
 
 export class JourneyService {
   
-  public static buildJourney(currentLevel: CEFRLevel): LearnerJourneyPayload {
-    const targetLevel = NEXT_LEVEL_MAP[currentLevel];
-    const nodes = this.generateNodesForLevel(currentLevel);
+  public static buildJourney(result: AssessmentSessionResult): LearnerJourneyPayload {
+    const currentLevel = result.overall.estimatedLevel;
+    const targetLevel = getNextBand(currentLevel);
+    
+    // 1. Identify Gaps (Descriptors at current level that are missing/weak)
+    const gaps = this.identifyGaps(result);
+    
+    // 2. Identify Next Objectives (Descriptors at target level)
+    const objectives = this.identifyObjectives(targetLevel);
+
+    const nodes = this.generateDynamicNodes(gaps, objectives);
 
     return {
       currentStage: currentLevel,
       targetStage: targetLevel,
       journeyTitle: `Your Path to ${targetLevel}`,
-      currentCapabilitiesSummary: `Building foundation in ${currentLevel} core skills.`,
+      currentCapabilitiesSummary: `Refining ${currentLevel} foundations based on your performance evidence.`,
       targetCapabilitiesSummary: `Achieving full competence at ${targetLevel} level.`,
       nodes
     };
   }
 
-  private static generateNodesForLevel(level: CEFRLevel): JourneyNode[] {
-    const baseID = `node_${level}`;
+  private static identifyGaps(result: AssessmentSessionResult): CefrDescriptor[] {
+    const gaps: CefrDescriptor[] = [];
     
-    // Core curriculum components based on level
-    const curriculm = this.getCurriculumTemplate(level);
-    const nodes: JourneyNode[] = [];
-    
-    curriculm.forEach((item, index) => {
-      // Add Task Node
-      nodes.push({
-        id: `${baseID}_t${index}`,
-        type: 'task',
-        status: index === 0 ? 'current' : 'locked',
-        title: item.title,
-        description: item.desc,
-        iconType: item.icon as any,
-      });
+    Object.values(result.skills).forEach(skillResult => {
+      const currentLevel = skillResult.estimatedLevel;
+      const allForLevel = CEFR_CATALOG.filter(d => 
+        d.skill === skillResult.skill && d.level === currentLevel
+      );
 
-      // Inject Checkpoint every 3 tasks
-      if ((index + 1) % 3 === 0 && index !== curriculm.length - 1) {
-        nodes.push({
-          id: `${baseID}_cp${index}`,
-          type: 'checkpoint',
-          status: 'locked',
-          title: `Checkpoint: ${item.skill} Mastery`,
-          description: `Validate your progress in ${item.skill} before moving forward.`,
-          iconType: 'assessment',
-        });
-      }
+      allForLevel.forEach(desc => {
+        const evidence = skillResult.descriptors.find(d => d.descriptorId === desc.id);
+        // If not tested OR tested and weak (< 0.5)
+        if (!evidence || (evidence.strength < 0.5)) {
+          gaps.push(desc);
+        }
+      });
+    });
+
+    return gaps.slice(0, 4); // Limit to top 4 gaps for clarity
+  }
+
+  private static identifyObjectives(targetLevel: CefrLevel): CefrDescriptor[] {
+    return CEFR_CATALOG.filter(d => d.level === targetLevel).slice(0, 3);
+  }
+
+  private static generateDynamicNodes(gaps: CefrDescriptor[], objectives: CefrDescriptor[]): JourneyNode[] {
+    const nodes: JourneyNode[] = [];
+    let nodeIndex = 0;
+
+    // Phase 1: Remediation (Gap Filling)
+    gaps.forEach(gap => {
+      nodes.push({
+        id: `gap_${gap.id}`,
+        type: 'task',
+        status: nodeIndex === 0 ? 'current' : 'locked',
+        title: `Bridge: ${gap.skill.charAt(0).toUpperCase() + gap.skill.slice(1)}`,
+        description: gap.canonicalTextEn,
+        iconType: (gap.skill === 'grammar' || gap.skill === 'vocabulary') ? gap.skill : (gap.skill as any),
+      });
+      nodeIndex++;
+    });
+
+    // Checkpoint
+    nodes.push({
+      id: `cp_remediation`,
+      type: 'checkpoint',
+      status: 'locked',
+      title: 'Foundation Checkpoint',
+      description: 'Validate remediation of identified gaps before moving to new objectives.',
+      iconType: 'assessment',
+    });
+
+    // Phase 2: Progression (New Objectives)
+    objectives.forEach(obj => {
+      nodes.push({
+        id: `obj_${obj.id}`,
+        type: 'task',
+        status: 'locked',
+        title: `Target: ${obj.skill.charAt(0).toUpperCase() + obj.skill.slice(1)}`,
+        description: obj.canonicalTextEn,
+        iconType: (obj.skill === 'grammar' || obj.skill === 'vocabulary') ? obj.skill : (obj.skill as any),
+      });
     });
 
     return nodes;
   }
-
-  private static getCurriculumTemplate(level: string) {
-    if (level.includes('A')) {
-      return [
-        { title: 'Sentence Basics', desc: 'SVO structure and basic word order', icon: 'grammar', skill: 'Grammar' },
-        { title: 'Daily Routines', desc: 'Describing your day with frequency adverbs', icon: 'speaking', skill: 'Speaking' },
-        { title: 'Simple Requests', desc: 'How to ask for things politely', icon: 'listening', skill: 'Listening' },
-        { title: 'Connective Words', desc: 'Using and/but/because correctly', icon: 'writing', skill: 'Writing' },
-        { title: 'Past Events', desc: 'Talking about what you did yesterday', icon: 'speaking', skill: 'Speaking' },
-        { title: 'Basic Description', desc: 'Using adjectives for people and places', icon: 'vocabulary', skill: 'Vocabulary' },
-      ];
-    }
-    return [
-      { title: 'Nuanced Debate', desc: 'Expressing pros and cons with precision', icon: 'speaking', skill: 'Speaking' },
-      { title: 'Complex Conditionals', desc: 'Hypothetical situations and regrets', icon: 'grammar', skill: 'Grammar' },
-      { title: 'Professional Drafting', desc: 'Writing formal emails and reports', icon: 'writing', skill: 'Writing' },
-      { title: 'Inference Skills', desc: 'Understanding subtext in fast speech', icon: 'listening', skill: 'Listening' },
-      { title: 'Idiomatic Range', desc: 'Natural expressions and metaphors', icon: 'vocabulary', skill: 'Vocabulary' },
-      { title: 'Topic Deep Dive', desc: 'Sustained monologue on abstract topics', icon: 'speaking', skill: 'Speaking' },
-    ];
-  }
-
 }

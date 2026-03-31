@@ -7,18 +7,11 @@ import {
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown
 } from 'lucide-react';
 
+import { AssessmentSessionResult, SkillName, SkillAssessmentResult } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
-import { LearnerModelSnapshot } from '../../types/learner-model';
-import { DashboardService } from '../../services/DashboardService';
-import { mockTrainingProgress } from '../../data/mock-journey';
-import { generateForecast } from '../../lib/forecast-logic';
-import { ProgressForecastCard } from '../journey/ProgressForecastCard';
-import { ProgressSummaryCard } from '../journey/ProgressSummaryCard';
-import { TrainingConsistencyCard } from '../journey/TrainingConsistencyCard';
-import { NewLearnerJourneyView } from '../journey/NewLearnerJourneyView';
 
 interface AdvancedDashboardProps {
-  learnerModel: LearnerModelSnapshot;
+  result: AssessmentSessionResult;
   dashboardData: AdvancedDashboardPayload;
   onStartSession: () => void;
   onNavigateLeaderboard: () => void;
@@ -38,7 +31,9 @@ const skillIcons: Record<string, React.ReactNode> = {
   speaking: <Mic className="w-5 h-5" />,
   writing: <PenTool className="w-5 h-5" />,
   listening: <Headphones className="w-5 h-5" />,
-  vocabulary: <BookOpen className="w-5 h-5" />,
+  vocabulary: <BookOpen className="w-4 h-4" />, // Using smaller for consistent look
+  reading: <BookOpen className="w-5 h-5" />,
+  grammar: <BrainCircuit className="w-5 h-5" />,
 };
 
 // Sidebar nav items
@@ -52,9 +47,9 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerModel, dashboardData, onStartSession, onNavigateLeaderboard }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, onStartSession, onNavigateLeaderboard }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
-  const forecast = useMemo(() => generateForecast(mockTrainingProgress), []);
+  const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -66,7 +61,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
           </div>
           <div>
             <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">AI Tutor</h1>
-            <p className="text-xs text-slate-400 font-bold">{learnerModel.overallLevel} Learner</p>
+            <p className="text-xs text-slate-400 font-bold">{result.overall.estimatedLevel} Learner</p>
           </div>
         </div>
 
@@ -145,26 +140,26 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                 </div>
                 <div className="relative z-10 flex flex-col md:flex-row gap-8">
                   <div className="flex-1 space-y-3">
-                    {dashboardData.journey.milestones.map((m, i) => (
+                    {dashboardData.journey.nodes.map((m, i) => (
                       <div key={m.id} className="flex gap-4">
                         <div className="flex flex-col items-center">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${m.status === 'completed' ? 'bg-emerald-500 border-emerald-500' : m.status === 'current' ? 'bg-white border-indigo-600' : 'bg-slate-100 border-slate-200'}`}>
                             {m.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
                             {m.status === 'current' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
                           </div>
-                          {i < dashboardData.journey.milestones.length - 1 && <div className={`w-0.5 h-full my-1 ${m.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
+                          {i < dashboardData.journey.nodes.length - 1 && <div className={`w-0.5 h-full my-1 ${m.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
                         </div>
                         <div className={`pb-3 ${m.status === 'locked' ? 'opacity-50' : ''}`}>
                           <h4 className={`font-bold ${m.status === 'current' ? 'text-indigo-900' : 'text-slate-700'}`}>{m.title}</h4>
-                          <p className="text-sm text-slate-500">{m.description} • {m.estimatedDuration}</p>
+                          <p className="text-sm text-slate-500">{m.description}{m.estimatedDuration ? ` • ${m.estimatedDuration}` : ''}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="w-full md:w-1/3 bg-slate-50 p-5 rounded-2xl border border-slate-100 h-max">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Current Strengths</h3>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Key Evidence</h3>
                     <ul className="space-y-2 text-slate-700 text-sm font-medium">
-                      {learnerModel.interpretation.currentCapacities.map((cap, i) => (
+                      {result.overall.rationale.map((cap, i) => (
                         <li key={i} className="flex gap-2"><span className="text-emerald-500">✓</span>{cap}</li>
                       ))}
                     </ul>
@@ -174,24 +169,28 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
 
               {/* Skill Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {dashboardData.skillAnalytics.map(skill => (
-                  <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${skill.isPriority ? 'border-indigo-200 shadow-md shadow-indigo-100/50' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
-                    {skill.isPriority && <div className="absolute top-0 right-0 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Priority</div>}
-                    <div className="flex items-center gap-2 text-slate-600 font-bold capitalize mb-3">{skillIcons[skill.skillId]} {skill.skillId}</div>
-                    <div className="flex items-end gap-2 mb-2">
-                      <span className="text-3xl font-extrabold text-slate-900">{skill.currentScore}</span>
-                      {skill.progressDirection === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
-                      {skill.stability === 'fragile' && <AlertCircle className="w-4 h-4 text-amber-500 mb-1" />}
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
-                      <div className={`h-full ${skill.isPriority ? 'bg-indigo-500' : 'bg-slate-400'}`} style={{ width: `${skill.currentScore}%` }} />
-                    </div>
-                    <div className="flex justify-between text-xs font-bold text-slate-400">
-                      <span>Confidence</span>
-                      <span className={`px-1.5 py-0.5 rounded ${skill.confidenceBand === 'high' ? 'bg-emerald-50 text-emerald-600' : skill.confidenceBand === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>{skill.confidenceBand}</span>
-                    </div>
-                  </motion.div>
-                ))}
+                {dashboardData.skillAnalytics.map(skill => {
+                  const isCapped = result.skills[skill.skillId]?.isCapped;
+                  return (
+                    <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${skill.isPriority ? 'border-indigo-200 shadow-md shadow-indigo-100/50' : isCapped ? 'border-amber-100 shadow-sm' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
+                      {skill.isPriority && <div className="absolute top-0 right-0 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Priority</div>}
+                      {isCapped && <div className="absolute top-0 right-0 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5"/> Capped</div>}
+                      <div className="flex items-center gap-2 text-slate-600 font-bold capitalize mb-3">{skillIcons[skill.skillId]} {skill.skillId}</div>
+                      <div className="flex items-end gap-2 mb-2">
+                        <span className="text-3xl font-extrabold text-slate-900">{skill.currentScore}</span>
+                        {skill.progressDirection === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
+                        {skill.stability === 'fragile' && <AlertCircle className="w-4 h-4 text-amber-500 mb-1" />}
+                      </div>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+                        <div className={`h-full ${skill.isPriority ? 'bg-indigo-500' : isCapped ? 'bg-amber-400' : 'bg-slate-400'}`} style={{ width: `${skill.currentScore}%` }} />
+                      </div>
+                      <div className="flex justify-between text-xs font-bold text-slate-400">
+                        <span>Confidence</span>
+                        <span className={`px-1.5 py-0.5 rounded ${skill.confidenceBand === 'high' ? 'bg-emerald-50 text-emerald-600' : skill.confidenceBand === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>{skill.confidenceBand}</span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
 
               {/* Focus Areas */}
@@ -217,60 +216,59 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
               </motion.div>
 
               {/* Per-Skill Deep Cards */}
-              {(Object.entries(learnerModel.skills) as [string, typeof learnerModel.skills.speaking][]).map(([id, dim]) => (
-                <motion.section key={id} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              {skills.map((skillRes: SkillAssessmentResult) => (
+                <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3 font-bold capitalize text-slate-800">{skillIcons[id]} {id}</div>
-                    <span className="text-xl font-extrabold text-indigo-600">{dim.level}</span>
+                    <div className="flex items-center gap-3 font-bold capitalize text-slate-800">
+                      {skillIcons[skillRes.skill] || <Activity className="w-5 h-5" />} {skillRes.skill}
+                    </div>
+                    <span className="text-xl font-extrabold text-indigo-600">{skillRes.estimatedLevel}</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
-                      <p className="text-2xl font-extrabold text-slate-900">{dim.score}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mastery</p>
+                      <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillRes.confidence.score * 100)}%</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
+                      <p className="text-2xl font-extrabold text-slate-900">{skillRes.evidenceCount}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Consistency</p>
+                      <p className="text-lg font-bold text-slate-800 capitalize">{skillRes.status}</p>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                      <p className="text-2xl font-extrabold text-slate-900">{Math.round(dim.confidence * 100)}%</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stability</p>
-                      <p className="text-lg font-bold text-slate-800 capitalize">{dim.confidence > 0.6 ? 'Stable' : 'Fragile'}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Trend</p>
-                      <p className="text-lg font-bold text-emerald-600">↑ Improving</p>
+                      <p className="text-lg font-bold text-indigo-600 capitalize">{skillRes.confidence.band}</p>
                     </div>
                   </div>
                   {/* Subskill Bars */}
                   <div className="space-y-2">
-                    {DashboardService.getSubskills(id, learnerModel).map(sub => (
+                    {(skillRes.subscores || []).map(sub => (
                       <div key={sub.name} className="flex items-center gap-3">
                         <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
                         <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${sub.value}%` }} />
+                          <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
                         </div>
-                        <span className="text-xs font-bold text-slate-600 w-8">{sub.value}</span>
+                        <span className="text-xs font-bold text-slate-600 w-8">{Math.round(sub.value * 100)}</span>
                       </div>
                     ))}
                   </div>
                 </motion.section>
               ))}
 
-              {/* Error Patterns */}
-              {learnerModel.errors.length > 0 && (
+              {/* Descriptor Evidence */}
+              {skills.some(s => s.descriptors.length > 0) && (
                 <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-500" /> Monitored Patterns</h3>
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Target className="w-4 h-4 text-emerald-500" /> Evidence-Based Descriptors</h3>
                   <div className="space-y-3">
-                    {learnerModel.errors.map((err, i) => (
+                    {skills.flatMap(s => s.descriptors).slice(0, 5).map((desc, i) => (
                       <div key={i} className="flex items-center justify-between bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
                         <div>
-                          <p className="font-bold text-slate-800 text-sm">{err.type}</p>
-                          <p className="text-xs text-slate-500">Affects: {err.affectedSkills.join(', ')}</p>
+                          <p className="font-bold text-slate-800 text-sm">{desc.descriptorText}</p>
+                          <p className="text-xs text-slate-500">Level: {desc.level} • Strength: {Math.round(desc.strength * 100)}%</p>
                         </div>
-                        <div className="flex gap-2">
-                          <span className={`text-xs font-bold px-2 py-1 rounded ${err.severity === 'high' ? 'bg-red-50 text-red-600' : err.severity === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>{err.severity}</span>
-                          <span className="text-xs font-bold px-2 py-1 rounded bg-indigo-50 text-indigo-600">{Math.round(err.evidenceStrength * 100)}% evidence</span>
-                        </div>
+                        {desc.supported ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <AlertCircle className="w-5 h-5 text-amber-500" />}
                       </div>
                     ))}
                   </div>
@@ -283,19 +281,15 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pacing</p>
-                    <p className="text-lg font-bold text-slate-800 capitalize">{learnerModel.pacing.profile}</p>
+                    <p className="text-lg font-bold text-slate-800 capitalize">{result.behavioralProfile.pace}</p>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Avg Latency</p>
-                    <p className="text-lg font-bold text-slate-800">{(learnerModel.pacing.avgLatencyMs / 1000).toFixed(1)}s</p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                    <p className="text-lg font-bold text-slate-800 capitalize">{learnerModel.confidence.state}</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence Style</p>
+                    <p className="text-lg font-bold text-slate-800 capitalize">{result.behavioralProfile.confidenceStyle}</p>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Self-Correction</p>
-                    <p className="text-lg font-bold text-slate-800">{Math.round(learnerModel.confidence.selfCorrectionRate * 100)}%</p>
+                    <p className="text-lg font-bold text-slate-800">{Math.round(result.behavioralProfile.selfCorrectionRate * 100)}%</p>
                   </div>
                 </div>
               </motion.section>
@@ -418,22 +412,16 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ learnerMod
                 <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Level Journey</h2>
                 <p className="text-slate-500 text-sm">Track your progress, consistency, and path to your next level.</p>
               </motion.div>
-
               {dashboardData.isNewLearner ? (
-                <NewLearnerJourneyView 
-                   learnerModel={learnerModel}
-                   onStartSession={onStartSession}
-                />
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center">
+                   <Target className="w-12 h-12 text-indigo-300 mx-auto mb-4" />
+                   <h3 className="text-xl font-bold text-slate-800 mb-2">Initial Diagnostic Complete</h3>
+                   <p className="text-slate-500 mb-6">You are professionally assessed at the <strong>{result.overall.estimatedLevel}</strong> level.</p>
+                   <button onClick={onStartSession} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold">Begin Learning Journey</button>
+                </div>
               ) : (
-                <div className="space-y-6">
-                  <motion.div variants={staggerItem}>
-                    <ProgressForecastCard forecast={forecast} />
-                  </motion.div>
-
-                  <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <ProgressSummaryCard progress={mockTrainingProgress} />
-                    <TrainingConsistencyCard progress={mockTrainingProgress} />
-                  </motion.div>
+                <div className="text-center py-12">
+                  <p>Journey view coming soon...</p>
                 </div>
               )}
             </motion.div>
