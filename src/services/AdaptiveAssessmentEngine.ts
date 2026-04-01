@@ -1074,7 +1074,7 @@ export class AdaptiveAssessmentEngine {
     if (llm.lexical_sophistication > 0.7) {
        combined.push({ 
          descriptorId: 'llm_lexical_signal_high', 
-         descriptorText: 'Demonstrated sophisticated and varied vocabulary usage.',
+         descriptorText: llm.rationale || 'Demonstrated sophisticated and varied vocabulary usage.',
          level: llm.estimated_band,
          supported: true,
          strength: llm.lexical_sophistication,
@@ -1085,7 +1085,7 @@ export class AdaptiveAssessmentEngine {
     if (llm.syntactic_complexity > 0.7) {
        combined.push({ 
          descriptorId: 'llm_syntactic_signal_high', 
-         descriptorText: 'Demonstrated complex syntactic control and nested structures.',
+         descriptorText: llm.rationale || 'Demonstrated complex syntactic control and nested structures.',
          level: llm.estimated_band,
          supported: true,
          strength: llm.syntactic_complexity,

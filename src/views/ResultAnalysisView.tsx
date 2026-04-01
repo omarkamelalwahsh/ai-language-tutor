@@ -24,7 +24,13 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
                           result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
                           `${result.overall.estimatedLevel} emerging`;
 
-  const skills = useMemo(() => Object.values(result.skills), [result]);
+  const skills = useMemo(() => {
+     return (Object.values(result.skills) as SkillAssessmentResult[]).sort((a, b) => {
+       const scoreA = a.masteryScore ?? 0;
+       const scoreB = b.masteryScore ?? 0;
+       return scoreA - scoreB;
+     });
+  }, [result]);
   const strengths = useMemo(() => skills.flatMap(s => s.strengths).slice(0, 4), [skills]);
   const weaknesses = useMemo(() => skills.flatMap(s => s.weaknesses).slice(0, 4), [skills]);
 

@@ -110,7 +110,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
             const question = getQuestion(ev.taskId);
             if (!question) return null;
 
-            const isCorrect = ev.validAttempt; // Based on engine's isPass logic
+            const isCorrect = (ev.channels?.comprehension ?? 0) >= 0.5;
 
             return (
               <motion.div 

@@ -69,7 +69,7 @@ export class AssessmentAnalysisService {
       learnerId,
       sessionId,
       overall: {
-        estimatedLevel: this.normalizeEngineBand(outcome.overallBand),
+        estimatedLevel: this.inferOverallLevel(skillResults, outcome.overallConfidence),
         confidence: outcome.overallConfidence,
         rationale: this.buildOverallRationale(skillResults, outcome.overallBand as any)
       },
@@ -151,7 +151,7 @@ export class AssessmentAnalysisService {
     
     if (supported.length === 0) {
       const allLevels = descriptors.map(d => d.level);
-      return this.conservativeMedianLevel(allLevels);
+      return this.intelligentMedianLevel(allLevels, true);
     }
 
     const sortedByLevel = supported.sort((a, b) => 
@@ -181,23 +181,40 @@ export class AssessmentAnalysisService {
     return highestProposed;
   }
 
-  private static inferOverallLevel(skills: Record<SkillName, SkillAssessmentResult>): CefrLevel {
+  private static inferOverallLevel(skills: Record<SkillName, SkillAssessmentResult>, overallConfidence: number): CefrLevel {
     const coreSkills: SkillName[] = ["listening", "reading", "writing", "speaking"];
     const levels = coreSkills.map(s => skills[s].estimatedLevel);
     
     // Aggregation Rule: Conservative Median
-    const medianLevel = this.conservativeMedianLevel(levels);
+    // NEW: If confidence < 0.65, always favor the LOWER end for safety.
+    const isHighConfidence = overallConfidence >= 0.65;
+    const medianLevel = this.intelligentMedianLevel(levels, isHighConfidence);
     const medianOrder = getBandOrder(medianLevel);
+
+    // CORE SKILL COVERAGE GUARD:
+    // If Speaking or Writing has 0 evidence, the overall level cannot exceed A1+.
+    const hasSpeakingBody = skills.speaking.evidenceCount > 0;
+    const hasWritingBody = skills.writing.evidenceCount > 0;
+    
+    let finalLevel = medianLevel;
+
+    if (!hasSpeakingBody || !hasWritingBody) {
+      const currentOrder = getBandOrder(finalLevel);
+      if (currentOrder > 0) { // If above A1
+        console.log(`[CoverageGuard] Capping level at A1+ due to missing ${hasSpeakingBody ? '' : 'Speaking'} ${hasWritingBody ? '' : 'Writing'}`);
+        finalLevel = "A1+";
+      }
+    }
 
     // Apply Structural Caps (Grammar/Vocabulary)
     const grammarLevel = skills.grammar.estimatedLevel;
     const vocabLevel = skills.vocabulary.estimatedLevel;
     const structuralBase = Math.min(getBandOrder(grammarLevel), getBandOrder(vocabLevel));
     
-    let finalLevel = medianLevel;
+    const finalOrder = getBandOrder(finalLevel);
 
     // Cap at structuralBase + 1 if structures are significantly weaker
-    if (medianOrder > structuralBase + 1) {
+    if (finalOrder > structuralBase + 1) {
       finalLevel = CEFR_ORDER[structuralBase + 1] as CefrLevel;
       // Mark skills as capped
       coreSkills.forEach(s => {
@@ -210,17 +227,23 @@ export class AssessmentAnalysisService {
     return finalLevel;
   }
 
-  private static conservativeMedianLevel(levels: CefrLevel[]): CefrLevel {
+  private static intelligentMedianLevel(levels: CefrLevel[], highConfidence: boolean): CefrLevel {
     if (levels.length === 0) return "A1";
     
     const sortedIndices = levels
       .map(l => getBandOrder(l))
       .sort((a, b) => a - b);
     
-    const midPoint = Math.floor((sortedIndices.length - 1) / 2);
-    const medianIndex = sortedIndices[midPoint];
+    // For [B1, C1] (2, 4):
+    // If highConfidence: take ceil(1/2) = index 1 (C1)? No, median should be B2 (3).
+    // Actually, median of [2, 4] is 3.
+    const sum = sortedIndices.reduce((a, b) => a + b, 0);
+    const avg = sum / sortedIndices.length;
     
-    return CEFR_ORDER[medianIndex] as CefrLevel;
+    // Rounded correctly based on confidence
+    const finalIndex = highConfidence ? Math.round(avg) : Math.floor(avg);
+    
+    return CEFR_ORDER[Math.max(0, Math.min(finalIndex, CEFR_ORDER.length - 1))] as CefrLevel;
   }
 
   // ---- 3. Meta-Signals & Confidence ---- //
@@ -328,11 +351,18 @@ export class AssessmentAnalysisService {
   }
 
   private static buildOverallRationale(skills: Record<SkillName, SkillAssessmentResult>, estimated: CefrLevel): string[] {
-    return [
-      `Your linguistic profile strongly aligns with the ${estimated} band.`,
-      `Core proficiency is driven by strong performance in ${Object.values(skills).filter(s => getBandOrder(s.estimatedLevel) >= getBandOrder(estimated)).map(s => s.skill).join(', ')}.`,
-      "Consistency across productive and receptive tasks remains stable."
+    const rationale = [
+      `Your linguistic profile align with the ${estimated} band.`,
+      `Core proficiency is driven by strong performance in ${Object.values(skills).filter(s => getBandOrder(s.estimatedLevel) >= getBandOrder(estimated)).map(s => s.skill).join(', ')}.`
     ];
+
+    if (skills.speaking.evidenceCount === 0 || skills.writing.evidenceCount === 0) {
+      rationale.push("Overall level capped due to insufficient evidence in productive skills (Speaking/Writing).");
+    } else {
+      rationale.push("Consistency across productive and receptive tasks remains stable.");
+    }
+
+    return rationale;
   }
 
   private static generateNextTasks(level: CefrLevel): string[] {
