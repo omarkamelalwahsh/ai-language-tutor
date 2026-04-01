@@ -1,25 +1,44 @@
 // ============================================================================
 // CEFR Mapper & Explainability Logic
 // ============================================================================
-// Maps normalized scores and raw features to MVP CEFR bands (A1-B2)
-// Generates human-readable feedback.
+// Maps normalized scores and raw features to CEFR bands (A1-C1).
+// Supports Complexity Override for Semantic Proficiency Analysis.
 // ============================================================================
 
 import { CEFRLevel } from '../domain/types';
 import { ExtractedFeatures, EvalTaskType } from './types';
 
-// The maximum level we assign in MVP to avoid fake precision.
-const MVP_CEFR_CEILING: CEFRLevel = 'B2';
-
 export class CEFRMapper {
 
-  /** Maps a weighted 0-100 score to a CEFR band. */
+  /** Maps a weighted 0-100 score to a CEFR band. B2 ceiling removed for Semantic Proficiency Analyzer. */
   public static mapScoreToBand(score: number): CEFRLevel {
     if (score < 40) return 'A1';
     if (score < 65) return 'A2';
     if (score < 85) return 'B1';
-    // Any score 85+ gets the MVP ceiling
-    return MVP_CEFR_CEILING; 
+    if (score < 95) return 'B2';
+    return 'C1';
+  }
+
+  /**
+   * Complexity Override: If deterministic features show unambiguous C1+ signals,
+   * override the score-based mapping. Requires 2+ open-ended evidence signals
+   * (enforced by the caller, not here).
+   */
+  public static complexityOverride(
+    f: ExtractedFeatures,
+    scoreBand: CEFRLevel
+  ): CEFRLevel {
+    // Gate: Only promote if rare tokens AND deep nesting both present
+    if (f.rareTokenRatio > 0.08 && f.nestedClauseDepth >= 3) {
+      return 'C1'; // Bypass B-level entirely per spec
+    }
+    // Secondary gate: strong lexical density + syntactic complexity + rare tokens
+    if (f.rareTokenRatio > 0.05 && f.lexicalDensity > 0.7 && f.syntacticComplexity > 0.6) {
+      // Promote by one band if not already at C1
+      if (scoreBand === 'B1') return 'B2';
+      if (scoreBand === 'B2') return 'C1';
+    }
+    return scoreBand;
   }
 
   /** Calculates a confidence 0.0-1.0 based on response robustness. */
@@ -66,11 +85,19 @@ export class CEFRMapper {
     if (f.connectorCount > 1 || f.advancedConnectorCount > 0) strengths.push('Uses linking words to connect ideas effectively.');
     if (f.grammarIntegrity > 0.8) strengths.push('Good control over basic sentence structure and verb forms.');
     
+    // Advanced Semantic Proficiency strengths
+    if (f.lexicalDensity > 0.6) strengths.push('Uses sophisticated or professional vocabulary with high lexical density.');
+    if (f.syntacticComplexity > 0.6) strengths.push('Demonstrates advanced syntactic maturity (clauses or passive voice).');
+    if (f.rareTokenRatio > 0.05) strengths.push('Employs low-frequency, precise vocabulary typical of C1+ proficiency.');
+    if (f.nestedClauseDepth >= 3) strengths.push('Manages complex multi-level subordination with clarity.');
+    if (f.contentWordRatio > 0.65 && f.wordCount > 15) strengths.push('High content-word density indicates domain authority and precision.');
+    if (f.gerundPhraseCount >= 2) strengths.push('Effective use of gerund constructions for syntactic variety.');
+    
     if (task === 'opinion_essay' && f.argumentMarkerCount > 0) strengths.push('Clear indicators of argumentation and opinion-giving.');
     if (task === 'picture_description' && f.descriptiveMarkerCount > 0) strengths.push('Effective use of spatial and descriptive language.');
     if (task === 'past_narrative' && f.narrativeMarkerCount > 0) strengths.push('Good logical flow using time and narrative markers.');
     
-    return strengths.slice(0, 3);
+    return strengths.slice(0, 4);
   }
 
   /** Detects readable weaknesses based on raw features. */

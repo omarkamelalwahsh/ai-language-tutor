@@ -13,6 +13,9 @@ export type DescriptorEvaluationResult = {
   strengths: string[];
   weaknesses: string[];
   reasons: string[];
+  linguisticDepthScore?: number;
+  domainAuthorityScore?: number;
+  outputCefrMapping?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 };
 
 export class GroqEvaluationService {
@@ -27,6 +30,8 @@ export class GroqEvaluationService {
     const subset = [currentBand];
     if (idx > 0) subset.push(bands[idx - 1]);
     if (idx < bands.length - 1) subset.push(bands[idx + 1]);
+    // Expand to +2 for diagnostic flexibility
+    if (idx < bands.length - 2) subset.push(bands[idx + 2]);
     
     return subset;
   }
@@ -74,24 +79,27 @@ export class GroqEvaluationService {
         descriptor: d.descriptor
       })));
 
-      const systemPrompt = `You are a strict, objective linguistic evaluator.
+      const systemPrompt = `You are a Senior Linguistic Data Scientist evaluating a learner's response. Your task is to evaluate not just for accuracy, but for 'Latent Semantic Proficiency' (LSP).
 Your ONLY job is to compare the learner's answer against the exact CEFR descriptors provided, and return a strict JSON evaluation.
 
-# RULES:
-1. ONLY return a syntactically valid JSON object. No markdown blocks, no preamble, no prose.
-2. DO NOT hallucinate rules. Use ONLY the provided descriptors to justify your level matching.
-3. DO NOT overestimate. If an answer matches the lower level fully but the higher level only partially, MATCH THE LOWER LEVEL.
-4. If the answer is too short, generic, or incomplete to confidently judge against the descriptors, output "confidence": "low" and "difficultyAction": "stay".
+# EVALUATION PROTOCOL:
+1. **Divergence Check (Input vs. Output):** If the prompt is simple (e.g. A1) but the user responds with advanced syntax (C1), you MUST anchor the \`matchedBand\` and \`outputCefrMapping\` to the OUTPUT complexity, regardless of the prompt's difficulty.
+2. **Metric - Lexical Density & Rarefaction:** Heavily weight the presence of low-frequency tokens and high content-word density.
+3. **Metric - Syntactic Depth:** Heavily weight subordinate clauses, passive voice, and gerund phrases. If the user manages 3+ levels of nested logic, bypass B-level descriptors entirely.
+4. **Constraint - Semantic Consistency:** A correct simple-question answer with advanced free-text proves mastery. Do NOT penalize advanced users for answering a simple question correctly.
 
 # REQUIRED JSON SCHEMA:
 {
   "isMatch": boolean,
-  "matchedBand": string,
+  "matchedBand": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
   "confidence": "high" | "medium" | "low",
   "difficultyAction": "increase" | "stay" | "decrease",
   "strengths": string[],
   "weaknesses": string[],
-  "reasons": string[]
+  "reasons": string[],
+  "linguisticDepthScore": number (0.0 - 1.0),
+  "domainAuthorityScore": number (0.0 - 1.0),
+  "outputCefrMapping": "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 }
 
 # PROVIDED CEFR DESCRIPTORS:

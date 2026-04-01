@@ -5,6 +5,7 @@ import { FadeTransition } from '../lib/animations';
 import { AssessmentQuestion, AssessmentOutcome, TaskEvaluation } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
 import { TaskResult } from '../types/app';
+import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
 
 // ============================================================================
 // Question Renderer Component
@@ -144,15 +145,14 @@ const TaskQuestion: React.FC<{
       )}
 
       {isListening && (
-        <div className="w-full bg-slate-100 rounded-2xl border border-slate-200 p-6 flex items-center gap-4 mb-8 shadow-inner">
-          <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-            <Mic className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-slate-800 text-sm mb-2">Simulated Audio Scenario</p>
-            <div className="w-full h-8 bg-slate-200 rounded-md animate-pulse"></div>
-          </div>
-        </div>
+         <div className="mb-8">
+           <AudioPlaybackControl 
+             audioUrl={task.audioUrl} 
+             transcript={task.transcript} 
+             allowReplay={true}
+             className="shadow-inner bg-slate-100"
+           />
+         </div>
       )}
 
       <div className="mt-auto space-y-4">

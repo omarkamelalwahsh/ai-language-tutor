@@ -13,6 +13,35 @@ const ADVANCED_CONNECTORS = new Set(['however', 'although', 'therefore', 'moreov
 const ARGUMENT_MARKERS = new Set(['in my opinion', 'i believe', 'i think', 'advantage', 'disadvantage', 'on the other hand', 'overall', 'for example', 'for instance', 'firstly', 'secondly', 'in conclusion']);
 const NARRATIVE_MARKERS = new Set(['at first', 'after that', 'suddenly', 'in the end', 'finally', 'next', 'later', 'eventually']);
 const DESCRIPTIVE_MARKERS = new Set(['in the picture', 'on the left', 'on the right', 'behind', 'in front of', 'next to', 'there is', 'there are', 'looks like']);
+const PROFESSIONAL_DOMAIN_WORDS = new Set(['objective', 'notification', 'implementation', 'deployment', 'pipeline', 'significant', 'strategic', 'infrastructure', 'scalability', 'efficiency', 'utilization', 'comprehensive', 'facilitate', 'collaborate', 'optimization']);
+const RELATIVE_PRONOUNS = new Set(['which', 'who', 'whom', 'whose', 'that']);
+const SUBORDINATING_CONJUNCTIONS = new Set(['although', 'whereas', 'provided', 'unless', 'whether', 'since', 'as', 'whenever', 'wherever']);
+
+// C1/C2-level rare/low-frequency tokens for Lexical Rarefaction detection
+const RARE_TOKENS = new Set([
+  'mitigate', 'orchestration', 'propagation', 'albeit', 'notwithstanding', 'predicate',
+  'juxtapose', 'delineate', 'ameliorate', 'exacerbate', 'ubiquitous', 'paradigm',
+  'dichotomy', 'synthesize', 'extrapolate', 'interpolate', 'circumvent', 'elucidate',
+  'corroborate', 'substantiate', 'proliferate', 'precipitate', 'concomitant', 'precipitous',
+  'antithetical', 'salient', 'nascent', 'ephemeral', 'pervasive', 'systemic',
+  'ramification', 'conflagration', 'acquiesce', 'recalcitrant', 'surreptitious', 'taciturn',
+  'impervious', 'commensurate', 'contingent', 'extraneous', 'superfluous', 'tantamount',
+  'unequivocal', 'efficacy', 'pragmatic', 'heuristic', 'deterministic', 'idempotent',
+  'obfuscate', 'concatenate', 'instantiate', 'enumerate'
+]);
+
+// Function words (closed-class) for content-word ratio calculation
+const FUNCTION_WORDS = new Set([
+  'the', 'a', 'an', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being',
+  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall', 'should',
+  'may', 'might', 'can', 'could', 'must', 'to', 'of', 'in', 'for', 'on', 'with',
+  'at', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after',
+  'above', 'below', 'between', 'under', 'over', 'not', 'no', 'nor', 'or', 'and',
+  'but', 'if', 'then', 'else', 'when', 'while', 'where', 'how', 'what', 'which',
+  'who', 'whom', 'this', 'that', 'these', 'those', 'i', 'me', 'my', 'mine', 'we',
+  'us', 'our', 'ours', 'you', 'your', 'yours', 'he', 'him', 'his', 'she', 'her',
+  'hers', 'it', 'its', 'they', 'them', 'their', 'theirs', 'so', 'as', 'than'
+]);
 
 export class FeatureExtractor {
   
@@ -72,7 +101,41 @@ export class FeatureExtractor {
     const spellingIntegrity = this.approximateSpellingIntegrity(cleanWords);
     const grammarIntegrity = this.approximateGrammarIntegrity(loweredText);
 
-    // 5. Context specific
+    // 5. Advanced Linguistic Metrics
+    // Lexical Density: Ratio of long words (>7 chars) and domain-specific words
+    const longWords = cleanWords.filter(w => w.length > 7);
+    const domainWords = cleanWords.filter(w => PROFESSIONAL_DOMAIN_WORDS.has(w));
+    const lexicalDensity = Math.min(1.0, (longWords.length * 1.5 + domainWords.length * 2.5) / Math.max(1, wordCount) * 4);
+
+    // Syntactic Complexity: Proxy for clauses and passive/advanced construction
+    const relativeCount = cleanWords.filter(w => RELATIVE_PRONOUNS.has(w)).length;
+    const subCount = cleanWords.filter(w => SUBORDINATING_CONJUNCTIONS.has(w)).length;
+    
+    // Passive voice proxy: (am|is|are|was|were|been|being) + (verb ending in ed/en)
+    const passiveMatches = (loweredText.match(/\b(am|is|are|was|were|been|being)\b\s+\b[a-z]+(ed|en)\b/g) || []).length;
+    
+    // Normalize syntactic complexity (0.0 to 1.0)
+    // 3 complex markers in 20 words = 1.0 peak for MVP
+    const complexityRaw = (relativeCount * 0.3) + (subCount * 0.3) + (passiveMatches * 0.5) + (advCount * 0.2);
+    const syntacticComplexity = Math.min(1.0, complexityRaw / Math.max(1, sentenceCount) * 1.5);
+
+    // 6. Rare Token Detection (Lexical Rarefaction)
+    const rareTokens = cleanWords.filter(w => RARE_TOKENS.has(w));
+    const rareTokenRatio = rareTokens.length / Math.max(1, wordCount);
+
+    // 7. Nested Clause Depth
+    // Count maximum nesting of subordination markers
+    const nestedClauseDepth = this.computeNestedClauseDepth(loweredText);
+
+    // 8. Gerund Phrase Detection
+    const gerundMatches = (loweredText.match(/\b[a-z]+ing\b\s+(?:the|a|an|my|his|her|their|its|our|your)\b/g) || []);
+    const gerundPhraseCount = gerundMatches.length;
+
+    // 9. Content vs Function Word Ratio
+    const functionWordCount = cleanWords.filter(w => FUNCTION_WORDS.has(w)).length;
+    const contentWordRatio = 1 - (functionWordCount / Math.max(1, wordCount));
+
+    // 10. Context specific
     let targetKeywordHitRatio = undefined;
     if (context?.targetKeywords && context.targetKeywords.length > 0) {
       const targets = context.targetKeywords.map(k => k.toLowerCase());
@@ -97,8 +160,46 @@ export class FeatureExtractor {
       repetitionRatio,
       grammarIntegrity,
       spellingIntegrity,
+      lexicalDensity,
+      syntacticComplexity,
+      rareTokenRatio,
+      nestedClauseDepth,
+      gerundPhraseCount,
+      contentWordRatio,
       targetKeywordHitRatio
     };
+  }
+
+  /**
+   * Computes maximum nesting depth of subordinate clauses.
+   * Looks for stacked subordination patterns (e.g., "which ... that ... because").
+   */
+  private static computeNestedClauseDepth(text: string): number {
+    const clauseMarkers = [
+      'which', 'who', 'whom', 'whose', 'that', 'where', 'when',
+      'although', 'whereas', 'because', 'since', 'while', 'unless',
+      'provided', 'whether', 'if', 'after', 'before', 'until'
+    ];
+    
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    let maxDepth = 0;
+    
+    for (const sentence of sentences) {
+      const words = sentence.toLowerCase().split(/\s+/);
+      let depth = 0;
+      let currentMax = 0;
+      
+      for (const word of words) {
+        if (clauseMarkers.includes(word)) {
+          depth++;
+          currentMax = Math.max(currentMax, depth);
+        }
+      }
+      
+      maxDepth = Math.max(maxDepth, currentMax);
+    }
+    
+    return maxDepth;
   }
 
   private static emptyFeatures(): ExtractedFeatures {
@@ -107,7 +208,10 @@ export class FeatureExtractor {
       connectorCount: 0, advancedConnectorCount: 0, argumentMarkerCount: 0,
       narrativeMarkerCount: 0, descriptiveMarkerCount: 0,
       paragraphCount: 0, repetitionRatio: 0,
-      grammarIntegrity: 0, spellingIntegrity: 0
+      grammarIntegrity: 0, spellingIntegrity: 0,
+      lexicalDensity: 0, syntacticComplexity: 0,
+      rareTokenRatio: 0, nestedClauseDepth: 0,
+      gerundPhraseCount: 0, contentWordRatio: 0
     };
   }
 

@@ -129,11 +129,19 @@ export type AssessmentFeatures = {
   complexityScore?: number;
   averageSentenceLength?: number;
   uniqueWordCount?: number;
+  wordCount?: number;
   opinionPresent?: boolean;
   reasonPresent?: boolean;
   examplePresent?: boolean;
   relevance?: number; // 0..1
   timestamp: string;
+  // Advanced Semantic Proficiency metrics
+  rareTokenRatio?: number; // 0..1 — ratio of low-frequency tokens
+  nestedClauseDepth?: number; // max nesting level detected
+  gerundPhraseCount?: number;
+  contentWordRatio?: number; // 0..1 — content words / total words
+  linguisticDepthScore?: number; // 0..1 — composite LSP signal
+  syntacticComplexity?: number;
 };
 
 export interface AssessmentSignals {
@@ -188,6 +196,8 @@ export type AssessmentQuestion = {
   difficulty: DifficultyBand;
   type: QuestionType;
   prompt: string;
+  transcript?: string; // hidden from learner during test
+  audioUrl?: string; // prerecorded audio
   options?: string[];
   correctAnswer?: string | string[];
   acceptedAnswers?: string[];
@@ -212,6 +222,10 @@ export type AnswerRecord = {
   score: number;
   answer: string;
   responseTimeMs: number;
+  /** Question format for task-type-aware scoring */
+  taskType?: QuestionType;
+  /** LLM-derived output band when divergence is detected */
+  outputBandOverride?: DifficultyBand;
 };
 
 /** Per-skill level estimate with evidence tracking */

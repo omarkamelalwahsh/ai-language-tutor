@@ -7,6 +7,25 @@
 
 import { ExtractedFeatures, EvalTaskType } from './types';
 
+/**
+ * Computes a complexity promotion bonus based on advanced semantic signals.
+ * Returns 0-15 bonus points when rare tokens, lexical density, and syntactic depth
+ * all indicate C1+ proficiency.
+ */
+function complexityPromotionBonus(f: ExtractedFeatures): number {
+  const hasRareTokens = f.rareTokenRatio > 0.05;
+  const hasHighDensity = f.lexicalDensity > 0.7;
+  const hasHighComplexity = f.syntacticComplexity > 0.6;
+  const hasDeepNesting = f.nestedClauseDepth >= 2;
+  const hasHighContentRatio = f.contentWordRatio > 0.6;
+
+  let bonus = 0;
+  if (hasRareTokens && hasHighDensity && hasHighComplexity) bonus += 10;
+  if (hasDeepNesting) bonus += 3;
+  if (hasHighContentRatio && hasRareTokens) bonus += 2;
+  return Math.min(15, bonus);
+}
+
 /** Represents a dimensional score out of 100 with a weight toward the total. */
 export interface ScoredDimension {
   score: number;
@@ -46,22 +65,29 @@ export class DimensionScorer {
     const completion = Math.min(100, (f.wordCount / 20) * 100);
     
     // Grammar requires complexity to score high
-    const complexityCap = Math.min(100, (f.averageSentenceLength / 10) * 100);
-    const grammar = f.grammarIntegrity * complexityCap;
+    // Added Syntactic Complexity bonus (up to +30 points to the base integrity score)
+    const grammarBase = f.grammarIntegrity * 70;
+    const complexityBonus = f.syntacticComplexity * 30;
+    const grammar = Math.min(100, (grammarBase + complexityBonus) * Math.min(1.0, f.averageSentenceLength / 8));
     
-    // Vocab relies on the actual count of unique words, not just the ratio
+    // Vocab relies on Lexical Density and unique word count
     const uniqueWordCount = f.wordCount * f.uniqueWordRatio;
-    const vocab = Math.min(100, uniqueWordCount * 4); // 25 unique words to score 100
+    const vocabBase = Math.min(100, uniqueWordCount * 3); 
+    const densityBonus = f.lexicalDensity * 40;
+    const vocab = Math.min(100, (vocabBase * 0.6) + densityBonus); 
     
     // Mechanics: if too short, can't score 100
     const mechanicsCap = Math.min(100, (f.wordCount / 15) * 100);
     const mechanics = f.spellingIntegrity * mechanicsCap;
 
+    // Advanced: Complexity Promotion Bonus
+    const promotion = complexityPromotionBonus(f);
+
     return {
-      'Task Completion': { score: completion, weight: 0.3 },
-      'Grammar Control': { score: grammar, weight: 0.3 },
-      'Vocabulary Range': { score: vocab, weight: 0.2 },
-      'Mechanics': { score: mechanics, weight: 0.2 },
+      'Task Completion': { score: completion, weight: 0.25 },
+      'Grammar Control': { score: Math.min(100, grammar + promotion * 0.5), weight: 0.35 },
+      'Vocabulary Range': { score: Math.min(100, vocab + promotion), weight: 0.25 },
+      'Mechanics': { score: mechanics, weight: 0.15 },
     };
   }
 
@@ -76,15 +102,22 @@ export class DimensionScorer {
     const argumentRaw = (f.argumentMarkerCount * 30);
     const argumentation = Math.min(100, argumentRaw);
 
-    const grammar = f.grammarIntegrity * Math.min(100, (f.averageSentenceLength / 12) * 100);
-    const complexity = Math.min(100, (f.averageSentenceLength / 15) * 100);
+    const grammarBase = f.grammarIntegrity * 60;
+    const complexityBonus = f.syntacticComplexity * 40;
+    const grammar = Math.min(100, grammarBase + complexityBonus);
+
+    // Sentence Complexity is a dedicated dimension here
+    const complexity = Math.min(100, (f.syntacticComplexity * 70) + (f.averageSentenceLength / 20 * 30));
+
+    // Advanced: Complexity Promotion Bonus
+    const promotion = complexityPromotionBonus(f);
 
     return {
       'Task Completion': { score: completion, weight: 0.2 },
-      'Coherence & Organization': { score: coherence, weight: 0.25 },
-      'Argumentation': { score: argumentation, weight: 0.25 },
-      'Grammar Control': { score: grammar, weight: 0.15 },
-      'Sentence Complexity': { score: complexity, weight: 0.15 },
+      'Coherence & Organization': { score: coherence, weight: 0.2 },
+      'Argumentation': { score: argumentation, weight: 0.2 },
+      'Grammar Control': { score: Math.min(100, grammar + promotion * 0.5), weight: 0.2 },
+      'Sentence Complexity': { score: Math.min(100, complexity + promotion), weight: 0.2 },
     };
   }
 

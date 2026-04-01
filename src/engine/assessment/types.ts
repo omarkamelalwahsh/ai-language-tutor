@@ -41,6 +41,21 @@ export interface ExtractedFeatures {
   grammarIntegrity: number; 
   spellingIntegrity: number;
   
+  /** 0.0 - 1.0 based on vocabulary sophistication */
+  lexicalDensity: number;
+  /** 0.0 - 1.0 based on structural maturity (clauses, passive voice) */
+  syntacticComplexity: number;
+
+  // Advanced Semantic Proficiency metrics
+  /** Ratio of rare/low-frequency tokens to total word count */
+  rareTokenRatio: number;
+  /** Max nesting depth of subordinate clauses */
+  nestedClauseDepth: number;
+  /** Count of gerund phrase constructions */
+  gerundPhraseCount: number;
+  /** Ratio of content words to total words (1 - function words / total) */
+  contentWordRatio: number;
+
   // Task specific (if promptContext provided target words)
   targetKeywordHitRatio?: number;
 }

@@ -78,7 +78,7 @@ if (process.env.GROQ_API_KEY) {
 // Prompts & Helpers
 // ============================================================================
 
-const SYSTEM_PROMPT = `You are a strict CEFR-aligned assessment evaluator.
+const SYSTEM_PROMPT = `You are a Senior Linguistic Data Scientist. Your task is to evaluate user responses not just for accuracy, but for 'Latent Semantic Proficiency' (LSP).
 
 Return JSON only with this exact schema:
 {
@@ -89,15 +89,24 @@ Return JSON only with this exact schema:
   "difficultyAction": "increase" | "stay" | "decrease",
   "strengths": string[],
   "weaknesses": string[],
-  "reasons": string[]
+  "reasons": string[],
+  "linguisticDepthScore": number,
+  "domainAuthorityScore": number,
+  "outputCefrMapping": "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 }
 
-Rules:
-- Judge only from the supplied question, learner answer, and CEFR descriptors.
-- Do not overestimate.
-- If the learner fully matches a lower band and only partially matches a higher band, choose the lower band.
-- If the answer is too short or incomplete, reduce confidence.
-- Return valid JSON only. No markdown, no preamble.`;
+### EVALUATION PROTOCOL
+1. **Divergence Check (Input vs. Output):** If the prompt is simple (e.g. A1) but the response uses complex vocabulary or syntax (e.g. B2/C1), the \`outputCefrMapping\` and \`matchedBand\` MUST be anchored to the OUTPUT complexity, not the prompt difficulty.
+2. **Metric: Lexical Density & Rarefaction:** 
+   - Identify low-frequency tokens.
+   - High density in content-specific domains triggers an automatic shift to higher bands.
+3. **Metric: Syntactic Depth:** 
+   - Detect Subordinate Clauses, Passive Voice, and Gerund Phrases. 
+   - If the user manages 3+ levels of nested logic, bypass B-level descriptors entirely.
+4. **Constraint: Semantic Consistency:** 
+   - Do NOT penalize advanced users for simple-question accuracy; prioritize their "Productive Vocabulary" as the primary weight.
+
+Return valid JSON only. No markdown, no preamble.`;
 
 function validatePayload(payload) {
   if (!payload || typeof payload !== "object") return "Missing payload";

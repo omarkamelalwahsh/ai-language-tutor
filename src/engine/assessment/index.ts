@@ -29,8 +29,12 @@ export function evaluateResponse(
   const rawDimensionScores = DimensionScorer.scoreTask(taskType, features);
   const { dimensions, total } = DimensionScorer.calculateComposite(rawDimensionScores);
   
-  // 3. Map to CEFR Limit
-  const estimatedBand = CEFRMapper.mapScoreToBand(total);
+  // 3. Map to CEFR band (uncapped)
+  let estimatedBand = CEFRMapper.mapScoreToBand(total);
+  
+  // 3b. Complexity Override: Promote if features show unambiguous C1+ signals
+  estimatedBand = CEFRMapper.complexityOverride(features, estimatedBand);
+  
   const confidence = CEFRMapper.calculateConfidence(features);
   const bandLabel = CEFRMapper.generateBandLabel(estimatedBand, total, confidence);
   

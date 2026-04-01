@@ -11,6 +11,12 @@ export type DescriptorEvaluationResult = {
   strengths: string[];
   weaknesses: string[];
   reasons: string[];
+  
+  // Semantic Proficiency Analyzer fields
+  linguisticDepthScore?: number; // 0..1
+  domainAuthorityScore?: number; // 0..1
+  outputCefrMapping?: DifficultyBand;
+  
   _fallback?: boolean;
 };
 

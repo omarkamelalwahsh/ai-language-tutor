@@ -12,6 +12,7 @@ import {
   CefrLevel,
   AssessmentFeatures,
   DescriptorEvidence,
+  QuestionType,
 } from '../types/assessment';
 import { TaskResult } from '../types/app';
 import { QUESTION_BANK } from '../data/assessment-questions';
@@ -191,7 +192,7 @@ export class AdaptiveAssessmentEngine {
     const finalMatches = this.synthesizeEvidence(matched, llmResult);
     
     // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
-    const finalScore = this.calculateDeterministicScore(features, finalMatches);
+    const finalScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
     const isPass = finalScore > 0.6;
 
     const record: AnswerRecord = {
@@ -203,6 +204,7 @@ export class AdaptiveAssessmentEngine {
       score: finalScore,
       answer,
       responseTimeMs,
+      taskType: question.type,
     };
 
     this.state.answerHistory.push(record);
@@ -210,9 +212,12 @@ export class AdaptiveAssessmentEngine {
     // score, band, and confidence are actually recomputed after each answer.
     this.updateSkillEstimate(question, record, finalMatches);
 
-    // ── Step 7: Adaptive Selection Logic (Layer 5/6) ──
-    if (llmResult?.difficultyAction) {
-      this.applyLLMDifficultyHint(llmResult.difficultyAction);
+    // ── Step 7: Divergence Detection & Dynamic Branching ──
+    // If the learner's output far exceeds the question band, we jump levels
+    const outputBand = llmResult?.outputCefrMapping;
+    if (outputBand && this.detectOutputDivergence(question.difficulty, outputBand)) {
+      record.outputBandOverride = outputBand as DifficultyBand;
+      this.jumpToOutputBand(outputBand as DifficultyBand);
     } else {
       this.updateTargetBand();
     }
@@ -242,6 +247,35 @@ export class AdaptiveAssessmentEngine {
     this.state.questionsAnswered++;
 
     return { correct: isPass, score: finalScore };
+  }
+
+  /**
+   * Detects if the learner's output CEFR level is significantly higher than the question's difficulty.
+   * "Significant" means a gap of 2 or more bands (e.g., A1 question, B2 output).
+   */
+  private detectOutputDivergence(questionBand: DifficultyBand, outputBand: string): boolean {
+    const qVal = BAND_VALUE[questionBand];
+    const oVal = BAND_VALUE[outputBand as DifficultyBand] || 0;
+    
+    // Gap of 2+ bands is high divergence
+    return (oVal - qVal) >= 2;
+  }
+
+  /**
+   * Directly sets the current target band to the output-derived band.
+   * Used when high divergence is detected to bypass intermediate levels.
+   */
+  private jumpToOutputBand(targetBand: DifficultyBand): void {
+    // Safety clamp: Jump to targetBand - 1 if it's a huge jump to avoid overwhelming
+    // But per user spec, we should be aggressive. Let's jump to the targetBand minus a half-step if possible, 
+    // or just the band itself if we are confident.
+    
+    const newVal = BAND_VALUE[targetBand];
+    const clampedVal = Math.max(1, newVal - 1); // Jump to one level below the detected output band for safety
+    const jumpBand = Object.keys(BAND_VALUE).find(key => BAND_VALUE[key as DifficultyBand] === clampedVal) as DifficultyBand;
+    
+    console.log(`[Divergence] High proficiency detected. Jumping from ${this.state.currentTargetBand} to ${jumpBand} (based on ${targetBand} output)`);
+    this.state.currentTargetBand = jumpBand || targetBand;
   }
 
   private countRecentStrongResults(): number {
@@ -464,7 +498,12 @@ export class AdaptiveAssessmentEngine {
         est.descriptorSupport[e.descriptorId] = { support: 0, contradiction: 0 };
       }
       if (e.supported) {
-        est.descriptorSupport[e.descriptorId].support += e.strength;
+        // Apply evidence multiplier: Open-ended (0.7 weight) vs MCQ (0.3 weight)
+        // We normalize this so open-ended is ~2.3x more impactful
+        const isOpenEnded = ['short_text', 'picture_description', 'listening_summary'].includes(record.taskType || '');
+        const multiplier = isOpenEnded ? 1.4 : 0.6;
+        
+        est.descriptorSupport[e.descriptorId].support += e.strength * multiplier;
       } else {
         est.descriptorSupport[e.descriptorId].contradiction += e.strength;
       }
@@ -496,6 +535,10 @@ export class AdaptiveAssessmentEngine {
       const accuracy = perf.correct / perf.total;
       const bandVal = BAND_VALUE[band] * 20; // A1=20, A2=40, etc.
 
+      // Weight evidence by task type: 0.7 for open-ended, 0.3 for MCQ
+      // This is a simplified proxy since bandPerformance doesn't track task type per band.
+      // We'll rely on the descriptorSupport multiplier added in updateSingleSkillEstimate.
+      
       if (accuracy >= 0.6) {
         // Passed this band
         highestPassedValue = Math.max(highestPassedValue, bandVal);
@@ -1014,11 +1057,22 @@ export class AdaptiveAssessmentEngine {
     return combined;
   }
 
-  private calculateDeterministicScore(features: AssessmentFeatures, matches: DescriptorEvidence[]): number {
-    // Basic score derived from feature quality and descriptor match volume
-    const featureScore = (features.lexicalDiversity || 0) * 0.4 + (features.correctness || 0) * 0.6;
-    const matchScore = matches.length > 0 ? Math.max(...matches.map(m => m.strength)) : 0;
-    return (featureScore + matchScore) / 2;
+  private calculateDeterministicScore(features: AssessmentFeatures, matches: DescriptorEvidence[], taskType: QuestionType): number {
+    const isOpenEnded = ['short_text', 'picture_description', 'listening_summary'].includes(taskType);
+    
+    if (isOpenEnded) {
+      // 0.7 weight for productive complexity, 0.3 for basic correctness
+      const complexitySignal = (features.lexicalDiversity || 0) * 0.3 + (features.syntacticComplexity || 0) * 0.4;
+      const correctnessSignal = (features.correctness || 0) * 0.3;
+      const matchScore = matches.length > 0 ? Math.max(...matches.map(m => m.strength)) : 0;
+      
+      return (complexitySignal + correctnessSignal + matchScore) / 2;
+    } else {
+      // 0.9 weight for correctness for closed-ended tasks
+      const correctnessSignal = (features.correctness || 0) * 0.9;
+      const lengthProxy = Math.min(0.1, (features.wordCount || 0) / 100);
+      return correctnessSignal + lengthProxy;
+    }
   }
 
   // updateSkillEvidence() was removed — it only accumulated evidence without
