@@ -3,19 +3,19 @@ import { LLMConfig, ClientCircuitBreaker } from '../config/backend-config';
 export type DifficultyBand = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export type DescriptorEvaluationResult = {
-  isMatch: boolean;
-  matchedBand: DifficultyBand;
+  // New Signal-Based Schema
+  semantic_accuracy: number;     // 0.0-1.0
+  task_completion: number;       // 0.0-1.0
+  lexical_sophistication: number; // 0.0-1.0
+  syntactic_complexity: number;   // 0.0-1.0
+  coherence: number;             // 0.0-1.0
+  grammar_control: number;       // 0.0-1.0
+  typo_severity: number;         // 0.0-1.0
+  idiomatic_usage: number;       // 0.0-1.0
+  register_control: number;      // 0.0-1.0
+  estimated_band: DifficultyBand;
   confidence: number;
-  confidenceLabel: "high" | "medium" | "low";
-  difficultyAction: "increase" | "stay" | "decrease";
-  strengths: string[];
-  weaknesses: string[];
-  reasons: string[];
-  
-  // Semantic Proficiency Analyzer fields
-  linguisticDepthScore?: number; // 0..1
-  domainAuthorityScore?: number; // 0..1
-  outputCefrMapping?: DifficultyBand;
+  rationale: string;
   
   _fallback?: boolean;
 };
@@ -76,8 +76,8 @@ export async function evaluateWithGroq(
     }
 
     // Validate essential fields
-    if (!data.matchedBand || !data.difficultyAction) {
-      ClientCircuitBreaker.recordFailure('Invalid response schema from backend.');
+    if (data.semantic_accuracy === undefined || !data.estimated_band) {
+      ClientCircuitBreaker.recordFailure('Incomplete signal schema from backend.');
       return null;
     }
 

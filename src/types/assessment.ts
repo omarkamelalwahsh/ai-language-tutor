@@ -301,6 +301,8 @@ export type AdaptiveAssessmentState = {
   completed: boolean;
   /** Reason the assessment stopped */
   stopReason?: 'max_reached' | 'confidence_threshold' | 'level_stabilized' | 'pool_exhausted';
+  /** Track jumps that require a validation question */
+  pendingValidationBand?: DifficultyBand;
 };
 
 /** Final structured output from the adaptive assessment */

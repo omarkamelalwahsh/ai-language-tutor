@@ -18,7 +18,6 @@ import { TaskResult } from '../types/app';
 import { QUESTION_BANK } from '../data/assessment-questions';
 import { DescriptorService } from './DescriptorService';
 import { evaluateWithGroq, DescriptorEvaluationResult, DifficultyBand as GroqBand } from './groqEvaluator';
-import { decideNextBand } from './adaptiveDecision';
 import { FeatureExtractor } from './evaluation/FeatureExtractor';
 import { CefrInferenceEngine } from './inference/CefrInferenceEngine';
 import { clamp01, safeDivide, finiteOr } from '../lib/numeric-guards';
@@ -195,8 +194,21 @@ export class AdaptiveAssessmentEngine {
     const finalMatches = this.synthesizeEvidence(matched, llmResult);
     
     // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
-    const finalScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
-    const isPass = finalScore > 0.6;
+    // Merge deterministic signals and LLM signals for the continuous score
+    const deterministicScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
+    
+    // Weighted aggregation of LLM signals (0.0 - 1.0)
+    const llmSignalScore = llmResult ? (
+      llmResult.semantic_accuracy * 0.4 +
+      llmResult.task_completion * 0.2 +
+      llmResult.grammar_control * 0.2 +
+      llmResult.lexical_sophistication * 0.2
+    ) : 0;
+
+    // Final score is a mix (40% deterministic heuristics, 60% LLM qualitative analysis)
+    const finalScore = llmResult ? (deterministicScore * 0.4 + llmSignalScore * 0.6) : deterministicScore;
+    
+    const isPass = finalScore >= 0.6;
 
     const record: AnswerRecord = {
       taskId: question.id,
@@ -211,16 +223,24 @@ export class AdaptiveAssessmentEngine {
     };
 
     this.state.answerHistory.push(record);
-    // Bug 1 fix: call updateSkillEstimate (not updateSkillEvidence) so that
-    // score, band, and confidence are actually recomputed after each answer.
     this.updateSkillEstimate(question, record, finalMatches);
 
     // ── Step 7: Divergence Detection & Dynamic Branching ──
-    // If the learner's output far exceeds the question band, we jump levels
-    const outputBand = llmResult?.outputCefrMapping;
+    const outputBand = llmResult?.estimated_band;
     if (outputBand && this.detectOutputDivergence(question.difficulty, outputBand)) {
       record.outputBandOverride = outputBand as DifficultyBand;
-      this.jumpToOutputBand(outputBand as DifficultyBand);
+      this.jumpWithValidation(outputBand as DifficultyBand);
+    } else if (this.state.pendingValidationBand) {
+      // If we were in validation and user passed, clear the flag
+      if (isPass) {
+        console.log(`[Validation] User PASSED validation for ${this.state.pendingValidationBand}.`);
+        this.state.pendingValidationBand = undefined;
+      } else {
+        console.log(`[Validation] User FAILED validation for ${this.state.pendingValidationBand}. Dropping back.`);
+        this.state.pendingValidationBand = undefined;
+        this.state.currentTargetBand = this.demoteBand(this.state.currentTargetBand);
+      }
+      this.updateTargetBand();
     } else {
       this.updateTargetBand();
     }
@@ -275,25 +295,33 @@ export class AdaptiveAssessmentEngine {
     const qVal = BAND_VALUE[questionBand];
     const oVal = BAND_VALUE[outputBand as DifficultyBand] || 0;
     
-    // Gap of 2+ bands is high divergence
-    return (oVal - qVal) >= 2;
+    // Gap of 1.5+ bands is high divergence (e.g. A2 question, B2/C1 output)
+    return (oVal - qVal) >= 1.5;
   }
 
   /**
-   * Directly sets the current target band to the output-derived band.
-   * Used when high divergence is detected to bypass intermediate levels.
+   * Jumps to a higher band but sets a validation flag.
    */
-  private jumpToOutputBand(targetBand: DifficultyBand): void {
-    // Safety clamp: Jump to targetBand - 1 if it's a huge jump to avoid overwhelming
-    // But per user spec, we should be aggressive. Let's jump to the targetBand minus a half-step if possible, 
-    // or just the band itself if we are confident.
+  private jumpWithValidation(targetBand: DifficultyBand): void {
+    const currentVal = BAND_VALUE[this.state.currentTargetBand];
+    const targetVal = BAND_VALUE[targetBand];
     
-    const newVal = BAND_VALUE[targetBand];
-    const clampedVal = Math.max(1, newVal - 1); // Jump to one level below the detected output band for safety
-    const jumpBand = Object.keys(BAND_VALUE).find(key => BAND_VALUE[key as DifficultyBand] === clampedVal) as DifficultyBand;
-    
-    console.log(`[Divergence] High proficiency detected. Jumping from ${this.state.currentTargetBand} to ${jumpBand} (based on ${targetBand} output)`);
-    this.state.currentTargetBand = jumpBand || targetBand;
+    if (targetVal > currentVal + 1) {
+      this.state.pendingValidationBand = targetBand;
+      // Jump to a slightly safer level first
+      const safeJumpVal = Math.min(6, currentVal + 2);
+      const safeBand = Object.keys(BAND_VALUE).find(k => BAND_VALUE[k as DifficultyBand] === safeJumpVal) as DifficultyBand;
+      this.state.currentTargetBand = safeBand || targetBand;
+      console.log(`[Divergence] High proficiency detected. Jumping to ${this.state.currentTargetBand} with validation pending for ${targetBand}.`);
+    } else {
+      this.state.currentTargetBand = targetBand;
+      console.log(`[Divergence] Moderate divergence. Jumping to ${targetBand}.`);
+    }
+  }
+
+  private demoteBand(band: DifficultyBand): DifficultyBand {
+    const idx = BAND_ORDER.indexOf(band);
+    return idx > 0 ? BAND_ORDER[idx - 1] : band;
   }
 
   private countRecentStrongResults(): number {
@@ -311,27 +339,22 @@ export class AdaptiveAssessmentEngine {
       await descriptorService.initialize();
 
       const currentBand = this.state.currentTargetBand;
-      const bands = ['Pre-A1', 'A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2'];
+      const bands = ['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as DifficultyBand[];
       const idx = bands.indexOf(currentBand);
       const targetBands: string[] = [currentBand];
       if (idx > 0) targetBands.push(bands[idx - 1]);
-      if (idx < bands.length - 1 && bands[idx] !== 'B2') targetBands.push(bands[idx + 1]);
+      if (idx < bands.length - 1) targetBands.push(bands[idx + 1]);
 
       let skillIdentifier = question.skill;
       if (skillIdentifier === 'grammar' || skillIdentifier === 'vocabulary') {
           skillIdentifier = question.primarySkill || question.skill; 
       }
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const relevantDescriptors = descriptorService.getRelevantDescriptors(skillIdentifier, targetBands);
+      const relevantDescriptors = descriptorService.getRelevantDescriptors(skillIdentifier as any, targetBands);
 
-      if (relevantDescriptors.length === 0) return null;
-
-      // Group by band for the payload
-      const descriptorsMap: Partial<Record<GroqBand, string[]>> = {};
+      const descriptorsMap: Partial<Record<DifficultyBand, string[]>> = {};
       for (const d of relevantDescriptors) {
-        const b = d.level as GroqBand;
+        const b = d.level as DifficultyBand;
         if (['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(b)) {
           if (!descriptorsMap[b]) descriptorsMap[b] = [];
           descriptorsMap[b]!.push(d.descriptor);
@@ -339,8 +362,8 @@ export class AdaptiveAssessmentEngine {
       }
 
       return await evaluateWithGroq({
-        skill: skillIdentifier as "reading" | "writing" | "listening" | "speaking" | "vocabulary" | "grammar",
-        currentBand: currentBand as GroqBand,
+        skill: skillIdentifier as any,
+        currentBand: currentBand as DifficultyBand,
         question: {
           id: question.id,
           prompt: question.prompt,
@@ -515,15 +538,14 @@ export class AdaptiveAssessmentEngine {
     const est = this.state.skillEstimates[skill];
     est.evidenceCount++;
 
-    // Track band-specific performance
+    // Track band-specific performance with continuous weighting
     const bandLabel = VALUE_TO_BAND[record.difficulty as 1|2|3|4|5|6];
     if (!est.bandPerformance[bandLabel]) {
       est.bandPerformance[bandLabel] = { correct: 0, total: 0 };
     }
     est.bandPerformance[bandLabel]!.total++;
-    if (record.correct) {
-      est.bandPerformance[bandLabel]!.correct++;
-    }
+    // Use the raw score (0-1) to increment correctness, allowing partial credit
+    est.bandPerformance[bandLabel]!.correct += record.score;
 
     // Layer 4: Evidence Accumulation
     for (const e of evidence) {
@@ -737,10 +759,24 @@ export class AdaptiveAssessmentEngine {
       return null;
     }
 
+    let targetBand = this.state.currentTargetBand;
+    let pool = available;
+
+    // ── Step 1: Handle Validation Jumps ──
+    if (this.state.pendingValidationBand) {
+      targetBand = this.state.pendingValidationBand;
+      // Filter for items at the target band that are "Anchor Items" (high discrimination)
+      const validationPool = available.filter(q => q.difficulty === targetBand);
+      if (validationPool.length > 0) {
+        pool = validationPool;
+        console.log(`[Selection] Validation mode: Focusing on high-discrimination ${targetBand} items.`);
+      }
+    }
+
     // Score each candidate
-    const scored = available.map(q => ({
+    const scored = pool.map(q => ({
       question: q,
-      score: this.scoreCandidate(q),
+      score: this.scoreCandidate(q, targetBand),
     }));
 
     // Sort by score descending
@@ -756,7 +792,7 @@ export class AdaptiveAssessmentEngine {
    * Scores a candidate question for selection priority.
    * Higher score = better candidate.
    */
-  private scoreCandidate(q: AssessmentQuestion): number {
+  private scoreCandidate(q: AssessmentQuestion, overrideBand?: DifficultyBand): number {
     let score = 0;
 
     // ── Factor 1: Prerequisite Check (Layer 1) ──
@@ -766,7 +802,8 @@ export class AdaptiveAssessmentEngine {
     }
 
     // ── Factor 2: Difficulty proximity (CAT Logic) ──
-    const targetVal = BAND_VALUE[this.state.currentTargetBand];
+    const targetBand = overrideBand || this.state.currentTargetBand;
+    const targetVal = BAND_VALUE[targetBand];
     const qVal = BAND_VALUE[q.difficulty];
     const distance = Math.abs(targetVal - qVal);
     
@@ -1084,27 +1121,40 @@ export class AdaptiveAssessmentEngine {
 
   private synthesizeEvidence(
     deterministic: DescriptorEvidence[],
-    llm: any
+    llm: DescriptorEvaluationResult | null
   ): DescriptorEvidence[] {
     if (!llm) return deterministic;
 
-    // Merge LLM descriptors into deterministic ones
-    // LLM acts as a "Verification" signal (boosts or dampens support)
     const combined = [...deterministic];
     
-    if (llm.isMatch && llm.matchedBand) {
-       const llmId = `llm_${this.state.currentTargetBand}_${llm.matchedBand.toLowerCase()}`;
-       const existing = combined.find(c => c.descriptorId === llmId);
-       if (!existing) {
-         combined.push({ 
-           descriptorId: llmId, 
-           descriptorText: llm.reasons?.[0] || 'LLM verified proficiency level',
-           level: llm.matchedBand as CefrLevel,
-           supported: llm.isMatch,
-           strength: llm.confidence,
-           sourceTaskIds: []
-         });
-       }
+    // Integrate LLM signals as standalone descriptors if they are strong
+    if (llm.lexical_sophistication > 0.7) {
+       combined.push({ 
+         descriptorId: 'llm_lexical_signal_high', 
+         descriptorText: 'Demonstrated sophisticated and varied vocabulary usage.',
+         level: llm.estimated_band,
+         supported: true,
+         strength: llm.lexical_sophistication,
+         sourceTaskIds: []
+       });
+    }
+
+    if (llm.syntactic_complexity > 0.7) {
+       combined.push({ 
+         descriptorId: 'llm_syntactic_signal_high', 
+         descriptorText: 'Demonstrated complex syntactic control and nested structures.',
+         level: llm.estimated_band,
+         supported: true,
+         strength: llm.syntactic_complexity,
+         sourceTaskIds: []
+       });
+    }
+
+    // Boost or dampen existing descriptors based on LLM overall confidence
+    for (const d of combined) {
+      if (d.level === llm.estimated_band) {
+        d.strength = (d.strength + llm.confidence) / 2;
+      }
     }
     
     return combined;

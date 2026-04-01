@@ -46,7 +46,7 @@ export class FeatureExtractor {
     const punctuationCount = (normAnswer.match(/[.?!,;:]/g) || []).length;
     const punctuationAccuracy = wordCount > 0 ? Math.min(1.0, punctuationCount / (wordCount / 5)) : 0;
 
-    // Correctness (Deterministic for MCQ / Keyword based for short_text)
+    // Correctness (Continuous Fuzzy Matching)
     let correctness = 0;
     if (['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(question.type)) {
       if (question.correctAnswer) {
@@ -62,8 +62,33 @@ export class FeatureExtractor {
       const filteredKeywords = keywords.filter(Boolean);
       
       if (filteredKeywords.length > 0) {
-        const matched = filteredKeywords.filter(kw => normAnswer.toLowerCase().includes(kw.toLowerCase()));
-        correctness = Math.min(1.0, matched.length / Math.max(1, Math.ceil(filteredKeywords.length * 0.6)));
+        // FUZZY MATCHING: calculate average best match score across keywords
+        let totalMatchScore = 0;
+        const inputWords = normAnswer.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        
+        for (const kw of filteredKeywords) {
+          const kwLower = kw.toLowerCase();
+          // Direct inclusion is 1.0
+          if (normAnswer.toLowerCase().includes(kwLower)) {
+            totalMatchScore += 1.0;
+            continue;
+          }
+          
+          // Fuzzy check against input words
+          let bestKwScore = 0;
+          for (const word of inputWords) {
+            const dist = FeatureExtractor.calculateLevenshteinDistance(word, kwLower);
+            // Threshold: Distance <= 2 for long words, <= 1 for short
+            const threshold = kwLower.length >= 6 ? 2 : 1;
+            if (dist <= threshold) {
+              const score = 1 - (dist / Math.max(word.length, kwLower.length));
+              if (score > bestKwScore) bestKwScore = score;
+            }
+          }
+          totalMatchScore += bestKwScore;
+        }
+        
+        correctness = Math.min(1.0, totalMatchScore / Math.max(1, Math.ceil(filteredKeywords.length * 0.6)));
       } else {
         // Fallback for open text without keywords: length and diversity proxy
         correctness = wordCount > 5 ? 0.5 : 0.2;
@@ -80,5 +105,31 @@ export class FeatureExtractor {
       relevance: wordCount > 2 ? 1.0 : 0.0,
       timestamp: new Date().toISOString()
     };
+  }
+
+  /**
+   * Standard Levenshtein Distance implementation for fuzzy matching.
+   */
+  private static calculateLevenshteinDistance(a: string, b: string): number {
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          );
+        }
+      }
+    }
+
+    return matrix[b.length][a.length];
   }
 }

@@ -185,30 +185,47 @@ export class DescriptorService {
   private rules: Record<string, DescriptorRule> = {
     'gram_A1_accuracy_01': {
       id: 'gram_A1_accuracy_01',
-      match: (f) => f.correctness > 0.7 ? 1.0 : 0,
-      contradict: (f) => f.correctness < 0.3 ? 1.0 : 0
+      // Continuous: support grows linearly from 0.4 to 1.0 between 0.3 and 0.7 accuracy
+      match: (f) => f.correctness > 0.7 ? 1.0 : (f.correctness > 0.3 ? 0.4 + (f.correctness - 0.3) * 1.5 : 0),
+      contradict: (f) => f.correctness < 0.2 ? 1.0 : (f.correctness < 0.4 ? 1.0 - (f.correctness - 0.2) * 5 : 0)
     },
     'list_A1_gist_01': {
       id: 'list_A1_gist_01',
-      match: (f) => f.correctness > 0.8 ? 1.0 : 0.5,
+      match: (f) => f.correctness > 0.8 ? 1.0 : Math.max(0, f.correctness * 1.2),
       contradict: (f) => f.correctness === 0 ? 1.0 : 0
     },
     'list_B2_animated_01': {
       id: 'list_B2_animated_01',
-      match: (f) => (f.correctness > 0.7 && f.lexicalDiversity > 0.3) ? 1.0 : 0,
+      match: (f) => (f.correctness > 0.7 && f.lexicalDiversity > 0.3) 
+        ? 0.5 + (f.correctness * 0.5) 
+        : (f.correctness * 0.4),
       contradict: (f) => f.correctness < 0.4 ? 1.0 : 0
     }
   };
 
   private getDefaultRule(id: string, level: CefrLevel): DescriptorRule {
-    // Simple heuristic rule if no explicit rule exists
+    // RECALIBRATED: Continuous probabilistic support curves
     return {
       id,
       match: (f) => {
-        const threshold = level.startsWith('C') ? 0.8 : level.startsWith('B') ? 0.7 : 0.6;
-        return f.correctness >= threshold ? 1.0 : 0.4;
+        const threshold = level.startsWith('C') ? 0.85 : level.startsWith('B') ? 0.75 : 0.65;
+        // If above threshold, full support
+        if (f.correctness >= threshold) return 1.0;
+        // If near threshold (within 0.2), partial linear support
+        if (f.correctness >= threshold - 0.25) {
+          const range = 0.25;
+          const diff = f.correctness - (threshold - range);
+          return 0.3 + (diff / range) * 0.7; // Scale from 0.3 to 1.0
+        }
+        // Minimal background support for low scores
+        return f.correctness * 0.2;
       },
-      contradict: (f) => f.correctness < 0.3 ? 1.0 : 0
+      contradict: (f) => {
+        const failThreshold = 0.4;
+        if (f.correctness < 0.1) return 1.0;
+        if (f.correctness < failThreshold) return 1.0 - (f.correctness / failThreshold);
+        return 0;
+      }
     };
   }
 }
