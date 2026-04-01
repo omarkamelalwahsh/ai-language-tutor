@@ -197,12 +197,13 @@ export class AdaptiveAssessmentEngine {
     const deterministicScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
     
     // NEW: Decouple 'isPass' (Semantic Correctness) from 'finalScore' (Overall Proficiency)
-    // isPass is now 100% focused on understanding and completing the task.
+    // isPass is now EXTREMELY lenient (30% accuracy is enough to pass).
     const semanticPassScore = llmResult 
-      ? (llmResult.semantic_accuracy * 0.7 + llmResult.task_completion * 0.3)
+      ? (llmResult.semantic_accuracy * 0.8 + llmResult.task_completion * 0.2)
       : (features.correctness || 0);
     
-    const isPass = semanticPassScore >= 0.55; // Consistent threshold for "Correct"
+    // RESCUE: Even minimal semantic understanding (0.3) = GREEN CHECKMARK
+    const isPass = semanticPassScore >= 0.3; 
 
     // Weighted aggregation of LLM signals (0.0 - 1.0) for Level Tracking
     const llmSignalScore = llmResult ? (

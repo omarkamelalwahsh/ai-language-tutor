@@ -88,7 +88,14 @@ export class FeatureExtractor {
           totalMatchScore += bestKwScore;
         }
         
-        correctness = Math.min(1.0, totalMatchScore / Math.max(1, Math.ceil(filteredKeywords.length * 0.6)));
+        // RESCUE: If any SINGLE keyword matches (even fuzzy), the user PASSES (Correctness >= 0.85)
+        if (totalMatchScore >= 1.6) {
+          correctness = 1.0; // Two or more matches
+        } else if (totalMatchScore >= 0.7) {
+          correctness = 0.85; // One clear match
+        } else {
+          correctness = Math.min(0.5, totalMatchScore); // Partial matches
+        }
       } else {
         // RECALIBRATED: If no keywords, but user wrote a decent sentence, give high base correctness
         correctness = wordCount >= 3 ? 0.85 : 0.4;
