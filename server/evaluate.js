@@ -9,45 +9,36 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// ============================================================================
-// Configuration
-// ============================================================================
-
 const CONFIG = {
-  model: "llama-3.1-8b-instant",
+  model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
   temperature: 0.1,
-  maxTokens: 512,
+  maxTokens: 700,
   requestTimeoutMs: 8000,
 };
-
-// ============================================================================
-// Circuit Breaker
-// ============================================================================
 
 const circuitBreaker = {
   failureCount: 0,
   lastFailureTime: 0,
-  cooldownMs: 5 * 60 * 1000, // 5 minutes
+  cooldownMs: 5 * 60 * 1000,
   maxFailures: 2,
 
   isOpen() {
     if (this.failureCount < this.maxFailures) return false;
     const elapsed = Date.now() - this.lastFailureTime;
     if (elapsed > this.cooldownMs) {
-      // Reset after cooldown
       this.failureCount = 0;
-      console.log("[CircuitBreaker] Cooldown expired. Resetting to CLOSED.");
+      console.log("[CircuitBreaker] Cooldown expired. Resetting.");
       return false;
     }
     return true;
   },
 
   recordFailure(reason) {
-    this.failureCount++;
+    this.failureCount += 1;
     this.lastFailureTime = Date.now();
     console.error(`[CircuitBreaker] Failure #${this.failureCount}: ${reason}`);
     if (this.failureCount >= this.maxFailures) {
-      console.warn(`[CircuitBreaker] OPEN — skipping LLM calls for ${this.cooldownMs / 1000}s`);
+      console.warn("[CircuitBreaker] OPEN \u2014 skipping LLM calls temporarily.");
     }
   },
 
@@ -59,10 +50,6 @@ const circuitBreaker = {
   },
 };
 
-// ============================================================================
-// Groq Client (optional — only if key is present)
-// ============================================================================
-
 let client = null;
 if (process.env.GROQ_API_KEY) {
   client = new OpenAI({
@@ -71,53 +58,76 @@ if (process.env.GROQ_API_KEY) {
   });
   console.log(`[Evaluator] Groq client initialized. Model: ${CONFIG.model}`);
 } else {
-  console.warn("[Evaluator] GROQ_API_KEY not set. Server will return deterministic fallbacks only.");
+  console.warn("[Evaluator] GROQ_API_KEY not set. Deterministic fallback only.");
 }
 
-// ============================================================================
-// Prompts & Helpers
-// ============================================================================
+const SYSTEM_PROMPT = `
+You are a CEFR-aligned linguistic signal extractor.
 
-const SYSTEM_PROMPT = `You are a Principal Linguistic Signal Extractor and CEFR Assessment Architect. 
+Your job is NOT to assign the final CEFR result.
+Your job is to extract structured linguistic signals from the learner response.
 
-Your sole task is to extract objective linguistic signals from a learner's response. 
-You are NOT a band classifier. Do NOT decide the final level. Provide only raw signals.
+Evaluate the USER_RESPONSE using these dimensions:
+1. semantic_accuracy
+2. task_completion
+3. lexical_sophistication
+4. syntactic_complexity
+5. coherence
+6. grammar_control
+7. typo_severity
+8. idiomatic_usage
+9. register_control
 
-### OUTPUT SCHEMA (STRICT JSON ONLY)
+Scoring rules:
+- All scores must be numbers between 0.0 and 1.0
+- Minor typos must NOT heavily reduce scores if meaning is preserved
+- Short answers may still score well if they are precise and high-quality
+- Distinguish meaning accuracy from language quality
+- estimated_band is only an approximate linguistic estimate, not the final placement
+- confidence must reflect confidence in the extracted signals, not final CEFR certification
+
+Few-shot guidance:
+
+A2 example:
+"I am from Egypt and I work in a company."
+Signals: simpler syntax, limited vocabulary, clear meaning.
+
+B1 example:
+"I think remote work is useful because it helps people manage their time better."
+Signals: opinion + reason, moderate structure, functional vocabulary.
+
+B2 example:
+"Remote work significantly improves flexibility, particularly for employees who need greater autonomy in managing their schedules."
+Signals: more abstract vocabulary, stronger control, more complex syntax.
+
+C1 example:
+"The impact of remote work on organizational efficiency is multifaceted, as it requires balancing individual autonomy with sustained collaborative alignment."
+Signals: high abstraction, advanced lexical choice, strong register control.
+
+Return ONLY valid JSON with this exact schema:
 {
-  "semantic_accuracy": 0.0-1.0, // Did they understand the prompt?
-  "task_completion": 0.0-1.0,  // Did they fulfill the task requirements?
-  "lexical_sophistication": 0.0-1.0, // Breadth and rarity of vocabulary.
-  "syntactic_complexity": 0.0-1.0, // Use of subordinate clauses, passive voice, etc.
-  "coherence": 0.0-1.0, // Logical flow and use of connectors.
-  "grammar_control": 0.0-1.0, // Accuracy of grammatical structures.
-  "typo_severity": 0.0-1.0, // 0 = no typos, 1 = unreadable. Minor typos != low grammar_control.
-  "idiomatic_usage": 0.0-1.0, // Use of collocations and natural idioms.
-  "register_control": 0.0-1.0, // Appropriateness of tone (formal/informal).
-  "estimated_band": "A1" | "A2" | "B1" | "B2" | "C1" | "C2", // Educational proxy only.
-  "confidence": 0.0-1.0,
-  "rationale": "Short technical explanation of the signals."
+  "semantic_accuracy": number,
+  "task_completion": number,
+  "lexical_sophistication": number,
+  "syntactic_complexity": number,
+  "coherence": number,
+  "grammar_control": number,
+  "typo_severity": number,
+  "idiomatic_usage": number,
+  "register_control": number,
+  "estimated_band": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+  "confidence": number,
+  "rationale": string
 }
+`.trim();
 
-### FEW-SHOT CALIBRATION
-- A2 example: "Hello, I am from Egypt. I work in a company." 
-  -> semantic_accuracy: 1.0, lexical_sophistication: 0.2, syntactic_complexity: 0.1
-- B1 example: "I think remote work is useful because it allows people to manage their time better."
-  -> semantic_accuracy: 1.0, lexical_sophistication: 0.5, syntactic_complexity: 0.5 (opinion + reason)
-- B2 example: "Remote work significantly enhances productivity, particularly when employees are given autonomy."
-  -> semantic_accuracy: 1.0, lexical_sophistication: 0.75, syntactic_complexity: 0.75 (complex structure + abstraction)
-- C1 example: "The impact of remote work on organizational efficiency is multifaceted, requiring a balance between autonomy and structured collaboration."
-  -> semantic_accuracy: 1.0, lexical_sophistication: 0.95, syntactic_complexity: 0.95 (advanced abstraction + register control)
-
-### CORE EVALUATION RULES
-1. **Meaning vs. Quality**: Separate 'semantic_accuracy' (understanding) from 'grammar_control' (expression). "He late because traffic" has HIGH semantic accuracy but LOW grammar control.
-2. **Typo Tolerance**: Minor spelling mistakes MUST NOT reduce semantic_accuracy. If the meaning is clear, do NOT heavily penalize. Track typos in 'typo_severity'.
-3. **Sophistication**: Prioritize "Natural Flow" and "Register Control" for high-level candidates. A native-like simple sentence is better than a forced academic complex sentence.
-4. **No Ceiling**: If the response is significantly more advanced than the target band, provide high signals regardless of the prompt's simplicity.
-5. **Zero-Fill Requirement**: You MUST return all 10 keys in the JSON schema. If a signal isn't detected, set it to 0.0. Never omit a key.
-6. **Fragment Tolerance**: For identification or listening tasks, a single word (e.g., 'London') is a PERFECT answer. Do NOT penalize 'semantic_accuracy' or 'task_completion' for missing punctuation or grammar in these cases.
-
-Return valid JSON only. No preamble. No markdown.`;
+function clamp01(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  if (num < 0) return 0;
+  if (num > 1) return 1;
+  return num;
+}
 
 function validatePayload(payload) {
   if (!payload || typeof payload !== "object") return "Missing payload";
@@ -133,28 +143,73 @@ function validatePayload(payload) {
 
 function fallbackResult(currentBand, reason = "Deterministic fallback used.") {
   return {
-    semantic_accuracy: 0.0,
-    task_completion: 0.0,
-    lexical_sophistication: 0.0,
-    syntactic_complexity: 0.0,
-    coherence: 0.0,
-    grammar_control: 0.0,
-    typo_severity: 0.0,
-    idiomatic_usage: 0.0,
-    register_control: 0.0,
+    semantic_accuracy: 0.5,
+    task_completion: 0.5,
+    lexical_sophistication: 0.35,
+    syntactic_complexity: 0.35,
+    coherence: 0.4,
+    grammar_control: 0.4,
+    typo_severity: 0.1,
+    idiomatic_usage: 0.1,
+    register_control: 0.3,
     estimated_band: currentBand || "A2",
-    confidence: 0.0,
+    confidence: 0.2,
     rationale: reason,
     _fallback: true,
   };
 }
 
-// ============================================================================
-// Routes
-// ============================================================================
+function isValidBand(value) {
+  return ["A1", "A2", "B1", "B2", "C1", "C2"].includes(value);
+}
+
+function sanitizeSignalResult(parsed, currentBand) {
+  return {
+    semantic_accuracy: clamp01(parsed.semantic_accuracy),
+    task_completion: clamp01(parsed.task_completion),
+    lexical_sophistication: clamp01(parsed.lexical_sophistication),
+    syntactic_complexity: clamp01(parsed.syntactic_complexity),
+    coherence: clamp01(parsed.coherence),
+    grammar_control: clamp01(parsed.grammar_control),
+    typo_severity: clamp01(parsed.typo_severity),
+    idiomatic_usage: clamp01(parsed.idiomatic_usage),
+    register_control: clamp01(parsed.register_control),
+    estimated_band: isValidBand(parsed.estimated_band) ? parsed.estimated_band : (currentBand || "A2"),
+    confidence: clamp01(parsed.confidence),
+    rationale: typeof parsed.rationale === "string" ? parsed.rationale : "No rationale provided.",
+  };
+}
+
+function hasRequiredSignalSchema(parsed) {
+  if (!parsed || typeof parsed !== "object") return false;
+
+  const requiredNumericFields = [
+    "semantic_accuracy",
+    "task_completion",
+    "lexical_sophistication",
+    "syntactic_complexity",
+    "coherence",
+    "grammar_control",
+    "typo_severity",
+    "idiomatic_usage",
+    "register_control",
+    "confidence",
+  ];
+
+  for (const field of requiredNumericFields) {
+    if (parsed[field] === undefined || !Number.isFinite(Number(parsed[field]))) {
+      return false;
+    }
+  }
+
+  if (!isValidBand(parsed.estimated_band)) return false;
+  if (typeof parsed.rationale !== "string") return false;
+
+  return true;
+}
 
 app.get("/", (_req, res) => {
-  const status = circuitBreaker.isOpen() ? "DEGRADED (circuit open)" : "HEALTHY";
+  const status = circuitBreaker.isOpen() ? "DEGRADED" : "HEALTHY";
   res.json({
     status,
     model: CONFIG.model,
@@ -182,17 +237,14 @@ app.post("/api/evaluate", async (req, res) => {
     return res.status(400).json({ error: validationError });
   }
 
-  // Gate 1: No client
   if (!client) {
     return res.json(fallbackResult(payload.currentBand, "No API key configured."));
   }
 
-  // Gate 2: Circuit breaker open
   if (circuitBreaker.isOpen()) {
     return res.json(fallbackResult(payload.currentBand, "Circuit breaker is open. Skipping LLM."));
   }
 
-  // Gate 3: Attempt LLM call with timeout
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CONFIG.requestTimeoutMs);
@@ -205,7 +257,16 @@ app.post("/api/evaluate", async (req, res) => {
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: JSON.stringify(payload) },
+          {
+            role: "user",
+            content: JSON.stringify({
+              skill: payload.skill,
+              currentBand: payload.currentBand,
+              question: payload.question,
+              learnerAnswer: payload.learnerAnswer,
+              descriptors: payload.descriptors,
+            }),
+          },
         ],
       },
       { signal: controller.signal }
@@ -227,20 +288,23 @@ app.post("/api/evaluate", async (req, res) => {
       return res.json(fallbackResult(payload.currentBand, "LLM returned invalid JSON."));
     }
 
-    // Validate essential fields
-    if (!parsed.matchedBand || !parsed.difficultyAction) {
-      circuitBreaker.recordFailure("Incomplete JSON schema from LLM.");
-      return res.json(fallbackResult(payload.currentBand, "LLM returned incomplete schema."));
+    console.log("[LLM RAW RESPONSE]", parsed);
+
+    if (!hasRequiredSignalSchema(parsed)) {
+      circuitBreaker.recordFailure("Incomplete signal schema from LLM.");
+      return res.json(
+        fallbackResult(payload.currentBand, "LLM returned incomplete signal schema.")
+      );
     }
 
+    const sanitized = sanitizeSignalResult(parsed, payload.currentBand);
     circuitBreaker.recordSuccess();
-    return res.json(parsed);
+    return res.json(sanitized);
   } catch (err) {
     const message = err?.message || String(err);
 
-    // Detect decommissioned model explicitly
     if (message.includes("decommissioned") || message.includes("not found")) {
-      console.error(`[Evaluator] CRITICAL: Model "${CONFIG.model}" is decommissioned or unavailable.`);
+      console.error(`[Evaluator] CRITICAL: Model "${CONFIG.model}" unavailable.`);
       circuitBreaker.recordFailure(`Model error: ${message}`);
     } else if (err.name === "AbortError") {
       console.error(`[Evaluator] Request timed out after ${CONFIG.requestTimeoutMs}ms.`);
@@ -253,10 +317,6 @@ app.post("/api/evaluate", async (req, res) => {
     return res.json(fallbackResult(payload.currentBand, `LLM error: ${message}`));
   }
 });
-
-// ============================================================================
-// Start
-// ============================================================================
 
 app.listen(port, () => {
   console.log(`[Evaluator] Server running on http://localhost:${port}`);

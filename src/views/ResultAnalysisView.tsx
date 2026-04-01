@@ -14,10 +14,12 @@ const skillIcons: Record<string, React.ReactNode> = {
 
 interface ResultAnalysisViewProps {
   result: AssessmentSessionResult;
+  assessmentOutcome?: any; // Added to match App.tsx usage if needed
   onContinue: () => void;
+  onReview?: () => void;
 }
 
-export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, onContinue }) => {
+export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, onContinue, onReview }) => {
   const confidenceLabel = result.overall.confidence >= 0.8 ? `Confident ${result.overall.estimatedLevel}` :
                           result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
                           `${result.overall.estimatedLevel} emerging`;
@@ -134,10 +136,16 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
         </motion.div>
 
         {/* Footer Action */}
-        <motion.div variants={staggerItem} className="pt-6 flex justify-center pb-12">
+        <motion.div variants={staggerItem} className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
+          <button 
+            onClick={onReview || (() => {})}
+            className="group flex items-center gap-3 bg-white hover:bg-slate-50 text-slate-900 px-8 py-4 rounded-2xl font-bold text-lg border border-slate-200 transition-all duration-300 shadow-sm active:scale-95"
+          >
+            Review My Answers
+          </button>
           <button 
             onClick={onContinue}
-            className="group flex items-center gap-3 bg-slate-900 hover:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+            className="group flex items-center gap-3 bg-slate-900 hover:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-indigo-500/25 active:scale-95"
           >
             Review Learning Journey
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

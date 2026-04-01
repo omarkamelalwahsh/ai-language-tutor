@@ -1,18 +1,81 @@
 import OpenAI from "openai";
 
 const CONFIG = {
-  model: "llama-3.1-8b-instant",
+  model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
   temperature: 0.1,
-  maxTokens: 512,
-  requestTimeoutMs: 8000,
+  maxTokens: 700,
 };
 
-let client = null;
-if (process.env.GROQ_API_KEY) {
-  client = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1",
-  });
+const SYSTEM_PROMPT = `
+You are a CEFR-aligned linguistic signal extractor.
+
+Your job is NOT to assign the final CEFR result.
+Your job is to extract structured linguistic signals from the learner response.
+
+Evaluate the USER_RESPONSE using these dimensions:
+1. semantic_accuracy
+2. task_completion
+3. lexical_sophistication
+4. syntactic_complexity
+5. coherence
+6. grammar_control
+7. typo_severity
+8. idiomatic_usage
+9. register_control
+
+Scoring rules:
+- All scores must be numbers between 0.0 and 1.0
+- Minor typos must NOT heavily reduce scores if meaning is preserved
+- Short answers may still score well if they are precise and high-quality
+- Distinguish meaning accuracy from language quality
+- estimated_band is only an approximate linguistic estimate, not the final placement
+- confidence must reflect confidence in the extracted signals, not final CEFR certification
+
+Few-shot guidance:
+
+A2 example:
+"I am from Egypt and I work in a company."
+Signals: simpler syntax, limited vocabulary, clear meaning.
+
+B1 example:
+"I think remote work is useful because it helps people manage their time better."
+Signals: opinion + reason, moderate structure, functional vocabulary.
+
+B2 example:
+"Remote work significantly improves flexibility, particularly for employees who need greater autonomy in managing their schedules."
+Signals: more abstract vocabulary, stronger control, more complex syntax.
+
+C1 example:
+"The impact of remote work on organizational efficiency is multifaceted, as it requires balancing individual autonomy with sustained collaborative alignment."
+Signals: high abstraction, advanced lexical choice, strong register control.
+
+Return ONLY valid JSON with this exact schema:
+{
+  "semantic_accuracy": number,
+  "task_completion": number,
+  "lexical_sophistication": number,
+  "syntactic_complexity": number,
+  "coherence": number,
+  "grammar_control": number,
+  "typo_severity": number,
+  "idiomatic_usage": number,
+  "register_control": number,
+  "estimated_band": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+  "confidence": number,
+  "rationale": string
+}
+`.trim();
+
+function clamp01(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  if (num < 0) return 0;
+  if (num > 1) return 1;
+  return num;
+}
+
+function isValidBand(value) {
+  return ["A1", "A2", "B1", "B2", "C1", "C2"].includes(value);
 }
 
 function validatePayload(payload) {
@@ -29,98 +92,140 @@ function validatePayload(payload) {
 
 function fallbackResult(currentBand, reason = "Deterministic fallback used.") {
   return {
-    isMatch: false,
-    matchedBand: currentBand || "A2",
-    confidence: 0.3,
-    confidenceLabel: "low",
-    difficultyAction: "stay",
-    strengths: [],
-    weaknesses: [],
-    reasons: [reason],
+    semantic_accuracy: 0.5,
+    task_completion: 0.5,
+    lexical_sophistication: 0.35,
+    syntactic_complexity: 0.35,
+    coherence: 0.4,
+    grammar_control: 0.4,
+    typo_severity: 0.1,
+    idiomatic_usage: 0.1,
+    register_control: 0.3,
+    estimated_band: currentBand || "A2",
+    confidence: 0.2,
+    rationale: reason,
     _fallback: true,
   };
 }
 
-const SYSTEM_PROMPT = `You are a Senior Linguistic Data Scientist. Your task is to evaluate user responses not just for accuracy, but for 'Latent Semantic Proficiency' (LSP).
+function hasRequiredSignalSchema(parsed) {
+  if (!parsed || typeof parsed !== "object") return false;
 
-Return JSON only with this exact schema:
-{
-  "isMatch": boolean,
-  "matchedBand": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
-  "confidence": number,
-  "confidenceLabel": "high" | "medium" | "low",
-  "difficultyAction": "increase" | "stay" | "decrease",
-  "strengths": string[],
-  "weaknesses": string[],
-  "reasons": string[],
-  "linguisticDepthScore": number,
-  "domainAuthorityScore": number,
-  "outputCefrMapping": "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+  const requiredNumericFields = [
+    "semantic_accuracy",
+    "task_completion",
+    "lexical_sophistication",
+    "syntactic_complexity",
+    "coherence",
+    "grammar_control",
+    "typo_severity",
+    "idiomatic_usage",
+    "register_control",
+    "confidence",
+  ];
+
+  for (const field of requiredNumericFields) {
+    if (parsed[field] === undefined || !Number.isFinite(Number(parsed[field]))) {
+      return false;
+    }
+  }
+
+  if (!isValidBand(parsed.estimated_band)) return false;
+  if (typeof parsed.rationale !== "string") return false;
+
+  return true;
 }
 
-### EVALUATION PROTOCOL
-1. **Divergence Check (Input vs. Output):** If the prompt is simple (e.g. A1) but the response uses complex vocabulary or syntax (e.g. B2/C1), the \`outputCefrMapping\` and \`matchedBand\` MUST be anchored to the OUTPUT complexity, not the prompt difficulty.
-2. **Metric: Lexical Density & Rarefaction:** 
-   - Identify low-frequency tokens.
-   - High density in content-specific domains triggers an automatic shift to higher bands.
-3. **Metric: Syntactic Depth:** 
-   - Detect Subordinate Clauses, Passive Voice, and Gerund Phrases. 
-   - If the user manages 3+ levels of nested logic, bypass B-level descriptors entirely.
-4. **Constraint: Semantic Consistency:** 
-   - Do NOT penalize advanced users for simple-question accuracy; prioritize their "Productive Vocabulary" as the primary weight.
-
-Return valid JSON only. No markdown, no preamble.`;
-
+function sanitizeSignalResult(parsed, currentBand) {
+  return {
+    semantic_accuracy: clamp01(parsed.semantic_accuracy),
+    task_completion: clamp01(parsed.task_completion),
+    lexical_sophistication: clamp01(parsed.lexical_sophistication),
+    syntactic_complexity: clamp01(parsed.syntactic_complexity),
+    coherence: clamp01(parsed.coherence),
+    grammar_control: clamp01(parsed.grammar_control),
+    typo_severity: clamp01(parsed.typo_severity),
+    idiomatic_usage: clamp01(parsed.idiomatic_usage),
+    register_control: clamp01(parsed.register_control),
+    estimated_band: isValidBand(parsed.estimated_band) ? parsed.estimated_band : (currentBand || "A2"),
+    confidence: clamp01(parsed.confidence),
+    rationale: typeof parsed.rationale === "string" ? parsed.rationale : "No rationale provided.",
+  };
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const payload = req.body;
-  const validationError = validatePayload(payload);
-
+  const validationError = validatePayload(req.body);
   if (validationError) {
     return res.status(400).json({ error: validationError });
   }
 
-  if (!client) {
-    return res.status(200).json(fallbackResult(payload.currentBand, "No API key configured on Vercel."));
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(200).json(
+      fallbackResult(req.body.currentBand, "No API key configured.")
+    );
   }
 
+  const client = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
   try {
-    const response = await client.chat.completions.create(
-      {
-        model: CONFIG.model,
-        temperature: CONFIG.temperature,
-        max_tokens: CONFIG.maxTokens,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: JSON.stringify(payload) },
-        ],
-      }
-    );
+    const response = await client.chat.completions.create({
+      model: CONFIG.model,
+      temperature: CONFIG.temperature,
+      max_tokens: CONFIG.maxTokens,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: JSON.stringify({
+            skill: req.body.skill,
+            currentBand: req.body.currentBand,
+            question: req.body.question,
+            learnerAnswer: req.body.learnerAnswer,
+            descriptors: req.body.descriptors,
+          }),
+        },
+      ],
+    });
 
     const content = response.choices?.[0]?.message?.content;
     if (!content) {
-      return res.status(200).json(fallbackResult(payload.currentBand, "Empty LLM response."));
+      return res.status(200).json(
+        fallbackResult(req.body.currentBand, "Empty LLM response.")
+      );
     }
 
     let parsed;
     try {
       parsed = JSON.parse(content);
     } catch {
-      return res.status(200).json(fallbackResult(payload.currentBand, "LLM returned invalid JSON."));
+      return res.status(200).json(
+        fallbackResult(req.body.currentBand, "Invalid JSON from LLM.")
+      );
     }
 
-    if (!parsed.matchedBand || !parsed.difficultyAction) {
-      return res.status(200).json(fallbackResult(payload.currentBand, "LLM returned incomplete schema."));
+    console.log("[LLM RAW RESPONSE]", parsed);
+
+    if (!hasRequiredSignalSchema(parsed)) {
+      return res.status(200).json(
+        fallbackResult(req.body.currentBand, "Incomplete signal schema from LLM.")
+      );
     }
 
-    return res.status(200).json(parsed);
+    return res.status(200).json(
+      sanitizeSignalResult(parsed, req.body.currentBand)
+    );
   } catch (err) {
     const message = err?.message || String(err);
-    return res.status(200).json(fallbackResult(payload.currentBand, `LLM error: ${message}`));
+    return res.status(200).json(
+      fallbackResult(req.body.currentBand, `LLM error: ${message}`)
+    );
   }
 }

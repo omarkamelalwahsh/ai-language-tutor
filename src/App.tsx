@@ -20,6 +20,7 @@ import { UserLeaderboardView } from './views/UserLeaderboardView';
 
 // Components
 import { ResultAnalysisView } from './views/ResultAnalysisView';
+import { AssessmentReviewView } from './views/AssessmentReviewView';
 import { LearningJourneyView } from './views/LearningJourneyView';
 import { AdvancedDashboard } from './components/dashboard/AdvancedDashboard';
 import { SharedRuntime } from './components/runtime/SharedRuntime';
@@ -142,6 +143,15 @@ export default function App() {
             result={assessmentResult}
             assessmentOutcome={assessmentOutcome}
             onContinue={() => navigateTo('LEARNING_JOURNEY')}
+            onReview={() => navigateTo('ASSESSMENT_REVIEW')}
+          />
+        )}
+
+        {view === 'ASSESSMENT_REVIEW' && (
+          <AssessmentReviewView
+            key="assessment_review"
+            evaluations={taskResults}
+            onBack={() => navigateTo('RESULT_ANALYSIS')}
           />
         )}
 
