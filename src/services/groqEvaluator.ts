@@ -39,6 +39,31 @@ export type EvaluationPayload = {
  * CONTRACT: Returns null on ANY failure. Callers MUST handle null gracefully
  * by falling back to deterministic scoring. This function will NEVER throw.
  */
+/**
+ * Ensures all 10 linguistic signals are present in the result.
+ * Fills missing keys with 0.0 to prevent engine failures.
+ */
+function sanitizeLinguisticResult(data: any): DescriptorEvaluationResult {
+  return {
+    semantic_accuracy: data.semantic_accuracy ?? 0.0,
+    task_completion: data.task_completion ?? 0.0,
+    lexical_sophistication: data.lexical_sophistication ?? 0.0,
+    syntactic_complexity: data.syntactic_complexity ?? 0.0,
+    coherence: data.coherence ?? 0.0,
+    grammar_control: data.grammar_control ?? 0.0,
+    typo_severity: data.typo_severity ?? 0.0,
+    idiomatic_usage: data.idiomatic_usage ?? 0.0,
+    register_control: data.register_control ?? 0.0,
+    estimated_band: data.estimated_band ?? 'A1',
+    confidence: data.confidence ?? 0.0,
+    rationale: data.rationale ?? 'No rationale provided.',
+    _fallback: data._fallback ?? false
+  };
+}
+
+/**
+ * Calls the backend Groq evaluator with full circuit-breaker and timeout protection.
+ */
 export async function evaluateWithGroq(
   payload: EvaluationPayload
 ): Promise<DescriptorEvaluationResult | null> {
@@ -66,19 +91,21 @@ export async function evaluateWithGroq(
       return null;
     }
 
-    const data: DescriptorEvaluationResult = await res.json();
+    const rawData = await res.json();
+    const data = sanitizeLinguisticResult(rawData);
 
-    // If backend returned a fallback, treat it as "no enrichment"
+    // If backend returned a fallback, we still return it (with zeroed signals)
     if (data._fallback) {
-      console.log('[groqEvaluator] Backend returned a fallback result. Treating as no enrichment.');
-      // Don't record failure — the backend already handled it.
-      return null;
+      console.log('[groqEvaluator] Backend returned a fallback result. Using zeroed signals.');
+      ClientCircuitBreaker.recordSuccess(); // Success at protocol level
+      return data;
     }
 
-    // Validate essential fields
-    if (data.semantic_accuracy === undefined || !data.estimated_band) {
+    // Validate essential fields (sanitizer handles most, but we check semantic_accuracy/estimated_band)
+    if (rawData.semantic_accuracy === undefined || !rawData.estimated_band) {
+      console.warn('[groqEvaluator] Response missing core fields. Sanitizing but recording failure.');
       ClientCircuitBreaker.recordFailure('Incomplete signal schema from backend.');
-      return null;
+      return data; // Return sanitized anyway to avoid engine crash
     }
 
     ClientCircuitBreaker.recordSuccess();

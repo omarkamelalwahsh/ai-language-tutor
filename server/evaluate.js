@@ -114,6 +114,7 @@ You are NOT a band classifier. Do NOT decide the final level. Provide only raw s
 2. **Typo Tolerance**: Minor spelling mistakes MUST NOT reduce semantic_accuracy. If the meaning is clear, do NOT heavily penalize. Track typos in 'typo_severity'.
 3. **Sophistication**: Prioritize "Natural Flow" and "Register Control" for high-level candidates. A native-like simple sentence is better than a forced academic complex sentence.
 4. **No Ceiling**: If the response is significantly more advanced than the target band, provide high signals regardless of the prompt's simplicity.
+5. **Zero-Fill Requirement**: You MUST return all 10 keys in the JSON schema. If a signal isn't detected, set it to 0.0. Never omit a key.
 
 Return valid JSON only. No preamble. No markdown.`;
 
@@ -131,14 +132,18 @@ function validatePayload(payload) {
 
 function fallbackResult(currentBand, reason = "Deterministic fallback used.") {
   return {
-    isMatch: false,
-    matchedBand: currentBand || "A2",
-    confidence: 0.3,
-    confidenceLabel: "low",
-    difficultyAction: "stay",
-    strengths: [],
-    weaknesses: [],
-    reasons: [reason],
+    semantic_accuracy: 0.0,
+    task_completion: 0.0,
+    lexical_sophistication: 0.0,
+    syntactic_complexity: 0.0,
+    coherence: 0.0,
+    grammar_control: 0.0,
+    typo_severity: 0.0,
+    idiomatic_usage: 0.0,
+    register_control: 0.0,
+    estimated_band: currentBand || "A2",
+    confidence: 0.0,
+    rationale: reason,
     _fallback: true,
   };
 }

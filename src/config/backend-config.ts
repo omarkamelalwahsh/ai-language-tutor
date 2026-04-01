@@ -27,8 +27,8 @@ interface CircuitBreakerState {
   isDisabled: boolean;
 }
 
-const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
-const MAX_FAILURES_BEFORE_OPEN = 2;
+const CIRCUIT_BREAKER_COOLDOWN_MS = 30 * 1000; // 30 seconds for testing
+const MAX_FAILURES_BEFORE_OPEN = 5; // 5 failures before opening
 
 const state: CircuitBreakerState = {
   failureCount: 0,
@@ -77,11 +77,29 @@ export const ClientCircuitBreaker = {
   },
 
   /**
+   * Manually reset the circuit breaker state.
+   */
+  reset(): void {
+    state.failureCount = 0;
+    state.lastFailureTime = 0;
+    state.isDisabled = false;
+    console.log('[ClientCircuitBreaker] State has been MANUALLY RESET.');
+  },
+
+  /**
    * Permanently disable LLM calls for this session.
    */
   disable(): void {
     state.isDisabled = true;
     console.warn('[ClientCircuitBreaker] LLM permanently disabled for this session.');
+  },
+
+  /**
+   * Re-enable LLM calls if they were manually disabled.
+   */
+  enable(): void {
+    state.isDisabled = false;
+    console.log('[ClientCircuitBreaker] LLM re-enabled for this session.');
   },
 
   /**
