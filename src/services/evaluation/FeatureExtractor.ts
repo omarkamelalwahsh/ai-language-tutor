@@ -90,17 +90,19 @@ export class FeatureExtractor {
         
         correctness = Math.min(1.0, totalMatchScore / Math.max(1, Math.ceil(filteredKeywords.length * 0.6)));
       } else {
-        // Fallback for open text without keywords: length and diversity proxy
-        correctness = wordCount > 5 ? 0.5 : 0.2;
+        // RECALIBRATED: If no keywords, but user wrote a decent sentence, give high base correctness
+        correctness = wordCount >= 3 ? 0.85 : 0.4;
       }
     }
 
     return {
       correctness,
       wordCount,
-      sentenceComplexity: sentenceCount > 1 ? Math.min(1.0, (avgSentenceLength / 10) + (connectorCount * 0.1)) : 0,
+      // Baseline complexity floor: even one sentence with punctuation gets 0.4
+      sentenceComplexity: sentenceCount > 0 ? Math.min(1.0, 0.4 + (avgSentenceLength / 20) + (connectorCount * 0.15)) : 0,
       averageSentenceLength: avgSentenceLength,
-      lexicalDiversity,
+      // Baseline diversity floor: 0.5 if answered
+      lexicalDiversity: wordCount > 0 ? Math.min(1.0, 0.5 + (lexicalDiversity * 0.5)) : 0,
       connectorUsage: connectorCount,
       relevance: wordCount > 2 ? 1.0 : 0.0,
       timestamp: new Date().toISOString()

@@ -194,21 +194,26 @@ export class AdaptiveAssessmentEngine {
     const finalMatches = this.synthesizeEvidence(matched, llmResult);
     
     // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
-    // Merge deterministic signals and LLM signals for the continuous score
     const deterministicScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
     
-    // Weighted aggregation of LLM signals (0.0 - 1.0)
+    // NEW: Decouple 'isPass' (Semantic Correctness) from 'finalScore' (Overall Proficiency)
+    // isPass is now 100% focused on understanding and completing the task.
+    const semanticPassScore = llmResult 
+      ? (llmResult.semantic_accuracy * 0.7 + llmResult.task_completion * 0.3)
+      : (features.correctness || 0);
+    
+    const isPass = semanticPassScore >= 0.55; // Consistent threshold for "Correct"
+
+    // Weighted aggregation of LLM signals (0.0 - 1.0) for Level Tracking
     const llmSignalScore = llmResult ? (
-      llmResult.semantic_accuracy * 0.4 +
-      llmResult.task_completion * 0.2 +
-      llmResult.grammar_control * 0.2 +
-      llmResult.lexical_sophistication * 0.2
+      llmResult.semantic_accuracy * 0.3 +
+      llmResult.task_completion * 0.1 +
+      llmResult.grammar_control * 0.3 +
+      llmResult.lexical_sophistication * 0.3
     ) : 0;
 
-    // Final score is a mix (40% deterministic heuristics, 60% LLM qualitative analysis)
-    const finalScore = llmResult ? (deterministicScore * 0.4 + llmSignalScore * 0.6) : deterministicScore;
-    
-    const isPass = finalScore >= 0.6;
+    // Final score uses the full qualitative depth to determine "Proficiency" (CEFR band)
+    const finalScore = llmResult ? (deterministicScore * 0.3 + llmSignalScore * 0.7) : deterministicScore;
 
     const record: AnswerRecord = {
       taskId: question.id,
@@ -1164,16 +1169,17 @@ export class AdaptiveAssessmentEngine {
     const isOpenEnded = ['short_text', 'picture_description', 'listening_summary'].includes(taskType);
     
     if (isOpenEnded) {
-      // 0.7 weight for productive complexity, 0.3 for basic correctness
-      const complexitySignal = (features.lexicalDiversity || 0) * 0.3 + (features.syntacticComplexity || 0) * 0.4;
-      const correctnessSignal = (features.correctness || 0) * 0.3;
+      // Prioritize correctness (0.7) over complexity (0.3) for the base deterministic signal
+      const correctnessSignal = (features.correctness || 0) * 0.7;
+      const complexitySignal = (features.lexicalDiversity || 0) * 0.15 + (features.syntacticComplexity || 0) * 0.15;
       const matchScore = matches.length > 0 ? Math.max(...matches.map(m => m.strength)) : 0;
       
-      return (complexitySignal + correctnessSignal + matchScore) / 2;
+      // Return a balanced score that rewards correctness but scales with complexity
+      return Math.min(1.0, correctnessSignal + complexitySignal + (matchScore * 0.2));
     } else {
-      // 0.9 weight for correctness for closed-ended tasks
-      const correctnessSignal = (features.correctness || 0) * 0.9;
-      const lengthProxy = Math.min(0.1, (features.wordCount || 0) / 100);
+      // 0.95 weight for correctness for closed-ended tasks
+      const correctnessSignal = (features.correctness || 0) * 0.95;
+      const lengthProxy = Math.min(0.05, (features.wordCount || 0) / 100);
       return correctnessSignal + lengthProxy;
     }
   }
