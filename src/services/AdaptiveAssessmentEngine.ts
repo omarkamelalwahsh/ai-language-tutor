@@ -209,6 +209,7 @@ export class AdaptiveAssessmentEngine {
       notes: [],
       rawSignals: {
         ...features,
+        answer,
         responseTimeMs,
         isCorrect: isPass,
         difficulty: question.difficulty,
