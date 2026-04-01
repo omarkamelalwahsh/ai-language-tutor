@@ -37,13 +37,13 @@ const VALUE_TO_BAND: Record<number, DifficultyBand> = { 1: 'A1', 2: 'A2', 3: 'B1
 const CONFIG = {
   MIN_QUESTIONS: 8,
   TARGET_QUESTIONS: 12,
-  MAX_QUESTIONS: 15,
-  CONFIDENCE_STOP_THRESHOLD: 0.82,
-  STABILITY_WINDOW: 4,        // last N answers to check for stability
-  PROMOTE_THRESHOLD: 2,        // correct answers needed near current band to consider promotion
-  DEMOTE_THRESHOLD: 2,         // wrong answers needed near current band to consider demotion
-  MIN_SKILLS_TESTED: 3,        // minimum different skills before stopping
-  SKILL_EVIDENCE_TARGET: 2,    // target evidence count per skill
+  MAX_QUESTIONS: 30, // Increased to support adaptive long-tales
+  CONFIDENCE_STOP_THRESHOLD: 0.95, // Increased from 0.82 to 0.95
+  STABILITY_WINDOW: 4,
+  PROMOTE_THRESHOLD: 2,
+  DEMOTE_THRESHOLD: 2,
+  MIN_SKILLS_TESTED: 3,
+  SKILL_EVIDENCE_TARGET: 2,
 } as const;
 
 // ============================================================================
@@ -131,7 +131,10 @@ export class AdaptiveAssessmentEngine {
         band: startingBand,
         score: BAND_VALUE[startingBand] * 20, // normalized: A1=20, A2=40, B1=60, B2=80, C1=100
         confidence: 0,
+        stability: 'insufficient_data',
+        uncertainty: 1.0,
         evidenceCount: 0,
+        answeredTaskIds: [],
         bandPerformance: {},
         accumulatedEvidence: [],
         descriptorSupport: {}
@@ -225,8 +228,23 @@ export class AdaptiveAssessmentEngine {
     // ── Step 8: Task evaluation recording (High Fidelity) ──
     const taskEval: TaskEvaluation = {
       taskId: question.id,
+      primarySkill: question.primarySkill,
       skill: question.primarySkill as SkillName,
       validAttempt: responseTimeMs > 1500,
+      channels: {
+        comprehension: isPass ? 1.0 : 0.0, // Base proxy until Layer 2 is fully implemented
+        taskCompletion: isPass ? 1.0 : 0.0,
+      },
+      skillEvidence: {
+        [question.primarySkill]: isPass ? 1.0 : 0.0
+      },
+      descriptorEvidence: finalMatches.map(m => ({
+        descriptorId: m.descriptorId,
+        support: m.strength,
+        sourceSkill: question.primarySkill,
+        weight: 1.0
+      })),
+      notes: [],
       rawSignals: {
         ...features,
         responseTimeMs,
@@ -459,14 +477,30 @@ export class AdaptiveAssessmentEngine {
     record: AnswerRecord,
     evidence: DescriptorEvidence[] = []
   ): void {
+    // Determine primary weight
+    const primaryWeight = question.skillWeights?.[question.primarySkill] ?? 1.0;
+    const primaryRecord = { ...record, score: record.score * primaryWeight };
+    const primaryEvidence = evidence.map(e => ({ ...e, strength: e.strength * primaryWeight }));
+    
     // Update primary skill
-    this.updateSingleSkillEstimate(question.primarySkill, record, evidence);
+    this.updateSingleSkillEstimate(question.primarySkill, primaryRecord, primaryEvidence);
 
-    // Update secondary skills with reduced weight
-    if (question.secondarySkills) {
+    // Update secondary skills with explicit weights
+    if (question.skillWeights) {
+      for (const [s, w] of Object.entries(question.skillWeights)) {
+        if (s === question.primarySkill) continue;
+        
+        const secondary = s as AssessmentSkill;
+        const weight = w as number;
+        
+        const secondaryRecord = { ...record, score: record.score * weight };
+        const secondaryEvidence = evidence.map(e => ({ ...e, strength: e.strength * weight }));
+        this.updateSingleSkillEstimate(secondary, secondaryRecord, secondaryEvidence);
+      }
+    } else if (question.secondarySkills) {
+      // Fallback for legacy tasks without weights
       for (const secondary of question.secondarySkills) {
         const reducedRecord = { ...record, score: record.score * 0.5 };
-        // Secondary skills get evidence with reduced strength
         const reducedEvidence = evidence.map(e => ({ ...e, strength: e.strength * 0.5 }));
         this.updateSingleSkillEstimate(secondary, reducedRecord, reducedEvidence);
       }
@@ -509,10 +543,15 @@ export class AdaptiveAssessmentEngine {
       }
     }
 
-    // Compute skill score from band performance evidence
     est.score = this.computeSkillScore(est);
     est.band = this.scoreToBand(est.score);
     est.confidence = this.computeSkillConfidence(est);
+    est.uncertainty = 1.0 - est.confidence;
+
+    if (est.confidence >= 0.85) est.stability = "stable";
+    else if (est.confidence >= 0.6) est.stability = "emerging";
+    else if (est.evidenceCount > 2) est.stability = "fragile";
+    else est.stability = "insufficient_data";
   }
 
   /**
@@ -576,7 +615,7 @@ export class AdaptiveAssessmentEngine {
 
   private computeSkillConfidence(est: SkillEstimate): number {
     // Confidence grows with evidence count and consistency
-    const evidenceFactor = Math.min(1, safeDivide(est.evidenceCount, 4, 0));
+    const evidenceFactor = Math.min(1, safeDivide(est.evidenceCount, 5, 0));
 
     // Check consistency: are answers at the same level consistent?
     let consistency = 1.0;
@@ -590,7 +629,19 @@ export class AdaptiveAssessmentEngine {
       consistency = safeDivide(clearBands, perfs.length, 0.5);
     }
 
-    return clamp01(evidenceFactor * 0.7 + consistency * 0.3);
+    let contradictionPenalty = 0;
+    let totalContradictions = 0;
+    let totalSupport = 0;
+    for (const desc of Object.values(est.descriptorSupport)) {
+      totalContradictions += desc.contradiction;
+      totalSupport += desc.support;
+    }
+    if (totalSupport + totalContradictions > 0) {
+      const ratio = totalContradictions / (totalSupport + totalContradictions);
+      contradictionPenalty = ratio * 0.5; 
+    }
+
+    return clamp01(evidenceFactor * 0.7 + consistency * 0.3 - contradictionPenalty);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -777,7 +828,7 @@ export class AdaptiveAssessmentEngine {
   private shouldStopAssessment(): boolean {
     const n = this.state.questionsAnswered;
 
-    // 1. Hard cap
+    // 1. HARD LIMITS (Escape clauses)
     if (n >= CONFIG.MAX_QUESTIONS) {
       this.state.stopReason = 'max_reached';
       return true;
@@ -795,30 +846,32 @@ export class AdaptiveAssessmentEngine {
     // Must have minimum questions
     if (n < CONFIG.MIN_QUESTIONS) return false;
 
-    // Count tested skills
-    const testedSkills = ALL_SKILLS.filter(s => this.state.skillEstimates[s].evidenceCount > 0);
-    if (testedSkills.length < CONFIG.MIN_SKILLS_TESTED) return false;
+    // Check Core Skills coverage
+    const CORE_SKILLS: AssessmentSkill[] = ['listening', 'reading', 'writing', 'speaking'];
+    const hasCoreCoverage = CORE_SKILLS.every(s => this.state.skillEstimates[s].evidenceCount >= 1);
+    if (!hasCoreCoverage) return false;
 
-    // 3. Confidence threshold
+    // 3. TARGET CONFIDENCE & UNCERTAINTY RULES
+    this.state.overallConfidence = clamp01(this.computeOverallConfidence());
+    
     if (this.state.overallConfidence >= CONFIG.CONFIDENCE_STOP_THRESHOLD) {
-      this.state.stopReason = 'confidence_threshold';
-      return true;
-    }
-
-    // 4. Level stability (after target questions)
-    if (n >= CONFIG.TARGET_QUESTIONS) {
-      const recentBands = this.state.answerHistory
-        .slice(-CONFIG.STABILITY_WINDOW)
-        .map(a => a.difficulty);
+      // Ensure all core skills have acceptable uncertainty
+      const acceptableUncertainty = CORE_SKILLS.every(s => {
+        const est = this.state.skillEstimates[s];
+        return est.evidenceCount > 0 && est.uncertainty <= 0.35;
+      });
       
-      // If the band hasn't changed in the window, we've stabilized
-      // we map difficulty (number) back to DifficultyBand for BAND_VALUE if needed, 
-      // but here uniqueBands of numbers is enough
-      const uniqueBands = new Set(recentBands);
-      if (uniqueBands.size <= 2) { // answers from at most 2 adjacent bands
-        this.state.stopReason = 'level_stabilized';
+      if (acceptableUncertainty) {
+        this.state.stopReason = 'confidence_threshold';
         return true;
       }
+    }
+
+    // 4. EMERGENCY FALLBACK
+    // Force stop if very long and somewhat stable
+    if (n >= 18 && this.state.overallConfidence >= 0.85) {
+      this.state.stopReason = 'level_stabilized';
+      return true;
     }
 
     return false;

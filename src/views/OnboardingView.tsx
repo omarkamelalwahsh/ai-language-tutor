@@ -7,7 +7,38 @@ import {
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
 import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
-import { GoalFollowUpModal } from '../components/onboarding/GoalFollowUpModal';
+
+const goalContextConfigs: Record<string, {
+  question: string;
+  options: string[];
+}> = {
+  casual: {
+    question: "What event or situation are you preparing for?",
+    options: [
+      "Travel & Tourism", "Socializing & Friends", "Relocation & Expat Life", 
+      "Personal Interest", "Dating & Relationships", "Pop Culture (Movies, Music)", 
+      "Gaming & Online Communities", "Volunteering & Charity"
+    ],
+  },
+  serious: {
+    question: "What is your primary field of study?",
+    options: [
+      "Engineering & Technology", "Medicine & Healthcare", "Business & Economics", 
+      "Arts & Design", "Natural Sciences", "Humanities & History", 
+      "Law & Political Science", "Computer Science", "Mathematics", 
+      "Psychology & Sociology", "Education & Teaching", "Architecture"
+    ],
+  },
+  professional: {
+    question: "Which industry or field do you work in?",
+    options: [
+      "Information Technology", "Finance & Accounting", "Marketing & Advertising", 
+      "Healthcare & Pharma", "Education & Training", "Management Consulting", 
+      "Sales & Business Dev", "Logistics & Supply Chain", "Real Estate & Construction", 
+      "Design & Creative", "Human Resources", "Legal Services", "Manufacturing", "Hospitality & Tourism"
+    ],
+  }
+};
 
 interface OnboardingViewProps {
   onComplete: (state: OnboardingState) => void;
@@ -24,7 +55,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     sessionIntensity: null,
     goalContext: null,
   });
-  const [pendingGoal, setPendingGoal] = useState<string | null>(null);
   const totalOnboardingSteps = 5;
 
   const handleNext = () => {
@@ -97,7 +127,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   {goals.map(g => (
                     <button
                       key={g.id}
-                      onClick={() => setPendingGoal(g.id)}
+                      onClick={() => {
+                        if (state.goal !== g.id) {
+                          setState({ ...state, goal: g.id as any, goalContext: null });
+                        }
+                      }}
                       className={`p-6 rounded-2xl border-2 text-left transition-all ${state.goal === g.id ? 'border-indigo-600 bg-indigo-50 shadow-md shadow-indigo-100' : 'border-slate-100 hover:border-indigo-200 hover:bg-slate-50'}`}
                     >
                       <div className={`mb-4 w-12 h-12 rounded-full flex items-center justify-center ${state.goal === g.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
@@ -109,7 +143,37 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   ))}
                 </motion.div>
                 
-                <motion.button variants={staggerItem} disabled={!state.goal} onClick={handleNext} className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                <AnimatePresence>
+                  {state.goal && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-6 overflow-hidden"
+                    >
+                      <label className="text-sm font-semibold text-slate-700 mb-2 block">
+                        {goalContextConfigs[state.goal].question}
+                      </label>
+                      <div className="relative">
+                        <select
+                          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-4 px-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer shadow-sm"
+                          value={state.goalContext || ''}
+                          onChange={(e) => setState({ ...state, goalContext: e.target.value })}
+                        >
+                          <option value="" disabled>Select an option...</option>
+                          {goalContextConfigs[state.goal].options.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
+                          <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.button variants={staggerItem} disabled={!state.goal || !state.goalContext} onClick={handleNext} className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                   Continue <ChevronRight className="w-5 h-5" />
                 </motion.button>
               </motion.div>
@@ -288,20 +352,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               </motion.div>
             )}
 
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {pendingGoal && (
-              <GoalFollowUpModal 
-                goalId={pendingGoal}
-                onComplete={(context) => {
-                  setState({ ...state, goal: pendingGoal as any, goalContext: context });
-                  setPendingGoal(null);
-                  setStep(2); // Automatically proceed after follow-up
-                }}
-                onClose={() => setPendingGoal(null)}
-              />
-            )}
           </AnimatePresence>
         </div>
       </div>

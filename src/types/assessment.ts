@@ -74,18 +74,36 @@ export type AssessmentSessionResult = {
 
 export type TaskEvaluation = {
   taskId: string;
-  skill: SkillName;
+  primarySkill: AssessmentSkill; // Ensure AssessmentSkill is imported/available. (It's defined below, but TypeScript allows forward references in the same file if no circular runtime issues. We will move types if needed)
   validAttempt: boolean;
-  rawSignals: Record<string, number | string | boolean>;
-  rubricScores: {
+  channels: {
+    comprehension?: number;
+    taskCompletion?: number;
+    grammarAccuracy?: number;
+    lexicalRange?: number;
+    coherence?: number;
+    fluency?: number;
+  };
+  skillEvidence: Partial<Record<AssessmentSkill, number>>;
+  descriptorEvidence: Array<{
+    descriptorId: string;
+    support: number;
+    sourceSkill: AssessmentSkill;
+    weight: number;
+  }>;
+  notes: string[];
+  // Legacy paths to keep UI working while we refactor
+  rawSignals?: Record<string, number | string | boolean>;
+  rubricScores?: {
     criterion: string;
     score: number;
     maxScore: number;
   }[];
-  matchedDescriptors: {
+  matchedDescriptors?: {
     descriptorId: string;
     support: number; // 0..1
   }[];
+  skill?: SkillName;
 };
 
 // ============================================================================
@@ -187,29 +205,48 @@ export type QuestionType =
   | 'picture_description'
   | 'listening_summary';
 
+/** Supported scoring channels for integrated tasks */
+export type ScoringChannel =
+  | "comprehension"
+  | "task_completion"
+  | "grammar_accuracy"
+  | "lexical_range"
+  | "coherence"
+  | "fluency";
+
 /** A single assessment question with full metadata */
 export type AssessmentQuestion = {
   id: string;
-  skill: AssessmentSkill;
   primarySkill: AssessmentSkill;
   secondarySkills?: AssessmentSkill[];
+  skillWeights?: Partial<Record<AssessmentSkill, number>>;
   difficulty: DifficultyBand;
   type: QuestionType;
   prompt: string;
   transcript?: string; // hidden from learner during test
   audioUrl?: string; // prerecorded audio
+  sourceText?: string; // For reading integrated tasks
   options?: string[];
   correctAnswer?: string | string[];
   acceptedAnswers?: string[];
-  rubricId?: string;
   subskills: string[];
   
+  scoringChannels?: ScoringChannel[];
+  targetDescriptorIds?: string[]; // Linked to actual CEFR 2020 descriptors
+  supportDescriptors?: string[];
+  
   // High-fidelity Metadata for CAT (Computerized Adaptive Testing)
-  discriminationValue?: number; // 0..1, weight of this question in moving the baseline
+  discriminationWeight?: number; // Weight of this question in moving the baseline
+  difficultyWeight?: number; // Internal calibration weight
   scaffoldingLevel?: number; // 0..3, level of help provided in the prompt
   prerequisites?: string[]; // IDs of other questions or subskills
-  targetDescriptorIds?: string[]; // Linked to actual CEFR 2020 descriptors
-  difficultyWeight?: number; // Internal calibration weight
+  estimatedTimeSec?: number;
+  taskTags?: string[];
+  
+  // Backward compatibility
+  skill?: AssessmentSkill;
+  rubricId?: string;
+  discriminationValue?: number; // Legacy
 };
 
 /** Record of a single answered question */
@@ -228,15 +265,23 @@ export type AnswerRecord = {
   outputBandOverride?: DifficultyBand;
 };
 
+export type AssessmentStability = "stable" | "emerging" | "fragile" | "insufficient_data";
+
 /** Per-skill level estimate with evidence tracking */
 export type SkillEstimate = {
   band: BandLabel;
   /** 0-100 normalized score */
   score: number;
-  /** 0-1 confidence in this estimate */
+  /** Strict [0,1] confidence probability */
   confidence: number;
-  /** Number of questions contributing to this estimate */
+  /** Stability estimation */
+  stability: AssessmentStability;
+  /** Formal uncertainty parameter (1 - confidence approx) */
+  uncertainty: number;
+  /** Number of specific tasks/channels contributing to this skill */
   evidenceCount: number;
+  /** IDs of questions answered that contributed */
+  answeredTaskIds: string[];
   /** History of correct answers at each difficulty for this skill */
   bandPerformance: Partial<Record<DifficultyBand, { correct: number; total: number }>>;
   /** Evidence-based tracking */

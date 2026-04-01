@@ -38,26 +38,33 @@ export class CefrInferenceEngine {
       const accuracy = perf.correct / perf.total;
       const isConsistent = accuracy >= 0.8 || accuracy <= 0.2;
       
-      // Descriptor support count at this band
       const descriptorIdsAtBand = est.accumulatedEvidence
         .filter(e => e.level === band)
         .map(e => e.descriptorId);
       const uniqueDescriptors = new Set(descriptorIdsAtBand).size;
 
-      if (accuracy >= 0.75 && uniqueDescriptors >= 2) {
-        if (isConsistent) {
+      if (accuracy >= 0.75 && uniqueDescriptors >= 1) {
+        if (est.confidence >= 0.85 && isConsistent) {
           highestStable = highestStable || band;
         } else {
           highestFragile = highestFragile || band;
         }
-      } else if (accuracy >= 0.5 || uniqueDescriptors >= 1) {
+      } else if (accuracy >= 0.5) {
         highestEmerging = highestEmerging || band;
       }
     }
 
-    if (highestStable) return { status: 'stable', level: highestStable };
-    if (highestFragile) return { status: 'fragile', level: highestFragile };
-    if (highestEmerging) return { status: 'emerging', level: highestEmerging };
+    // Always prefer highest stable, even if there's a higher emerging band.
+    // The emerging status can be captured as an intermediate band or separate flag.
+    if (highestStable) {
+      return { status: est.stability, level: highestStable };
+    }
+    if (highestFragile) {
+      return { status: 'fragile', level: highestFragile };
+    }
+    if (highestEmerging) {
+      return { status: 'emerging', level: highestEmerging };
+    }
 
     return { status: 'insufficient_data', level: est.band };
   }

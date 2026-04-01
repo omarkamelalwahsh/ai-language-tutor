@@ -14,14 +14,12 @@ export class FeatureExtractor {
     if (!normAnswer) {
       return {
         correctness: 0,
-        latencyMs,
         wordCount: 0,
-        sentenceCount: 0,
-        avgSentenceLength: 0,
+        sentenceComplexity: 0,
+        averageSentenceLength: 0,
         lexicalDiversity: 0,
-        connectorCount: 0,
-        punctuationAccuracy: 0,
-        repetitionRate: 0
+        connectorUsage: 0,
+        timestamp: new Date().toISOString()
       };
     }
 
@@ -74,15 +72,13 @@ export class FeatureExtractor {
 
     return {
       correctness,
-      latencyMs,
       wordCount,
-      sentenceCount,
-      avgSentenceLength,
+      sentenceComplexity: sentenceCount > 1 ? Math.min(1.0, (avgSentenceLength / 10) + (connectorCount * 0.1)) : 0,
+      averageSentenceLength: avgSentenceLength,
       lexicalDiversity,
-      connectorCount,
-      punctuationAccuracy,
-      repetitionRate: 1 - lexicalDiversity,
-      relevance: wordCount > 2 ? 1.0 : 0.0 // Basic relevance check
+      connectorUsage: connectorCount,
+      relevance: wordCount > 2 ? 1.0 : 0.0,
+      timestamp: new Date().toISOString()
     };
   }
 }
