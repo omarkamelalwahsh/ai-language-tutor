@@ -47,7 +47,12 @@ export class AssessmentAnalysisService {
         evidenceCount: engineSkill.evidenceCount,
         descriptors: engineSkill.matchedDescriptors,
         strengths: engineSkill.matchedDescriptors.slice(0, 3).map(d => d.descriptorText),
-        weaknesses: engineSkill.missingDescriptors.slice(0, 2), // Maps directly to engine gaps
+        weaknesses: engineSkill.missingDescriptors.slice(0, 3).map(id => {
+          const entry = getDescriptorById(id);
+          const [skill, level] = id.split('_');
+          return entry?.canonicalTextEn || `Needs improvement in ${skill} (${level})`;
+        }),
+        masteryScore: engineSkill.score / 100, // Pass actual score proxy
         taskCoverage: {
           total: 5,
           completed: engineSkill.evidenceCount,
@@ -81,9 +86,10 @@ export class AssessmentAnalysisService {
   }
 
   private static normalizeEngineBand(band: string): CefrLevel {
-    // Basic normalization: use the higher band for intermediate labels
+    // Bug 4 fix: Conservative normalization. A2_B1 becomes A2+ (not B1)
     if (band.includes('_')) {
-      return band.split('_')[1] as CefrLevel;
+      const lowerBand = band.split('_')[0];
+      return `${lowerBand}+` as CefrLevel;
     }
     return band as CefrLevel;
   }

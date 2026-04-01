@@ -227,7 +227,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mastery</p>
-                      <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillRes.confidence.score * 100)}%</p>
+                      <p className="text-2xl font-extrabold text-slate-900">{Math.round((skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%</p>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>

@@ -27,7 +27,7 @@ export class DashboardService {
           const res = result.skills[skillId];
           return {
             skillId: skillId as any,
-            currentScore: Math.round(res.confidence.score * 100), // Use confidence as a proxy for 'mastery' in UI
+            currentScore: Math.round((res.masteryScore ?? res.confidence.score) * 100), // Use actual score proxy, fallback to confidence
             progressDirection: 'up' as const,
             stability: res.status === 'stable' ? 'stable' : 'fragile',
             isPriority: res.status === 'fragile' || res.status === 'insufficient_data',

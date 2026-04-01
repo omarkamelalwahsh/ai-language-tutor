@@ -94,10 +94,10 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
                       <div className="flex items-center gap-2 font-semibold text-slate-700 capitalize">
                         {skillIcons[skillRes.skill] || <Target className="w-4 h-4 text-slate-400" />} {skillRes.skill}
                       </div>
-                      <span className="font-bold text-slate-900">{Math.round(skillRes.confidence.score * 100)}/100</span>
+                      <span className="font-bold text-slate-900">{Math.round((skillRes.masteryScore ?? skillRes.confidence.score) * 100)}/100</span>
                     </div>
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, skillRes.confidence.score * 100)}%` }} />
+                      <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, (skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%` }} />
                     </div>
                   </div>
                 )

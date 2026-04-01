@@ -33,6 +33,7 @@ export type SkillAssessmentResult = {
     score: number; // 0..1
     reasons: string[];
   };
+  masteryScore?: number; // 0..1 (proxy for score, separates performance from confidence)
   evidenceCount: number;
   descriptors: DescriptorEvidence[];
   strengths: string[];

@@ -20,6 +20,7 @@ import { evaluateWithGroq, DescriptorEvaluationResult, DifficultyBand as GroqBan
 import { decideNextBand } from './adaptiveDecision';
 import { FeatureExtractor } from './evaluation/FeatureExtractor';
 import { CefrInferenceEngine } from './inference/CefrInferenceEngine';
+import { clamp01, safeDivide, finiteOr } from '../lib/numeric-guards';
 // ============================================================================
 // Constants
 // ============================================================================
@@ -205,7 +206,9 @@ export class AdaptiveAssessmentEngine {
     };
 
     this.state.answerHistory.push(record);
-    this.updateSkillEvidence(question, finalMatches, features);
+    // Bug 1 fix: call updateSkillEstimate (not updateSkillEvidence) so that
+    // score, band, and confidence are actually recomputed after each answer.
+    this.updateSkillEstimate(question, record, finalMatches);
 
     // ── Step 7: Adaptive Selection Logic (Layer 5/6) ──
     if (llmResult?.difficultyAction) {
@@ -235,7 +238,7 @@ export class AdaptiveAssessmentEngine {
       }))
     };
     this.state.taskEvaluations.push(taskEval);
-    this.state.overallConfidence = this.computeOverallConfidence();
+    this.state.overallConfidence = clamp01(this.computeOverallConfidence());
     this.state.questionsAnswered++;
 
     return { correct: isPass, score: finalScore };
@@ -530,7 +533,7 @@ export class AdaptiveAssessmentEngine {
 
   private computeSkillConfidence(est: SkillEstimate): number {
     // Confidence grows with evidence count and consistency
-    const evidenceFactor = Math.min(1, est.evidenceCount / 4); // max out at 4 pieces of evidence
+    const evidenceFactor = Math.min(1, safeDivide(est.evidenceCount, 4, 0));
 
     // Check consistency: are answers at the same level consistent?
     let consistency = 1.0;
@@ -538,13 +541,13 @@ export class AdaptiveAssessmentEngine {
     if (perfs.length > 0) {
       // Consistency = how many bands have clear pass/fail (not mixed)
       const clearBands = perfs.filter(p => {
-        const acc = p.correct / p.total;
+        const acc = safeDivide(p.correct, p.total, 0);
         return acc >= 0.8 || acc <= 0.2; // clearly passing or failing
       }).length;
-      consistency = perfs.length > 0 ? clearBands / perfs.length : 0.5;
+      consistency = safeDivide(clearBands, perfs.length, 0.5);
     }
 
-    return Math.min(1.0, evidenceFactor * 0.7 + consistency * 0.3);
+    return clamp01(evidenceFactor * 0.7 + consistency * 0.3);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -839,13 +842,15 @@ export class AdaptiveAssessmentEngine {
     let stabilityFactor = 0.5;
     if (n >= 4) {
       const recent = this.state.answerHistory.slice(-4);
-      const recentBands = recent.map(a => BAND_VALUE[a.difficulty]);
+      // Bug 2 fix: a.difficulty is already numeric (stored as BAND_VALUE[band]).
+      // Using BAND_VALUE[a.difficulty] would index by number, returning undefined → NaN.
+      const recentBands = recent.map(a => a.difficulty);
       const variance = this.computeVariance(recentBands);
-      stabilityFactor = Math.max(0, 1 - variance * 0.5); // lower variance → higher stability
+      stabilityFactor = clamp01(1 - variance * 0.5);
     }
 
     // Weighted combination
-    return (
+    return clamp01(
       countFactor * 0.25 +
       coverageFactor * 0.2 +
       avgSkillConfidence * 0.35 +
@@ -854,10 +859,11 @@ export class AdaptiveAssessmentEngine {
   }
 
   private computeVariance(values: number[]): number {
-    if (values.length === 0) return 0;
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const squaredDiffs = values.map(v => (v - mean) ** 2);
-    return squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+    const finite = values.filter(v => Number.isFinite(v));
+    if (finite.length === 0) return 0;
+    const mean = safeDivide(finite.reduce((a, b) => a + b, 0), finite.length, 0);
+    const squaredDiffs = finite.map(v => (v - mean) ** 2);
+    return finiteOr(safeDivide(squaredDiffs.reduce((a, b) => a + b, 0), finite.length, 0), 0);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -1015,37 +1021,9 @@ export class AdaptiveAssessmentEngine {
     return (featureScore + matchScore) / 2;
   }
 
-  private updateSkillEvidence(
-    question: AssessmentQuestion,
-    matches: DescriptorEvidence[],
-    features: AssessmentFeatures
-  ) {
-    const skill = question.primarySkill as AssessmentSkill;
-    const state = this.state.skillEstimates[skill];
-    
-    state.evidenceCount++;
-    matches.forEach(m => {
-      const existing = state.accumulatedEvidence.find(d => d.descriptorId === m.descriptorId);
-      if (existing) {
-        existing.strength = (existing.strength + m.strength) / 2;
-      } else {
-        state.accumulatedEvidence.push({ ...m });
-      }
-
-      // Update descriptorSupport map for Layer 6 inference
-      if (!state.descriptorSupport[m.descriptorId]) {
-        state.descriptorSupport[m.descriptorId] = { support: 0, contradiction: 0 };
-      }
-      if (m.supported) {
-        state.descriptorSupport[m.descriptorId].support += m.strength;
-      } else {
-        state.descriptorSupport[m.descriptorId].contradiction += m.strength;
-      }
-    });
-
-    // Update gaps if features are low
-    // We already moved CefrInferenceEngine logic out, but the engine still needs to track gaps
-  }
+  // updateSkillEvidence() was removed — it only accumulated evidence without
+  // recomputing score/band/confidence, causing frozen skill estimates.
+  // All its logic is now handled by updateSkillEstimate() → updateSingleSkillEstimate().
 
   private applyLLMDifficultyHint(action: "increase" | "stay" | "decrease") {
     // Adaptive Step Size based on action
