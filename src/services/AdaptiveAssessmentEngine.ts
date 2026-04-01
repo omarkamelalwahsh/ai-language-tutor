@@ -46,71 +46,8 @@ const CONFIG = {
 } as const;
 
 // ============================================================================
-// Scoring Module
+// Adaptive Assessment Engine
 // ============================================================================
-
-export function scoreResponse(question: AssessmentQuestion, answer: string): number {
-  const normAnswer = answer.trim().toLowerCase();
-
-  // --- MCQ / fill_blank / reading_mcq / listening_mcq ---
-  if (['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(question.type)) {
-    if (!question.correctAnswer) return 0;
-    const correct = Array.isArray(question.correctAnswer)
-      ? question.correctAnswer[0]
-      : question.correctAnswer;
-    return normAnswer === correct.toLowerCase() ? 1.0 : 0.0;
-  }
-
-  // --- Listening summary (keyword inclusion) ---
-  if (question.type === 'listening_summary') {
-    const keywords = question.acceptedAnswers || 
-      (Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer || '']);
-    const matched = keywords.filter(kw => normAnswer.includes(kw.toLowerCase()));
-    if (keywords.length === 0) return normAnswer.length > 5 ? 0.5 : 0;
-    return Math.min(1.0, matched.length / Math.max(1, Math.ceil(keywords.length * 0.5)));
-  }
-
-  // --- Short text / picture_description (production scoring) ---
-  if (['short_text', 'picture_description'].includes(question.type)) {
-    // If there are accepted answers / correct answers, use keyword matching
-    if (question.correctAnswer || question.acceptedAnswers) {
-      const keywords = question.acceptedAnswers ||
-        (Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer || '']);
-      const matched = keywords.filter(kw => normAnswer.includes(kw.toLowerCase()));
-      if (matched.length > 0) return 1.0;
-    }
-
-    // Otherwise, use production quality heuristics
-    const words = normAnswer.split(/\s+/).filter(w => w.length > 0);
-    const wordCount = words.length;
-    
-    // Minimum word thresholds by difficulty
-    const minWords: Record<DifficultyBand, number> = { A1: 3, A2: 5, B1: 8, B2: 12, C1: 15, C2: 20 };
-    const targetWords: Record<DifficultyBand, number> = { A1: 8, A2: 15, B1: 25, B2: 40, C1: 50, C2: 60 };
-    
-    const min = minWords[question.difficulty];
-    const target = targetWords[question.difficulty];
-    
-    if (wordCount < min) return 0.2;
-    
-    // Base length score
-    let lengthScore = Math.min(1.0, wordCount / target);
-    
-    // Bonus for connectors (cohesion signal)
-    const connectors = ['because', 'however', 'although', 'therefore', 'moreover', 'but', 'and', 'so', 'while', 'since', 'furthermore', 'nevertheless'];
-    const connectorCount = connectors.filter(c => normAnswer.includes(c)).length;
-    const connectorBonus = Math.min(0.2, connectorCount * 0.05);
-    
-    // Lexical diversity (unique words / total words)
-    const uniqueWords = new Set(words);
-    const diversity = uniqueWords.size / wordCount;
-    const diversityScore = diversity > 0.6 ? 0.15 : diversity > 0.4 ? 0.1 : 0;
-    
-    return Math.min(1.0, Math.max(0.2, lengthScore * 0.65 + connectorBonus + diversityScore + 0.1));
-  }
-
-  return 0;
-}
 
 // ============================================================================
 // Adaptive Assessment Engine
@@ -196,14 +133,13 @@ export class AdaptiveAssessmentEngine {
     // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
     const deterministicScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
     
-    // NEW: Decouple 'isPass' (Semantic Correctness) from 'finalScore' (Overall Proficiency)
-    // isPass is now EXTREMELY lenient (30% accuracy is enough to pass).
-    const semanticPassScore = llmResult 
+    // UNIFIED SAFETY NET: Decouple 'isPass' from LLM-only judgment.
+    // If the LLM understands it (>=0.3) OR the deterministic matcher found it (>=0.7), it's a PASS.
+    const llmPassScore = llmResult 
       ? (llmResult.semantic_accuracy * 0.8 + llmResult.task_completion * 0.2)
-      : (features.correctness || 0);
+      : 0;
     
-    // RESCUE: Even minimal semantic understanding (0.3) = GREEN CHECKMARK
-    const isPass = semanticPassScore >= 0.3; 
+    const isPass = (llmPassScore >= 0.3) || (features.correctness >= 0.7);
 
     // Weighted aggregation of LLM signals (0.0 - 1.0) for Level Tracking
     const llmSignalScore = llmResult ? (
