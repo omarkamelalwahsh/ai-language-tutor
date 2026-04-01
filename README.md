@@ -1,12 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/9e388ed5-0c05-44f3-a865-85a8367e3247
 
 ## Run Locally
 
@@ -18,4 +9,16 @@ View your app in AI Studio: https://ai.studio/apps/9e388ed5-0c05-44f3-a865-85a83
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
-"# ai-language-tutor" 
+
+## Recent Updates
+
+### CEFR Adaptive Assessment Engine - Core Stabilization
+- **Dynamic Scoring Unfrozen**: The submission pipeline actively updates real-time numeric skill evaluations based on continuous evidence parsing.
+- **Robust Math Execution**: Eliminated NaN confidence outputs utilizing rigid numeric bounds checking (`clamp01`, `safeDivide`). 
+- **Decoupled Accuracy from Confidence**: The frontend views cleanly derive interface metrics utilizing a detached `masteryScore`, solving previously counterintuitive behavior bridging user ability and model confidence.
+- **Conservative Inference Banding**: Enhanced stability against rapid upward inflation across arbitrary performance thresholds (e.g., scoring defaults to `A2+` rather than full `B1` until confidence accumulates). 
+- **Humanized Growth Suggestions**: Maps raw descriptor evaluation hashes to explicit textual recommendations (via the formal CEFR catalogue).
+
+Tests are maintained via `Vitest`. Run `npm test` to verify underlying scoring functionality logic mappings without requiring active node network access to asset files.
+
+"# ai-language-tutor"
