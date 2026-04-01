@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AdaptiveAssessmentEngine, scoreResponse } from '../../services/AdaptiveAssessmentEngine';
+import { AdaptiveAssessmentEngine } from '../../services/AdaptiveAssessmentEngine';
 import { AssessmentAnalysisService } from '../../services/AnalysisService';
 import { clamp01, safeDivide, finiteOr } from '../../lib/numeric-guards';
 
@@ -48,18 +48,18 @@ describe('AdaptiveAssessmentEngine Bug Fixes', () => {
     // Mock the backend evaluation to return a perfect descriptor match
     // since the real function relies on fetching an Excel file which fails in the test environment
     (engine as any).evaluateWithBackend = async () => ({
-      isMatch: true,
-      matchedBand: 'B1',
+      semantic_accuracy: 1.0,
+      task_completion: 1.0,
+      lexical_sophistication: 0.8,
+      syntactic_complexity: 0.7,
+      coherence: 0.9,
+      grammar_control: 0.9,
+      typo_severity: 0.0,
+      idiomatic_usage: 0.6,
+      register_control: 0.8,
+      estimated_band: 'B1',
       confidence: 0.9,
-      confidenceLabel: 'high',
-      difficultyAction: 'increase',
-      descriptorMatches: [
-        {
-          descriptor: 'Can write straightforward connected text.',
-          matchStrength: 0.9,
-          reasoning: 'Used multiple clauses.'
-        }
-      ]
+      rationale: 'Excellent B1 response with clear syntax.'
     });
 
     // A perfect answer mapping to high descriptor strength

@@ -38,7 +38,7 @@ const circuitBreaker = {
     this.lastFailureTime = Date.now();
     console.error(`[CircuitBreaker] Failure #${this.failureCount}: ${reason}`);
     if (this.failureCount >= this.maxFailures) {
-      console.warn("[CircuitBreaker] OPEN \u2014 skipping LLM calls temporarily.");
+      console.warn("[CircuitBreaker] OPEN — skipping LLM calls temporarily.");
     }
   },
 
@@ -86,24 +86,6 @@ Scoring rules:
 - estimated_band is only an approximate linguistic estimate, not the final placement
 - confidence must reflect confidence in the extracted signals, not final CEFR certification
 
-Few-shot guidance:
-
-A2 example:
-"I am from Egypt and I work in a company."
-Signals: simpler syntax, limited vocabulary, clear meaning.
-
-B1 example:
-"I think remote work is useful because it helps people manage their time better."
-Signals: opinion + reason, moderate structure, functional vocabulary.
-
-B2 example:
-"Remote work significantly improves flexibility, particularly for employees who need greater autonomy in managing their schedules."
-Signals: more abstract vocabulary, stronger control, more complex syntax.
-
-C1 example:
-"The impact of remote work on organizational efficiency is multifaceted, as it requires balancing individual autonomy with sustained collaborative alignment."
-Signals: high abstraction, advanced lexical choice, strong register control.
-
 Return ONLY valid JSON with this exact schema:
 {
   "semantic_accuracy": number,
@@ -135,9 +117,6 @@ function validatePayload(payload) {
   if (!payload.currentBand) return "Missing currentBand";
   if (!payload.question) return "Missing question";
   if (!payload.learnerAnswer) return "Missing learnerAnswer";
-  if (!payload.descriptors || typeof payload.descriptors !== "object") {
-    return "Missing descriptors";
-  }
   return null;
 }
 
@@ -290,6 +269,8 @@ app.post("/api/evaluate", async (req, res) => {
 
     console.log("[LLM RAW RESPONSE]", parsed);
 
+    // FIX: Remove all references to old keys (matchedBand, difficultyAction).
+    // Ensure only the new signal schema is validated.
     if (!hasRequiredSignalSchema(parsed)) {
       circuitBreaker.recordFailure("Incomplete signal schema from LLM.");
       return res.json(
