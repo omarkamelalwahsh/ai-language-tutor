@@ -1,0 +1,28 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90mE:/ai-language-tutor[39m
+
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mListening MCQ Evidence Routing[2m > [22mprovides direct listening evidence and NO writing evidence[32m 7[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mListening Short Answer Evidence[2m > [22mprovides listening direct + weak indirect grammar/vocab/writing[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mWriting Paragraph Evidence[2m > [22mprovides direct writing + strong indirect grammar/vocab[32m 2[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mSpeaking Audio Evidence[2m > [22mprovides direct speaking evidence + grammar/vocab support[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mSpeaking Typed Fallback[2m > [22mproduces ZERO speaking evidence and marks speaking as insufficient_data[32m 3[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mOverperformance Cap[2m > [22mcaps item contribution to targetCEFR + 1 band[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mInsufficient Evidence[2m > [22mmarks skills with too few direct items as provisional[32m 2[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mStable B2 Assessment[2m > [22mproduces stable B2 with sufficient consistent evidence[32m 4[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mProvisional Writing[2m > [22mmarks writing as provisional with only 1 direct writing prompt[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mMCQ vs Open Response Evidence Power[2m > [22mMCQ produces lower item scores than equivalent open responses[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mLegacy Task Type Mapping[2m > [22mmaps speaking typed_fallback correctly[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mLegacy Task Type Mapping[2m > [22mmaps speaking voice correctly[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mLegacy Task Type Mapping[2m > [22mmaps listening_mcq correctly[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mLegacy Task Type Mapping[2m > [22mmaps fill_blank to grammar[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mSignal Parser Robustness[2m > [22mhandles null input gracefully[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mSignal Parser Robustness[2m > [22mclamps out-of-range values[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mSignal Parser Robustness[2m > [22mmaps legacy field names[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mOverall Report with Missing Speaking[2m > [22mmarks overall as provisional when speaking is insufficient_data[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts[2m > [22mAssessment Pipeline v2[2m > [22mCEFR Score Threshold Mapping[2m > [22mmaps scores to correct CEFR levels[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 20:21:01
+[2m   Duration [22m 1.22s[2m (transform 584ms, setup 0ms, import 662ms, tests 34ms, environment 0ms)[22m
+

@@ -215,6 +215,79 @@ app.get("/health", (_req, res) => {
   });
 });
 
+const AUDIT_SYSTEM_PROMPT = `
+You are a Senior CEFR Assessor and Linguistic Auditor.
+
+Your goal is to provide a final, holistic CEFR placement for a learner based on their entire assessment history.
+You will be provided with:
+1. All tasks attempted, user answers, and preliminary scores.
+2. Skill-by-skill estimates and confidence levels.
+3. A set of relevant CEFR descriptors from the official 2020 companion volume.
+
+Your Audit must:
+- Correlate user performance against the provided descriptors.
+- Look for consistency: Does the learner consistently sustain a level?
+- Check for ceiling performance: Did they struggle at higher levels or breeze through them?
+- Resolve contradictions: If Grammar is A2 but Listening is B2, where does the learner truly sit?
+
+Return ONLY valid JSON with this schema:
+{
+  "final_band": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+  "overall_score": number (0-120),
+  "confidence": number (0-1.0),
+  "breakdown": {
+    "listening": string,
+    "reading": string,
+    "writing": string,
+    "speaking": string,
+    "linguistic_quality": string
+  },
+  "cefr_justification": string,
+  "key_strengths": string[],
+  "areas_for_improvement": string[]
+}
+`.trim();
+
+app.post("/api/audit", async (req, res) => {
+  const { history, estimations, descriptors } = req.body;
+
+  if (!client) {
+    return res.status(500).json({ error: "LLM Not Configured" });
+  }
+
+  try {
+    const response = await client.chat.completions.create({
+      model: "llama-3.1-70b-versatile", // Use a larger model for the final audit if available
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: AUDIT_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: JSON.stringify({
+            history: history.map(h => ({
+              task: h.taskType,
+              difficulty: h.difficulty,
+              answer: h.answer,
+              correct: h.correct,
+              score: h.score,
+              rationale: h.rationale
+            })),
+            estimations,
+            descriptors
+          })
+        }
+      ]
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    return res.json(JSON.parse(content));
+  } catch (err) {
+    console.error("[Audit] Error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/api/evaluate", async (req, res) => {
   const payload = req.body;
   const validationError = validatePayload(payload);

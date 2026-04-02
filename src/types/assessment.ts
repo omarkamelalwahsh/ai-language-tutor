@@ -53,7 +53,7 @@ export type AssessmentMetadata = {
   nativeLanguage?: string;
 };
 
-export type SkillAssessmentStatus = "insufficient_data" | "emerging" | "stable" | "fragile";
+export type SkillAssessmentStatus = "insufficient_data" | "emerging" | "stable" | "fragile" | "provisional" | "unstable";
 
 export type SkillAssessmentResult = {
   skill: SkillName;

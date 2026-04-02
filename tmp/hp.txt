@@ -1,0 +1,133 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90mE:/ai-language-tutor[39m
+
+node.exe : [90mstderr[2m 
+| src/tests/highProficiency
+Paradox.test.ts[2m > 
+[22m[2mHigh Proficiency 
+Paradox Resolution[2m > 
+[22m[2mshould promote to 
+C1 label when answering C1 
+questions correctly
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ([9  
+  0mstderr[2m...tions c   
+ orrectly:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+[22m[39mTEST ERROR: 
+AssertionError: expected 
+'A1' to be 'C1' // 
+Object.is equality
+    at E:/ai-language-tutor
+/src/tests/highProficiencyP
+aradox.test.ts:58:28
+[90m    at 
+processTicksAndRejections (
+node:internal/process/task_
+queues:103:5)[39m
+    at [90mfile:///E:/ai-l
+anguage-tutor/[39mnode_mod
+ules/[4m@vitest/runner[24
+m/dist/chunk-artifact.js:18
+93:20 {
+  actual: [32m'A1'[39m,
+  expected: [32m'C1'[39m,
+  showDiff: [33mtrue[39m,
+  operator: 
+[32m'strictEqual'[39m
+}
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould process speaking strictly via audio, but assign `insufficient_data` when voice is missing
+[22m[39m[Engine] Typed fallback detected for speaking task a2-speak-01. Removing speaking evidence weights.
+[Divergence] Moderate divergence. Jumping to C1.
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould enforce proper conservative capping (e.g. +1 band max from targeting)
+[22m[39m[Divergence] High proficiency detected. Jumping to B1 with validation pending for C1.
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould enforce proper conservative capping (e.g. +1 band max from targeting)
+[22m[39m[Divergence] High proficiency detected. Jumping to C1 with validation pending for C1.
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould enforce proper conservative capping (e.g. +1 band max from targeting)
+[22m[39m[Divergence] Moderate divergence. Jumping to C1.
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould enforce proper conservative capping (e.g. +1 band max from targeting)
+[22m[39m[Divergence] Moderate divergence. Jumping to C1.
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould enforce proper conservative capping (e.g. +1 band max from targeting)
+[22m[39m[Divergence] Moderate divergence. Jumping to C1.
+
+ [31mÔØ»[39m src/tests/highProficiencyParadox.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 58[2mms[22m[39m
+[31m     [31m├ù[31m should promote to C1 label when answering C1 questions correctly[39m[32m 38[2mms[22m[39m
+     [32mÔ£ô[39m should process speaking strictly via audio, but assign `insufficient_data` when voice is missing[32m 7[2mms[22m[39m
+     [32mÔ£ô[39m should enforce proper conservative capping (e.g. +1 band max from targeting)[32m 9[2mms[22m[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+[39m[1m[41m Failed Tests 
+1 [49m[22m[31mÔÄ»ÔÄ»ÔÄ»Ô
+Ä»ÔÄ»ÔÄ»ÔÄ»[39m
+
+[41m[1m FAIL [22m[49m s
+rc/tests/highProficiencyPar
+adox.test.ts[2m > 
+[22mHigh Proficiency 
+Paradox Resolution[2m > 
+[22mshould promote to C1 
+label when answering C1 
+questions correctly
+[31m[1mAssertionError[22
+m: expected 'A1' to be 
+'C1' // Object.is 
+equality[39m
+
+Expected: 
+[32m"[7mC[27m1"[39m
+Received: 
+[31m"[7mA[27m1"[39m
+
+[36m [2mÔØ»[22m src/test
+s/highProficiencyParadox.te
+st.ts:[2m58:28[22m[39m
+    [90m 56|[39m
+    [90m 57|[39m       
+// With 5 perfect C1 
+signals, grammar should 
+break out of A1 andÔÇª
+    [90m 58|[39m       [
+34mexpect[39m(grammar[33m
+.[39mband)[33m.[39m[34m
+toBe[39m([32m'C1'[39m)[
+33m;[39m
+    [90m   |[39m         
+                   
+[31m^[39m
+    [90m 59|[39m       [
+34mexpect[39m(grammar[33m
+.[39mscore)[33m.[39m[34
+mtoBeGreaterThan[39m([34m
+90[39m)[33m;[39m
+    [90m 60|[39m     } 
+[35mcatch[39m 
+(e[33m:[39m any) {
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+[1/1]ÔÄ»[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 20:32:52
+[2m   Duration [22m 1.42s[2m (transform 712ms, setup 0ms, import 812ms, tests 58ms, environment 0ms)[22m
+

@@ -1,0 +1,35 @@
+
+ RUN  v4.1.2 E:/ai-language-tutor
+
+stderr | src/tests/assessmentEngine.test.ts > AdaptiveAssessmentEngine - Core Tests > Relevance Gating > should penalize an off-topic response
+[Relevance Gate] Task b1-write-01 is OFF-TOPIC. Capping score and blocking credit.
+
+stdout | src/tests/assessmentEngine.test.ts > AdaptiveAssessmentEngine - Core Tests > Relevance Gating > should reduce credit for incomplete response
+[Relevance Gate] Task a2-speak-01 incomplete (0.5). Reducing credit.
+
+ ❯ src/tests/assessmentEngine.test.ts (4 tests | 1 failed) 25ms
+       ✓ should penalize an off-topic response 11ms
+       ✓ should reduce credit for incomplete response 2ms
+       × should promote rapid success correctly 7ms
+       ✓ should show stability as emerging with high evidence 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tests/assessmentEngine.test.ts > AdaptiveAssessmentEngine - Core Tests > Skill Progression (Sticky A1 Fix) > should promote rapid success correctly
+AssertionError: expected 91.5 to be greater than 95
+ ❯ src/tests/assessmentEngine.test.ts:99:29
+     97|       // Mastery = C1(100), Demonst = C1(100)
+     98|       // Score = (100 * 0.7) + (100 * 0.3) = 100.
+     99|       expect(grammar.score).toBeGreaterThan(95);
+       |                             ^
+    100|       expect(grammar.band).toBe('C2');
+    101|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  18:22:32
+   Duration  673ms (transform 218ms, setup 0ms, import 274ms, tests 25ms, environment 0ms)
+

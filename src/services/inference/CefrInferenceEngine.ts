@@ -43,14 +43,18 @@ export class CefrInferenceEngine {
         .map(e => e.descriptorId);
       const uniqueDescriptors = new Set(descriptorIdsAtBand).size;
 
-      if (accuracy >= 0.75 && uniqueDescriptors >= 1) {
-        if (est.confidence >= 0.8 || isConsistent) { // Lowered confidence requirement slightly (0.85 -> 0.8)
-          highestStable = highestStable || band;
+      // VIRTUAL PROMOTION: If accuracy is near-perfect (>= 0.85) at this band, 
+      // we allow promotion even with 0 descriptors, to bypass the "Low Label Trap".
+      const hasSufficientEvidence = uniqueDescriptors >= 1 || accuracy >= 0.85;
+
+      if (accuracy >= 0.75 && hasSufficientEvidence) {
+        if (est.confidence >= 0.8 || isConsistent) {
+          highestStable = band;
         } else {
-          highestFragile = highestFragile || band;
+          highestFragile = band;
         }
-      } else if (accuracy >= 0.6 || (perf.total >= 2 && accuracy >= 0.5)) { // Adjusting threshold
-        highestEmerging = highestEmerging || band;
+      } else if (accuracy >= 0.6 || (perf.total >= 2 && accuracy >= 0.5) || (accuracy >= 0.7 && uniqueDescriptors === 0)) { 
+        highestEmerging = band;
       }
     }
 
@@ -76,9 +80,9 @@ export class CefrInferenceEngine {
    */
   public static applyLevelCaps(
     skill: AssessmentSkill, 
-    inferredLevel: DifficultyBand,
+    inferredLevel: BandLabel,
     allEstimates: Record<AssessmentSkill, SkillEstimate>
-  ): { level: DifficultyBand, isCapped: boolean, reason?: string } {
+  ): { level: BandLabel, isCapped: boolean, reason?: string } {
     
     if (skill !== 'speaking' && skill !== 'writing') return { level: inferredLevel, isCapped: false };
 
@@ -88,11 +92,11 @@ export class CefrInferenceEngine {
     
     const anchorLevel = Math.max(vocabLevel, gramLevel);
 
-    // Rule: Dynamic Capping. 
+    // Rule: Dynamic Capping (2-Band Buffer). 
     // Usually productive skills are within 1 band of linguistic level.
-    // If evidence is extremely strong (confidence > 0.9), allow a 2-band gap (e.g. C1 Speaking with B1 Grammar)
+    // If evidence is extremely strong (confidence > 0.85), allow a 2-band gap (e.g. C1 Speaking with B1 Grammar)
     const skillEst = allEstimates[skill];
-    const maxGap = (skillEst.confidence >= 0.9 && skillEst.evidenceCount >= 3) ? 2 : 1;
+    const maxGap = (skillEst.confidence >= 0.85 || skillEst.evidenceCount >= 3) ? 2 : 1;
 
     if (currentVal > anchorLevel + maxGap) {
       const cappedVal = anchorLevel + maxGap;
@@ -107,8 +111,19 @@ export class CefrInferenceEngine {
     return { level: inferredLevel, isCapped: false };
   }
 
-  private static bandToValue(band: DifficultyBand): number {
-    return BAND_VALUE[band] || 1;
+  private static bandToValue(band: BandLabel): number {
+    if (BAND_VALUE[band as DifficultyBand]) return BAND_VALUE[band as DifficultyBand];
+    
+    // Intermediate labels are 0.5 between bands
+    const mapping: Record<string, number> = {
+      'Pre-A1': 0.5,
+      'A1_A2': 1.5,
+      'A2_B1': 2.5,
+      'B1_B2': 3.5,
+      'B2_C1': 4.5,
+      'C1_C2': 5.5
+    };
+    return mapping[band] || 1;
   }
 
   private static valueToBand(val: number): DifficultyBand {

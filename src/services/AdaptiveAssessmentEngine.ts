@@ -24,7 +24,10 @@ import { DescriptorService } from './DescriptorService';
 import { evaluateWithGroq, DescriptorEvaluationResult, DifficultyBand as GroqBand } from './groqEvaluator';
 import { FeatureExtractor } from './evaluation/FeatureExtractor';
 import { CefrInferenceEngine } from './inference/CefrInferenceEngine';
+import { AssessmentPipelineV2, PipelineItemInput } from '../engine/assessment-v2';
+import { mapLegacyQuestionType } from '../engine/assessment-v2/item-policy';
 import { clamp01, safeDivide, finiteOr, clamp } from '../lib/numeric-guards';
+import { CEFRLevel } from '../engine/assessment-v2/types';
 // ============================================================================
 // Constants
 // ============================================================================
@@ -60,9 +63,11 @@ const CONFIG = {
 export class AdaptiveAssessmentEngine {
   private state: AdaptiveAssessmentState;
   private questionPool: AssessmentQuestion[];
+  private pipeline_v2: AssessmentPipelineV2;
 
   constructor(startingBand: DifficultyBand = 'A2', contextProfile?: LearnerContextProfile) {
     this.questionPool = [...QUESTION_BANK];
+    this.pipeline_v2 = new AssessmentPipelineV2();
 
     // Initialize skill estimates
     const initialSkillEstimates = {} as Record<AssessmentSkill, SkillEstimate>;
@@ -182,7 +187,8 @@ export class AdaptiveAssessmentEngine {
     const isPass = (extractedChannels.comprehension >= 0.3 && extractedChannels.relevance >= 0.4) || (features.correctness >= 0.7);
 
     // Get strictly defined task weights OR fallback
-    const appliedWeights = question.evidenceWeights || this.getDefaultWeights(question.type);
+    const baseWeights = question.evidenceWeights || this.getDefaultWeights(question.type);
+    const appliedWeights = { ...baseWeights };
 
     // Derive the LEGACY scalar score (restricted to primary skill)
     let finalScore = deterministicScore;
@@ -235,6 +241,19 @@ export class AdaptiveAssessmentEngine {
           });
        }
     }
+
+    // ── Step 6.5: Push to deterministic AssessmentPipelineV2 ──
+    const pipelineInput: PipelineItemInput = {
+      itemId: question.id,
+      targetCEFR: question.difficulty as CEFRLevel,
+      primarySkill: question.primarySkill as any,
+      questionType: mapLegacyQuestionType(question.type, question.primarySkill, responseMode),
+      responseWordCount: features.wordCount || answer.trim().split(/\s+/).length,
+      responseMode: responseMode,
+      llmOutput: llmResult ? (llmResult as any) : null,
+      heuristicFeatures: features as any,
+    };
+    this.pipeline_v2.addEvidence(pipelineInput);
 
     this.state.answerHistory.push(record);
     
@@ -474,65 +493,44 @@ export class AdaptiveAssessmentEngine {
   public getOutcome(): AssessmentOutcome {
     const skillResults = {} as AssessmentOutcome['skillBreakdown'];
 
-    // ── Pre-calculate Deterministic Speaking Fallback Rule ──
-    const audit = this.state.speakingAudit;
-    const missingVoiceEvidence = audit.speakingTasksTotal > 0 && !audit.hasAnySpeakingEvidence;
-    
+    // ── Update Speaking Audit Trail ──
+    const missingVoiceEvidence = this.state.speakingAudit.speakingTasksTotal > 0 && !this.state.speakingAudit.hasAnySpeakingEvidence;
     if (missingVoiceEvidence) {
        this.state.speakingAudit.speakingFallbackApplied = true;
-       this.state.speakingAudit.fallbackReason = "No spoken audio was submitted, so speaking ability could not be properly assessed. Speaking was conservatively placed at A1.";
+       this.state.speakingAudit.fallbackReason = "No spoken audio was submitted, so speaking ability could not be assessed directly.";
     }
 
-    // Layer 6: Inference & Capping
+    // Layer 9: Get the authoritative final report from the deterministic pipeline
+    const report = this.pipeline_v2.getReport(this.state.speakingAudit);
+
     for (const skill of ALL_SKILLS) {
+      const v2Skill = report.skills[skill as keyof typeof report.skills];
       const est = this.state.skillEstimates[skill];
-      const { status, level: inferredLevel } = CefrInferenceEngine.inferSkillStatus(est);
-      let { level: cappedLevel, isCapped, reason } = CefrInferenceEngine.applyLevelCaps(
-        skill, 
-        inferredLevel as DifficultyBand, 
-        this.state.skillEstimates
-      );
-
-      // ── Apply Deterministic Speaking Fallback Rule ──
-      let speakingFallbackApplied = false;
-      let speakingFallbackReason = undefined;
       
-      if (skill === 'speaking' && missingVoiceEvidence) {
-          cappedLevel = 'A1';
-          isCapped = true;
-          reason = this.state.speakingAudit.fallbackReason;
-          speakingFallbackApplied = true;
-          speakingFallbackReason = this.state.speakingAudit.fallbackReason;
-          
-          // Drop confidence metrics since we forced the lowest bound deterministically
-          est.confidence = 0.1;
-      }
-
       const matchedDescriptors = est.accumulatedEvidence.filter(e => e.supported);
       const missingDescriptors = Object.entries(est.descriptorSupport)
         .filter(([_, s]) => s.contradiction > s.support)
         .map(([id]) => id);
 
       skillResults[skill] = {
-        band: cappedLevel,
-        score: Math.round(est.score),
-        confidence: Math.round(est.confidence * 100) / 100,
+        band: v2Skill.level as BandLabel,
+        score: Math.round(v2Skill.score100),
+        confidence: Math.round(v2Skill.confidence * 100) / 100,
         evidenceCount: est.evidenceCount,
-        status: (skill === 'speaking' && missingVoiceEvidence) ? 'insufficient_data' : status,
+        status: v2Skill.status,
         matchedDescriptors,
         missingDescriptors,
-        isCapped,
-        cappedReason: reason,
-        speakingFallbackApplied,
-        speakingFallbackReason
+        isCapped: false, // Handled implicitly in V2 pipeline limits
+        cappedReason: undefined,
+        speakingFallbackApplied: skill === 'speaking' && v2Skill.status === 'insufficient_data',
+        speakingFallbackReason: skill === 'speaking' && v2Skill.status === 'insufficient_data' ? 
+            'No spoken audio was submitted, so speaking ability could not be directly assessed.' : undefined
       };
     }
 
-    const overallBand = this.estimateOverallBand();
-
     return {
-      overallBand,
-      overallConfidence: Math.round(this.state.overallConfidence * 100) / 100,
+      overallBand: report.overall.level as BandLabel,
+      overallConfidence: Math.round(report.overall.confidence * 100) / 100,
       skillBreakdown: skillResults,
       strengths: this.identifyStrengths(),
       weaknesses: this.identifyWeaknesses(),
@@ -730,8 +728,8 @@ export class AdaptiveAssessmentEngine {
     // Weighted accuracy factor maps where they sit inside their highest band
     const weightedAvg = weightedValueSum / weightSum;
     
-    // Blend: 60% Mastery Level, 30% Weighted Average Performance, 10% High-Level Momentum
-    const finalScore = (baseScore * 0.6) + (weightedAvg * 0.3) + demonstrationBonus;
+    // Blend: 70% Mastery Level, 30% Weighted Average Performance
+    const finalScore = (baseScore * 0.7) + (weightedAvg * 0.3) + demonstrationBonus;
 
     // ── High-Level Momentum ──
     // If user has multiple recent successes at/above highestMasteredBand, give it a nudge
@@ -809,31 +807,31 @@ export class AdaptiveAssessmentEngine {
     const window = this.state.answerHistory.slice(-CONFIG.STABILITY_WINDOW);
     if (window.length < 2) return; // need at least 2 answers before adjusting
 
-    // Only consider answers near the current target band (±1 band)
+    // Consider both global recent performance and localized target performance
+    const recent = window.slice(-3);
+    const recentCorrect = recent.filter(a => a.correct).length;
+    const recentIncorrect = recent.length - recentCorrect;
+
     const currentVal = BAND_VALUE[this.state.currentTargetBand];
-    const nearBandAnswers = window.filter(a => {
-      const ansVal = a.difficulty; // It is already numeric (BAND_VALUE)
-      return Math.abs(ansVal - currentVal) <= 1;
-    });
+    const avgRecentDiff = recent.reduce((sum, a) => sum + a.difficulty, 0) / recent.length;
 
-    if (nearBandAnswers.length < 2) return;
-
-    const recentCorrect = nearBandAnswers.filter(a => a.correct).length;
-    const recentIncorrect = nearBandAnswers.length - recentCorrect;
-
-    // Check for consistent strong performance → promote
-    if (recentCorrect >= CONFIG.PROMOTE_THRESHOLD && recentIncorrect === 0) {
-      // AMBITIOUS: If last 2 answers were perfect (score 1.0) at or above current band, double jump
-      const perfectStreak = window.slice(-2).every(a => a.score === 1.0);
-      if (perfectStreak) {
-        this.jumpBandUp();
-      } else {
-        this.stepBandUp();
+    // Check for consistent strong performance -> promote
+    if (recentCorrect >= 2 && recentIncorrect === 0) {
+      // If performing well at or above current level, jump/step up
+      if (avgRecentDiff >= currentVal - 0.5) {
+        const perfectStreak = recent.every(a => a.score > 0.9);
+        if (perfectStreak) {
+          this.jumpBandUp();
+        } else {
+          this.stepBandUp();
+        }
       }
     }
-    // Check for consistent weak performance → demote
-    else if (recentIncorrect >= CONFIG.DEMOTE_THRESHOLD && recentCorrect <= 1) {
-      this.stepBandDown();
+    // Check for consistent weak performance -> demote
+    else if (recentIncorrect >= 2 && recentCorrect <= 1) {
+      if (avgRecentDiff <= currentVal + 0.5) {
+        this.stepBandDown();
+      }
     }
     // Otherwise stay — mixed signals don't move the needle
   }
@@ -945,9 +943,11 @@ export class AdaptiveAssessmentEngine {
     
     let difficultyScore = 0;
     if (primaryConfidence < 0.4) {
-      difficultyScore = qVal === targetVal ? 20 : (10 - distance * 5);
+      // High proximity requirement when confidence is low
+      difficultyScore = (qVal === targetVal) ? 40 : (20 - distance * 10);
     } else {
-      difficultyScore = (qVal >= targetVal) ? (20 - (qVal - targetVal) * 5) : (10 - distance * 5);
+      // Proactive probing: prioritize target level, allow but penalize distant levels heavily
+      difficultyScore = (qVal >= targetVal) ? (40 - (qVal - targetVal) * 15) : (20 - distance * 10);
     }
     
     score += difficultyScore * (q.discriminationValue || 0.5);
@@ -987,7 +987,13 @@ export class AdaptiveAssessmentEngine {
         }
       }
     }
-    score += matrixScore;
+    // NORMALIZE Matrix Score: Average the bonuses across skills instead of summing
+    const skillCount = Object.keys(appliedWeights).filter(s => (appliedWeights[s as AssessmentSkill] || 0) > 0).length || 1;
+    score += matrixScore / skillCount;
+
+    // Variety & Random Jitter (to prevent deterministic "stickiness")
+    const jitter = Math.random() * 2;
+    score += jitter;
 
     // ── Factor 5: Variety ──
     const typeUsage = this.state.answerHistory.filter(r => r.taskType === q.type).length;
@@ -1331,11 +1337,25 @@ export class AdaptiveAssessmentEngine {
 
     const combined = [...deterministic];
     
-    // Integrate LLM signals as standalone descriptors if they are strong
+    // ── CHANNEL 1: High Fidelity Signal Injection (Synthetic Descriptors) ──
+    // If LLM is confident about a level, inject a virtual descriptor for that level.
+    // This solves the "Low Label Trap" where questions might lack explicit descriptor IDs.
+    if (llm.confidence >= 0.7) {
+      combined.push({ 
+        descriptorId: `llm_synthetic_${llm.estimated_band.toLowerCase()}`, 
+        descriptorText: llm.rationale || `Demonstrated ${llm.estimated_band} level proficiency signals.`,
+        level: llm.estimated_band, // Removed 'as CefrLevel' as it's already compatible
+        supported: true,
+        strength: llm.confidence,
+        sourceTaskIds: []
+      });
+    }
+
+    // ── CHANNEL 2: Specific Sophistication Signals ──
     if (llm.lexical_sophistication > 0.7) {
        combined.push({ 
          descriptorId: 'llm_lexical_signal_high', 
-         descriptorText: llm.rationale || 'Demonstrated sophisticated and varied vocabulary usage.',
+         descriptorText: 'Demonstrated sophisticated and varied vocabulary usage.',
          level: llm.estimated_band,
          supported: true,
          strength: llm.lexical_sophistication,
@@ -1346,7 +1366,7 @@ export class AdaptiveAssessmentEngine {
     if (llm.syntactic_complexity > 0.7) {
        combined.push({ 
          descriptorId: 'llm_syntactic_signal_high', 
-         descriptorText: llm.rationale || 'Demonstrated complex syntactic control and nested structures.',
+         descriptorText: 'Demonstrated complex syntactic control and nested structures.',
          level: llm.estimated_band,
          supported: true,
          strength: llm.syntactic_complexity,

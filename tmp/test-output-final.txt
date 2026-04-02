@@ -1,0 +1,1633 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90mE:/ai-language-tutor[39m
+
+ [32mÔ£ô[39m src/tests/debug.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+node.exe : 
+[90mstderr[2m | src/te
+sts/assessmentEngine.tes
+t.ts[2m > [22m[2mAdap
+tiveAssessmentEngine - 
+Core Tests[2m > 
+[22m[2mRelevance 
+Gating[2m > 
+[22m[2mshould 
+penalize an off-topic 
+response
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified: 
+([9    
+0mstderr[2m...-topic   
+  response:String) [], 
+R    emoteException
+    + 
+FullyQualifiedErrorI    
+d : NativeCommandError
+ 
+[22m[39m[Relevance 
+Gate] Task b1-write-01 
+is OFF-TOPIC. Capping 
+score and blocking 
+credit.
+
+[90mstdout[2m | src/tests/assessmentEngine.test.ts[2m > [22m[2mAdaptiveAssessmentEngine - Core Tests[2m > [22m[2mRelevance Gating[2m > [22m[2mshould reduce credit for incomplete response
+[22m[39m[Relevance Gate] Task a2-speak-01 incomplete (0.5). Reducing credit.
+
+ [32mÔ£ô[39m src/engine/assessment-v2/__tests__/assessment-pipeline.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32mÔ£ô[39m src/tests/assessmentEngine.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould promote to C1 label when answering C1 questions correctly even without descriptors
+[22m[39m[DEBUG TEST] Outcome bands: {
+  reading: [32m'C1'[39m,
+  writing: [32m'A1'[39m,
+  listening: [32m'A1'[39m,
+  speaking: [32m'A1'[39m,
+  vocabulary: [32m'B1'[39m,
+  grammar: [32m'A1'[39m
+}
+
+[90mstderr[2m | src/te
+sts/highProficiencyParad
+ox.test.ts[2m > 
+[22m[2mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22m[2mshould promote 
+to C1 label when 
+answering C1 questions 
+correctly even without 
+descriptors
+[22m[39mTEST ERROR: 
+AssertionError: 
+expected 'A1' to be 
+'C1' // Object.is 
+equality
+    at E:/ai-language-tu
+tor/src/tests/highProfic
+iencyParadox.test.ts:57:
+28
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  actual: 
+[32m'A1'[39m,
+  expected: 
+[32m'C1'[39m,
+  showDiff: 
+[33mtrue[39m,
+  operator: 
+[32m'strictEqual'[39m
+}
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould project speaking proficiency from writing when voice is missing
+[22m[39m[Engine] Typed fallback detected for speaking task a2-speak-01. Removing speaking evidence weights.
+[Divergence] High proficiency detected. Jumping to C1 with validation pending for C1.
+
+[90mstderr[2m | src/te
+sts/highProficiencyParad
+ox.test.ts[2m > 
+[22m[2mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22m[2mshould project 
+speaking proficiency 
+from writing when voice 
+is missing
+[22m[39mTEST ERROR: 
+AssertionError: 
+expected 'A1' not to be 
+'A1' // Object.is 
+equality
+    at E:/ai-language-tu
+tor/src/tests/highProfic
+iencyParadox.test.ts:95:
+33
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  actual: 
+[32m'A1'[39m,
+  expected: 
+[32m'A1'[39m,
+  showDiff: 
+[33mtrue[39m,
+  operator: [32m'notStr
+ictEqual'[39m
+}
+
+[90mstdout[2m | src/tests/highProficiencyParadox.test.ts[2m > [22m[2mHigh Proficiency Paradox Resolution[2m > [22m[2mshould loosen level capping for high-confidence users (2-band buffer)
+[22m[39m[DEBUG TEST] Anchor Levels - Gram: C2, Vocab: B1
+[DEBUG TEST] Writing Level: B2, isCapped: false
+
+[90mstderr[2m | src/te
+sts/highProficiencyParad
+ox.test.ts[2m > 
+[22m[2mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22m[2mshould loosen 
+level capping for 
+high-confidence users 
+(2-band buffer)
+[22m[39mTEST ERROR: 
+AssertionError: 
+expected 'B2' to be 
+'C1' // Object.is 
+equality
+    at E:/ai-language-tu
+tor/src/tests/highProfic
+iencyParadox.test.ts:147
+:28
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  actual: 
+[32m'B2'[39m,
+  expected: 
+[32m'C1'[39m,
+  showDiff: 
+[33mtrue[39m,
+  operator: 
+[32m'strictEqual'[39m
+}
+
+ [31mÔØ»[39m src/tests/highProficiencyParadox.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 55[2mms[22m[39m
+[31m     [31m├ù[31m should promote to C1 label when answering C1 questions correctly even without descriptors[39m[32m 38[2mms[22m[39m
+[31m     [31m├ù[31m should project speaking proficiency from writing when voice is missing[39m[32m 8[2mms[22m[39m
+[31m     [31m├ù[31m should loosen level capping for high-confidence users (2-band buffer)[39m[32m 5[2mms[22m[39m
+[90mstdout[2m | src/tests/schemaMigration.test.ts[2m > [22m[2mCEFR Evaluation Migration - End to End Schema Verification[2m > [22m[2mAdaptiveAssessmentEngine successfully processes valid signal-based schema and divergence
+[22m[39m[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+
+[90mstderr[2m | src/te
+sts/schemaMigration.test
+.ts[2m > [22m[2mCEFR 
+Evaluation Migration - 
+End to End Schema 
+Verification[2m > [22m
+[2mAdaptiveAssessmentEn
+gine successfully 
+processes valid 
+signal-based schema and 
+divergence
+[22m[39m[DescriptorSer
+vice] Failed to load 
+CEFR Excel sheet: 
+TypeError: fetch failed
+[90m    at node:interna
+l/deps/undici/undici:158
+45:13[39m
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at DescriptorService
+.loadExcelData (E:/ai-la
+nguage-tutor/src/service
+s/DescriptorService.ts:5
+3:24)
+    at DescriptorService
+.initialize (E:/ai-langu
+age-tutor/src/services/D
+escriptorService.ts:43:5
+)
+    at AdaptiveAssessmen
+tEngine.evaluateWithBack
+end (E:/ai-language-tuto
+r/src/services/AdaptiveA
+ssessmentEngine.ts:421:7
+)
+    at AdaptiveAssessmen
+tEngine.submitAnswer (E:
+/ai-language-tutor/src/s
+ervices/AdaptiveAssessme
+ntEngine.ts:166:23)
+    at E:/ai-language-tu
+tor/src/tests/schemaMigr
+ation.test.ts:57:20
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  [cause]: Error: not 
+implemented... yet...
+  [90m    at 
+makeNetworkError (node:i
+nternal/deps/undici/undi
+ci:10147:35)[39m
+  [90m    at 
+schemeFetch (node:intern
+al/deps/undici/undici:11
+685:34)[39m
+  [90m    at mainFetch 
+(node:internal/deps/undi
+ci/undici:11533:30)[39m
+  [90m    at fetching (
+node:internal/deps/undic
+i/undici:11502:7)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:11368:20)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:15843:10)[39m
+  [90m    at fetch (nod
+e:internal/bootstrap/web
+/exposed-window-or-worke
+r:83:12)[39m
+      at DescriptorServi
+ce.loadExcelData (E:/ai-
+language-tutor/src/servi
+ces/DescriptorService.ts
+:53:30)
+      at DescriptorServi
+ce.initialize (E:/ai-lan
+guage-tutor/src/services
+/DescriptorService.ts:42
+:29)
+      at AdaptiveAssessm
+entEngine.evaluateWithBa
+ckend (E:/ai-language-tu
+tor/src/services/Adaptiv
+eAssessmentEngine.ts:421
+:31)
+}
+
+[90mstderr[2m | src/te
+sts/speakingFallback.tes
+t.ts[2m > 
+[22m[2mSpeaking 
+Response Mode 
+Deterministic 
+Fallback[2m > 
+[22m[2menforces A1 
+speaking level and sets 
+flags when speaking 
+tasks are answered via 
+typed fallback only (NO 
+VOICE EVIDENCE)
+[22m[39m[DescriptorSer
+vice] Failed to load 
+CEFR Excel sheet: 
+TypeError: fetch failed
+[90m    at node:interna
+l/deps/undici/undici:158
+45:13[39m
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at DescriptorService
+.loadExcelData (E:/ai-la
+nguage-tutor/src/service
+s/DescriptorService.ts:5
+3:24)
+    at DescriptorService
+.initialize (E:/ai-langu
+age-tutor/src/services/D
+escriptorService.ts:43:5
+)
+    at AdaptiveAssessmen
+tEngine.evaluateWithBack
+end (E:/ai-language-tuto
+r/src/services/AdaptiveA
+ssessmentEngine.ts:421:7
+)
+    at AdaptiveAssessmen
+tEngine.submitAnswer (E:
+/ai-language-tutor/src/s
+ervices/AdaptiveAssessme
+ntEngine.ts:166:23)
+    at E:/ai-language-tu
+tor/src/tests/speakingFa
+llback.test.ts:33:5
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  [cause]: Error: not 
+implemented... yet...
+  [90m    at 
+makeNetworkError (node:i
+nternal/deps/undici/undi
+ci:10147:35)[39m
+  [90m    at 
+schemeFetch (node:intern
+al/deps/undici/undici:11
+685:34)[39m
+  [90m    at mainFetch 
+(node:internal/deps/undi
+ci/undici:11533:30)[39m
+  [90m    at fetching (
+node:internal/deps/undic
+i/undici:11502:7)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:11368:20)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:15843:10)[39m
+  [90m    at fetch (nod
+e:internal/bootstrap/web
+/exposed-window-or-worke
+r:83:12)[39m
+      at DescriptorServi
+ce.loadExcelData (E:/ai-
+language-tutor/src/servi
+ces/DescriptorService.ts
+:53:30)
+      at DescriptorServi
+ce.initialize (E:/ai-lan
+guage-tutor/src/services
+/DescriptorService.ts:42
+:29)
+      at AdaptiveAssessm
+entEngine.evaluateWithBa
+ckend (E:/ai-language-tu
+tor/src/services/Adaptiv
+eAssessmentEngine.ts:421
+:31)
+}
+
+[90mstderr[2m | src/te
+sts/traceRunner.test.ts
+[2m > 
+[22m[2mMulti-Skill 
+Behavioral Verification 
+Suite[2m > 
+[22m[2mTRACE 1: 
+Listening + written 
+response propagation
+[22m[39m[DescriptorSer
+vice] Failed to load 
+CEFR Excel sheet: 
+TypeError: fetch failed
+[90m    at node:interna
+l/deps/undici/undici:158
+45:13[39m
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at DescriptorService
+.loadExcelData (E:/ai-la
+nguage-tutor/src/service
+s/DescriptorService.ts:5
+3:24)
+    at DescriptorService
+.initialize (E:/ai-langu
+age-tutor/src/services/D
+escriptorService.ts:43:5
+)
+    at AdaptiveAssessmen
+tEngine.evaluateWithBack
+end (E:/ai-language-tuto
+r/src/services/AdaptiveA
+ssessmentEngine.ts:421:7
+)
+    at AdaptiveAssessmen
+tEngine.submitAnswer (E:
+/ai-language-tutor/src/s
+ervices/AdaptiveAssessme
+ntEngine.ts:166:23)
+    at E:/ai-language-tu
+tor/src/tests/traceRunne
+r.test.ts:66:20
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  [cause]: Error: not 
+implemented... yet...
+  [90m    at 
+makeNetworkError (node:i
+nternal/deps/undici/undi
+ci:10147:35)[39m
+  [90m    at 
+schemeFetch (node:intern
+al/deps/undici/undici:11
+685:34)[39m
+  [90m    at mainFetch 
+(node:internal/deps/undi
+ci/undici:11533:30)[39m
+  [90m    at fetching (
+node:internal/deps/undic
+i/undici:11502:7)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:11368:20)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:15843:10)[39m
+  [90m    at fetch (nod
+e:internal/bootstrap/web
+/exposed-window-or-worke
+r:83:12)[39m
+      at DescriptorServi
+ce.loadExcelData (E:/ai-
+language-tutor/src/servi
+ces/DescriptorService.ts
+:53:30)
+      at DescriptorServi
+ce.initialize (E:/ai-lan
+guage-tutor/src/services
+/DescriptorService.ts:42
+:29)
+      at AdaptiveAssessm
+entEngine.evaluateWithBa
+ckend (E:/ai-language-tu
+tor/src/services/Adaptiv
+eAssessmentEngine.ts:421
+:31)
+}
+
+[90mstderr[2m | src/te
+sts/multiSkillBehavior.t
+est.ts[2m > 
+[22m[2mTrace 1: 
+Listening + written 
+response 
+propagation[2m > 
+[22m[2mhigh 
+comprehension + weak 
+grammar -> listening 
+rises, grammar stays 
+weak, next targets 
+productive skills
+[22m[39m[DescriptorSer
+vice] Failed to load 
+CEFR Excel sheet: 
+TypeError: fetch failed
+[90m    at node:interna
+l/deps/undici/undici:158
+45:13[39m
+[90m    at processTicks
+AndRejections (node:inte
+rnal/process/task_queues
+:103:5)[39m
+    at DescriptorService
+.loadExcelData (E:/ai-la
+nguage-tutor/src/service
+s/DescriptorService.ts:5
+3:24)
+    at DescriptorService
+.initialize (E:/ai-langu
+age-tutor/src/services/D
+escriptorService.ts:43:5
+)
+    at AdaptiveAssessmen
+tEngine.evaluateWithBack
+end (E:/ai-language-tuto
+r/src/services/AdaptiveA
+ssessmentEngine.ts:421:7
+)
+    at AdaptiveAssessmen
+tEngine.submitAnswer (E:
+/ai-language-tutor/src/s
+ervices/AdaptiveAssessme
+ntEngine.ts:166:23)
+    at E:/ai-language-tu
+tor/src/tests/multiSkill
+Behavior.test.ts:149:20
+    at [90mfile:///E:/a
+i-language-tutor/[39mno
+de_modules/[4m@vitest/r
+unner[24m/dist/chunk-ar
+tifact.js:1893:20 {
+  [cause]: Error: not 
+implemented... yet...
+  [90m    at 
+makeNetworkError (node:i
+nternal/deps/undici/undi
+ci:10147:35)[39m
+  [90m    at 
+schemeFetch (node:intern
+al/deps/undici/undici:11
+685:34)[39m
+  [90m    at mainFetch 
+(node:internal/deps/undi
+ci/undici:11533:30)[39m
+  [90m    at fetching (
+node:internal/deps/undic
+i/undici:11502:7)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:11368:20)[39m
+  [90m    at fetch (nod
+e:internal/deps/undici/u
+ndici:15843:10)[39m
+  [90m    at fetch (nod
+e:internal/bootstrap/web
+/exposed-window-or-worke
+r:83:12)[39m
+      at DescriptorServi
+ce.loadExcelData (E:/ai-
+language-tutor/src/servi
+ces/DescriptorService.ts
+:53:30)
+      at DescriptorServi
+ce.initialize (E:/ai-lan
+guage-tutor/src/services
+/DescriptorService.ts:42
+:29)
+      at AdaptiveAssessm
+entEngine.evaluateWithBa
+ckend (E:/ai-language-tu
+tor/src/services/Adaptiv
+eAssessmentEngine.ts:421
+:31)
+}
+
+[90mstdout[2m | src/tests/schemaMigration.test.ts[2m > [22m[2mCEFR Evaluation Migration - End to End Schema Verification[2m > [22m[2mAdaptiveAssessmentEngine successfully processes valid signal-based schema and divergence
+[22m[39m[Divergence] High proficiency detected. Jumping to B2 with validation pending for C1.
+
+[90mstdout[2m | src/tests/speakingFallback.test.ts[2m > [22m[2mSpeaking Response Mode Deterministic Fallback[2m > [22m[2menforces A1 speaking level and sets flags when speaking tasks are answered via typed fallback only (NO VOICE EVIDENCE)
+[22m[39m[Engine] Typed fallback detected for speaking task spk-01. Removing speaking evidence weights.
+
+ [32mÔ£ô[39m src/tests/schemaMigration.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 99[2mms[22m[39m
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 1: Listening + written response propagation
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 1: Listening + Written Response Propagation
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Extracted Channels: {
+  "taskCompletion": 0.8,
+  "comprehension": 0.9,
+  "grammarAccuracy": 0.2,
+  "lexicalRange": 0.25,
+  "coherence": 0.3,
+  "fluency": 0.25
+}
+Applied Weights: {"listening":1,"writing":0.7,"grammar":0.5,"vocabulary":0.5}
+Skill Updates: {"listening":0.9,"writing":0.385,"grammar":0.1,"vocabulary":0.125}
+isPass: [33mtrue[39m | derivedScore: 0.9270
+  listening   : evidence=1, uncertainty=0.560
+  writing     : evidence=1, uncertainty=0.860
+  grammar     : evidence=1, uncertainty=0.560
+  vocabulary  : evidence=1, uncertainty=0.560
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+Next Question: a2-speak-01 | skill: speaking | type: short_text
+VERDICT: Ô£à PASS ÔÇö Listening high, grammar stays weak, all skills updated.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 2: Writing response affects grammar/vocabulary without separate questions
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 2: Writing -> Grammar/Vocab Propagation
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Applied Weights: {"writing":1,"grammar":0.5,"vocabulary":0.5}
+Skill Updates: {"writing":0.875,"grammar":0.425,"vocabulary":0.4}
+  writing:    evidence=1
+  grammar:    evidence=1
+  vocabulary: evidence=1
+VERDICT: Ô£à PASS ÔÇö Grammar/Vocabulary updated from ONE writing task, no separate MCQ needed.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 3: Strong comprehension + weak expression split
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 3: Strong Comprehension + Weak Expression Split
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+  comprehension:   0.950 (ÔåÆ listening)
+  grammarAccuracy: 0.150 (ÔåÆ grammar)
+  lexicalRange:    0.100 (ÔåÆ vocabulary)
+Skill Updates:
+  listening   : 0.9500
+  writing     : 0.3675
+  grammar     : 0.0750
+  vocabulary  : 0.0500
+VERDICT: Ô£à PASS ÔÇö Listening (0.950) >> Grammar (0.075). Meaning and expression SEPARATED.
+
+ [32mÔ£ô[39m src/tests/speakingFallback.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 112[2mms[22m[39m
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 4: Adaptive routing coherence
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 4: Adaptive Routing Coherence
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Skill State After 1 Answer:
+  listening   : evidence=1, uncertainty=0.560, confidence=0.440
+  reading     : evidence=0, uncertainty=1.000, confidence=0.000
+  writing     : evidence=1, uncertainty=0.860, confidence=0.140
+  speaking    : evidence=0, uncertainty=1.000, confidence=0.000
+  grammar     : evidence=1, uncertainty=0.560, confidence=0.440
+  vocabulary  : evidence=1, uncertainty=0.560, confidence=0.440
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+Next Question: a2-speak-01
+  primary: speaking | type: short_text | difficulty: A2
+  weights: {"speaking":1,"grammar":0.5,"vocabulary":0.5}
+VERDICT: Ô£à PASS ÔÇö Routing targets uncertainty gaps (reading/speaking untested, skills with evidence have lower priority).
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 5: Productive weakness hunting
+[22m[39m[Relevance Gate] Task trace5-list incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 5: Productive weakness hunting
+[22m[39m[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 5: Productive Weakness Hunting
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Grammar state: evidence=1, uncertainty=0.560
+Next Question: b1-write-01 | primary: writing | type: short_text
+  weights: {"writing":1,"grammar":0.5,"vocabulary":0.5}
+VERDICT: Ô£à PASS ÔÇö System selects next task based on evidence gaps, actively hunting weak signals.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6a: Task-defined evidenceWeights are applied exactly
+[22m[39m[Relevance Gate] Task trace6a incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6a: Task-defined evidenceWeights are applied exactly
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 6a: Weight Application ÔÇö Task-Defined Exact Match
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Defined: {"listening":1,"writing":0.7,"grammar":0.5,"vocabulary":0.5}
+Applied: {"listening":0.5,"writing":0.35,"grammar":0.25,"vocabulary":0.25}
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 1: Listening + written response propagation[2m > [22m[2mhigh comprehension + weak grammar -> listening rises, grammar stays weak, next targets productive skills
+[22m[39m
+=== TRACE 1: Listening + Written Response ===
+Extracted channels: {
+  relevance: [90mundefined[39m,
+  taskCompletion: [33m0.8[39m,
+  comprehension: [33m0.9[39m,
+  grammarAccuracy: [33m0.2[39m,
+  lexicalRange: [33m0.25[39m,
+  coherence: [33m0.3[39m,
+  fluency: [33m0.25[39m
+}
+Applied weights: { listening: [33m1[39m, writing: [33m0.7[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+Skill updates: { listening: [33m0.9[39m, writing: [33m0.385[39m, grammar: [33m0.1[39m, vocabulary: [33m0.125[39m }
+Listening evidence count: [33m1[39m uncertainty: [33m0.56[39m
+Writing evidence count: [33m1[39m uncertainty: [33m0.86[39m
+Grammar evidence count: [33m1[39m uncertainty: [33m0.56[39m
+Vocabulary evidence count: [33m1[39m uncertainty: [33m0.56[39m
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+Next question selected: a2-speak-01 | primarySkill: speaking | type: short_text
+=== END TRACE 1 ===
+
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6b: Fallback defaults used only when weights missing
+[22m[39m[Relevance Gate] Task trace6b incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 2: Writing response affecting grammar/vocabulary state[2m > [22m[2mstrong writing raises writing, grammar, and vocabulary without separate grammar-only questions
+[22m[39m
+=== TRACE 2: Writing -> Grammar/Vocab Propagation ===
+Channels: {
+  relevance: [90mundefined[39m,
+  taskCompletion: [33m0.9[39m,
+  comprehension: [33m0.85[39m,
+  grammarAccuracy: [33m0.85[39m,
+  lexicalRange: [33m0.8[39m,
+  coherence: [33m0.85[39m,
+  fluency: [33m0.775[39m
+}
+Applied weights: { writing: [33m1[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+Skill updates: { writing: [33m0.875[39m, grammar: [33m0.425[39m, vocabulary: [33m0.4[39m }
+Grammar before: [33m60[39m -> after evidence count: [33m1[39m
+Vocabulary before: [33m60[39m -> after evidence count: [33m1[39m
+Writing before: [33m60[39m -> after evidence count: [33m1[39m
+=== END TRACE 2 ===
+
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6b: Fallback defaults used only when weights missing
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 6b: Weight Application ÔÇö Fallback Defaults
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Applied fallback: {"listening":0.5,"writing":0.35,"grammar":0.25,"vocabulary":0.25}
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6c: Engine never overrides explicit task weights
+[22m[39m[Relevance Gate] Task trace6c incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 6c: Engine never overrides explicit task weights
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 6c: Weight Application ÔÇö No Silent Override
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+Defined: {"grammar":1}
+Applied: {"grammar":0.5}
+Skills updated: [ [32m'grammar'[39m ]
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 3: Strong comprehension + weak expression split[2m > [22m[2mcomprehension skill rises while productive language-related skills remain lower
+[22m[39m
+=== TRACE 3: Comprehension vs Expression Split ===
+Channels: {
+  "taskCompletion": 0.85,
+  "comprehension": 0.95,
+  "grammarAccuracy": 0.15,
+  "lexicalRange": 0.1,
+  "coherence": 0.2,
+  "fluency": 0.125
+}
+Skill updates: { listening: [33m0.95[39m, writing: [33m0.3675[39m, grammar: [33m0.075[39m, vocabulary: [33m0.05[39m }
+Listening update: [33m0.95[39m
+Grammar update: [33m0.075[39m
+Vocabulary update: [33m0.05[39m
+Writing update: [33m0.3675[39m
+VERDICT: Meaning accuracy and language realization are SEPARATED Ô£ô
+=== END TRACE 3 ===
+
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 4: Adaptive routing coherence[2m > [22m[2mnext-question decisions are explainable and tied to uncertainty reduction
+[22m[39m
+=== TRACE 4: Adaptive Routing Coherence ===
+Current skill uncertainties: {
+  listening: [33m0.56[39m,
+  reading: [33m1[39m,
+  writing: [33m0.86[39m,
+  speaking: [33m1[39m,
+  grammar: [33m0.56[39m,
+  vocabulary: [33m0.56[39m
+}
+Current evidence counts: {
+  listening: [33m1[39m,
+  reading: [33m0[39m,
+  writing: [33m1[39m,
+  speaking: [33m0[39m,
+  grammar: [33m1[39m,
+  vocabulary: [33m1[39m
+}
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+Selected next question: a2-speak-01
+Next question primarySkill: speaking
+Next question type: short_text
+Next question evidenceWeights: { speaking: [33m1[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+Next question difficulty: A2
+VERDICT: Routing is driven by uncertainty gaps, not random selection Ô£ô
+=== END TRACE 4 ===
+
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 5: Productive weakness hunting[2m > [22m[2mafter detecting weak grammar from productive output, selector prefers integrated tasks over grammar MCQs
+[22m[39m
+=== TRACE 5: Productive Weakness Hunting ===
+Grammar state after speaking task:
+  evidenceCount: [33m1[39m
+  uncertainty: [33m0.56[39m
+  confidence: [33m0.43999999999999995[39m
+
+[90mstdout[2m | src/tests/traceRunner.test.ts[2m > [22m[2mMulti-Skill Behavioral Verification Suite[2m > [22m[2mTRACE 7: Full debug payload audit
+[22m[39m
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+TRACE 7: Full Debug Payload Audit
+ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü
+
+1. EXTRACTED CHANNELS:
+   relevance         : undefined
+   taskCompletion    : 0.7800
+   comprehension     : 0.8200
+   grammarAccuracy   : 0.7200
+   lexicalRange      : 0.6800
+   coherence         : 0.7500
+   fluency           : 0.6250
+
+2. APPLIED EVIDENCE WEIGHTS:
+   {"writing":1,"grammar":0.5,"vocabulary":0.5}
+
+3. PER-SKILL UPDATES:
+   writing     : 0.7650
+   grammar     : 0.3600
+   vocabulary  : 0.3400
+
+4. DERIVED LEGACY SCORE: 0.8060
+   isPass: true
+
+5. REASON: Evaluated short_text -> Applied Weights: {"writing":1,"grammar":0.5,"vocabulary":0.5}
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+
+6. NEXT QUESTION RATIONALE:
+   Selected: b1-speak-01
+   Primary:  speaking
+   Type:     short_text
+   Difficulty: B1
+   Weights:  {"speaking":1,"grammar":0.5,"vocabulary":0.5}
+
+7. HIDDEN LOGIC CHECK:
+   All weights from task definition: Ô£à
+   No hardcoded overrides in engine: Ô£à
+   Channels from LLM signals only:  Ô£à
+
+VERDICT: Ô£à PASS ÔÇö Full debug payload is correct and complete. No hidden routing logic detected.
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 5: Productive weakness hunting[2m > [22m[2mafter detecting weak grammar from productive output, selector prefers integrated tasks over grammar MCQs
+[22m[39m[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+Next question after weak grammar: b1-write-01
+Next primarySkill: writing
+Next type: short_text
+Next evidenceWeights: { writing: [33m1[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+Covers grammar evidence: [33mtrue[39m
+Covers untested productive/receptive skill: [33mtrue[39m
+VERDICT: System hunts weak signals through integrated tasks Ô£ô
+=== END TRACE 5 ===
+
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 6: Weight application integrity[2m > [22m[2mtask-defined evidenceWeights are the exact weights applied, not defaults
+[22m[39m[Relevance Gate] Task test-list-summary-01 incomplete (0.5). Reducing credit.
+
+ [31mÔØ»[39m src/tests/traceRunner.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 159[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 1: Listening + written response propagation[32m 102[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 2: Writing response affects grammar/vocabulary without separate questions[32m 4[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 3: Strong comprehension + weak expression split[32m 3[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 4: Adaptive routing coherence[32m 8[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 5: Productive weakness hunting[32m 3[2mms[22m[39m
+[31m     [31m├ù[31m TRACE 6a: Task-defined evidenceWeights are applied exactly[39m[32m 14[2mms[22m[39m
+[31m     [31m├ù[31m TRACE 6b: Fallback defaults used only when weights missing[39m[32m 7[2mms[22m[39m
+[31m     [31m├ù[31m TRACE 6c: Engine never overrides explicit task weights[39m[32m 5[2mms[22m[39m
+     [32mÔ£ô[39m TRACE 7: Full debug payload audit[32m 8[2mms[22m[39m
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 6: Weight application integrity[2m > [22m[2mtask-defined evidenceWeights are the exact weights applied, not defaults
+[22m[39m
+=== TRACE 6: Weight Application Integrity ===
+Task-defined weights: { listening: [33m1[39m, writing: [33m0.7[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+Actually applied weights: { listening: [33m0.5[39m, writing: [33m0.35[39m, grammar: [33m0.25[39m, vocabulary: [33m0.25[39m }
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 6: Weight application integrity[2m > [22m[2mfallback defaults are used ONLY when evidenceWeights is missing from task
+[22m[39m[Relevance Gate] Task test-no-weights incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 6: Weight application integrity[2m > [22m[2mfallback defaults are used ONLY when evidenceWeights is missing from task
+[22m[39mQuestion had no evidenceWeights defined.
+Applied fallback weights: { listening: [33m0.5[39m, writing: [33m0.35[39m, grammar: [33m0.25[39m, vocabulary: [33m0.25[39m }
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 6: Weight application integrity[2m > [22m[2mengine NEVER silently overrides explicit task weights
+[22m[39m[Relevance Gate] Task test-gram-mcq-01 incomplete (0.5). Reducing credit.
+
+[90mstdout[2m | src/tests/multiSkillBehavior.test.ts[2m > [22m[2mTrace 7: Debug payload audit ÔÇö full interaction trace[2m > [22m[2mprints and validates a complete debug payload for one interaction
+[22m[39m
+=== TRACE 7: FULL DEBUG PAYLOAD AUDIT ===
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+1. EXTRACTED CHANNELS:
+{
+  "taskCompletion": 0.78,
+  "comprehension": 0.82,
+  "grammarAccuracy": 0.72,
+  "lexicalRange": 0.68,
+  "coherence": 0.75,
+  "fluency": 0.625
+}
+
+2. APPLIED EVIDENCE WEIGHTS:
+{
+  "writing": 1,
+  "grammar": 0.5,
+  "vocabulary": 0.5
+}
+
+3. PER-SKILL UPDATES:
+{
+  "writing": 0.765,
+  "grammar": 0.36,
+  "vocabulary": 0.34
+}
+
+4. DERIVED LEGACY SCORE: [33m0.8055999999999999[39m
+
+5. REASON: Evaluated short_text -> Applied Weights: {"writing":1,"grammar":0.5,"vocabulary":0.5}
+[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+
+6. NEXT QUESTION RATIONALE:
+  Selected: b1-speak-01
+  PrimarySkill: speaking
+  Type: short_text
+  Difficulty: B1
+  EvidenceWeights: { speaking: [33m1[39m, grammar: [33m0.5[39m, vocabulary: [33m0.5[39m }
+  Listening evidence count: [33m0[39m (untested = should be targeted)
+  Reading evidence count: [33m0[39m (untested = should be targeted)
+
+7. HIDDEN LOGIC CHECK:
+  All weights come from task definition: Ô£ô
+  No hardcoded overrides in engine: Ô£ô (verified by Trace 6)
+  Channels map directly from LLM signals: Ô£ô
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+=== END TRACE 7 ===
+
+
+ [31mÔØ»[39m src/tests/multiSkillBehavior.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 190[2mms[22m[39m
+     [32mÔ£ô[39m high comprehension + weak grammar -> listening rises, grammar stays weak, next targets productive skills[32m 131[2mms[22m[39m
+     [32mÔ£ô[39m strong writing raises writing, grammar, and vocabulary without separate grammar-only questions[32m 3[2mms[22m[39m
+     [32mÔ£ô[39m comprehension skill rises while productive language-related skills remain lower[32m 9[2mms[22m[39m
+     [32mÔ£ô[39m next-question decisions are explainable and tied to uncertainty reduction[32m 4[2mms[22m[39m
+     [32mÔ£ô[39m after detecting weak grammar from productive output, selector prefers integrated tasks over grammar MCQs[32m 4[2mms[22m[39m
+[31m     [31m├ù[31m task-defined evidenceWeights are the exact weights applied, not defaults[39m[32m 19[2mms[22m[39m
+[31m     [31m├ù[31m fallback defaults are used ONLY when evidenceWeights is missing from task[39m[32m 4[2mms[22m[39m
+[31m     [31m├ù[31m engine NEVER silently overrides explicit task weights[39m[32m 3[2mms[22m[39m
+     [32mÔ£ô[39m prints and validates a complete debug payload for one interaction[32m 4[2mms[22m[39m
+[90mstdout[2m | src/engine/__tests__/scoring-pipeline.test.ts[2m > [22m[2mAdaptiveAssessmentEngine Bug Fixes[2m > [22m[2mBug 1 & 2: Submitting an answer updates skill estimate and computes valid finite confidence
+[22m[39m[Selection] Cold Start Bonus for a2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for a2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b1-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-write-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for b2-speak-01: +20 (Broad Spectrum: 3 skills)
+[Selection] Cold Start Bonus for c1-write-01: +20 (Broad Spectrum: 3 skills)
+
+ [31mÔØ»[39m src/engine/__tests__/scoring-pipeline.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 36[2mms[22m[39m
+     [32mÔ£ô[39m clamp01 limits values to [0, 1] and handles NaN[32m 4[2mms[22m[39m
+     [32mÔ£ô[39m safeDivide handles division by zero and NaN[32m 1[2mms[22m[39m
+     [32mÔ£ô[39m finiteOr provides fallback for non-finite values[32m 1[2mms[22m[39m
+     [32mÔ£ô[39m Bug 1 & 2: Submitting an answer updates skill estimate and computes valid finite confidence[32m 14[2mms[22m[39m
+[31m     [31m├ù[31m Bug 4: normalizeBand logic inflates conservatively (A2_B1 -> A2+, not B1)[39m[32m 11[2mms[22m[39m
+     [32mÔ£ô[39m Bug 3 & 5: masteryScore is separated from confidence wrapper and weaknesses are humanized[32m 2[2mms[22m[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+[39m[1m[41m Failed 
+Tests 10 [49m[22m[31m
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3
+9m
+
+[41m[1m FAIL 
+[22m[49m src/tests/hig
+hProficiencyParadox.test
+.ts[2m > [22mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22mshould promote to 
+C1 label when answering 
+C1 questions correctly 
+even without descriptors
+[31m[1mAssertionError
+[22m: expected 'A1' to 
+be 'C1' // Object.is 
+equality[39m
+
+Expected: 
+[32m"[7mC[27m1"[39m
+Received: 
+[31m"[7mA[27m1"[39m
+
+[36m [2mÔØ»[22m src/t
+ests/highProficiencyPara
+dox.test.ts:[2m57:28[2
+2m[39m
+    [90m 55|[39m      
+ console.log("[DEBUG 
+TEST] Outcome bands:", 
+Object.fromEntries(ObÔÇª
+    [90m 56|[39m
+    [90m 57|[39m      
+ [34mexpect[39m(gramma
+r[33m.[39mband)[33m.
+[39m[34mtoBe[39m([32m
+'C1'[39m)[33m;[39m
+    [90m   |[39m      
+                      
+[31m^[39m
+    [90m 58|[39m      
+ [34mexpect[39m(gramma
+r[33m.[39mscore)[33m.
+[39m[34mtoBeGreaterTha
+n[39m([34m90[39m)[33
+m;[39m
+    [90m 59|[39m     
+} [35mcatch[39m 
+(e[33m:[39m any) {
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[1/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/hig
+hProficiencyParadox.test
+.ts[2m > [22mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22mshould project 
+speaking proficiency 
+from writing when voice 
+is missing
+[31m[1mAssertionError
+[22m: expected 'A1' not 
+to be 'A1' // Object.is 
+equality[39m
+[36m [2mÔØ»[22m src/t
+ests/highProficiencyPara
+dox.test.ts:[2m95:33[2
+2m[39m
+    [90m 93|[39m
+    [90m 94|[39m      
+ [90m// Verify it's 
+not stuck at A1[39m
+    [90m 95|[39m      
+ [34mexpect[39m(speaki
+ng[33m.[39mband)[33m.
+[39mnot[33m.[39m[34m
+toBe[39m([32m'A1'[39m
+)[33m;[39m
+    [90m   |[39m      
+                        
+   [31m^[39m
+    [90m 96|[39m      
+ [34mexpect[39m(speaki
+ng[33m.[39mspeakingFal
+lbackApplied)[33m.[39m
+[34mtoBe[39m([35mtrue
+[39m)[33m;[39m
+    [90m 97|[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[2/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/hig
+hProficiencyParadox.test
+.ts[2m > [22mHigh 
+Proficiency Paradox 
+Resolution[2m > 
+[22mshould loosen 
+level capping for 
+high-confidence users 
+(2-band buffer)
+[31m[1mAssertionError
+[22m: expected 'B2' to 
+be 'C1' // Object.is 
+equality[39m
+
+Expected: [32m"C1"[39m
+Received: [31m"B2"[39m
+
+[36m [2mÔØ»[22m src/t
+ests/highProficiencyPara
+dox.test.ts:[2m147:28[
+22m[39m
+    [90m145|[39m      
+ console.log(`[DEBUG 
+TEST] Writing Level: 
+${writing.band}, 
+isCappÔÇª
+    [90m146|[39m
+    [90m147|[39m      
+ [34mexpect[39m(writin
+g[33m.[39mband)[33m.
+[39m[34mtoBe[39m([32m
+'C1'[39m)[33m;[39m
+    [90m   |[39m      
+                      
+[31m^[39m
+    [90m148|[39m      
+ [34mexpect[39m(writin
+g[33m.[39misCapped)[3
+3m.[39m[34mtoBe[39m(
+[35mfalse[39m)[33m;[3
+9m
+    [90m149|[39m     
+} [35mcatch[39m 
+(e[33m:[39m any) {
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[3/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/mul
+tiSkillBehavior.test.ts
+[2m > [22mTrace 6: 
+Weight application 
+integrity[2m > 
+[22mtask-defined 
+evidenceWeights are the 
+exact weights applied, 
+not defaults
+[31m[1mAssertionError
+[22m: expected { 
+listening: 0.5, 
+writing: 0.35, ÔÇª(2) } 
+to deeply equal { 
+listening: 1, writing: 
+0.7, ÔÇª(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+0.5,[39m
+[32m-   "listening": 
+1,[39m
+[32m-   "vocabulary": 
+0.5,[39m
+[32m-   "writing": 
+0.7,[39m
+[31m+   "grammar": 
+0.25,[39m
+[31m+   "listening": 
+0.5,[39m
+[31m+   "vocabulary": 
+0.25,[39m
+[31m+   "writing": 
+0.35,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/multiSkillBehavior.
+test.ts:[2m517:44[22m
+[39m
+    [90m515|[39m
+    [90m516|[39m     
+[90m// The applied 
+weights MUST exactly 
+match the task 
+definition[39m
+    [90m517|[39m     e
+xpect(lastEval.debug?.ap
+pliedWeights).toEqual(cu
+stomWeightQuestioÔÇª
+    [90m   |[39m      
+                        
+              
+[31m^[39m
+    [90m518|[39m     
+console.log('PASS: 
+Task-defined weights 
+are exactly what was 
+appliÔÇª
+    [90m519|[39m   
+})[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[4/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/mul
+tiSkillBehavior.test.ts
+[2m > [22mTrace 6: 
+Weight application 
+integrity[2m > 
+[22mfallback defaults 
+are used ONLY when 
+evidenceWeights is 
+missing from task
+[31m[1mAssertionError
+[22m: expected { 
+listening: 0.5, 
+writing: 0.35, ÔÇª(2) } 
+to deeply equal { 
+listening: 1, writing: 
+0.7, ÔÇª(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+0.4,[39m
+[32m-   "listening": 
+1,[39m
+[32m-   "vocabulary": 
+0.4,[39m
+[32m-   "writing": 
+0.7,[39m
+[31m+   "grammar": 
+0.25,[39m
+[31m+   "listening": 
+0.5,[39m
+[31m+   "vocabulary": 
+0.25,[39m
+[31m+   "writing": 
+0.35,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/multiSkillBehavior.
+test.ts:[2m549:44[22m
+[39m
+    [90m547|[39m     
+[90m// Should have 
+used getDefaultWeights('
+listening_summary')[39m
+    [90m548|[39m     
+// which returns { 
+listening: 1.0, 
+writing: 0.7, grammar: 
+0.4, vocÔÇª
+    [90m549|[39m     e
+xpect(lastEval.debug?.ap
+pliedWeights).toEqual({ 
+listening: 1.0, wÔÇª
+    [90m   |[39m      
+                        
+              
+[31m^[39m
+    [90m550|[39m     c
+onsole[33m.[39m[34mlo
+g[39m([32m'PASS: 
+Default weights used 
+correctly as fallback 
+Ô£ô'[39m)[33m;[39m
+    [90m551|[39m   
+})[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[5/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/mul
+tiSkillBehavior.test.ts
+[2m > [22mTrace 6: 
+Weight application 
+integrity[2m > 
+[22mengine NEVER 
+silently overrides 
+explicit task weights
+[31m[1mAssertionError
+[22m: expected { 
+grammar: 0.5 } to 
+deeply equal { grammar: 
+1 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+1,[39m
+[31m+   "grammar": 
+0.5,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/multiSkillBehavior.
+test.ts:[2m568:44[22m
+[39m
+    [90m566|[39m
+    [90m567|[39m     
+// The engine must NOT 
+add vocabulary or any 
+other skill that wasnÔÇª
+    [90m568|[39m     
+[34mexpect[39m(lastEval
+[33m.[39mdebug[33m?.
+[39mappliedWeights)[33m
+.[39m[34mtoEqual[39m(
+weirdWeights)[33m;[39m
+    [90m   |[39m      
+                        
+              
+[31m^[39m
+    [90m569|[39m
+    [90m570|[39m     
+[90m// Only grammar 
+should have received an 
+update[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[6/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/tra
+ceRunner.test.ts[2m > 
+[22mMulti-Skill 
+Behavioral Verification 
+Suite[2m > [22mTRACE 
+6a: Task-defined 
+evidenceWeights are 
+applied exactly
+[31m[1mAssertionError
+[22m: expected { 
+listening: 0.5, 
+writing: 0.35, ÔÇª(2) } 
+to deeply equal { 
+listening: 1, writing: 
+0.7, ÔÇª(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+0.5,[39m
+[32m-   "listening": 
+1,[39m
+[32m-   "vocabulary": 
+0.5,[39m
+[32m-   "writing": 
+0.7,[39m
+[31m+   "grammar": 
+0.25,[39m
+[31m+   "listening": 
+0.5,[39m
+[31m+   "vocabulary": 
+0.25,[39m
+[31m+   "writing": 
+0.35,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/traceRunner.test.ts
+:[2m311:38[22m[39m
+    [90m309|[39m     c
+onsole[33m.[39m[34mlo
+g[39m([32m'Applied:'[
+39m[33m,[39m [33mJSON
+[39m[33m.[39m[34mstr
+ingify[39m(ev[33m.[39
+mdebug[33m?.[39mapplie
+dWeights))[33m;[39m
+    [90m310|[39m
+    [90m311|[39m     
+[34mexpect[39m(ev[33m.
+[39mdebug[33m?.[39map
+pliedWeights)[33m.[39m
+[34mtoEqual[39m(q[33m
+.[39mevidenceWeights)[
+33m;[39m
+    [90m   |[39m      
+                        
+        [31m^[39m
+    [90m312|[39m     
+console.log('VERDICT: 
+Ô£à PASS ÔÇö 
+Task-defined weights 
+used exactly.'ÔÇª
+    [90m313|[39m   
+})[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[7/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/tra
+ceRunner.test.ts[2m > 
+[22mMulti-Skill 
+Behavioral Verification 
+Suite[2m > [22mTRACE 
+6b: Fallback defaults 
+used only when weights 
+missing
+[31m[1mAssertionError
+[22m: expected { 
+listening: 0.5, 
+writing: 0.35, ÔÇª(2) } 
+to deeply equal { 
+listening: 1, writing: 
+0.7, ÔÇª(2) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+0.4,[39m
+[32m-   "listening": 
+1,[39m
+[32m-   "vocabulary": 
+0.4,[39m
+[32m-   "writing": 
+0.7,[39m
+[31m+   "grammar": 
+0.25,[39m
+[31m+   "listening": 
+0.5,[39m
+[31m+   "vocabulary": 
+0.25,[39m
+[31m+   "writing": 
+0.35,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/traceRunner.test.ts
+:[2m339:38[22m[39m
+    [90m337|[39m
+    [90m338|[39m     
+// getDefaultWeights('li
+stening_summary') = { 
+listening: 1.0, writÔÇª
+    [90m339|[39m     e
+xpect(ev.debug?.appliedW
+eights).toEqual({ 
+listening: 1.0, 
+writingÔÇª
+    [90m   |[39m      
+                        
+        [31m^[39m
+    [90m340|[39m     
+console.log('VERDICT: 
+Ô£à PASS ÔÇö Defaults 
+applied correctly when 
+tasÔÇª
+    [90m341|[39m   
+})[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[8/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/tests/tra
+ceRunner.test.ts[2m > 
+[22mMulti-Skill 
+Behavioral Verification 
+Suite[2m > [22mTRACE 
+6c: Engine never 
+overrides explicit task 
+weights
+[31m[1mAssertionError
+[22m: expected { 
+grammar: 0.5 } to 
+deeply equal { grammar: 
+1 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "grammar": 
+1,[39m
+[31m+   "grammar": 
+0.5,[39m
+[2m  }[22m
+
+[36m [2mÔØ»[22m src/t
+ests/traceRunner.test.ts
+:[2m370:38[22m[39m
+    [90m368|[39m     c
+onsole[33m.[39m[34mlo
+g[39m([32m'Skills upda
+ted:'[39m[33m,[39m up
+datedSkills)[33m;[39m
+    [90m369|[39m
+    [90m370|[39m     
+[34mexpect[39m(ev[33m.
+[39mdebug[33m?.[39map
+pliedWeights)[33m.[39m
+[34mtoEqual[39m({ 
+grammar[33m:[39m 
+[34m1.0[39m 
+})[33m;[39m
+    [90m   |[39m      
+                        
+        [31m^[39m
+    [90m371|[39m     
+[34mexpect[39m(updatedS
+kills)[33m.[39m[34mto
+Equal[39m([[32m'gramma
+r'[39m])[33m;[39m
+    [90m372|[39m     
+console.log('VERDICT: 
+Ô£à PASS ÔÇö Engine 
+never silently adds 
+extra skÔÇª
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»[9/10]ÔÄ»[22m[39
+m
+
+[41m[1m FAIL 
+[22m[49m src/engine/__
+tests__/scoring-pipeline
+.test.ts[2m > [22mAdap
+tiveAssessmentEngine 
+Bug Fixes[2m > 
+[22mBug 4: 
+normalizeBand logic 
+inflates conservatively 
+(A2_B1 -> A2+, not B1)
+[31m[1mAssertionError
+[22m: expected 'A2' to 
+be 'A2+' // Object.is 
+equality[39m
+
+Expected: 
+[32m"A2[7m+[27m"[39m
+Received: [31m"A2"[39m
+
+[36m [2mÔØ»[22m src/e
+ngine/__tests__/scoring-
+pipeline.test.ts:[2m99:
+50[22m[39m
+    [90m 97|[39m
+    [90m 98|[39m     
+const sessionResult = As
+sessmentAnalysisService.
+fromAssessmentOutcÔÇª
+    [90m 99|[39m     
+[34mexpect[39m(sessionR
+esult[33m.[39moverall
+[33m.[39mestimatedLevel
+)[33m.[39m[34mtoBe[3
+9m([32m'A2+'[39m)[33m
+;[39m
+    [90m   |[39m      
+                        
+                    
+[31m^[39m
+    [90m100|[39m     
+[34mexpect[39m(sessionR
+esult[33m.[39mskills[
+33m.[39mlistening[33m.
+[39mestimatedLevel)[33
+m.[39m[34mtoBe[39m([
+32m'A2+'[39m)[33m;[39
+m
+    [90m101|[39m   
+})[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+ÔÄ»[10/10]ÔÄ»[22m[39m
+
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[2m | [22m[1m[32m45 passed[39m[22m[90m (55)[39m
+[2m   Start at [22m 20:30:54
+[2m   Duration [22m 2.59s[2m (transform 8.55s, setup 0ms, import 12.86s, tests 721ms, environment 3ms)[22m
+

@@ -450,6 +450,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['will leave', 'would leave', 'would have left', 'left'],
     correctAnswer: 'would have left',
     subskills: ['third conditional', 'past perfect', 'mixed conditionals'],
+    targetDescriptorIds: ['gram_B2_accuracy_01'], // Can use a variety of complex structures
   },
   {
     id: 'b2-gram-02',
@@ -463,6 +464,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['she completed', 'did she complete', 'she did complete', 'completed she'],
     correctAnswer: 'did she complete',
     subskills: ['inversion after negative adverbials', 'complex sentence structure'],
+    targetDescriptorIds: ['gram_B2_accuracy_02'],
   },
 
   // Vocabulary B2
@@ -536,6 +538,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     expectedResponseType: 'opinion',
     semanticIntent: 'reasoned argument on AI in education',
     requiredContentPoints: ['impact mentioned', 'supporting argument'],
+    targetDescriptorIds: ['write_B2_argument_01'], // Can develop an argument systematically
   },
 
   // Listening B2
@@ -577,6 +580,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     expectedResponseType: 'opinion',
     semanticIntent: 'agreement/disagreement on remote work future',
     requiredContentPoints: ['position (agree/disagree)', 'supporting reason'],
+    targetDescriptorIds: ['speak_B2_argument_01'], // Can develop a clear argument, expanding and supporting ideas
   },
   {
     id: 'b2p-list-01',
@@ -621,6 +625,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['he entered', 'had he entered', 'did he entered', 'he had entered'],
     correctAnswer: 'had he entered',
     subskills: ['inversion', 'past perfect', 'literary grammar'],
+    targetDescriptorIds: ['gram_C1_accuracy_01'], // Can maintain high degree of grammatical accuracy
   },
   {
     id: 'c1-gram-02',
@@ -634,6 +639,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['which', 'whose', 'that', 'whom'],
     correctAnswer: 'whose',
     subskills: ['relative clauses', 'possessive relative pronoun'],
+    targetDescriptorIds: ['gram_C1_accuracy_02'],
   },
 
   // Vocabulary C1
@@ -704,6 +710,7 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     expectedResponseType: 'opinion',
     semanticIntent: 'nuanced argument on globalization benefits and harms',
     requiredContentPoints: ['nuance (both sides/complexity)', 'developing nations focus'],
+    targetDescriptorIds: ['write_C1_argument_01'], // Can write clear, well-structured exposition on complex subjects
   },
 
   // Listening C1

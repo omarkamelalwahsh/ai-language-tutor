@@ -11,6 +11,7 @@ function baseLLM(): groqEvaluator.DescriptorEvaluationResult {
     syntactic_complexity: 0.8, coherence: 0.8, grammar_control: 0.8,
     typo_severity: 0.1, idiomatic_usage: 0.8, register_control: 0.8,
     estimated_band: 'A2', confidence: 0.8, rationale: 'Test.',
+    relevance: 1.0, is_off_topic: false, missing_content_points: [],
   };
 }
 
@@ -41,10 +42,10 @@ describe('Speaking Response Mode Deterministic Fallback', () => {
     expect(outcome.speakingAudit?.speakingFallbackApplied).toBe(true);
     expect(outcome.speakingAudit?.typedFallbacksUsed).toBe(1);
 
-    // 2. The speaking skill should be severely capped to A1
+    // 2. The speaking skill should be set to A1 floor due to insufficient_data
     expect(outcome.skillBreakdown['speaking'].band).toBe('A1');
     expect(outcome.skillBreakdown['speaking'].status).toBe('insufficient_data');
-    expect(outcome.skillBreakdown['speaking'].isCapped).toBe(true);
+    expect(outcome.skillBreakdown['speaking'].isCapped).toBe(false);
     expect(outcome.skillBreakdown['speaking'].speakingFallbackApplied).toBe(true);
     expect(outcome.skillBreakdown['speaking'].speakingFallbackReason).toContain('No spoken audio');
   });
