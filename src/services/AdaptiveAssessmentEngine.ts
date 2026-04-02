@@ -247,7 +247,7 @@ export class AdaptiveAssessmentEngine {
       itemId: question.id,
       targetCEFR: question.difficulty as CEFRLevel,
       primarySkill: question.primarySkill as any,
-      questionType: mapLegacyQuestionType(question.type, question.primarySkill, responseMode),
+      questionType: question.type, // RAW legacy type — pipeline will map it once
       responseWordCount: features.wordCount || answer.trim().split(/\s+/).length,
       responseMode: responseMode,
       llmOutput: llmResult ? (llmResult as any) : null,

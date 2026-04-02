@@ -23,6 +23,9 @@ export class FeatureExtractor {
       };
     }
 
+    // NORMALIZATION: Strip trailing punctuation for short answers to avoid false negatives (e.g., "had he entered.")
+    const normalizedMatch = normAnswer.toLowerCase().replace(/[.?!,;:]\s*$/, '').trim();
+
     const words = normAnswer.split(/\s+/).filter(w => w.length > 0);
     const sentences = normAnswer.split(/[.!?]+/).filter(s => s.trim().length > 0);
     
@@ -45,15 +48,16 @@ export class FeatureExtractor {
     // Basic Grammar Proxy (punctuation check vs length)
     const punctuationCount = (normAnswer.match(/[.?!,;:]/g) || []).length;
     const punctuationAccuracy = wordCount > 0 ? Math.min(1.0, punctuationCount / (wordCount / 5)) : 0;
-
     // Correctness (Continuous Fuzzy Matching)
     let correctness = 0;
-    if (['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(question.type)) {
+    if (['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq', 'grammar_mcq', 'vocab_mcq'].includes(question.type)) {
       if (question.correctAnswer) {
         const expected = Array.isArray(question.correctAnswer) 
           ? question.correctAnswer[0] 
           : question.correctAnswer;
-        correctness = normAnswer.toLowerCase() === expected.toLowerCase() ? 1.0 : 0.0;
+        
+        const normExpected = expected.toLowerCase().replace(/[.?!,;:]\s*$/, '').trim();
+        correctness = normalizedMatch === normExpected ? 1.0 : 0.0;
       }
     } else if (['listening_summary', 'short_text', 'picture_description'].includes(question.type)) {
       const keywords = question.acceptedAnswers || 
@@ -64,12 +68,12 @@ export class FeatureExtractor {
       if (filteredKeywords.length > 0) {
         // FUZZY MATCHING: calculate average best match score across keywords
         let totalMatchScore = 0;
-        const inputWords = normAnswer.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        const inputWords = normalizedMatch.split(/\s+/).filter(w => w.length > 2);
         
         for (const kw of filteredKeywords) {
-          const kwLower = kw.toLowerCase();
-          // Direct inclusion is 1.0
-          if (normAnswer.toLowerCase().includes(kwLower)) {
+          const kwLower = kw.toLowerCase().replace(/[.?!,;:]\s*$/, '').trim();
+          // Direct inclusion check
+          if (normalizedMatch.includes(kwLower)) {
             totalMatchScore += 1.0;
             continue;
           }
