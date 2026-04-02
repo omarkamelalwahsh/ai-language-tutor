@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, BarChart3, CheckCircle2, Zap, Target, BookOpen, Mic, PenTool, Headphones } from 'lucide-react';
+import { ArrowRight, BarChart3, CheckCircle2, Zap, Target, BookOpen, Mic, PenTool, Headphones, AlertTriangle, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 
 const skillIcons: Record<string, React.ReactNode> = {
@@ -19,7 +19,10 @@ interface ResultAnalysisViewProps {
   onReview?: () => void;
 }
 
-export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, onContinue, onReview }) => {
+export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, assessmentOutcome, onContinue, onReview }) => {
+  const speakingAudit = assessmentOutcome?.speakingAudit;
+  const isSpeakingFallback = speakingAudit?.fallbackApplied;
+
   const confidenceLabel = result.overall.confidence >= 0.8 ? `Confident ${result.overall.estimatedLevel}` :
                           result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
                           `${result.overall.estimatedLevel} emerging`;
@@ -58,6 +61,22 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
             Based on your responses, we've analyzed your capabilities to pinpoint your exact placement.
           </p>
         </motion.div>
+
+        {/* Assessment Integrity Notice (Conditional) */}
+        {isSpeakingFallback && (
+          <motion.div variants={staggerItem} className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex gap-4 items-start shadow-sm">
+            <div className="bg-amber-100 p-2 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="text-amber-900 font-bold mb-1">Assessment Integrity Notice: Speaking Fallback Applied</h3>
+              <p className="text-amber-800 text-sm leading-relaxed">
+                {speakingAudit?.rationale || "Spoken evidence was missing for one or more speaking tasks. Your speaking proficiency has been capped at A1 to ensure assessment accuracy."}
+              </p>
+              <button className="mt-3 text-xs font-bold text-amber-700 hover:text-amber-900 underline uppercase tracking-widest">Why does this happen?</button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Overall Level Panel */}
         <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
@@ -107,6 +126,16 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, (skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%` }} />
                     </div>
+                    {skillRes.skill === 'speaking' && isSpeakingFallback && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-amber-600 uppercase tracking-tighter">
+                        <ShieldAlert className="w-3 h-3" /> Insufficient spoken evidence
+                      </div>
+                    )}
+                    {skillRes.skill === 'speaking' && !isSpeakingFallback && speakingAudit?.validVoiceSubmissions > 0 && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+                        <ShieldCheck className="w-3 h-3" /> Validated voice evidence
+                      </div>
+                    )}
                   </div>
                 )
               )}

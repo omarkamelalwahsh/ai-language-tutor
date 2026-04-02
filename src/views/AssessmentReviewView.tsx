@@ -123,21 +123,34 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                 
                 <div className="p-6 space-y-4">
                   {/* Meta */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-wrap gap-2">
                        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${skillColors[question.skill]}`}>
                          {skillIcons[question.skill]} {question.skill}
                        </span>
+                       
+                       {/* Response Mode Badge */}
+                       {ev.responseMode === 'voice' && (
+                         <span className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-emerald-200">
+                           <Mic className="w-3 h-3" /> Voice Recording
+                         </span>
+                       )}
+                       {ev.responseMode === 'typed_fallback' && (
+                         <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-amber-200">
+                           <PenTool className="w-3 h-3" /> Typed Fallback
+                         </span>
+                       )}
+
                        <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full uppercase tracking-tighter">
                          Level {question.difficulty}
                        </span>
                     </div>
                     {isCorrect ? (
-                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
+                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs whitespace-nowrap">
                         <CheckCircle2 className="w-4 h-4" /> Correct
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs">
+                      <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs whitespace-nowrap">
                         <XCircle className="w-4 h-4" /> Incorrect
                       </div>
                     )}

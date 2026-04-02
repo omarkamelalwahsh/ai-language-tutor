@@ -7,6 +7,36 @@ export type SkillName = "listening" | "reading" | "writing" | "speaking" | "voca
 
 export type ConfidenceBand = "low" | "medium" | "high";
 
+// ============================================================================
+// Speaking Response Mode & Submission Metadata
+// ============================================================================
+
+/** How the learner responded to a speaking task */
+export type ResponseMode = 'voice' | 'typed_fallback';
+
+/** Metadata attached to every speaking task submission */
+export type SpeakingSubmissionMeta = {
+  responseMode: ResponseMode;
+  hasValidAudio: boolean;
+  audioDurationSec?: number;
+  micCheckPassed?: boolean;
+  transcriptionAvailable?: boolean;
+};
+
+/** Session-level audit trail for speaking evidence integrity */
+export type SpeakingAuditTrail = {
+  micCheckPassed: boolean;
+  voiceRecordingsAttempted: number;
+  voiceRecordingsValid: number;
+  typedFallbacksUsed: number;
+  speakingTasksTotal: number;
+  /** Deterministic: true if ANY valid voice submission exists */
+  hasAnySpeakingEvidence: boolean;
+  /** If true, the final speaking level was forced to A1 */
+  speakingFallbackApplied: boolean;
+  fallbackReason?: string;
+};
+
 export type DescriptorEvidence = {
   descriptorId: string;
   descriptorText: string;
@@ -72,6 +102,17 @@ export type AssessmentSessionResult = {
   generatedAt: string;
 };
 
+/**
+ * Normalized user preference model to influence task selection content.
+ */
+export type LearnerContextProfile = {
+  goal?: "casual" | "serious" | "professional";
+  /** Specific situation or industry focus (e.g. "Travel", "IT", "Medicine") */
+  goalContext?: string;
+  /** IDs from TOPIC_DEFINITIONS in src/data/topics.ts */
+  preferredTopics: string[];
+};
+
 export type TaskEvaluation = {
   taskId: string;
   primarySkill: AssessmentSkill; // Ensure AssessmentSkill is imported/available. (It's defined below, but TypeScript allows forward references in the same file if no circular runtime issues. We will move types if needed)
@@ -84,6 +125,8 @@ export type TaskEvaluation = {
     coherence?: number;
     fluency?: number;
   };
+  responseMode?: ResponseMode;
+  speakingMeta?: SpeakingSubmissionMeta;
   skillEvidence: Partial<Record<AssessmentSkill, number>>;
   descriptorEvidence: Array<{
     descriptorId: string;
@@ -94,6 +137,11 @@ export type TaskEvaluation = {
   notes: string[];
   // Legacy paths to keep UI working while we refactor
   rawSignals?: Record<string, number | string | boolean>;
+  relevance?: number;
+  taskCompletion?: number;
+  isOffTopic?: boolean;
+  missingContentPoints?: string[];
+  rationale?: string;
   rubricScores?: {
     criterion: string;
     score: number;
@@ -104,6 +152,14 @@ export type TaskEvaluation = {
     support: number; // 0..1
   }[];
   skill?: SkillName;
+  difficulty: DifficultyBand;
+  debug?: {
+    taskId: string;
+    appliedWeights: Partial<Record<AssessmentSkill, number>>;
+    extractedSignals: Record<string, number>;
+    skillUpdates: Record<string, number>;
+    reason: string;
+  };
 };
 
 // ============================================================================
@@ -208,6 +264,7 @@ export type QuestionType =
 /** Supported scoring channels for integrated tasks */
 export type ScoringChannel =
   | "comprehension"
+  | "relevance"
   | "task_completion"
   | "grammar_accuracy"
   | "lexical_range"
@@ -219,7 +276,7 @@ export type AssessmentQuestion = {
   id: string;
   primarySkill: AssessmentSkill;
   secondarySkills?: AssessmentSkill[];
-  skillWeights?: Partial<Record<AssessmentSkill, number>>;
+  evidenceWeights?: Partial<Record<AssessmentSkill, number>>;
   difficulty: DifficultyBand;
   type: QuestionType;
   prompt: string;
@@ -243,6 +300,17 @@ export type AssessmentQuestion = {
   estimatedTimeSec?: number;
   taskTags?: string[];
   
+  // Topic Personalization Tags
+  topicTags?: string[]; // e.g. ["travel", "daily_life"]
+  domainTags?: string[]; // e.g. ["office", "shop", "school"]
+  goalTags?: string[]; // e.g. ["casual", "professional", "serious"]
+  
+  // Open-Ended Task Specification
+  expectedResponseType?: "opinion" | "narrative" | "description" | "summary" | "explanation";
+  semanticIntent?: string;
+  requiredContentPoints?: string[];
+  relevanceKeywords?: string[];
+  
   // Backward compatibility
   skill?: AssessmentSkill;
   rubricId?: string;
@@ -263,6 +331,10 @@ export type AnswerRecord = {
   taskType?: QuestionType;
   /** LLM-derived output band when divergence is detected */
   outputBandOverride?: DifficultyBand;
+  /** Speaking-specific: how the learner responded */
+  responseMode?: ResponseMode;
+  /** Speaking-specific: full submission metadata */
+  speakingMeta?: SpeakingSubmissionMeta;
 };
 
 export type AssessmentStability = "stable" | "emerging" | "fragile" | "insufficient_data";
@@ -303,6 +375,14 @@ export type AdaptiveAssessmentState = {
   stopReason?: 'max_reached' | 'confidence_threshold' | 'level_stabilized' | 'pool_exhausted';
   /** Track jumps that require a validation question */
   pendingValidationBand?: DifficultyBand;
+  /** Speaking evidence audit trail */
+  speakingAudit: SpeakingAuditTrail;
+  /** User-selected context profile for personalization */
+  contextProfile?: LearnerContextProfile;
+  /** Performance per topic (for feedback loops/dampening) */
+  topicPerformance: Record<string, { successCount: number; failCount: number }>;
+  /** Performance per domain (for feedback loops/dampening) */
+  domainPerformance: Record<string, { successCount: number; failCount: number }>;
 };
 
 /** Final structured output from the adaptive assessment */
@@ -319,12 +399,17 @@ export type AssessmentOutcome = {
     missingDescriptors: string[]; // IDs of descriptors where contradiction > support
     isCapped?: boolean;
     cappedReason?: string;
+    /** Speaking-only: was this skill forced to A1 due to missing voice evidence? */
+    speakingFallbackApplied?: boolean;
+    speakingFallbackReason?: string;
   }>;
   strengths: string[];
   weaknesses: string[];
   answerHistory: AnswerRecord[];
   totalQuestions: number;
   stopReason: string;
+  /** Session-level speaking audit trail */
+  speakingAudit?: SpeakingAuditTrail;
 };
 
 /** Legacy QuestionResult type (backward compat) */

@@ -68,28 +68,30 @@ Your job is NOT to assign the final CEFR result.
 Your job is to extract structured linguistic signals from the learner response.
 
 Evaluate the USER_RESPONSE using these dimensions:
-1. semantic_accuracy
-2. task_completion
-3. lexical_sophistication
-4. syntactic_complexity
-5. coherence
-6. grammar_control
-7. typo_severity
-8. idiomatic_usage
-9. register_control
+1. relevance (Is it on-topic?)
+2. task_completion (Did it meet the requirements?)
+3. semantic_accuracy
+4. lexical_sophistication
+5. syntactic_complexity
+6. coherence
+7. grammar_control
+8. typo_severity
+9. idiomatic_usage
+10. register_control
 
 Scoring rules:
 - All scores must be numbers between 0.0 and 1.0
-- Minor typos must NOT heavily reduce scores if meaning is preserved
-- Short answers may still score well if they are precise and high-quality
-- Distinguish meaning accuracy from language quality
-- estimated_band is only an approximate linguistic estimate, not the final placement
-- confidence must reflect confidence in the extracted signals, not final CEFR certification
+- CORE GATING RULE: If the USER_RESPONSE is COMPLETELY unrelated to the question, "is_off_topic" MUST be true and "relevance" < 0.3.
+- If response misses specific metadata points (requiredContentPoints), reflect in "missing_content_points" and "task_completion".
+- Language quality must NOT rescue an off-topic answer.
 
 Return ONLY valid JSON with this exact schema:
 {
-  "semantic_accuracy": number,
+  "relevance": number,
   "task_completion": number,
+  "is_off_topic": boolean,
+  "missing_content_points": string[],
+  "semantic_accuracy": number,
   "lexical_sophistication": number,
   "syntactic_complexity": number,
   "coherence": number,
@@ -120,10 +122,12 @@ function validatePayload(payload) {
   return null;
 }
 
-function fallbackResult(currentBand, reason = "Deterministic fallback used.") {
   return {
-    semantic_accuracy: 0.5,
+    relevance: 1.0,
     task_completion: 0.5,
+    is_off_topic: false,
+    missing_content_points: [],
+    semantic_accuracy: 0.5,
     lexical_sophistication: 0.35,
     syntactic_complexity: 0.35,
     coherence: 0.4,
@@ -136,7 +140,6 @@ function fallbackResult(currentBand, reason = "Deterministic fallback used.") {
     rationale: reason,
     _fallback: true,
   };
-}
 
 function isValidBand(value) {
   return ["A1", "A2", "B1", "B2", "C1", "C2"].includes(value);
@@ -144,8 +147,11 @@ function isValidBand(value) {
 
 function sanitizeSignalResult(parsed, currentBand) {
   return {
+    relevance: clamp01(parsed.relevance ?? 1.0),
+    task_completion: clamp01(parsed.task_completion ?? 1.0),
+    is_off_topic: Boolean(parsed.is_off_topic),
+    missing_content_points: Array.isArray(parsed.missing_content_points) ? parsed.missing_content_points : [],
     semantic_accuracy: clamp01(parsed.semantic_accuracy),
-    task_completion: clamp01(parsed.task_completion),
     lexical_sophistication: clamp01(parsed.lexical_sophistication),
     syntactic_complexity: clamp01(parsed.syntactic_complexity),
     coherence: clamp01(parsed.coherence),
@@ -163,8 +169,9 @@ function hasRequiredSignalSchema(parsed) {
   if (!parsed || typeof parsed !== "object") return false;
 
   const requiredNumericFields = [
-    "semantic_accuracy",
+    "relevance",
     "task_completion",
+    "semantic_accuracy",
     "lexical_sophistication",
     "syntactic_complexity",
     "coherence",
@@ -269,7 +276,6 @@ app.post("/api/evaluate", async (req, res) => {
 
     console.log("[LLM RAW RESPONSE]", parsed);
 
-    // FIX: Remove all references to old keys (matchedBand, difficultyAction).
     // Ensure only the new signal schema is validated.
     if (!hasRequiredSignalSchema(parsed)) {
       circuitBreaker.recordFailure("Incomplete signal schema from LLM.");

@@ -3,9 +3,14 @@ import { LLMConfig, ClientCircuitBreaker } from '../config/backend-config';
 export type DifficultyBand = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export type DescriptorEvaluationResult = {
-  // New Signal-Based Schema
-  semantic_accuracy: number;     // 0.0-1.0
+  // Relevance Gating Signals
+  relevance: number;             // 0.0-1.0
   task_completion: number;       // 0.0-1.0
+  is_off_topic: boolean;
+  missing_content_points: string[];
+  
+  // Linguistic Signals
+  semantic_accuracy: number;     // 0.0-1.0
   lexical_sophistication: number; // 0.0-1.0
   syntactic_complexity: number;   // 0.0-1.0
   coherence: number;             // 0.0-1.0
@@ -28,6 +33,8 @@ export type EvaluationPayload = {
     prompt: string;
     type: string;
     subskills: string[];
+    semanticIntent?: string;
+    requiredContentPoints?: string[];
   };
   learnerAnswer: string;
   descriptors: Partial<Record<DifficultyBand, string[]>>;
@@ -45,8 +52,11 @@ export type EvaluationPayload = {
  */
 function sanitizeLinguisticResult(data: any): DescriptorEvaluationResult {
   return {
+    relevance: data.relevance ?? 1.0,
+    task_completion: data.task_completion ?? 1.0,
+    is_off_topic: !!data.is_off_topic,
+    missing_content_points: Array.isArray(data.missing_content_points) ? data.missing_content_points : [],
     semantic_accuracy: data.semantic_accuracy ?? 0.0,
-    task_completion: data.task_completion ?? 0.0,
     lexical_sophistication: data.lexical_sophistication ?? 0.0,
     syntactic_complexity: data.syntactic_complexity ?? 0.0,
     coherence: data.coherence ?? 0.0,

@@ -138,15 +138,18 @@ export class RuntimeService {
     return tasks;
   }
 
-  /**
+    /**
    * Deterministic evaluation of user responses using real text analysis.
    * Produces nuanced feedback based on task type and response quality.
    */
-  public static evaluateResponse(task: SessionTask, response: any): { feedback: TaskFeedbackPayload; result?: TaskEvaluationResult } {
+  public static evaluateResponse(task: SessionTask, responsePayload: any): { feedback: TaskFeedbackPayload; result?: TaskEvaluationResult } {
     // Extract text from response (handle different module shapes)
     const rawText: string =
-      typeof response === 'string' ? response :
-      response?.answer || response?.recognizedWord || '';
+      typeof responsePayload === 'string' ? responsePayload :
+      responsePayload?.answer || responsePayload?.recognizedWord || '';
+
+    const responseMode = responsePayload?.responseMode || 'text'; // default
+    const isSpeakingFallback = task.targetSkill === 'speaking' && responseMode === 'typed_fallback';
 
     const analysis = analyzeResponse(rawText);
 
@@ -164,7 +167,7 @@ export class RuntimeService {
             primaryMessage: 'Correct! That\'s exactly the right word in this context.',
             canAdvance: true,
           },
-          result: this.buildResult(task, 95, analysis, true),
+          result: this.buildResult(task, 95, analysis, true, responseMode),
         };
       } else {
         return {
@@ -184,20 +187,24 @@ export class RuntimeService {
 
     // Excellent response (score >= 65)
     if (score >= 65) {
-      const praise = task.taskType === 'writing'
+      let praise = task.taskType === 'writing'
         ? 'Strong writing! Your sentence structure and word choice are well-developed.'
         : task.taskType === 'speaking'
           ? 'Great spoken response! You communicated your meaning clearly and naturally.'
           : 'Excellent comprehension! You captured the key points accurately.';
 
+      if (isSpeakingFallback) {
+        praise = 'Good completion, but try to use your voice next time for a more complete assessment.';
+      }
+
       return {
         feedback: {
           taskId: task.taskId,
-          feedbackType: 'praise',
+          feedbackType: isSpeakingFallback ? 'correction' : 'praise',
           primaryMessage: praise,
           canAdvance: true,
         },
-        result: this.buildResult(task, score, analysis, true),
+        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 60) : score, analysis, true, responseMode),
       };
     }
 
@@ -215,7 +222,7 @@ export class RuntimeService {
           suggestedRetryConstraint: 'Write at least 2 full sentences with a linking word.',
           canAdvance: true,
         },
-        result: this.buildResult(task, score, analysis, true),
+        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 50) : score, analysis, true, responseMode),
       };
     }
 
@@ -242,12 +249,14 @@ export class RuntimeService {
     task: SessionTask,
     score: number,
     analysis: ReturnType<typeof analyzeResponse>,
-    meaningSuccess: boolean
+    meaningSuccess: boolean,
+    responseMode?: string
   ): TaskEvaluationResult {
     return {
       taskId: task.taskId,
       taskType: task.taskType,
       successScore: score,
+      responseMode: (responseMode as any) || 'text',
       dimensions: {
         complexity: analysis.complexityScore,
         vocabulary: Math.round(analysis.uniqueWordRatio * 100),

@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, MessageSquare, Focus, TrendingUp, TrendingDown, Shield, CheckCircle2, XCircle } from 'lucide-react';
 import { FadeTransition } from '../lib/animations';
-import { AssessmentQuestion, AssessmentOutcome, TaskEvaluation } from '../types/assessment';
+import { AssessmentQuestion, AssessmentOutcome, TaskEvaluation, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
-import { TaskResult } from '../types/app';
+import { TaskResult, OnboardingState } from '../types/app';
+import { SessionTask } from '../types/runtime';
 import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
+import { SpeakingModule } from '../components/runtime/modules/SpeakingModule';
 
 // ============================================================================
 // Question Renderer Component
@@ -14,7 +16,7 @@ import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl'
 const TaskQuestion: React.FC<{
   task: AssessmentQuestion;
   questionNumber: number;
-  onCompleteTask: (answer: string, responseTime: number) => void;
+  onCompleteTask: (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => void;
 }> = ({ task, questionNumber, onCompleteTask }) => {
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -155,6 +157,23 @@ const TaskQuestion: React.FC<{
          </div>
       )}
 
+      {task.skill === 'speaking' && (
+         <div className="mb-2 mt-4">
+           <SpeakingModule 
+             // Map AssessmentQuestion to SessionTask locally for the module since they are decoupled
+             task={{ taskId: task.id, taskType: 'speaking', targetSkill: 'speaking', prompt: task.prompt, learningObjective: '', supportSettings: { allowHints: false, allowReplay: false, maxRetries: 0 }, difficultyTarget: task.difficulty, completionCondition: '' } as SessionTask}
+             onSubmit={(payload) => {
+               const responseTime = Date.now() - startTime.current;
+               onCompleteTask(payload.answer, responseTime, payload.responseMode, payload.speakingMeta);
+             }}
+             isEvaluating={false}
+             feedback={null}
+             retryCount={0}
+           />
+         </div>
+      )}
+
+      {task.skill !== 'speaking' && (
       <div className="mt-auto space-y-4">
         {isMCQ && task.options ? (
           <div className="flex flex-col gap-3">
@@ -241,6 +260,7 @@ const TaskQuestion: React.FC<{
           </div>
         )}
       </div>
+      )}
     </motion.div>
   );
 };
@@ -284,15 +304,8 @@ const AnswerFeedback: React.FC<{
   </AnimatePresence>
 );
 
-// ============================================================================
 // Main Diagnostic View
 // ============================================================================
-
-interface OnboardingState {
-  goal: 'casual' | 'serious' | 'professional' | null;
-  nativeLanguage: string;
-  targetLanguage: string;
-}
 
 interface DiagnosticViewProps {
   onboardingState?: OnboardingState | null;
@@ -305,7 +318,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     if (onboardingState?.goal === 'casual') startBand = 'A1';
     if (onboardingState?.goal === 'professional') startBand = 'B1';
     
-    return new AdaptiveAssessmentEngine(startBand);
+    // Map onboarding state to learner context profile
+    const contextProfile: LearnerContextProfile | undefined = onboardingState ? {
+      goal: onboardingState.goal || undefined,
+      goalContext: onboardingState.goalContext || undefined,
+      preferredTopics: (onboardingState.topics || []) as string[],
+    } : undefined;
+
+    return new AdaptiveAssessmentEngine(startBand, contextProfile);
   }, [onboardingState]);
   const [currentTask, setCurrentTask] = useState<AssessmentQuestion | null>(null);
   const [progress, setProgress] = useState(engine.getProgress());
@@ -324,14 +344,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   }, [engine]);
 
   const handleNextTask = useCallback(
-    async (answer: string, responseTime: number) => {
+    async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
       if (!currentTask || isEvaluating) return;
 
       setIsEvaluating(true);
 
       try {
         // Submit to adaptive engine (now async via Groq)
-        const { correct } = await engine.submitAnswer(currentTask, answer, responseTime);
+        const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         setProgress(engine.getProgress());
 
         // Show feedback flash

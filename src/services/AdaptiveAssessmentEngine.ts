@@ -13,6 +13,10 @@ import {
   AssessmentFeatures,
   DescriptorEvidence,
   QuestionType,
+  ResponseMode,
+  SpeakingSubmissionMeta,
+  SpeakingAuditTrail,
+  LearnerContextProfile,
 } from '../types/assessment';
 import { TaskResult } from '../types/app';
 import { QUESTION_BANK } from '../data/assessment-questions';
@@ -57,7 +61,7 @@ export class AdaptiveAssessmentEngine {
   private state: AdaptiveAssessmentState;
   private questionPool: AssessmentQuestion[];
 
-  constructor(startingBand: DifficultyBand = 'A2') {
+  constructor(startingBand: DifficultyBand = 'A2', contextProfile?: LearnerContextProfile) {
     this.questionPool = [...QUESTION_BANK];
 
     // Initialize skill estimates
@@ -86,6 +90,18 @@ export class AdaptiveAssessmentEngine {
       overallConfidence: 0,
       questionsAnswered: 0,
       completed: false,
+      speakingAudit: {
+        micCheckPassed: false,
+        voiceRecordingsAttempted: 0,
+        voiceRecordingsValid: 0,
+        typedFallbacksUsed: 0,
+        speakingTasksTotal: 0,
+        hasAnySpeakingEvidence: false,
+        speakingFallbackApplied: false,
+      },
+      contextProfile,
+      topicPerformance: {},
+      domainPerformance: {},
     };
   }
 
@@ -114,8 +130,26 @@ export class AdaptiveAssessmentEngine {
   public async submitAnswer(
     question: AssessmentQuestion,
     answer: string,
-    responseTimeMs: number
+    responseTimeMs: number,
+    responseMode?: ResponseMode,
+    speakingMeta?: SpeakingSubmissionMeta
   ): Promise<{ correct: boolean; score: number }> {
+    // Update speaking audit trail if this is a speaking task
+    if (question.primarySkill === 'speaking') {
+      this.state.speakingAudit.speakingTasksTotal++;
+      if (speakingMeta?.micCheckPassed) this.state.speakingAudit.micCheckPassed = true;
+      
+      if (responseMode === 'voice') {
+        this.state.speakingAudit.voiceRecordingsAttempted++;
+        if (speakingMeta?.hasValidAudio) {
+          this.state.speakingAudit.voiceRecordingsValid++;
+          this.state.speakingAudit.hasAnySpeakingEvidence = true;
+        }
+      } else if (responseMode === 'typed_fallback') {
+        this.state.speakingAudit.typedFallbacksUsed++;
+      }
+    }
+
     const features = FeatureExtractor.extract(question, answer, responseTimeMs);
     
     // ── Step 3: DETERMINISTIC Descriptor Matching (Layer 3) ──
@@ -126,6 +160,7 @@ export class AdaptiveAssessmentEngine {
     
     // ── Step 4: OPTIONAL LLM enrichment (Layer 5) ──
     const llmResult = await this.evaluateWithBackend(question, answer);
+    console.log('[DEBUG] submitAnswer llmResult:', JSON.stringify(llmResult));
     
     // ── Step 5: Synthesize Evidence (Synthesizer Layer) ──
     const finalMatches = this.synthesizeEvidence(matched, llmResult);
@@ -133,24 +168,34 @@ export class AdaptiveAssessmentEngine {
     // ── Step 6: Update State & Accumulate Evidence (Layer 4) ──
     const deterministicScore = this.calculateDeterministicScore(features as any, finalMatches, question.type);
     
-    // UNIFIED SAFETY NET: Decouple 'isPass' from LLM-only judgment.
-    // If the LLM understands it (>=0.3) OR the deterministic matcher found it (>=0.7), it's a PASS.
-    const llmPassScore = llmResult 
-      ? (llmResult.semantic_accuracy * 0.8 + llmResult.task_completion * 0.2)
-      : 0;
-    
-    const isPass = (llmPassScore >= 0.3) || (features.correctness >= 0.7);
+    // ── MULTI-CHANNEL EVALUATION ──
+    const extractedChannels = {
+      relevance: llmResult ? llmResult.relevance : 1.0,
+      taskCompletion: llmResult ? llmResult.task_completion : features.correctness,
+      comprehension: llmResult ? llmResult.semantic_accuracy : features.correctness,
+      grammarAccuracy: llmResult ? llmResult.grammar_control : features.correctness,
+      lexicalRange: llmResult ? llmResult.lexical_sophistication : features.correctness,
+      coherence: llmResult ? llmResult.coherence : features.correctness,
+      fluency: llmResult ? (llmResult.idiomatic_usage + llmResult.register_control) / 2 : features.correctness,
+    };
 
-    // Weighted aggregation of LLM signals (0.0 - 1.0) for Level Tracking
-    const llmSignalScore = llmResult ? (
-      llmResult.semantic_accuracy * 0.3 +
-      llmResult.task_completion * 0.1 +
-      llmResult.grammar_control * 0.3 +
-      llmResult.lexical_sophistication * 0.3
-    ) : 0;
+    // Passed if meaning was correct (comprehension) AND broadly relevant
+    const isPass = (extractedChannels.comprehension >= 0.3 && extractedChannels.relevance >= 0.4) || (features.correctness >= 0.7);
 
-    // Final score uses the full qualitative depth to determine "Proficiency" (CEFR band)
-    const finalScore = llmResult ? (deterministicScore * 0.3 + llmSignalScore * 0.7) : deterministicScore;
+    // Get strictly defined task weights OR fallback
+    const appliedWeights = question.evidenceWeights || this.getDefaultWeights(question.type);
+
+    // Derive the LEGACY scalar score (restricted to primary skill)
+    let finalScore = deterministicScore;
+    if (llmResult) {
+       let dynamicLLMScore = 0;
+       if (question.primarySkill === 'grammar') dynamicLLMScore = extractedChannels.grammarAccuracy;
+       else if (question.primarySkill === 'vocabulary') dynamicLLMScore = extractedChannels.lexicalRange;
+       else if (question.primarySkill === 'reading' || question.primarySkill === 'listening') dynamicLLMScore = extractedChannels.comprehension;
+       else dynamicLLMScore = (extractedChannels.taskCompletion * 0.6) + (extractedChannels.coherence * 0.4);
+       
+       finalScore = (deterministicScore * 0.3) + (dynamicLLMScore * 0.7);
+    }
 
     const record: AnswerRecord = {
       taskId: question.id,
@@ -158,14 +203,86 @@ export class AdaptiveAssessmentEngine {
       skill: question.primarySkill as AssessmentSkill,
       difficulty: BAND_VALUE[question.difficulty],
       correct: isPass,
-      score: finalScore,
+      score: clamp01(finalScore),
       answer,
       responseTimeMs,
       taskType: question.type,
+      responseMode,
+      speakingMeta
     };
 
+    // ── RELEVANCE GATING LAYER ──
+    if (llmResult) {
+      this.applyRelevanceGating(record, appliedWeights, llmResult, question);
+    }
+
     this.state.answerHistory.push(record);
-    this.updateSkillEstimate(question, record, finalMatches);
+    
+    // GATING RULE: If typed_fallback, DO NOT propagate to speaking skill
+    if (question.primarySkill === 'speaking' && responseMode === 'typed_fallback') {
+      console.log(`[Engine] Typed fallback detected for speaking task ${question.id}. Removing speaking evidence weights.`);
+      appliedWeights['speaking'] = 0; 
+      // Allows grammar/vocab/writing secondary updates if defined, but prevents false speaking signals
+    }
+    
+    const skillUpdates = this.updateSkillEstimateMultiChannel(question, record, appliedWeights, extractedChannels, finalMatches);
+
+    // Populate task evaluation for review
+    const evaluation: TaskEvaluation = {
+      taskId: question.id,
+      primarySkill: question.primarySkill as AssessmentSkill,
+      validAttempt: isPass,
+      channels: extractedChannels,
+      relevance: llmResult?.relevance,
+      taskCompletion: llmResult?.task_completion,
+      isOffTopic: llmResult?.is_off_topic,
+      missingContentPoints: llmResult?.missing_content_points,
+      rationale: llmResult?.rationale,
+      difficulty: question.difficulty,
+      skillEvidence: appliedWeights,
+      descriptorEvidence: finalMatches.map(m => ({
+        descriptorId: m.descriptorId,
+        support: m.strength,
+        sourceSkill: question.primarySkill as AssessmentSkill,
+        weight: appliedWeights[question.primarySkill] || 0
+      })),
+      notes: llmResult ? [llmResult.rationale] : ["Heuristic evaluation applied."],
+      responseMode,
+      speakingMeta,
+      rawSignals: {
+        score: finalScore,
+        answer: answer,
+        responseTimeMs: responseTimeMs,
+        taskType: question.type,
+        responseMode: responseMode || 'unknown'
+      }
+    };
+    this.state.taskEvaluations.push(evaluation);
+    this.state.questionsAnswered++;
+
+    // ── Update Topic/Domain Performance (Feedback Loop) ──
+    const isSuccess = finalScore >= 0.4;
+    
+    if (question.topicTags) {
+      question.topicTags.forEach(topic => {
+        if (!this.state.topicPerformance[topic]) {
+          this.state.topicPerformance[topic] = { successCount: 0, failCount: 0 };
+        }
+        if (isSuccess) this.state.topicPerformance[topic].successCount++;
+        else this.state.topicPerformance[topic].failCount++;
+      });
+    }
+
+    if (question.domainTags) {
+      question.domainTags.forEach(domain => {
+        if (!this.state.domainPerformance[domain]) {
+          this.state.domainPerformance[domain] = { successCount: 0, failCount: 0 };
+        }
+        if (isSuccess) this.state.domainPerformance[domain].successCount++;
+        else this.state.domainPerformance[domain].failCount++;
+      });
+    }
+
 
     // ── Step 7: Divergence Detection & Dynamic Branching ──
     const outputBand = llmResult?.estimated_band;
@@ -190,16 +307,12 @@ export class AdaptiveAssessmentEngine {
     // ── Step 8: Task evaluation recording (High Fidelity) ──
     const taskEval: TaskEvaluation = {
       taskId: question.id,
-      primarySkill: question.primarySkill,
+      primarySkill: question.primarySkill as AssessmentSkill,
       skill: question.primarySkill as SkillName,
+      difficulty: question.difficulty,
       validAttempt: responseTimeMs > 1500,
-      channels: {
-        comprehension: isPass ? 1.0 : 0.0, // Base proxy until Layer 2 is fully implemented
-        taskCompletion: isPass ? 1.0 : 0.0,
-      },
-      skillEvidence: {
-        [question.primarySkill]: isPass ? 1.0 : 0.0
-      },
+      channels: extractedChannels,
+      skillEvidence: appliedWeights,
       descriptorEvidence: finalMatches.map(m => ({
         descriptorId: m.descriptorId,
         support: m.strength,
@@ -221,7 +334,14 @@ export class AdaptiveAssessmentEngine {
       matchedDescriptors: finalMatches.map(m => ({
         descriptorId: m.descriptorId,
         support: m.strength
-      }))
+      })),
+      debug: {
+        taskId: question.id,
+        appliedWeights,
+        extractedSignals: extractedChannels,
+        skillUpdates,
+        reason: `Evaluated ${question.type} -> Applied Weights: ${JSON.stringify(appliedWeights)}`
+      }
     };
     this.state.taskEvaluations.push(taskEval);
     this.state.overallConfidence = clamp01(this.computeOverallConfidence());
@@ -353,15 +473,39 @@ export class AdaptiveAssessmentEngine {
   public getOutcome(): AssessmentOutcome {
     const skillResults = {} as AssessmentOutcome['skillBreakdown'];
 
+    // ── Pre-calculate Deterministic Speaking Fallback Rule ──
+    const audit = this.state.speakingAudit;
+    const missingVoiceEvidence = audit.speakingTasksTotal > 0 && !audit.hasAnySpeakingEvidence;
+    
+    if (missingVoiceEvidence) {
+       this.state.speakingAudit.speakingFallbackApplied = true;
+       this.state.speakingAudit.fallbackReason = "No spoken audio was submitted, so speaking ability could not be properly assessed. Speaking was conservatively placed at A1.";
+    }
+
     // Layer 6: Inference & Capping
     for (const skill of ALL_SKILLS) {
       const est = this.state.skillEstimates[skill];
       const { status, level: inferredLevel } = CefrInferenceEngine.inferSkillStatus(est);
-      const { level: cappedLevel, isCapped, reason } = CefrInferenceEngine.applyLevelCaps(
+      let { level: cappedLevel, isCapped, reason } = CefrInferenceEngine.applyLevelCaps(
         skill, 
         inferredLevel as DifficultyBand, 
         this.state.skillEstimates
       );
+
+      // ── Apply Deterministic Speaking Fallback Rule ──
+      let speakingFallbackApplied = false;
+      let speakingFallbackReason = undefined;
+      
+      if (skill === 'speaking' && missingVoiceEvidence) {
+          cappedLevel = 'A1';
+          isCapped = true;
+          reason = this.state.speakingAudit.fallbackReason;
+          speakingFallbackApplied = true;
+          speakingFallbackReason = this.state.speakingAudit.fallbackReason;
+          
+          // Drop confidence metrics since we forced the lowest bound deterministically
+          est.confidence = 0.1;
+      }
 
       const matchedDescriptors = est.accumulatedEvidence.filter(e => e.supported);
       const missingDescriptors = Object.entries(est.descriptorSupport)
@@ -373,11 +517,13 @@ export class AdaptiveAssessmentEngine {
         score: Math.round(est.score),
         confidence: Math.round(est.confidence * 100) / 100,
         evidenceCount: est.evidenceCount,
-        status,
+        status: (skill === 'speaking' && missingVoiceEvidence) ? 'insufficient_data' : status,
         matchedDescriptors,
         missingDescriptors,
         isCapped,
-        cappedReason: reason
+        cappedReason: reason,
+        speakingFallbackApplied,
+        speakingFallbackReason
       };
     }
 
@@ -392,6 +538,7 @@ export class AdaptiveAssessmentEngine {
       answerHistory: [...this.state.answerHistory],
       totalQuestions: this.state.questionsAnswered,
       stopReason: this.state.stopReason || 'max_reached',
+      speakingAudit: this.state.speakingAudit
     };
   }
 
@@ -438,39 +585,51 @@ export class AdaptiveAssessmentEngine {
   // Skill Estimation
   // ══════════════════════════════════════════════════════════════════════
 
-  private updateSkillEstimate(
-    question: AssessmentQuestion, 
+  private updateSkillEstimateMultiChannel(
+    question: AssessmentQuestion,
     record: AnswerRecord,
-    evidence: DescriptorEvidence[] = []
-  ): void {
-    // Determine primary weight
-    const primaryWeight = question.skillWeights?.[question.primarySkill] ?? 1.0;
-    const primaryRecord = { ...record, score: record.score * primaryWeight };
-    const primaryEvidence = evidence.map(e => ({ ...e, strength: e.strength * primaryWeight }));
-    
-    // Update primary skill
-    this.updateSingleSkillEstimate(question.primarySkill, primaryRecord, primaryEvidence);
+    weights: Partial<Record<AssessmentSkill, number>>,
+    channels: Record<string, number>,
+    evidence: ReadonlyArray<DescriptorEvidence>
+  ): Record<string, number> {
+    const updates: Record<string, number> = {};
 
-    // Update secondary skills with explicit weights
-    if (question.skillWeights) {
-      for (const [s, w] of Object.entries(question.skillWeights)) {
-        if (s === question.primarySkill) continue;
-        
-        const secondary = s as AssessmentSkill;
-        const weight = w as number;
-        
-        const secondaryRecord = { ...record, score: record.score * weight };
-        const secondaryEvidence = evidence.map(e => ({ ...e, strength: e.strength * weight }));
-        this.updateSingleSkillEstimate(secondary, secondaryRecord, secondaryEvidence);
+    for (const [skillStr, weightArg] of Object.entries(weights)) {
+      const skill = skillStr as AssessmentSkill;
+      const weight = weightArg as number;
+      if (weight <= 0) continue;
+
+      // Extract specific semantic or syntactic score intended for this skill
+      let channelScore = channels.taskCompletion || 0; // Default fallback
+      if (skill === 'grammar') channelScore = channels.grammarAccuracy || 0;
+      else if (skill === 'vocabulary') channelScore = channels.lexicalRange || 0;
+      else if (skill === 'listening' || skill === 'reading') channelScore = channels.comprehension || 0;
+      else {
+        // productive base (writing/speaking)
+        channelScore = ((channels.taskCompletion || 0) * 0.5) + ((channels.coherence || 0) * 0.5);
       }
-    } else if (question.secondarySkills) {
-      // Fallback for legacy tasks without weights
-      for (const secondary of question.secondarySkills) {
-        const reducedRecord = { ...record, score: record.score * 0.5 };
-        const reducedEvidence = evidence.map(e => ({ ...e, strength: e.strength * 0.5 }));
-        this.updateSingleSkillEstimate(secondary, reducedRecord, reducedEvidence);
-      }
+
+      // Record for this specific skill update
+      const specificRecord = { ...record, score: clamp01(channelScore) * weight, skill };
+      const specificEvidence = evidence
+        .filter(e => {
+            // Very roughly map descriptors to skills if applicable, but for now we apply them broadly 
+            // since engine expects descriptor support across the board
+            return true;
+        })
+        .map(e => ({ ...e, strength: e.strength * weight }));
+
+      this.updateSingleSkillEstimate(skill, specificRecord, specificEvidence as DescriptorEvidence[]);
+      updates[skill] = specificRecord.score;
     }
+
+    // Fallback if weights are entirely empty and default mapping failed
+    if (Object.keys(updates).length === 0) {
+      this.updateSingleSkillEstimate(question.primarySkill, record, evidence as DescriptorEvidence[]);
+      updates[question.primarySkill] = record.score;
+    }
+
+    return updates;
   }
 
   private updateSingleSkillEstimate(
@@ -705,8 +864,17 @@ export class AdaptiveAssessmentEngine {
     let targetBand = this.state.currentTargetBand;
     let pool = available;
 
-    // ── Step 1: Handle Validation Jumps ──
-    if (this.state.pendingValidationBand) {
+    // ── Step 1: Handle Off-Topic Responses (Verification Mode) ──
+    const lastEval = this.state.taskEvaluations[this.state.taskEvaluations.length - 1];
+    if (lastEval?.isOffTopic) {
+      const sameSkillPool = available.filter(q => q.primarySkill === lastEval.primarySkill && q.difficulty === lastEval.difficulty);
+      if (sameSkillPool.length > 0) {
+        pool = sameSkillPool;
+        console.log(`[Selection] Verification mode: Re-testing ${lastEval.primarySkill} at ${lastEval.difficulty} due to off-topic response.`);
+      }
+    }
+    // ── Step 2: Handle Validation Jumps ──
+    else if (this.state.pendingValidationBand) {
       targetBand = this.state.pendingValidationBand;
       // Filter for items at the target band that are "Anchor Items" (high discrimination)
       const validationPool = available.filter(q => q.difficulty === targetBand);
@@ -741,7 +909,7 @@ export class AdaptiveAssessmentEngine {
     // ── Factor 1: Prerequisite Check (Layer 1) ──
     if (q.prerequisites && q.prerequisites.length > 0) {
       const allMet = q.prerequisites.every(id => this.state.askedQuestionIds.includes(id));
-      if (!allMet) return -100; // Hard filter
+      if (!allMet) return -1000; // Hard filter
     }
 
     // ── Factor 2: Difficulty proximity (CAT Logic) ──
@@ -750,44 +918,115 @@ export class AdaptiveAssessmentEngine {
     const qVal = BAND_VALUE[q.difficulty];
     const distance = Math.abs(targetVal - qVal);
     
-    const currentConfidence = this.state.skillEstimates[q.primarySkill]?.confidence || 0;
+    // We check overall confidence for proactive probing, or we can use primary skill confidence
+    const primaryConfidence = this.state.skillEstimates[q.primarySkill]?.confidence || 0;
     
     let difficultyScore = 0;
-    if (currentConfidence < 0.4) {
+    if (primaryConfidence < 0.4) {
       difficultyScore = qVal === targetVal ? 20 : (10 - distance * 5);
     } else {
-      // Proactive probing for higher bands
       difficultyScore = (qVal >= targetVal) ? (20 - (qVal - targetVal) * 5) : (10 - distance * 5);
     }
     
-    // Apply Item Discrimination (Staff Requirement)
     score += difficultyScore * (q.discriminationValue || 0.5);
 
-    // ── Factor 3: Uncertainty Reduction (Layer 5) ──
-    const est = this.state.skillEstimates[q.primarySkill];
-    if (q.targetDescriptorIds) {
-      for (const descId of q.targetDescriptorIds) {
-        const support = est.descriptorSupport[descId];
-        if (!support) {
-          score += 15; // New descriptor evidence is high value
-        } else {
-          // High uncertainty if support and contradiction are similar
-          const uncertainty = 1 - Math.abs(support.support - support.contradiction) / Math.max(1, support.support + support.contradiction);
-          score += uncertainty * 10;
+    // ── Factor 3 & 4: Multi-Skill Uncertainty & Evidence Gaps Routing ──
+    // We look at all skills this task evaluates and boost if those skills have low evidence or high uncertainty.
+    const appliedWeights = q.evidenceWeights || this.getDefaultWeights(q.type);
+    
+    let matrixScore = 0;
+    for (const [skillStr, weightArg] of Object.entries(appliedWeights)) {
+      const skill = skillStr as AssessmentSkill;
+      const weight = weightArg as number;
+      if (weight <= 0) continue;
+
+      const est = this.state.skillEstimates[skill];
+      
+      // Bonus if we have absolutely no evidence for this skill
+      if (est.evidenceCount === 0) {
+         matrixScore += 30 * weight;
+      } else if (est.evidenceCount < CONFIG.SKILL_EVIDENCE_TARGET) {
+         matrixScore += 15 * weight;
+      }
+      
+      // Bonus if this skill has high uncertainty
+      matrixScore += est.uncertainty * 20 * weight;
+
+      // Descriptor routing gaps
+      if (q.targetDescriptorIds) {
+        for (const descId of q.targetDescriptorIds) {
+          const support = est.descriptorSupport[descId];
+          if (!support) {
+            matrixScore += 10 * weight; // New descriptor 
+          } else {
+            const descriptorUncertainty = 1 - Math.abs(support.support - support.contradiction) / Math.max(1, support.support + support.contradiction);
+            matrixScore += descriptorUncertainty * 10 * weight;
+          }
         }
       }
     }
-
-    // ── Factor 4: Skill coverage ──
-    if (est.evidenceCount === 0) score += 30;
-    else if (est.evidenceCount < CONFIG.SKILL_EVIDENCE_TARGET) score += 15;
+    score += matrixScore;
 
     // ── Factor 5: Variety ──
-    const typeUsage = this.state.answerHistory.filter(r => {
-        const prevQ = QUESTION_BANK.find(x => x.id === r.questionId);
-        return prevQ?.type === q.type;
-    }).length;
+    const typeUsage = this.state.answerHistory.filter(r => r.taskType === q.type).length;
     score -= typeUsage * 5;
+
+    // ── Factor 6: Topic Personalization (Ranking Boost) ──
+    const profile = this.state.contextProfile;
+    if (profile) {
+      let relevanceBoost = 0;
+      
+      // Calculate Personalization Dampening Factor (Feedback Loop)
+      // If user is struggling with matching topics/domains, we reduce the boost to offer variety
+      let dampeningFactor = 1.0;
+      const matchingPerformanceTags = [...(q.topicTags || []), ...(q.domainTags || [])];
+      
+      let relevantTotalFails = 0;
+      matchingPerformanceTags.forEach(tag => {
+        const perf = this.state.topicPerformance[tag] || this.state.domainPerformance[tag];
+        if (perf && perf.failCount >= 2) {
+          relevantTotalFails += perf.failCount;
+        }
+      });
+
+      if (relevantTotalFails >= 2) {
+        dampeningFactor = 0.5; // Reduce boost by 50% if struggling
+      }
+      
+      // Goal Match (+40)
+      if (q.goalTags && profile.goal && q.goalTags.includes(profile.goal)) {
+        relevanceBoost += 40;
+      }
+      
+      // Goal Context / Industry Match (+35)
+      if (q.domainTags && profile.goalContext && q.domainTags.includes(profile.goalContext.toLowerCase())) {
+        relevanceBoost += 35;
+      }
+
+      // Preferred Topics Match (+25 per topic)
+      if (q.topicTags && profile.preferredTopics.length > 0) {
+        const matchingTopics = q.topicTags.filter(t => profile.preferredTopics.includes(t));
+        relevanceBoost += matchingTopics.length * 25;
+      }
+
+      if (relevanceBoost > 0) {
+        const finalBoost = relevanceBoost * dampeningFactor;
+        const dampeningLabel = dampeningFactor < 1 ? " (Dampened)" : "";
+        // Log selection rationale for debug
+        console.log(`[Selection] Personalization Boost for ${q.id}: +${finalBoost}${dampeningLabel} (Goal: ${profile.goal}, Context: ${profile.goalContext})`);
+        score += finalBoost;
+      }
+    }
+
+    // ── Factor 7: Cold Start Optimization ──
+    // In the first few questions, prioritize Broad Spectrum tasks (multi-skill)
+    if (this.state.questionsAnswered < 3) {
+      const skillCount = Object.keys(appliedWeights).filter(s => (appliedWeights[s] || 0) > 0).length;
+      if (skillCount >= 3) {
+        console.log(`[Selection] Cold Start Bonus for ${q.id}: +20 (Broad Spectrum: ${skillCount} skills)`);
+        score += 20;
+      }
+    }
 
     return score;
   }
@@ -1136,5 +1375,64 @@ export class AdaptiveAssessmentEngine {
     
     nextIndex = Math.max(0, Math.min(nextIndex, BAND_ORDER.length - 1));
     this.state.currentTargetBand = BAND_ORDER[nextIndex];
+  }
+
+  private applyRelevanceGating(
+    record: AnswerRecord,
+    weights: Partial<Record<AssessmentSkill, number>>,
+    llm: DescriptorEvaluationResult,
+    question: AssessmentQuestion
+  ) {
+    const threshold = 0.4;
+    const isOffTopic = llm.is_off_topic || llm.relevance < threshold;
+
+    if (isOffTopic) {
+      console.warn(`[Relevance Gate] Task ${question.id} is OFF-TOPIC. Capping score and blocking credit.`);
+      
+      // 1. Cap task score to prevent promotion
+      record.score = Math.min(record.score, 0.2);
+      record.correct = false;
+
+      // 2. Block primary skill credit
+      // We don't remove it entirely (weights), but we ensure the update won't push the level up.
+      // But actually, the core rule says: it must not strongly support the primary skill.
+      // We'll set weights for primary/secondary skills to near-zero if off-topic.
+      Object.keys(weights).forEach(skill => {
+        const s = skill as AssessmentSkill;
+        if (weights[s]) weights[s] = (weights[s] || 1.0) * 0.1;
+      });
+    } else if (llm.task_completion < 0.6) {
+      console.log(`[Relevance Gate] Task ${question.id} incomplete (${llm.task_completion}). Reducing credit.`);
+      record.score = Math.min(record.score, 0.5);
+      
+      // Reduce weights proportional to task completion
+      Object.keys(weights).forEach(skill => {
+        const s = skill as AssessmentSkill;
+        if (weights[s]) weights[s] = (weights[s] || 1.0) * llm.task_completion;
+      });
+    }
+
+    if (llm.missing_content_points.length > 0) {
+      console.log(`[Relevance Gate] Task ${question.id} missing points: ${llm.missing_content_points.join(', ')}`);
+    }
+  }
+
+  private getDefaultWeights(taskType?: QuestionType): Partial<Record<AssessmentSkill, number>> {
+    switch (taskType) {
+      case 'short_text':
+      case 'picture_description':
+        return { writing: 1.0, grammar: 0.5, vocabulary: 0.5 };
+      case 'listening_summary':
+        return { listening: 1.0, writing: 0.7, grammar: 0.4, vocabulary: 0.4 };
+      case 'listening_mcq':
+        return { listening: 1.0, vocabulary: 0.2 };
+      case 'reading_mcq':
+        return { reading: 1.0, vocabulary: 0.3 };
+      case 'fill_blank':
+      case 'mcq':
+      default:
+        // By default, just map heavily to primary skill
+        return {};
+    }
   }
 }

@@ -32,6 +32,7 @@ export interface TaskEvaluationResult {
   supportDependence: 'high' | 'medium' | 'low';
   meaningSuccess: boolean;
   naturalnessSuccess: boolean;
+  responseMode?: 'voice' | 'typed_fallback' | 'text';
 }
 
 export interface TaskFeedbackPayload {

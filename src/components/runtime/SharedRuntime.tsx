@@ -44,7 +44,7 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     const responseTimeMs = Date.now() - taskStartTime.current;
 
     setTimeout(() => {
-      const { feedback: newFeedback, result } = RuntimeService.evaluateResponse(currentTask, responsePayload.answer);
+      const { feedback: newFeedback, result } = RuntimeService.evaluateResponse(currentTask, responsePayload);
       
       // Enrich result with actual behavioral signals
       if (result) {
