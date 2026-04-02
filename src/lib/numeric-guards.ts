@@ -21,3 +21,9 @@ export function finiteOr(x: number | undefined | null, fallback: number): number
   if (x === undefined || x === null || !Number.isFinite(x)) return fallback;
   return x;
 }
+
+/** Returns x clamped to the range [min, max]. Handles NaN/finite guards. */
+export function clamp(x: number | undefined | null, min: number, max: number): number {
+  if (x === undefined || x === null || !Number.isFinite(x)) return min;
+  return Math.max(min, Math.min(max, x));
+}

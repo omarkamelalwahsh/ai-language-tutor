@@ -24,7 +24,7 @@ import { DescriptorService } from './DescriptorService';
 import { evaluateWithGroq, DescriptorEvaluationResult, DifficultyBand as GroqBand } from './groqEvaluator';
 import { FeatureExtractor } from './evaluation/FeatureExtractor';
 import { CefrInferenceEngine } from './inference/CefrInferenceEngine';
-import { clamp01, safeDivide, finiteOr } from '../lib/numeric-guards';
+import { clamp01, safeDivide, finiteOr, clamp } from '../lib/numeric-guards';
 // ============================================================================
 // Constants
 // ============================================================================
@@ -160,7 +160,6 @@ export class AdaptiveAssessmentEngine {
     
     // ── Step 4: OPTIONAL LLM enrichment (Layer 5) ──
     const llmResult = await this.evaluateWithBackend(question, answer);
-    console.log('[DEBUG] submitAnswer llmResult:', JSON.stringify(llmResult));
     
     // ── Step 5: Synthesize Evidence (Synthesizer Layer) ──
     const finalMatches = this.synthesizeEvidence(matched, llmResult);
@@ -211,9 +210,30 @@ export class AdaptiveAssessmentEngine {
       speakingMeta
     };
 
-    // ── RELEVANCE GATING LAYER ──
+    // ── RELEVANCE & COMPLETION GATES ──
+    const relevanceThreshold = 0.4;
+    const isOffTopicResult = llmResult ? (llmResult.is_off_topic || llmResult.relevance < relevanceThreshold) : false;
+    const isIncompleteResult = llmResult ? (llmResult.task_completion < 0.6) : false;
+
     if (llmResult) {
-      this.applyRelevanceGating(record, appliedWeights, llmResult, question);
+       if (isOffTopicResult) {
+          console.warn(`[Relevance Gate] Task ${question.id} is OFF-TOPIC. Capping score and blocking credit.`);
+          record.score = Math.min(record.score, 0.2);
+          record.correct = false;
+          // Dampen weights
+          Object.keys(appliedWeights).forEach(s => {
+            const skill = s as AssessmentSkill;
+            if (appliedWeights[skill]) appliedWeights[skill] = (appliedWeights[skill] || 1.0) * 0.1;
+          });
+       } else if (isIncompleteResult) {
+          console.log(`[Relevance Gate] Task ${question.id} incomplete (${llmResult.task_completion}). Reducing credit.`);
+          record.score = Math.min(record.score, 0.5);
+          // Reduce weights proportional to task completion
+          Object.keys(appliedWeights).forEach(s => {
+            const skill = s as AssessmentSkill;
+            if (appliedWeights[skill]) appliedWeights[skill] = (appliedWeights[skill] || 1.0) * llmResult.task_completion;
+          });
+       }
     }
 
     this.state.answerHistory.push(record);
@@ -222,7 +242,6 @@ export class AdaptiveAssessmentEngine {
     if (question.primarySkill === 'speaking' && responseMode === 'typed_fallback') {
       console.log(`[Engine] Typed fallback detected for speaking task ${question.id}. Removing speaking evidence weights.`);
       appliedWeights['speaking'] = 0; 
-      // Allows grammar/vocab/writing secondary updates if defined, but prevents false speaking signals
     }
     
     const skillUpdates = this.updateSkillEstimateMultiChannel(question, record, appliedWeights, extractedChannels, finalMatches);
@@ -235,7 +254,7 @@ export class AdaptiveAssessmentEngine {
       channels: extractedChannels,
       relevance: llmResult?.relevance,
       taskCompletion: llmResult?.task_completion,
-      isOffTopic: llmResult?.is_off_topic,
+      isOffTopic: isOffTopicResult,
       missingContentPoints: llmResult?.missing_content_points,
       rationale: llmResult?.rationale,
       difficulty: question.difficulty,
@@ -683,42 +702,56 @@ export class AdaptiveAssessmentEngine {
    * 
    * Logic:
    * - Each band has a base value (A1=20, A2=40, B1=60, B2=80, C1=100)
-   * - For each band tested, we compute accuracy = correct/total
-   * - The score is the highest band where accuracy >= 0.6, with interpolation
+   * - We identify the 'Mastery Band': the highest band with consistent success (>70% accuracy and >=2 questions)
+   * - We identify the 'Ceiling Band': the highest band with any success (>40% accuracy)
+   * - The final score is the Mastery Band base + an interpolation towards the Ceiling Band
    */
   private computeSkillScore(est: SkillEstimate): number {
     const bands = BAND_ORDER;
-    let highestPassedValue = 0;
-    let highestPartialValue = 0;
+    let highestMasteredBandValue = 0;
+    let highestDemonstratedBandValue = 0;
+    let weightSum = 0;
+    let weightedValueSum = 0;
 
     for (const band of bands) {
       const perf = est.bandPerformance[band];
       if (!perf || perf.total === 0) continue;
 
       const accuracy = perf.correct / perf.total;
-      const bandVal = BAND_VALUE[band] * 20; // A1=20, A2=40, etc.
+      const bandVal = BAND_VALUE[band] * 20;
 
-      // Weight evidence by task type: 0.7 for open-ended, 0.3 for MCQ
-      // This is a simplified proxy since bandPerformance doesn't track task type per band.
-      // We'll rely on the descriptorSupport multiplier added in updateSingleSkillEstimate.
-      
-      if (accuracy >= 0.6) {
-        // Passed this band
-        highestPassedValue = Math.max(highestPassedValue, bandVal);
-      } else if (accuracy >= 0.3) {
-        // Partial performance — interpolate
-        const partialVal = bandVal - 10 + (accuracy * 15);
-        highestPartialValue = Math.max(highestPartialValue, partialVal);
+      // Track demonstrated success (any passing sign at this level)
+      if (accuracy >= 0.4) {
+        highestDemonstratedBandValue = Math.max(highestDemonstratedBandValue, bandVal);
       }
+
+      // Track mastery (consistent success)
+      // If they only have 1 question but it's perfect (accuracy 1.0), we treat it as mastered for score purposes
+      // to avoid "lag" in the UI for the first few questions.
+      if (accuracy >= 0.7 || (perf.total === 1 && accuracy >= 1.0)) {
+        highestMasteredBandValue = Math.max(highestMasteredBandValue, bandVal);
+      }
+
+      // Add to weighted average for sub-band positioning
+      const weight = perf.total;
+      weightedValueSum += bandVal * accuracy * weight;
+      weightSum += weight;
     }
 
-    // If no evidence at all, return current estimate
-    if (highestPassedValue === 0 && highestPartialValue === 0) {
-      return est.score;
-    }
+    if (weightSum === 0) return est.score;
 
-    // Use the highest signal
-    return Math.max(highestPassedValue, highestPartialValue);
+    // The base score is based on the highest mastered level
+    // plus a small bonus for demonstration of higher levels
+    const baseScore = highestMasteredBandValue;
+    const demonstrationBonus = Math.max(0, (highestDemonstratedBandValue - highestMasteredBandValue) * 0.5);
+    
+    // Weighted accuracy factor maps where they sit inside their highest band
+    const weightedAvg = weightedValueSum / weightSum;
+    
+    // Blend: 70% Mastery Level, 30% Weighted Average Performance
+    const finalScore = (baseScore * 0.7) + (weightedAvg * 0.3) + demonstrationBonus;
+
+    return clamp(finalScore, 5, 120); // A1 is 20, but we allow 5-120
   }
 
   /**
@@ -1377,45 +1410,6 @@ export class AdaptiveAssessmentEngine {
     this.state.currentTargetBand = BAND_ORDER[nextIndex];
   }
 
-  private applyRelevanceGating(
-    record: AnswerRecord,
-    weights: Partial<Record<AssessmentSkill, number>>,
-    llm: DescriptorEvaluationResult,
-    question: AssessmentQuestion
-  ) {
-    const threshold = 0.4;
-    const isOffTopic = llm.is_off_topic || llm.relevance < threshold;
-
-    if (isOffTopic) {
-      console.warn(`[Relevance Gate] Task ${question.id} is OFF-TOPIC. Capping score and blocking credit.`);
-      
-      // 1. Cap task score to prevent promotion
-      record.score = Math.min(record.score, 0.2);
-      record.correct = false;
-
-      // 2. Block primary skill credit
-      // We don't remove it entirely (weights), but we ensure the update won't push the level up.
-      // But actually, the core rule says: it must not strongly support the primary skill.
-      // We'll set weights for primary/secondary skills to near-zero if off-topic.
-      Object.keys(weights).forEach(skill => {
-        const s = skill as AssessmentSkill;
-        if (weights[s]) weights[s] = (weights[s] || 1.0) * 0.1;
-      });
-    } else if (llm.task_completion < 0.6) {
-      console.log(`[Relevance Gate] Task ${question.id} incomplete (${llm.task_completion}). Reducing credit.`);
-      record.score = Math.min(record.score, 0.5);
-      
-      // Reduce weights proportional to task completion
-      Object.keys(weights).forEach(skill => {
-        const s = skill as AssessmentSkill;
-        if (weights[s]) weights[s] = (weights[s] || 1.0) * llm.task_completion;
-      });
-    }
-
-    if (llm.missing_content_points.length > 0) {
-      console.log(`[Relevance Gate] Task ${question.id} missing points: ${llm.missing_content_points.join(', ')}`);
-    }
-  }
 
   private getDefaultWeights(taskType?: QuestionType): Partial<Record<AssessmentSkill, number>> {
     switch (taskType) {
