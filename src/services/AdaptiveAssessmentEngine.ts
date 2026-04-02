@@ -833,7 +833,14 @@ export class AdaptiveAssessmentEngine {
         this.stepBandDown();
       }
     }
-    // Otherwise stay — mixed signals don't move the needle
+
+    // ── ACCELERATED ADAPTIVITY (Cold Start / High Confidence Jumps) ──
+    // If we're in the first 3 questions and the user is performing perfectly, jump faster.
+    const lastResult = window[window.length - 1];
+    if (this.state.questionsAnswered <= 3 && lastResult && lastResult.score > 0.95 && lastResult.correct) {
+      console.log(`[Adaptivity] High-performance detection in initial phase. Executing accelerated jump.`);
+      this.jumpBandUp();
+    }
   }
 
   private stepBandUp(): void {
@@ -1021,20 +1028,20 @@ export class AdaptiveAssessmentEngine {
         dampeningFactor = 0.5; // Reduce boost by 50% if struggling
       }
       
-      // Goal Match (+40)
+      // Goal Match (+60) — Increased from +40
       if (q.goalTags && profile.goal && q.goalTags.includes(profile.goal)) {
-        relevanceBoost += 40;
+        relevanceBoost += 60;
       }
       
-      // Goal Context / Industry Match (+35)
+      // Goal Context / Industry Match (+50) — Increased from +35
       if (q.domainTags && profile.goalContext && q.domainTags.includes(profile.goalContext.toLowerCase())) {
-        relevanceBoost += 35;
+        relevanceBoost += 50;
       }
 
-      // Preferred Topics Match (+25 per topic)
+      // Preferred Topics Match (+40 per topic) — Increased from +25
       if (q.topicTags && profile.preferredTopics.length > 0) {
         const matchingTopics = q.topicTags.filter(t => profile.preferredTopics.includes(t));
-        relevanceBoost += matchingTopics.length * 25;
+        relevanceBoost += matchingTopics.length * 40;
       }
 
       if (relevanceBoost > 0) {

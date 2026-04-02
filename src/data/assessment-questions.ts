@@ -57,6 +57,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     discriminationValue: 0.7,
     scaffoldingLevel: 0,
     targetDescriptorIds: ['gram_A1_accuracy_01'],
+    topicTags: ['daily_life', 'education'],
+    goalTags: ['casual', 'serious'],
   },
 
   // Vocabulary A1
@@ -72,6 +74,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['warm', 'boiling', 'cold', 'sunny'],
     correctAnswer: 'cold',
     subskills: ['antonyms', 'basic adjectives'],
+    topicTags: ['daily_life', 'science'],
+    goalTags: ['casual', 'serious'],
   },
   {
     id: 'a1-vocab-02',
@@ -105,6 +109,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['8', '9', '10', '11'],
     correctAnswer: '10',
     subskills: ['literal comprehension', 'extracting facts'],
+    topicTags: ['daily_life', 'culture'],
+    goalTags: ['casual'],
   },
 
   // Listening A1
@@ -149,6 +155,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     discriminationValue: 0.75,
     scaffoldingLevel: 0,
     targetDescriptorIds: ['gram_A2_accuracy_01_past'], // Can use simple grammatical structures correctly
+    topicTags: ['daily_life', 'travel'],
+    goalTags: ['casual', 'serious'],
   },
   {
     id: 'a2-gram-02',
@@ -163,6 +171,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['do', 'does', 'doing', 'done'],
     correctAnswer: 'does',
     subskills: ['present simple', 'third person -s'],
+    topicTags: ['daily_life', 'education'],
+    goalTags: ['casual', 'serious'],
   },
 
   // Vocabulary A2
@@ -178,6 +188,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['hospital', 'library', 'restaurant', 'stadium'],
     correctAnswer: 'library',
     subskills: ['places vocabulary', 'everyday lexis'],
+    topicTags: ['education', 'culture'],
+    goalTags: ['serious', 'casual'],
   },
   {
     id: 'a2-vocab-02',
@@ -192,6 +204,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['take', 'make', 'do', 'give'],
     correctAnswer: 'take',
     subskills: ['collocations', 'verb-noun pairing'],
+    topicTags: ['travel', 'daily_life'],
+    goalTags: ['casual', 'professional'],
   },
 
   // Reading A2
@@ -207,6 +221,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['Yes', 'No', 'Maybe', 'Only in the morning'],
     correctAnswer: 'No',
     subskills: ['inference', 'schedule comprehension'],
+    topicTags: ['education', 'business'],
+    goalTags: ['serious', 'professional'],
   },
   {
     id: 'a2-read-02',
@@ -221,6 +237,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['Teacher', 'Doctor', 'Engineer', 'Chef'],
     correctAnswer: 'Doctor',
     subskills: ['literal comprehension', 'occupation vocabulary'],
+    topicTags: ['health', 'business'],
+    goalTags: ['casual', 'professional'],
   },
 
   // Listening A2
@@ -299,6 +317,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['since', 'for', 'during', 'while'],
     correctAnswer: 'for',
     subskills: ['present perfect continuous', 'for vs since'],
+    topicTags: ['daily_life', 'travel'],
+    goalTags: ['serious', 'casual'],
   },
   {
     id: 'b1-gram-02',
@@ -312,6 +332,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['will', 'would', 'are', 'have'],
     correctAnswer: 'will',
     subskills: ['first conditional', 'future tense'],
+    topicTags: ['daily_life', 'science'],
+    goalTags: ['casual', 'serious'],
   },
 
   // Vocabulary B1
@@ -327,6 +349,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['abandon', 'continue', 'postpone', 'cancel'],
     correctAnswer: 'continue',
     subskills: ['context clues', 'intermediate lexis'],
+    topicTags: ['travel', 'culture'],
+    goalTags: ['casual', 'serious'],
   },
   {
     id: 'b1-vocab-02',
@@ -360,6 +384,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['To ban all plastics', 'To lower plastic waste', 'To give away free bags', 'To create more plastic bags'],
     correctAnswer: 'To lower plastic waste',
     subskills: ['main idea extraction', 'paraphrase recognition'],
+    topicTags: ['science', 'technology', 'education'],
+    goalTags: ['serious', 'professional'],
   },
   {
     id: 'b1-read-02',
@@ -378,6 +404,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     ],
     correctAnswer: 'Reduced stress and better sleep',
     subskills: ['detail extraction', 'linking ideas'],
+    topicTags: ['health', 'science', 'sports'],
+    goalTags: ['serious', 'casual'],
   },
 
   // Writing B1
@@ -414,6 +442,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['They were cancelled permanently', 'They were postponed', 'They continued as planned', 'They moved indoors'],
     correctAnswer: 'They were postponed',
     subskills: ['detailed listening', 'understanding announcements'],
+    topicTags: ['travel', 'entertainment'],
+    goalTags: ['casual', 'serious'],
   },
 
   // Speaking B1
@@ -451,6 +481,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     correctAnswer: 'would have left',
     subskills: ['third conditional', 'past perfect', 'mixed conditionals'],
     targetDescriptorIds: ['gram_B2_accuracy_01'], // Can use a variety of complex structures
+    topicTags: ['travel', 'daily_life'],
+    goalTags: ['casual', 'serious'],
   },
   {
     id: 'b2-gram-02',
@@ -465,6 +497,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     correctAnswer: 'did she complete',
     subskills: ['inversion after negative adverbials', 'complex sentence structure'],
     targetDescriptorIds: ['gram_B2_accuracy_02'],
+    topicTags: ['business', 'technology'],
+    goalTags: ['professional', 'serious'],
   },
 
   // Vocabulary B2
@@ -480,6 +514,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['ambiguous', 'inconclusive', 'compelling', 'irrelevant'],
     correctAnswer: 'compelling',
     subskills: ['advanced adjectives', 'academic vocabulary'],
+    topicTags: ['science', 'education'],
+    goalTags: ['serious', 'professional'],
   },
   {
     id: 'b2-vocab-02',
@@ -494,6 +530,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['endorse', 'implement', 'withdraw', 'amend'],
     correctAnswer: 'withdraw',
     subskills: ['formal vocabulary', 'collocation awareness'],
+    topicTags: ['business', 'culture'],
+    goalTags: ['professional', 'serious'],
   },
 
   // Reading B2
@@ -532,13 +570,11 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     type: 'short_text',
     prompt: "What is your opinion on the impact of Artificial Intelligence on education? Provide a reasoned argument in 3-5 sentences.",
     subskills: ['opinion essay', 'argumentative structure', 'connector usage', 'formal register'],
-    topicTags: ['technology', 'education'],
-    domainTags: ['school'],
-    goalTags: ['serious'],
-    expectedResponseType: 'opinion',
     semanticIntent: 'reasoned argument on AI in education',
     requiredContentPoints: ['impact mentioned', 'supporting argument'],
     targetDescriptorIds: ['write_B2_argument_01'], // Can develop an argument systematically
+    topicTags: ['technology', 'education', 'science'],
+    goalTags: ['serious', 'professional'],
   },
 
   // Listening B2
@@ -561,6 +597,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     ],
     correctAnswer: 'Enhanced cognitive flexibility',
     subskills: ['academic listening', 'understanding specialized content'],
+    topicTags: ['science', 'health', 'education'],
+    goalTags: ['serious', 'professional'],
   },
 
   {
@@ -626,6 +664,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     correctAnswer: 'had he entered',
     subskills: ['inversion', 'past perfect', 'literary grammar'],
     targetDescriptorIds: ['gram_C1_accuracy_01'], // Can maintain high degree of grammatical accuracy
+    topicTags: ['culture', 'education'],
+    goalTags: ['serious', 'professional'],
   },
   {
     id: 'c1-gram-02',
@@ -640,6 +680,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     correctAnswer: 'whose',
     subskills: ['relative clauses', 'possessive relative pronoun'],
     targetDescriptorIds: ['gram_C1_accuracy_02'],
+    topicTags: ['science', 'business'],
+    goalTags: ['serious', 'professional'],
   },
 
   // Vocabulary C1
@@ -655,6 +697,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['exacerbate', 'allay', 'instigate', 'provoke'],
     correctAnswer: 'allay',
     subskills: ['advanced lexis', 'formal register', 'nuanced meaning'],
+    topicTags: ['culture', 'education'],
+    goalTags: ['serious', 'professional'],
   },
   {
     id: 'c1-vocab-02',
@@ -669,6 +713,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     options: ['verbosity', 'austerity', 'prolixity', 'terseness'],
     correctAnswer: 'terseness',
     subskills: ['literary vocabulary', 'semantic precision'],
+    topicTags: ['culture', 'education'],
+    goalTags: ['serious', 'professional'],
   },
 
   // Reading C1
@@ -690,6 +736,8 @@ export const QUESTION_BANK: AssessmentQuestion[] = [
     ],
     correctAnswer: 'Too many choices lead to negative outcomes despite seeming positive',
     subskills: ['abstract reasoning', 'paradox comprehension', 'academic reading'],
+    topicTags: ['science', 'education'],
+    goalTags: ['serious', 'professional'],
   },
 
   // Writing C1
