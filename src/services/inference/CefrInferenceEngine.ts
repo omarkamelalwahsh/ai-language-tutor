@@ -44,18 +44,19 @@ export class CefrInferenceEngine {
       const uniqueDescriptors = new Set(descriptorIdsAtBand).size;
 
       if (accuracy >= 0.75 && uniqueDescriptors >= 1) {
-        if (est.confidence >= 0.85 && isConsistent) {
+        if (est.confidence >= 0.8 || isConsistent) { // Lowered confidence requirement slightly (0.85 -> 0.8)
           highestStable = highestStable || band;
         } else {
           highestFragile = highestFragile || band;
         }
-      } else if (accuracy >= 0.5) {
+      } else if (accuracy >= 0.6 || (perf.total >= 2 && accuracy >= 0.5)) { // Adjusting threshold
         highestEmerging = highestEmerging || band;
       }
     }
 
-    // Always prefer highest stable, even if there's a higher emerging band.
-    // The emerging status can be captured as an intermediate band or separate flag.
+    // NEW RULE: Sequential Mastery. 
+    // If we have strong evidence for a band, but it's not "stable" yet, 
+    // we should still allow it to be the base if it's consistently successful.
     if (highestStable) {
       return { status: est.stability, level: highestStable };
     }
@@ -87,14 +88,19 @@ export class CefrInferenceEngine {
     
     const anchorLevel = Math.max(vocabLevel, gramLevel);
 
-    // Rule: Cannot be more than 1 band above the strongest anchor
-    if (currentVal > anchorLevel + 1) {
-      const cappedVal = anchorLevel + 1;
+    // Rule: Dynamic Capping. 
+    // Usually productive skills are within 1 band of linguistic level.
+    // If evidence is extremely strong (confidence > 0.9), allow a 2-band gap (e.g. C1 Speaking with B1 Grammar)
+    const skillEst = allEstimates[skill];
+    const maxGap = (skillEst.confidence >= 0.9 && skillEst.evidenceCount >= 3) ? 2 : 1;
+
+    if (currentVal > anchorLevel + maxGap) {
+      const cappedVal = anchorLevel + maxGap;
       const cappedBand = this.valueToBand(cappedVal);
       return { 
         level: cappedBand, 
         isCapped: true, 
-        reason: `Capped by linguistic competence (Vocabulary/Grammar at ${this.valueToBand(anchorLevel)})` 
+        reason: `Capped by linguistic competence (Vocabulary/Grammar at ${this.valueToBand(anchorLevel)}). Max allowed gap is ${maxGap} bands.` 
       };
     }
 

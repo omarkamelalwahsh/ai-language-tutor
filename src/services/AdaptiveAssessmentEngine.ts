@@ -246,37 +246,6 @@ export class AdaptiveAssessmentEngine {
     
     const skillUpdates = this.updateSkillEstimateMultiChannel(question, record, appliedWeights, extractedChannels, finalMatches);
 
-    // Populate task evaluation for review
-    const evaluation: TaskEvaluation = {
-      taskId: question.id,
-      primarySkill: question.primarySkill as AssessmentSkill,
-      validAttempt: isPass,
-      channels: extractedChannels,
-      relevance: llmResult?.relevance,
-      taskCompletion: llmResult?.task_completion,
-      isOffTopic: isOffTopicResult,
-      missingContentPoints: llmResult?.missing_content_points,
-      rationale: llmResult?.rationale,
-      difficulty: question.difficulty,
-      skillEvidence: appliedWeights,
-      descriptorEvidence: finalMatches.map(m => ({
-        descriptorId: m.descriptorId,
-        support: m.strength,
-        sourceSkill: question.primarySkill as AssessmentSkill,
-        weight: appliedWeights[question.primarySkill] || 0
-      })),
-      notes: llmResult ? [llmResult.rationale] : ["Heuristic evaluation applied."],
-      responseMode,
-      speakingMeta,
-      rawSignals: {
-        score: finalScore,
-        answer: answer,
-        responseTimeMs: responseTimeMs,
-        taskType: question.type,
-        responseMode: responseMode || 'unknown'
-      }
-    };
-    this.state.taskEvaluations.push(evaluation);
     this.state.questionsAnswered++;
 
     // ── Update Topic/Domain Performance (Feedback Loop) ──
@@ -302,14 +271,12 @@ export class AdaptiveAssessmentEngine {
       });
     }
 
-
     // ── Step 7: Divergence Detection & Dynamic Branching ──
     const outputBand = llmResult?.estimated_band;
     if (outputBand && this.detectOutputDivergence(question.difficulty, outputBand)) {
       record.outputBandOverride = outputBand as DifficultyBand;
       this.jumpWithValidation(outputBand as DifficultyBand);
     } else if (this.state.pendingValidationBand) {
-      // If we were in validation and user passed, clear the flag
       if (isPass) {
         console.log(`[Validation] User PASSED validation for ${this.state.pendingValidationBand}.`);
         this.state.pendingValidationBand = undefined;
@@ -324,25 +291,35 @@ export class AdaptiveAssessmentEngine {
     }
 
     // ── Step 8: Task evaluation recording (High Fidelity) ──
-    const taskEval: TaskEvaluation = {
+    const evaluation: TaskEvaluation = {
       taskId: question.id,
       primarySkill: question.primarySkill as AssessmentSkill,
       skill: question.primarySkill as SkillName,
       difficulty: question.difficulty,
-      validAttempt: responseTimeMs > 1500,
+      validAttempt: isPass,
       channels: extractedChannels,
+      relevance: llmResult?.relevance,
+      taskCompletion: llmResult?.task_completion,
+      isOffTopic: isOffTopicResult,
+      missingContentPoints: llmResult?.missing_content_points,
+      rationale: llmResult?.rationale,
       skillEvidence: appliedWeights,
       descriptorEvidence: finalMatches.map(m => ({
         descriptorId: m.descriptorId,
         support: m.strength,
-        sourceSkill: question.primarySkill,
-        weight: 1.0
+        sourceSkill: question.primarySkill as AssessmentSkill,
+        weight: appliedWeights[question.primarySkill] || 0
       })),
-      notes: [],
+      notes: llmResult ? [llmResult.rationale] : ["Heuristic evaluation applied."],
+      responseMode,
+      speakingMeta,
       rawSignals: {
         ...features,
-        answer,
-        responseTimeMs,
+        score: finalScore,
+        answer: answer,
+        responseTimeMs: responseTimeMs,
+        taskType: question.type,
+        responseMode: responseMode || 'unknown',
         isCorrect: isPass,
         difficulty: question.difficulty,
       },
@@ -357,14 +334,19 @@ export class AdaptiveAssessmentEngine {
       debug: {
         taskId: question.id,
         appliedWeights,
-        extractedSignals: extractedChannels,
+        extractedSignals: extractedChannels as any,
         skillUpdates,
         reason: `Evaluated ${question.type} -> Applied Weights: ${JSON.stringify(appliedWeights)}`
       }
     };
-    this.state.taskEvaluations.push(taskEval);
+
+    // Deduplicate rationales if needed (uniqueBy rationale logic)
+    if (evaluation.notes && evaluation.notes.length > 1) {
+      evaluation.notes = [...new Set(evaluation.notes)];
+    }
+
+    this.state.taskEvaluations.push(evaluation);
     this.state.overallConfidence = clamp01(this.computeOverallConfidence());
-    this.state.questionsAnswered++;
 
     return { correct: isPass, score: finalScore };
   }
@@ -748,10 +730,17 @@ export class AdaptiveAssessmentEngine {
     // Weighted accuracy factor maps where they sit inside their highest band
     const weightedAvg = weightedValueSum / weightSum;
     
-    // Blend: 70% Mastery Level, 30% Weighted Average Performance
-    const finalScore = (baseScore * 0.7) + (weightedAvg * 0.3) + demonstrationBonus;
+    // Blend: 60% Mastery Level, 30% Weighted Average Performance, 10% High-Level Momentum
+    const finalScore = (baseScore * 0.6) + (weightedAvg * 0.3) + demonstrationBonus;
 
-    return clamp(finalScore, 5, 120); // A1 is 20, but we allow 5-120
+    // ── High-Level Momentum ──
+    // If user has multiple recent successes at/above highestMasteredBand, give it a nudge
+    const highLevelRecent = Object.entries(est.bandPerformance)
+      .filter(([band, perf]) => BAND_VALUE[band as DifficultyBand] >= highestMasteredBandValue / 20)
+      .reduce((sum, [_, perf]) => sum + (perf?.correct || 0), 0);
+    
+    const momentumBonus = Math.min(5, highLevelRecent * 1.5);
+    return clamp(finalScore + momentumBonus, 5, 120);
   }
 
   /**
@@ -1417,7 +1406,8 @@ export class AdaptiveAssessmentEngine {
       case 'picture_description':
         return { writing: 1.0, grammar: 0.5, vocabulary: 0.5 };
       case 'listening_summary':
-        return { listening: 1.0, writing: 0.7, grammar: 0.4, vocabulary: 0.4 };
+        // Primary: Listening, but heavily propagates to writing/grammar/accuracy
+        return { listening: 1.0, writing: 0.7, grammar: 0.5, vocabulary: 0.5 };
       case 'listening_mcq':
         return { listening: 1.0, vocabulary: 0.2 };
       case 'reading_mcq':
@@ -1425,7 +1415,10 @@ export class AdaptiveAssessmentEngine {
       case 'fill_blank':
       case 'mcq':
       default:
-        // By default, just map heavily to primary skill
+        // Default propagation for any potential written response not explicitly handled
+        if (['short_text', 'picture_description', 'listening_summary'].includes(taskType || '')) {
+            return { writing: 0.7, grammar: 0.5, vocabulary: 0.5 };
+        }
         return {};
     }
   }
