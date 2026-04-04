@@ -26,6 +26,7 @@ export interface QuestionBankItem {
   prompt: string;
   answer_key: string;
   audio_url?: string; // Optional URL for audio stimulus
+  stimulus?: string; // Optional text stimulus/transcript
   evidence_policy: EvidencePolicy;
 }
 

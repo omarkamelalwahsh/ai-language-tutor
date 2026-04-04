@@ -102,7 +102,7 @@ const TaskQuestion: React.FC<{
           {task.skill}
         </span>
         <span className="text-xs text-slate-400 font-mono ml-auto">
-          Progress {questionNumber} / 10
+          Progress {questionNumber} / 20
         </span>
       </div>
 
@@ -146,11 +146,11 @@ const TaskQuestion: React.FC<{
         </div>
       )}
 
-      {isListening && task.audioUrl && (
+      {isListening && (
          <div className="mb-8">
            <AudioPlaybackControl 
              audioUrl={task.audioUrl} 
-             transcript={task.transcript} 
+             transcript={task.stimulus} 
              allowReplay={true}
              className="shadow-inner bg-slate-100"
            />

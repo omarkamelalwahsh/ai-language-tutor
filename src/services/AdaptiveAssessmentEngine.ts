@@ -177,8 +177,9 @@ export class AdaptiveAssessmentEngine {
       primarySkill: nextItem.skill as any,
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
-      responseMode: nextItem.response_mode as any,
-      audioUrl: nextItem.audio_url, // Fixed: pass audio_url from bank
+      response_mode: nextItem.response_mode as any,
+      audioUrl: nextItem.audio_url, 
+      stimulus: nextItem.stimulus, // Pass stimulus for fallback
       _efset: nextItem 
     } as any;
   }
