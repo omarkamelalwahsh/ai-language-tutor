@@ -90,7 +90,7 @@ const TaskQuestion: React.FC<{
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="flex flex-col h-full text-slate-900"
     >
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
         <div className="flex items-center gap-1">
           {questionNumber > 1 && task.difficulty > (window as any)._lastBenchmark && (
             <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 border border-amber-200 text-amber-700 font-bold rounded-lg text-[10px] uppercase animate-pulse">
@@ -98,13 +98,31 @@ const TaskQuestion: React.FC<{
             </span>
           )}
         </div>
-        <span className={`px-3 py-1 border font-bold rounded-lg text-sm tracking-wide uppercase ${skillColors[task.skill] || ''}`}>
+        <span className={`px-3 py-1 border font-bold rounded-lg text-xs tracking-wide uppercase ${skillColors[task.skill] || ''}`}>
           {task.skill}
+        </span>
+        <span className="px-2 py-1 bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-lg text-[10px] uppercase">
+          Level: {task.difficulty}
+        </span>
+        <span className="px-2 py-1 bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-lg text-[10px] uppercase font-mono">
+          {task.type.replace(/_/g, ' ')}
         </span>
         <span className="text-xs text-slate-400 font-mono ml-auto">
           Progress {questionNumber} / 20
         </span>
       </div>
+
+      {/* Stimulus Context (Reading Passage / Transcribe Fallback) */}
+      {task.stimulus && !isListening && (
+        <div className="mb-6 p-5 bg-slate-50 border border-slate-200 rounded-2xl max-h-[220px] overflow-y-auto custom-scrollbar shadow-inner group">
+          <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest sticky top-0 bg-slate-50/90 py-1 backdrop-blur-sm z-10">
+            Source Context / Passage
+          </div>
+          <p className="text-slate-700 leading-relaxed text-base font-serif whitespace-pre-wrap selection:bg-indigo-100 italic transition-colors group-hover:text-slate-900">
+            {task.stimulus}
+          </p>
+        </div>
+      )}
 
       <p className="text-slate-600 mb-8 text-lg leading-relaxed font-medium">{task.prompt}</p>
 
@@ -195,7 +213,12 @@ const TaskQuestion: React.FC<{
             <textarea
               autoFocus
               className="w-full flex-1 min-h-[140px] p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none text-slate-900 placeholder-slate-400 shadow-inner"
-              placeholder="Type your detailed answer here..."
+              placeholder={
+                task.type.includes('short_answer') ? "Write a short answer (1–5 words)..." :
+                task.type.includes('summary') ? "Write a brief summary..." :
+                task.type.includes('description') ? "Describe the item in detail..." :
+                "Type your response here..."
+              }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
