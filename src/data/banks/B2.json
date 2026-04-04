@@ -1,18 +1,724 @@
 [
   {
+    "id": "B2_L_01",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.60,
+    "response_mode": "mcq",
+    "prompt": "Listen to the lecture on urban planning. What is the speaker's main argument regarding green spaces?",
+    "stimulus": "Lecturer: While many advocate for parks simply for aesthetics, the real value lies in their ability to mitigate the urban heat island effect. Concrete absorbs heat, whereas greenery reflects it. Therefore, park development shouldn't be seen as an 'extra' but as a core requirement for a livable city.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Parks are mainly for beauty", "Parks are essential for cooling cities", "Concrete is better than grass", "The city has enough parks already"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 50,
+    "tags": ["urban_planning", "environment", "lecture"]
+  },
+  {
+    "id": "B2_L_02",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "B2",
+    "difficulty": 0.62,
+    "response_mode": "typed",
+    "prompt": "Listen and write the specific economic term used by the speaker.",
+    "stimulus": "Analyst: The current trend towards 'circular economy' models is driven by the need to reduce waste. It suggests that products should be designed for disassembly and reuse rather than disposal.",
+    "answer_key": {
+      "type": "exact",
+      "value": "circular economy"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["economics", "environment"]
+  },
+  {
+    "id": "B2_L_03",
+    "skill": "listening",
+    "task_type": "listening_summary",
+    "target_cefr": "B2",
+    "difficulty": 0.64,
+    "response_mode": "typed",
+    "prompt": "Listen to the discussion about remote work and summarize the trade-off mentioned.",
+    "stimulus": "Expert: We've gained immense flexibility with remote work, but we've undoubtedly lost the 'water cooler' moments—those spontaneous ideas that happen when colleagues just bump into each other. You can't schedule serendipity on Zoom.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "The trade-off between flexibility and spontaneous collaboration."
+    },
+    "rubric": {
+      "content_expectation": "Mentions both the benefit (flexibility) and the loss (spontaneous ideas/collaboration).",
+      "language_expectation": "Use of contrasting structures (while, although, however).",
+      "scoring_notes": "Needs to capture the specific concept of 'spontaneous ideas'."
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.4, "direct": false },
+      "grammar": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 70,
+    "tags": ["work", "technology", "summary"]
+  },
+  {
+    "id": "B2_L_04",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.66,
+    "response_mode": "mcq",
+    "prompt": "Listen to the technology podcast. What is the main barrier to AI adoption in small businesses?",
+    "stimulus": "Host: Small firms are lagging in AI. Why? Professional: It isn't a lack of interest, but rather the sheer complexity of integrating these systems with their existing, often outdated, legacy software. The initial cost is secondary to the technical headache.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["High costs", "Lack of interest", "Integration with old software", "Lack of skilled workers"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["technology", "business"]
+  },
+  {
+    "id": "B2_L_05",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "B2",
+    "difficulty": 0.68,
+    "response_mode": "typed",
+    "prompt": "Listen and write the name of the chemical process mentioned.",
+    "stimulus": "Scientist: The plant uses 'photosynthesis' to convert sunlight into energy. This process is fundamental to life on Earth and releases oxygen as a vital byproduct.",
+    "answer_key": {
+      "type": "exact",
+      "value": "photosynthesis"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["science", "detail"]
+  },
+  {
+    "id": "B2_L_06",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.70,
+    "response_mode": "mcq",
+    "prompt": "Listen to the health professional. What should people be wary of regarding vitamin supplements?",
+    "stimulus": "Doctor: Many people believe that more is always better when it comes to vitamins. However, taking high doses of fat-soluble vitamins can actually be toxic. These supplements shouldn't replace a balanced diet, which is the most reliable source of nutrients.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The cost", "The lack of flavor", "Toxicity from high doses", "The difficulty of swallowing them"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["health", "advice"]
+  },
+  {
+    "id": "B2_L_07",
+    "skill": "listening",
+    "task_type": "listening_summary",
+    "target_cefr": "B2",
+    "difficulty": 0.72,
+    "response_mode": "typed",
+    "prompt": "Listen to the audio and summarize the speaker's advice on effective communication.",
+    "stimulus": "Speaker: In negotiations, we often focus on what we want to say next. But the real power comes from active listening. By truly understanding the other party's position, you can find a solution that they are actually willing to accept.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Active listening is more powerful than focusing on one's own speech in negotiations."
+    },
+    "rubric": {
+      "content_expectation": "Contrast between speaking and listening. Benefit of listening for finding acceptable solutions.",
+      "language_expectation": "Complex structures ('more powerful than', 'rather than').",
+      "scoring_notes": "Needs to capture the strategic benefit of listening."
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.5, "direct": false },
+      "grammar": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 75,
+    "tags": ["communication", "summary"]
+  },
+  {
+    "id": "B2_L_08",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.75,
+    "response_mode": "mcq",
+    "prompt": "Listen to the debate on social media regulation. What is the speaker's stance?",
+    "stimulus": "Debater: Some say regulation stifles innovation. But we regulate cars, food, and medicine for safety. Why should the algorithms that influence our children be any different? I'm not calling for a ban, but for clear standards of accountability.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Ban social media", "Allow total innovation without rules", "Implement accountability standards", "Only regulate children's use"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["media", "public_policy"]
+  },
+  {
     "id": "B2_R_01",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.60,
+    "response_mode": "mcq",
+    "prompt": "Read the text. What is the primary cause of the 'Great Resignation' according to the passage?",
+    "stimulus": "Economists suggest that the 'Great Resignation' is not merely a search for higher wages. Instead, workers are increasingly prioritizing mental health and work-life balance. After the pandemic, the desire for autonomy in how and where work happens has become a non-negotiable factor.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Low salaries", "Desire for higher wages", "Priority on mental health and balance", "Lack of available jobs"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["work", "economics"]
+  },
+  {
+    "id": "B2_R_02",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "B2",
+    "difficulty": 0.63,
+    "response_mode": "typed",
+    "prompt": "Read the text and write the name of the psychological effect described.",
+    "stimulus": "The 'Confirmation Bias' is a well-documented phenomenon where individuals tend to seek out and favor information that aligns with their pre-existing beliefs while ignoring contradictory evidence.",
+    "answer_key": {
+      "type": "exact",
+      "value": "confirmation bias"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["psychology", "detail"]
+  },
+  {
+    "id": "B2_R_03",
     "skill": "reading",
     "task_type": "reading_summary",
     "target_cefr": "B2",
-    "difficulty": 0.58,
+    "difficulty": 0.65,
     "response_mode": "typed",
-    "prompt": "Read the text on renewable energy. What is the main concern?",
-    "answer_key": "intermittent nature of power",
+    "prompt": "Read the text and summarize the author's viewpoint on space exploration.",
+    "stimulus": "Critics argue that billions spent on space missions should be diverted to solving climate change. However, space technology has historic significance not just for curiosity, but for Earthly survival—satellite data is our most powerful tool for monitoring global warming and resource depletion. We don't have to choose between Earth and space.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Space exploration is crucial for solving Earth's problems (like climate change) through satellite data."
+    },
+    "rubric": {
+      "content_expectation": "Refutation of 'either/or' choice. Link between space tech and monitoring climate change.",
+      "language_expectation": "Use of concessive clauses (although, however).",
+      "scoring_notes": "Needs to move beyond just 'space is good'."
+    },
     "evidence_policy": {
-      "reading": {
-        "weight": 1.0,
-        "direct": true
+      "reading": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.6, "direct": false },
+      "grammar": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 100,
+    "tags": ["science", "summary"]
+  },
+  {
+    "id": "B2_R_04",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.67,
+    "response_mode": "mcq",
+    "prompt": "Read the article snippet. What does the study suggest about multi-tasking?",
+    "stimulus": "Neuroscience shows that the brain doesn't actually 'multi-task' effectively. Instead, it rapidly switches between tasks, a process that consumes significant mental energy. This 'switching cost' leads to an overall reduction in productivity and a higher error rate.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["It improves focus", "It is just rapid task-switching with costs", "It is only possible for experts", "It saves time overall"],
+        "correct_index": 1
       }
-    }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["science", "productivity"]
+  },
+  {
+    "id": "B2_R_05",
+    "skill": "reading",
+    "task_type": "reading_inference",
+    "target_cefr": "B2",
+    "difficulty": 0.70,
+    "response_mode": "mcq",
+    "prompt": "Read and choose the best inference. What is the author's implied attitude toward the current education system?",
+    "stimulus": "Our schools still prioritize the rote memorization of facts that anyone can find on their phone in seconds. In an age of information abundance, we are still testing students as if they were living in an age of information scarcity.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Proud", "Indifferent", "Critical/Outdated", "Supportive"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["education", "inference"]
+  },
+  {
+    "id": "B2_R_06",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.72,
+    "response_mode": "mcq",
+    "prompt": "Read the proposal. What is the main concern with the expansion of the airport?",
+    "stimulus": "While the project promises to create 2,000 seasonal jobs, environmentalists point to the irreversible damage to nearby wetlands. Furthermore, local residents fear that the sheer volume of low-frequency noise will significantly impact property values and sleep quality.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The lack of jobs", "The cost of building", "Environmental damage and noise", "The weather at the airport"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["environment", "community"]
+  },
+  {
+    "id": "B2_R_07",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "B2",
+    "difficulty": 0.74,
+    "response_mode": "typed",
+    "prompt": "Read the text and write the percentage decrease mentioned.",
+    "stimulus": "The city's new recycling initiative was a success; carbon emissions from the waste management sector dropped by 22% in the first quarter of the fiscal year.",
+    "answer_key": {
+      "type": "exact",
+      "value": "22%"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["environment", "data"]
+  },
+  {
+    "id": "B2_R_08",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "B2",
+    "difficulty": 0.76,
+    "response_mode": "typed",
+    "prompt": "Read the book review and summarize the main criticism.",
+    "stimulus": "'The Digital Trap' provides a compelling look at algorithms, but it ultimately fails because it offers no concrete solutions. Diagnosis without a prescription is just a well-written complaint; what we need are policies, not just more awareness of the problem.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "The book identifies problems but provides no solutions/policies."
+    },
+    "rubric": {
+      "content_expectation": "Identification of the book's lack of solutions/prescriptions.",
+      "language_expectation": "Complex nouns and evaluative adjectives.",
+      "scoring_notes": "Needs to capture the specific irony of 'well-written complaint'."
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 100,
+    "tags": ["media", "summary"]
+  },
+  {
+    "id": "B2_W_01",
+    "skill": "writing",
+    "task_type": "writing_argument",
+    "target_cefr": "B2",
+    "difficulty": 0.62,
+    "response_mode": "typed",
+    "prompt": "Write an argument for or against the use of artificial intelligence in the creative arts (music, painting). (80–120 words)",
+    "stimulus": "Topic: AI and human creativity.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Arguments for/against AI in creativity."
+    },
+    "rubric": {
+      "content_expectation": "Address the role of human effort vs AI speed. Nuanced stance.",
+      "language_expectation": "Complex conditionals and modals. Transitions (consequently, conversely).",
+      "scoring_notes": "Requires abstract reasoning."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 600,
+    "tags": ["technology", "arts"]
+  },
+  {
+    "id": "B2_W_02",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "B2",
+    "difficulty": 0.66,
+    "response_mode": "typed",
+    "prompt": "Should university education be free for everyone? Discuss both the benefits and the economic challenges. (100–140 words)",
+    "stimulus": "Topic: Education economics.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Dual perspective on free higher education."
+    },
+    "rubric": {
+      "content_expectation": "Addresses social mobility (benefits) and taxation/funding (challenges).",
+      "language_expectation": "Logical connectors showing contrast. Passive voice for formal reports.",
+      "scoring_notes": "Balance is key."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 720,
+    "tags": ["education", "opinion"]
+  },
+  {
+    "id": "B2_W_03",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "B2",
+    "difficulty": 0.69,
+    "response_mode": "typed",
+    "prompt": "Describe a significant technological change you have witnessed in your life. How has it changed society? (100 words)",
+    "stimulus": "Topic: Lifestyle and change.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of change and its societal impact."
+    },
+    "rubric": {
+      "content_expectation": "Clear identification of a change and at least two societal effects.",
+      "language_expectation": "Present perfect tense for completed actions with current impact. Varied vocabulary.",
+      "scoring_notes": "Needs more than 'Life is better'."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 600,
+    "tags": ["technology", "description"]
+  },
+  {
+    "id": "B2_W_04",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "B2",
+    "difficulty": 0.71,
+    "response_mode": "typed",
+    "prompt": "You are writing a formal cover letter for a job. Write the paragraph explaining why your background is suitable for a leadership position. (50–60 words)",
+    "stimulus": "Topic: Professional writing.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Professional suitability paragraph."
+    },
+    "rubric": {
+      "content_expectation": "Specific mention of skills/leadership experience.",
+      "language_expectation": "Formal register throughout. Precise verbs (spearheaded, coordinated).",
+      "scoring_notes": "Tests register consistency."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 300,
+    "tags": ["work", "career"]
+  },
+  {
+    "id": "B2_W_05",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "B2",
+    "difficulty": 0.73,
+    "response_mode": "typed",
+    "prompt": "To what extent is it the individual's responsibility to solve the climate crisis versus the government's? (120 words)",
+    "stimulus": "Topic: Responsibility and environment.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Balanced or weighted argument on responsibility."
+    },
+    "rubric": {
+      "content_expectation": "Addresses systemic vs personal action. Nuanced evaluation.",
+      "language_expectation": "Evaluative language (crucial, negligible, paramount).",
+      "scoring_notes": "Sophisticated argument structure."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 720,
+    "tags": ["environment", "opinion"]
+  },
+  {
+    "id": "B2_W_06",
+    "skill": "writing",
+    "task_type": "writing_argument",
+    "target_cefr": "B2",
+    "difficulty": 0.75,
+    "response_mode": "typed",
+    "prompt": "Write a paragraph arguing for the implementation of a universal basic income. (80 words)",
+    "stimulus": "Topic: Social policy.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Argument for UBI."
+    },
+    "rubric": {
+      "content_expectation": "Link between UBI and automation/poverty. Stance clearly presented.",
+      "language_expectation": "Nominalization (The implementation of..., The reduction of...).",
+      "scoring_notes": "Formal argumentative style."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 480,
+    "tags": ["economics", "production"]
+  },
+  {
+    "id": "B2_W_07",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "B2",
+    "difficulty": 0.76,
+    "response_mode": "typed",
+    "prompt": "Describe a moment where you had to make a difficult ethical decision. (100–120 words)",
+    "stimulus": "Topic: Ethics and personal history.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Ethical dilemma narrative."
+    },
+    "rubric": {
+      "content_expectation": "Scenario setup, conflict, and the decision-making process.",
+      "language_expectation": "Narrative tenses (past perfect, past continuous). Abstract vocabulary.",
+      "scoring_notes": "Sophisticated narrative control."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 720,
+    "tags": ["ethics", "experience"]
+  },
+  {
+    "id": "B2_S_01",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B2",
+    "difficulty": 0.61,
+    "response_mode": "audio",
+    "prompt": "Tell me about a project or achievement you are most proud of. What was the outcome?",
+    "stimulus": "Topic: Personal success.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Narrative of an achievement."
+    },
+    "rubric": {
+      "content_expectation": "Background, process, and clear result/reflection.",
+      "language_expectation": "Range of past tenses and connectors.",
+      "scoring_notes": "Fluency and pronunciation clarity."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["work", "achievement"]
+  },
+  {
+    "id": "B2_S_02",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "B2",
+    "difficulty": 0.64,
+    "response_mode": "audio",
+    "prompt": "Do people rely too much on technology for their social lives? Why?",
+    "stimulus": "Topic: Technology/Social life.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Evaluation of tech reliance."
+    },
+    "rubric": {
+      "content_expectation": "Argument for/against reliance. Societal impact.",
+      "language_expectation": "Nuanced expressions (to some extent, undeniably).",
+      "scoring_notes": "Depth of reasoning."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["technology", "opinion"]
+  },
+  {
+    "id": "B2_S_03",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B2",
+    "difficulty": 0.67,
+    "response_mode": "audio",
+    "prompt": "Describe a major environmental problem in your country. How is it being addressed?",
+    "stimulus": "Topic: Environment.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of environmental issue and current response."
+    },
+    "rubric": {
+      "content_expectation": "Identify problem and describe government or public initiatives.",
+      "language_expectation": "Passive voice for policy description.",
+      "scoring_notes": "Lexical range in environment terms."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["environment", "speaking"]
+  },
+  {
+    "id": "B2_S_04",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "B2",
+    "difficulty": 0.70,
+    "response_mode": "audio",
+    "prompt": "If you could change one law in your country, what would it be and why?",
+    "stimulus": "Topic: Law and society.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Hypothetical law change and justification."
+    },
+    "rubric": {
+      "content_expectation": "Specific law and a detailed reason for its change.",
+      "language_expectation": "Second conditional (If I were to..., I would...).",
+      "scoring_notes": "Complexity of grammatical structures."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["public_policy", "opinion"]
+  },
+  {
+    "id": "B2_S_05",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B2",
+    "difficulty": 0.72,
+    "response_mode": "audio",
+    "prompt": "Explain the advantages and disadvantages of globalization for local cultures.",
+    "stimulus": "Topic: Culture/Global issues.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Two-sided evaluation of globalization."
+    },
+    "rubric": {
+      "content_expectation": "Mention benefits (exchange) and risks (loss of identity).",
+      "language_expectation": "Abstract concepts. Coherent discourse.",
+      "scoring_notes": "Balanced analysis."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 150,
+    "tags": ["culture", "globalization"]
+  },
+  {
+    "id": "B2_S_06",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "B2",
+    "difficulty": 0.74,
+    "response_mode": "audio",
+    "prompt": "How important is it for companies to prioritize sustainability over profit?",
+    "stimulus": "Topic: Business ethics.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Stance on corporate responsibility."
+    },
+    "rubric": {
+      "content_expectation": "Address fiscal vs moral responsibility.",
+      "language_expectation": "Complex subordinating conjunctions (provided that, assuming...).",
+      "scoring_notes": "Syntactic complexity."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["business", "ethics"]
+  },
+  {
+    "id": "B2_S_07",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B2",
+    "difficulty": 0.76,
+    "response_mode": "audio",
+    "prompt": "What role should AI play in future health systems? Speculate.",
+    "stimulus": "Topic: Future technology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Speculative oral discourse on AI and health."
+    },
+    "rubric": {
+      "content_expectation": "Examples of applications (diagnosis, surgery).",
+      "language_expectation": "Future perfect or future continuous. Hypotheticals.",
+      "scoring_notes": "Tests speculative range."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 150,
+    "tags": ["health", "technology"]
   }
 ]

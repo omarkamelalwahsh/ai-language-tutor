@@ -1,18 +1,721 @@
 [
   {
+    "id": "C2_L_01",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "response_mode": "mcq",
+    "prompt": "Listen to the commentary on 'The Tragedy of the Commons'. What is the 'insidious failure' mentioned by the speaker?",
+    "stimulus": "Speaker: The insidious failure of the 'Commons' is that it rewards the person who acts against the collective good. It's a 'rationality trap' where individual gain is finite and immediate, while the collective cost is diffuse and delayed, making the eventual collapse mathematically certain despite everyone's abstract desire to avoid it.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Greed of individuals", "Mathematical certainty of collapse despite collective desire", "The lack of taxes", "Immediate gain for the group"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 70,
+    "tags": ["philosophy", "economics", "nuance"]
+  },
+  {
+    "id": "C2_L_02",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "C2",
+    "difficulty": 0.94,
+    "response_mode": "typed",
+    "prompt": "Listen and write the phrase used to describe 'illusory progress'.",
+    "stimulus": "Historian: We often mistake 'technological churn' for 'cultural momentum'. We are simply rearranging our tools while the fundamental human problems remain untouched, a phenomenon I call 'static velocity'.",
+    "answer_key": {
+      "type": "exact",
+      "value": "static velocity"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 55,
+    "tags": ["history", "vocabulary"]
+  },
+  {
+    "id": "C2_L_03",
+    "skill": "listening",
+    "task_type": "listening_summary",
+    "target_cefr": "C2",
+    "difficulty": 0.96,
+    "response_mode": "typed",
+    "prompt": "Listen to the critique of 'dataism' and summarize the 'epistemological blind spot' identified.",
+    "stimulus": "Philosophist: The blind spot of 'dataism' is the belief that 'information' is synonymous with 'meaning'. It ignores the reality that context isn't a variable you can isolate; it's the 'living tissue' in which information either survives or dies. Without a coherent narrative, data is just refined noise.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "The failure to realize that information requires context/narrative to have meaning; data without story is noise."
+    },
+    "rubric": {
+      "content_expectation": "Identifies the false equivalence of info/meaning. Mentions context/narrative as essential.",
+      "language_expectation": "Mastery of abstract/philosophical register (epistemological, synonymous).",
+      "scoring_notes": "Needs to capture the 'living tissue' metaphor."
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["philosophy", "technology", "summary"]
+  },
+  {
+    "id": "C2_L_04",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.91,
+    "response_mode": "mcq",
+    "prompt": "Listen to the literary analysis of 'King Lear'. What is the speaker's main thesis on 'madness'?",
+    "stimulus": "Professor: Lear's 'madness' is less a psychiatric breakdown and more a 'catastrophic disillusionment'. It's the total stripping away of the royal 'mask', forcing him to confront the 'unaccommodated man'—the biological reality of himself once the structures of power have evaporated.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["A biological brain failure", "A loss of royal status", "A stripping away of identity/structures to reveal the biological man", "A temporary grief reaction"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 80,
+    "tags": ["literature", "philosophy"]
+  },
+  {
+    "id": "C2_L_05",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "C2",
+    "difficulty": 0.95,
+    "response_mode": "typed",
+    "prompt": "Listen and write the phrase used for 'unnoticed structural bias'.",
+    "stimulus": "Sociologist: We often speak of intent, but we should look at 'institutional inertia'. It is the way systems maintain their trajectory regardless of the individuals within them, creating what I call 'unseen gravity'.",
+    "answer_key": {
+      "type": "exact",
+      "value": "unseen gravity"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["sociology", "vocabulary"]
+  },
+  {
+    "id": "C2_L_06",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.93,
+    "response_mode": "mcq",
+    "prompt": "Listen to the commentary on 'The Death of the Author'. What does the speaker imply about 'intent'?",
+    "stimulus": "Critic: To search for the 'author's intent' is to 'imprison' the text. Once a work is released into the world, the author becomes a 'corpse'—a historical detail that has no privilege over the reader's own creative deconstruction of the meaning.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The author's intent is the ONLY meaning", "Intent is the historical priority", "The author has no special authority over the meaning once published", "Reading is a crime against the author"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 75,
+    "tags": ["literature", "theory"]
+  },
+  {
+    "id": "C2_L_07",
+    "skill": "listening",
+    "task_type": "listening_summary",
+    "target_cefr": "C2",
+    "difficulty": 0.98,
+    "response_mode": "typed",
+    "prompt": "Listen to the commentary and summarize the speaker's critique of 'AI creativity'.",
+    "stimulus": "Expert: AI doesn't 'compose'; it 'averages'. It takes the vast, messy distribution of human endeavor and finds the 'least surprising path' through it. True creativity is found in the 'outlier'—the voice that breaks the curve, not the one that smooths it out.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "AI averages existing data rather than creating unique 'outlier' voices that define true creativity."
+    },
+    "rubric": {
+      "content_expectation": "Contrast between 'averaging' and 'outlier' creativity. AI's lack of true deviation.",
+      "language_expectation": "Sophisticated descriptive analogies. Precise statistical terminology in context.",
+      "scoring_notes": "Needs to capture the 'averaging' vs 'breaking the curve' distinction."
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["technology", "arts", "summary"]
+  },
+  {
+    "id": "C2_L_08",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "mcq",
+    "prompt": "Listen to the critique of 'Economic Growth'. What is the 'fundamental paradox' mentioned?",
+    "stimulus": "Economist: We are trapped in a 'paradox of expansion'. To maintain a stable social contract, we require constant growth; but that growth eventually destabilizes the ecological contract upon which the social one is built. We are burning the foundation to keep the house warm.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Growth is always good", "Expansion is only for the rich", "Growth requires stability, but growth destroys the ecological foundation", "Burning foundations is a new energy source"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["economics", "environment", "paradox"]
+  },
+  {
     "id": "C2_R_01",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "response_mode": "mcq",
+    "prompt": "Read the text. What does the author mean by 'the tyranny of the present'?",
+    "stimulus": "Our culture is obsessed with 'real-time' metrics. This 'tyranny of the present' makes long-term thinking appear as a luxury or a distraction, yet we are effectively colonizing the future of the next generation by exhausting the resources they will one day need.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The lack of clocks", "An obsession with immediate metrics that ignores the future", "A political dictatorship", "The speed of light"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 75,
+    "tags": ["sociology", "time"]
+  },
+  {
+    "id": "C2_R_02",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "C2",
+    "difficulty": 0.93,
+    "response_mode": "typed",
+    "prompt": "Read the text and write the synonym for 'deceptive appearance' used by the author.",
+    "stimulus": "The smooth 'veneer' of academic neutrality often hides a world of fierce competition for funding and status. Behind the calm prose of a journal article lies a desperate battle for institutional relevance.",
+    "answer_key": {
+      "type": "exact",
+      "value": "veneer"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["education", "synonyms"]
+  },
+  {
+    "id": "C2_R_03",
     "skill": "reading",
     "task_type": "reading_summary",
     "target_cefr": "C2",
-    "difficulty": 0.70,
+    "difficulty": 0.95,
     "response_mode": "typed",
-    "prompt": "Read the existential text. Summarize the nuanced argument.",
-    "answer_key": "nuanced understanding of being",
+    "prompt": "Read the text and summarize the author's critique of 'The Enlightenment'.",
+    "stimulus": "The Enlightenment's belief in 'pure reason' was itself a form of 'romanticism'. It assumed that we could build a world guided solely by logic, yet it failed to account for the 'irrational' core of human behavior—the shadows that logic cannot illuminate, only deepen by pushing them into the subconscious of the collective.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "The Enlightenment's logic was itself a romantic myth that failed to handle the irrational core of humanity."
+    },
+    "rubric": {
+      "content_expectation": "Identifies the irony of logic as romanticism. Mentions failure to account for human irrationality.",
+      "language_expectation": "Mastery of abstract nouns (enlightenment, romanticism, collective subconscious).",
+      "scoring_notes": "Needs to capture the 'shadows' metaphor."
+    },
     "evidence_policy": {
-      "reading": {
-        "weight": 1.0,
-        "direct": true
+      "reading": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 150,
+    "tags": ["philosophy", "summary"]
+  },
+  {
+    "id": "C2_R_04",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.96,
+    "response_mode": "mcq",
+    "prompt": "Read the article snippet. What does 'regulatory capture' eventually result in?",
+    "stimulus": "The ultimate failure of oversight is 'regulatory capture', where the government agencies designed to protect the public become the 'instrument of the industry' they are meant to regulate. This inversion turns the watchdog into a lapdog, shielding the powerful from the very accountability that the law initially mandated.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Better public protection", "The law becoming a shield for the industry", "Higher taxes for the industry", "Independence of agencies"],
+        "correct_index": 1
       }
-    }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 85,
+    "tags": ["law", "politics", "logic"]
+  },
+  {
+    "id": "C2_R_05",
+    "skill": "reading",
+    "task_type": "reading_inference",
+    "target_cefr": "C2",
+    "difficulty": 0.97,
+    "response_mode": "mcq",
+    "prompt": "Read and choose the best inference. What can we conclude about 'silence' in the passage?",
+    "stimulus": "We speak of silence as a 'nothing'. But in a world of constant digital orchestration, silence is the 'most expensive luxury'—a rare, un-monetized space that is being systematically paved over by the noise of commercial attention.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["It is free", "It is a rare and threatened non-commercial space", "It is boring", "It is the cause of digital noise"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["philosophy", "inference"]
+  },
+  {
+    "id": "C2_R_06",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.98,
+    "response_mode": "mcq",
+    "prompt": "Read the piece on 'Structural Language'. What is the risk of using 'passive voice' in bureaucratic reports?",
+    "stimulus": "The 'passive voice' is the bureaucrat's 'invisibility cloak'. By saying 'mistakes were made' rather than 'we made mistakes', the agency can present a failure as a 'natural disaster'—an event without an author—thereby evaporating any possibility of direct accountability.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["It makes reports shorter", "It evaporates accountability by removing the actor", "It makes reports more exciting", "It is only for bad writers"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 80,
+    "tags": ["linguistics", "ethics"]
+  },
+  {
+    "id": "C2_R_07",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "typed",
+    "prompt": "Read the text and write the word used to describe 'excessive and trivial details'.",
+    "stimulus": "The report was a masterclass in 'minutiae'—a dense forest of trivial data points that successfully obscured the central, catastrophic failure of the project.",
+    "answer_key": {
+      "type": "exact",
+      "value": "minutiae"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 70,
+    "tags": ["vocabulary", "business"]
+  },
+  {
+    "id": "C2_R_08",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "mcq",
+    "prompt": "Read the deconstruction of 'The Global South'. What is the author's primary critique?",
+    "stimulus": "The term 'Global South' is less a geography and more an 'homogenizing gaze'. It groups together radically different economies and cultures into a single 'elsewhere', defined only by their shared exclusion from the core of Western financial institutions.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["It is too specific", "It homogenizes diverse cultures into a single 'exclusion' category", "It is only about weather", "It helps Western banks better"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["post-colonialism", "geopolitics"]
+  },
+  {
+    "id": "C2_W_01",
+    "skill": "writing",
+    "task_type": "writing_argument",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "response_mode": "typed",
+    "prompt": "Analyze the 'rhetoric of inevitability' in Silicon Valley discourse. How does framing technology as 'unstoppable' impact democratic oversight? (200–250 words)",
+    "stimulus": "Topic: Language, Power, and Tech.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Philosophical critique of tech inevitability and democratic decline."
+    },
+    "rubric": {
+      "content_expectation": "Connects linguistic 'framing' to social 'disempowerment'. High intellectual synthesis.",
+      "language_expectation": "Subtleties of modal logic. Precise meta-linguistic vocabulary.",
+      "scoring_notes": "Requires total mastery of register and rhetorical nuance."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 1.0, "direct": false },
+      "vocabulary": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 1200,
+    "tags": ["technology", "philosophy", "rhetoric"]
+  },
+  {
+    "id": "C2_W_02",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "C2",
+    "difficulty": 0.95,
+    "response_mode": "typed",
+    "prompt": "Critique the 'gamification' of public service and its long-term impact on 'institutional trust'. (150 words)",
+    "stimulus": "Topic: Public services and psychology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Philosophical deconstruction of gamification."
+    },
+    "rubric": {
+      "content_expectation": "Analyzes the shift from 'duty' to 'reward'. Implications for the social contract.",
+      "language_expectation": "Mastery of abstract and evaluative adjectives (superficial, transactional, eroded).",
+      "scoring_notes": "Evaluates conceptual depth."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 900,
+    "tags": ["society", "opinion"]
+  },
+  {
+    "id": "C2_W_03",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "C2",
+    "difficulty": 0.97,
+    "response_mode": "typed",
+    "prompt": "Write a formal 'post-mortem' of a theoretical project failure, focusing on 'systemic blindness' rather than individual error. (150 words)",
+    "stimulus": "Topic: Management and failure.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Formal/Technical analysis of systemic failure."
+    },
+    "rubric": {
+      "content_expectation": "Avoids scapegoating. Focuses on feedback loops and structural incentives.",
+      "language_expectation": "Complex technical register. Total formal precision.",
+      "scoring_notes": "Needs to move beyond 'we were wrong'."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 960,
+    "tags": ["business", "critique"]
+  },
+  {
+    "id": "C2_W_04",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "C2",
+    "difficulty": 0.98,
+    "response_mode": "typed",
+    "prompt": "Provide a 'literary rebuttal' to the claim that 'language is merely a tool for information transfer'. (80 words)",
+    "stimulus": "Topic: Metalinguistics.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Philosophical defense of language's poetic/cognitive role."
+    },
+    "rubric": {
+      "content_expectation": "Argues for language as 'constitutive' of thought, not just 'representative' of it.",
+      "language_expectation": "Elevated, metaphorical, or deeply precise prose.",
+      "scoring_notes": "Tests the boundaries of expressive nuance."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.9, "direct": false },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 480,
+    "tags": ["linguistics", "philosophy"]
+  },
+  {
+    "id": "C2_W_05",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "typed",
+    "prompt": "Evaluate 'The Paradox of the Hedonic Treadmill' in the context of contemporary economic growth models. (180 words)",
+    "stimulus": "Topic: Happiness and Economics.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Synthesis of psychology and macro-economics."
+    },
+    "rubric": {
+      "content_expectation": "Link between the 'adaptation' of pleasure and the 'necessity' of growth. Deep analysis.",
+      "language_expectation": "Total control of register and logic flow.",
+      "scoring_notes": "Sophisticated multi-disciplinary synthesis."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 1.0, "direct": false },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 1080,
+    "tags": ["economics", "opinion"]
+  },
+  {
+    "id": "C2_W_06",
+    "skill": "writing",
+    "task_type": "writing_argument",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "typed",
+    "prompt": "Examine the 'semiotic erosion' of public spaces in the digital age. (120 words)",
+    "stimulus": "Topic: Semiots and public space.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Argument on the loss of public 'meaning' via digital noise."
+    },
+    "rubric": {
+      "content_expectation": "Analyzes how digital overlay 'un-anchors' us from the physical environment.",
+      "language_expectation": "Academic dominance in semiotic and sociological terminology.",
+      "scoring_notes": "Evaluates conceptual synthesis."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 720,
+    "tags": ["sociology", "rhetoric"]
+  },
+  {
+    "id": "C2_W_07",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "typed",
+    "prompt": "Capture the 'concept of entropy' in a description of an abandoned house without using the word 'entropy'. (150 words)",
+    "stimulus": "Topic: Creative/Applied descriptive.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Evocation of decay and disorder."
+    },
+    "rubric": {
+      "content_expectation": "Detailed evocation of disorder, loss of structure, and the passage of time.",
+      "language_expectation": "Total descriptive mastery. Sensory complexity. Precise vocabulary (dilapidated, ossified, cacophony).",
+      "scoring_notes": "Tests literary range."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 1020,
+    "tags": ["creative", "description"]
+  },
+  {
+    "id": "C2_S_01",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "response_mode": "audio",
+    "prompt": "Analyze the 'sociology of nostalgia'. Why is a society's focus on its past often a 'proxy' for its anxiety about the future?",
+    "stimulus": "Topic: Social psychology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Spontaneous oration on nostalgia and anxiety."
+    },
+    "rubric": {
+      "content_expectation": "Connects 'halcyon days' narratives to 'crisis of current identity'.",
+      "language_expectation": "Total fluency. Nuanced rhythm and rhetorical emphasis.",
+      "scoring_notes": "Mastery of spoken high-register English."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["society", "speaking"]
+  },
+  {
+    "id": "C2_S_02",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "C2",
+    "difficulty": 0.95,
+    "response_mode": "audio",
+    "prompt": "Can 'justice' be entirely codified in law, or does it require a 'moral flexibility' that the law cannot reach?",
+    "stimulus": "Topic: Jurisprudence/Ethics.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Critique of legal vs moral justice."
+    },
+    "rubric": {
+      "content_expectation": "Addresses the 'letter' vs 'spirit' of the law. High philosophical depth.",
+      "language_expectation": "Complex conditional and hypothetical frames.",
+      "scoring_notes": "Sophisticated reasoning."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 210,
+    "tags": ["ethics", "opinion"]
+  },
+  {
+    "id": "C2_S_03",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "C2",
+    "difficulty": 0.97,
+    "response_mode": "audio",
+    "prompt": "Evaluate the 'ethics of attention'. In an age where attention is the primary currency, what is being 'spent' in the process?",
+    "stimulus": "Topic: Attention Economy.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Sophisticated speech on the cost of the attention economy."
+    },
+    "rubric": {
+      "content_expectation": "Mentions cognitive autonomy, depth of thought, and community cohesion.",
+      "language_expectation": "Total mastery of collocations and metaphors.",
+      "scoring_notes": "Coherent multi-disciplinary response."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["economics", "speaking"]
+  },
+  {
+    "id": "C2_S_04",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "C2",
+    "difficulty": 0.98,
+    "response_mode": "audio",
+    "prompt": "Is 'human intuition' destined to be 'obsoleted' by algorithmic prediction? Explain your reasoning. (3-minute talk)",
+    "stimulus": "Topic: Epistemology/Tech.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Complex opinion on intuition vs algorithms."
+    },
+    "rubric": {
+      "content_expectation": "Discusses 'tacit knowledge' vs 'explicit data patterns'. Deep abstract talk.",
+      "language_expectation": "Total flexibility in structure and emphasis.",
+      "scoring_notes": "Tests rhetorical mastery."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["technology", "opinion"]
+  },
+  {
+    "id": "C2_S_05",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "audio",
+    "prompt": "Analyze 'The Aesthetic of the Imperfect'. Why is there a growing human backlash against 'perfect' digital products?",
+    "stimulus": "Topic: Aesthetics/Psychology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Analytical speech on wabi-sabi and digital perfection."
+    },
+    "rubric": {
+      "content_expectation": "Link between 'humanity' and 'flaw'. Critique of sterile perfection.",
+      "language_expectation": "High-level vocabulary (sterility, authenticity, tactile).",
+      "scoring_notes": "Level of conceptual abstraction."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["aesthetics", "psychology"]
+  },
+  {
+    "id": "C2_S_06",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "audio",
+    "prompt": "To what degree is the 'scientific method' a cultural construct rather than a universal truth? (4-minute talk)",
+    "stimulus": "Topic: Philosophy of Science.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Deep philosophical argument on epistemology."
+    },
+    "rubric": {
+      "content_expectation": "Addresses the 'framework' through which truth is viewed. Highly complex talk.",
+      "language_expectation": "Perfect command of sophisticated rhetoric.",
+      "scoring_notes": "Evaluates logical and syntactical depth."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 300,
+    "tags": ["science", "opinion"]
+  },
+  {
+    "id": "C2_S_07",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "C2",
+    "difficulty": 0.99,
+    "response_mode": "audio",
+    "prompt": "Deconstruct the 'concept of progress' in the 21st century. Is it a verifiable fact or a 'secular religion'?",
+    "stimulus": "Topic: Progress/Theology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Meta-analysis of the 'myth' of progress."
+    },
+    "rubric": {
+      "content_expectation": "Critique of teleological thinking. Analysis of 'improvement' vs 'complexity'.",
+      "language_expectation": "Total mastery of rhetorical flow and complex logic.",
+      "scoring_notes": "The pinnacle of CEFR-level production."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 1.0, "direct": false }
+    },
+    "estimated_time_sec": 300,
+    "tags": ["philosophy", "history"]
   }
 ]

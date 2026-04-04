@@ -1,38 +1,711 @@
 [
   {
-    "id": "A1_R_01",
-    "skill": "reading",
-    "task_type": "reading_summary",
+    "id": "A1_L_01",
+    "skill": "listening",
+    "task_type": "listening_mcq",
     "target_cefr": "A1",
-    "difficulty": 0.58,
-    "response_mode": "typed",
-    "prompt": "Read: 'My name is Sara. I am 10 years old. I have a cat.' How old is Sara?",
-    "answer_key": "10",
-    "evidence_policy": {
-      "reading": {
-        "weight": 1.0,
-        "direct": true
-      },
-      "vocabulary": {
-        "weight": 0.3,
-        "direct": false
+    "difficulty": 0.12,
+    "response_mode": "mcq",
+    "prompt": "Listen to the dialogue. Where is the man?",
+    "stimulus": "Man: Excuse me, is this the train to London? Woman: Yes, it is. It leaves in five minutes.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["At a school", "At a train station", "In a park", "At a hospital"],
+        "correct_index": 1
       }
-    }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["travel", "train", "basic_location"]
   },
   {
-    "id": "A1_G_01",
-    "skill": "grammar",
-    "task_type": "multiple_choice",
+    "id": "A1_L_02",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
     "target_cefr": "A1",
-    "difficulty": 0.3,
-    "response_mode": "multiple_choice",
-    "prompt": "Choose the correct word: 'She ___ my best friend.' (am / is / are / be)",
-    "answer_key": "is",
+    "difficulty": 0.15,
+    "response_mode": "typed",
+    "prompt": "Listen and write the color of the car.",
+    "stimulus": "Boy: Look at that car! It is fast and red. Girl: Yes, it belongs to my uncle.",
+    "answer_key": {
+      "type": "exact",
+      "value": "red"
+    },
     "evidence_policy": {
-      "grammar": {
-        "weight": 1.0,
-        "direct": true
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.2, "direct": false },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 25,
+    "tags": ["colors", "objects"]
+  },
+  {
+    "id": "A1_L_03",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.10,
+    "response_mode": "mcq",
+    "prompt": "Listen to the introduction. How old is the speaker?",
+    "stimulus": "Hello! My name is Ben. I am seven years old. I live in Manchester.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["6", "7", "8", "9"],
+        "correct_index": 1
       }
-    }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.1, "direct": false }
+    },
+    "estimated_time_sec": 20,
+    "tags": ["personal_info", "numbers"]
+  },
+  {
+    "id": "A1_L_04",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A1",
+    "difficulty": 0.18,
+    "response_mode": "typed",
+    "prompt": "Listen and write the time the shop opens.",
+    "stimulus": "Recording: The grocery store is open every day. It opens at eight o'clock in the morning.",
+    "answer_key": {
+      "type": "exact",
+      "value": "8"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 25,
+    "tags": ["time", "shopping", "numbers"]
+  },
+  {
+    "id": "A1_L_05",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.20,
+    "response_mode": "mcq",
+    "prompt": "Listen to the family description. Who is Sarah?",
+    "stimulus": "Tom: This is a photo of my family. That is my father, and the girl next to him is my sister, Sarah.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Tom's mother", "Tom's sister", "Tom's friend", "Tom's teacher"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["family"]
+  },
+  {
+    "id": "A1_L_06",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.22,
+    "response_mode": "mcq",
+    "prompt": "Listen to the weather report. What is the weather like today?",
+    "stimulus": "Radio: Good morning! Today is a beautiful day. It is very hot and sunny, so wear a hat!",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Cold and rainy", "Cloudy", "Hot and sunny", "Snowing"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["weather"]
+  },
+  {
+    "id": "A1_L_07",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A1",
+    "difficulty": 0.24,
+    "response_mode": "typed",
+    "prompt": "Listen and write one food item the person likes.",
+    "stimulus": "Woman: For breakfast, I usually have an apple and some bread. I really like fruit.",
+    "answer_key": {
+      "type": "exact",
+      "value": "apple"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["food", "likes"]
+  },
+  {
+    "id": "A1_L_08",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.25,
+    "response_mode": "mcq",
+    "prompt": "Listen to the office instruction. What does the boss want?",
+    "stimulus": "Boss: John, please close the window. It is very loud outside today.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Open the door", "Open the window", "Close the window", "Turn off the light"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["instructions", "office"]
+  },
+  {
+    "id": "A1_R_01",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.11,
+    "response_mode": "mcq",
+    "prompt": "Read the text. What is the main subject?",
+    "stimulus": "My cat is white and small. Her name is Luna. She sleeps on my bed every night.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["A dog", "A cat", "A bird", "A fish"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["animals", "description"]
+  },
+  {
+    "id": "A1_R_02",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "A1",
+    "difficulty": 0.13,
+    "response_mode": "typed",
+    "prompt": "Read the text. Where does the speaker live?",
+    "stimulus": "I am Maria. I live in a big house in Madrid. My house is near the park.",
+    "answer_key": {
+      "type": "exact",
+      "value": "Madrid"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["location", "home"]
+  },
+  {
+    "id": "A1_R_03",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.15,
+    "response_mode": "mcq",
+    "prompt": "Read the menu fragment. How much is the sandwich?",
+    "stimulus": "FOOD MENU: Pizza - $10, Sandwich - $5, Salad - $7, Juice - $2.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["$10", "$5", "$7", "$2"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 25,
+    "tags": ["numbers", "food", "shopping"]
+  },
+  {
+    "id": "A1_R_04",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "A1",
+    "difficulty": 0.17,
+    "response_mode": "typed",
+    "prompt": "Read the email. Who is it from?",
+    "stimulus": "To: David. Hello David, can you come to my party at 6 PM? From: Peter.",
+    "answer_key": {
+      "type": "exact",
+      "value": "Peter"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.1, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["email", "correspondence"]
+  },
+  {
+    "id": "A1_R_05",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.19,
+    "response_mode": "mcq",
+    "prompt": "Read the routine description. When does he eat lunch?",
+    "stimulus": "Every day, David gets up at 7 AM. He goes to work at 9 AM. He eats lunch at 1 PM with his friends.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["7 AM", "9 AM", "1 PM", "6 PM"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["routine", "time"]
+  },
+  {
+    "id": "A1_R_06",
+    "skill": "reading",
+    "task_type": "reading_inference",
+    "target_cefr": "A1",
+    "difficulty": 0.21,
+    "response_mode": "mcq",
+    "prompt": "Read and choose the best inference. Why is Anna happy?",
+    "stimulus": "Anna has a new bicycle. It is blue and very fast. She is going to the park now with her brother.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["She is at school", "She has a new bicycle", "It is raining", "She is tired"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["inference", "feelings"]
+  },
+  {
+    "id": "A1_R_07",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.23,
+    "response_mode": "mcq",
+    "prompt": "Read the short story. What is on the table?",
+    "stimulus": "The kitchen is big. There is a table in the center. On the table, there is a red book and a green pen.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["A cat", "A book and a pen", "A computer", "A chair"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["home", "prepositions"]
+  },
+  {
+    "id": "A1_R_08",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "A1",
+    "difficulty": 0.25,
+    "response_mode": "typed",
+    "prompt": "Read and write the name of the teacher.",
+    "stimulus": "School starts today. My teacher is Mr. Smith. He teaches English. He is very kind.",
+    "answer_key": {
+      "type": "exact",
+      "value": "Mr. Smith"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["school", "people"]
+  },
+  {
+    "id": "A1_W_01",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.12,
+    "response_mode": "typed",
+    "prompt": "Introduce yourself. Write 1–2 sentences. (Name and age)",
+    "stimulus": "You are meeting a new friend.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Introduction of name and age."
+    },
+    "rubric": {
+      "content_expectation": "Learner provides their name and a number for age.",
+      "language_expectation": "Uses 'I am' or 'My name is'. Simple present tense.",
+      "scoring_notes": "Ignore minor spelling errors if name/age are clear."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["personal_info", "production"]
+  },
+  {
+    "id": "A1_W_02",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.15,
+    "response_mode": "typed",
+    "prompt": "Write about your favorite food. (1 sentence)",
+    "stimulus": "Topic: Food.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "A sentence about likes/dislikes of food."
+    },
+    "rubric": {
+      "content_expectation": "Mention a food item and a preference.",
+      "language_expectation": "Uses 'I like' or 'My favorite is'.",
+      "scoring_notes": "Grammar should be mostly correct for the simple structure."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["food", "production"]
+  },
+  {
+    "id": "A1_W_03",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "A1",
+    "difficulty": 0.18,
+    "response_mode": "typed",
+    "prompt": "Describe your family. Write 2 sentences.",
+    "stimulus": "Topic: Family members.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Mentioning at least two family members."
+    },
+    "rubric": {
+      "content_expectation": "Mentioning father, mother, sister, etc.",
+      "language_expectation": "Possessive adjectives (my) and plural/singular nouns.",
+      "scoring_notes": "Should show basic sentence structure."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["family", "production"]
+  },
+  {
+    "id": "A1_W_04",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "A1",
+    "difficulty": 0.20,
+    "response_mode": "typed",
+    "prompt": "Describe your bedroom. What is in it? (2 sentences)",
+    "stimulus": "Topic: My room.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Presence of objects like bed, table, etc."
+    },
+    "rubric": {
+      "content_expectation": "Mentions objects in a room.",
+      "language_expectation": "Uses 'There is/are' or 'I have'. Prepositions of place optional but good.",
+      "scoring_notes": "Focus on noun vocabulary."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["home", "objects"]
+  },
+  {
+    "id": "A1_W_05",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.22,
+    "response_mode": "typed",
+    "prompt": "Write a short message to a friend. Ask 'How are you?' and say 'Goodbye'.",
+    "stimulus": "Writing a note.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "A basic greeting and closing."
+    },
+    "rubric": {
+      "content_expectation": "Includes a question and a closing phrase.",
+      "language_expectation": "Basic formulas for social interaction.",
+      "scoring_notes": "Functional adequacy is key."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.4, "direct": false },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["social", "interaction"]
+  },
+  {
+    "id": "A1_W_06",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "A1",
+    "difficulty": 0.24,
+    "response_mode": "typed",
+    "prompt": "Write about your day. (3 short sentences)",
+    "stimulus": "Topic: Daily routine.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Sequence of daily events."
+    },
+    "rubric": {
+      "content_expectation": "Mentions breakfast, work/school, and sleep.",
+      "language_expectation": "Simple present, first person 'I'.",
+      "scoring_notes": "Cohesion (and, then) is a bonus."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 180,
+    "tags": ["routine", "production"]
+  },
+  {
+    "id": "A1_W_07",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "A1",
+    "difficulty": 0.25,
+    "response_mode": "typed",
+    "prompt": "Describe your favorite city. (2 sentences)",
+    "stimulus": "Topic: Travel/Places.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Name of city and one characteristic."
+    },
+    "rubric": {
+      "content_expectation": "Identify a place and describe it.",
+      "language_expectation": "Adjectives (big, beautiful, old).",
+      "scoring_notes": "Should successfully convey an impression."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["travel", "description"]
+  },
+  {
+    "id": "A1_S_01",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.10,
+    "response_mode": "audio",
+    "prompt": "Say your name and where you are from.",
+    "stimulus": "Introduction.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Oral statement of name and origin."
+    },
+    "rubric": {
+      "content_expectation": "Name and country/city name mentioned.",
+      "language_expectation": "Intelligible pronunciation of basic info.",
+      "scoring_notes": "Phonetic accuracy not critical, communicative intent is."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 20,
+    "tags": ["personal_info", "speaking"]
+  },
+  {
+    "id": "A1_S_02",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.14,
+    "response_mode": "audio",
+    "prompt": "Look at the photo. What is this? (Say 'It is a...').",
+    "stimulus": "Image of a bicycle.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Correct identification of object."
+    },
+    "rubric": {
+      "content_expectation": "Says 'bicycle' or 'bike'.",
+      "language_expectation": "Basic sentence frame.",
+      "scoring_notes": "Speed is indicative of fluency at this level."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 20,
+    "tags": ["objects", "speaking"]
+  },
+  {
+    "id": "A1_S_03",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.17,
+    "response_mode": "audio",
+    "prompt": "Spell your last name aloud.",
+    "stimulus": "Alphabet task.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Letters of the name spoken sequentially."
+    },
+    "rubric": {
+      "content_expectation": "Correct sequence of alphabet sounds.",
+      "language_expectation": "Clear individual letter sounds.",
+      "scoring_notes": "Tests basic phonemic awareness."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["alphabet", "spelling"]
+  },
+  {
+    "id": "A1_S_04",
+    "skill": "speaking",
+    "task_type": "speaking_descriptive",
+    "target_cefr": "A1",
+    "difficulty": 0.20,
+    "response_mode": "audio",
+    "prompt": "Describe the weather today. (1 sentence)",
+    "stimulus": "Topic: Weather.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Observation of weather conditions."
+    },
+    "rubric": {
+      "content_expectation": "Status of sun/rain/clouds/temp.",
+      "language_expectation": "Simple structure 'It is ...'.",
+      "scoring_notes": "Focus on basic adjectives."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["weather", "speaking"]
+  },
+  {
+    "id": "A1_S_05",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.22,
+    "response_mode": "audio",
+    "prompt": "Tell me what time you go to bed.",
+    "stimulus": "Topic: Routine.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Statement of time and activity."
+    },
+    "rubric": {
+      "content_expectation": "A time value and the verb.",
+      "language_expectation": "I go to bed at [time].",
+      "scoring_notes": "Test cardinal numbers in context."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["time", "routine"]
+  },
+  {
+    "id": "A1_S_06",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "A1",
+    "difficulty": 0.24,
+    "response_mode": "audio",
+    "prompt": "What is your favorite animal? Why? (1-2 sentences)",
+    "stimulus": "Topic: Animals.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Preference plus basic reason."
+    },
+    "rubric": {
+      "content_expectation": "Animal name + simple reason (it is cute, its big).",
+      "language_expectation": "'Is' / 'Because'.",
+      "scoring_notes": "Reasoning can be very simple."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.3, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["animals", "opinion"]
+  },
+  {
+    "id": "A1_S_07",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.25,
+    "response_mode": "audio",
+    "prompt": "Greet someone and ask them 'Where is the school?'.",
+    "stimulus": "Social interaction scenario.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Greeting plus functional question."
+    },
+    "rubric": {
+      "content_expectation": "Hello/Hi + Where is...?",
+      "language_expectation": "Clear request for information.",
+      "scoring_notes": "Functional communicative intent must be clear."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["social", "directions"]
   }
 ]

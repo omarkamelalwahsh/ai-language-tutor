@@ -1,22 +1,721 @@
 [
   {
-    "id": "B1_R_01",
-    "skill": "reading",
-    "task_type": "reading_summary",
+    "id": "B1_L_01",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.42,
+    "response_mode": "mcq",
+    "prompt": "Listen to the radio interview. What is the speaker's main concern about the new park?",
+    "stimulus": "Interviewer: So, the city is building a new park. Are you happy about it? Speaker: Not entirely. While more green space is great, I'm worried about the increased traffic in our quiet neighborhood. We already have enough noise from the highway.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The lack of trees", "Increased traffic and noise", "The cost of building it", "The location being too far"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["community", "environment", "opinion"]
+  },
+  {
+    "id": "B1_L_02",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "B1",
+    "difficulty": 0.45,
+    "response_mode": "typed",
+    "prompt": "Listen and write one reason the flight was delayed.",
+    "stimulus": "Announcement: Attention all passengers. Flight BA456 to London is delayed by two hours due to heavy fog and a technical check on the aircraft's engine. We apologize for the inconvenience.",
+    "answer_key": {
+      "type": "exact",
+      "value": "heavy fog"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["travel", "announcement"]
+  },
+  {
+    "id": "B1_L_03",
+    "skill": "listening",
+    "task_type": "listening_summary",
+    "target_cefr": "B1",
+    "difficulty": 0.48,
+    "response_mode": "typed",
+    "prompt": "Listen to the advice and summarize the main recommendation in one sentence.",
+    "stimulus": "Fitness Coach: If you're just starting, don't try to run five miles on day one. It's better to walk for thirty minutes daily and gradually increase your pace. Consistency is far more important than intensity when you're a beginner.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Summary of gradual progress and consistency."
+    },
+    "rubric": {
+      "content_expectation": "Mention starting slowly and staying consistent.",
+      "language_expectation": "Simple or compound sentences. Uses 'should' or 'ought to'.",
+      "scoring_notes": "Should capture the irony of avoiding intensity for beginners."
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.3, "direct": false },
+      "grammar": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["health", "advice", "summary"]
+  },
+  {
+    "id": "B1_L_04",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.50,
+    "response_mode": "mcq",
+    "prompt": "Listen to the colleague's request. What is the deadline for the report?",
+    "stimulus": "Colleague: Hey Susan, have you finished the quarterly report? The manager needs it by Thursday morning at the latest for the board meeting.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Wednesday evening", "Thursday morning", "Friday afternoon", "Next week"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["work", "time"]
+  },
+  {
+    "id": "B1_L_05",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.52,
+    "response_mode": "mcq",
+    "prompt": "Listen to the travel review. What did the traveler like least?",
+    "stimulus": "Traveler: Our trip to Tokyo was spectacular. The food was beyond our expectations and the subway system is so efficient. However, the hotel room was tiny even for the high price we paid.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The food", "The subway", "The crowds", "The size of the hotel room"],
+        "correct_index": 3
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["travel", "opinion"]
+  },
+  {
+    "id": "B1_L_06",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "B1",
+    "difficulty": 0.54,
+    "response_mode": "typed",
+    "prompt": "Listen and write the name of the software mentioned.",
+    "stimulus": "Technician: To edit these photos professionally, you really should download 'VividShot'. It handles light balance much better than the standard tools.",
+    "answer_key": {
+      "type": "exact",
+      "value": "VividShot"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["technology", "work"]
+  },
+  {
+    "id": "B1_L_07",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.56,
+    "response_mode": "mcq",
+    "prompt": "Listen to the education podcast. Why is university enrollment falling in some regions?",
+    "stimulus": "Host: We're seeing a decline in university applicants. Expert: It's primarily financial. Tuition fees have risen so sharply that many young people are choosing technical apprenticeships instead of traditional four-year degrees.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Degrees are too easy", "Tuition fees are too high", "There are too many universities", "Lack of student housing"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 50,
+    "tags": ["education", "economics"]
+  },
+  {
+    "id": "B1_L_08",
+    "skill": "listening",
+    "task_type": "listening_summary",
     "target_cefr": "B1",
     "difficulty": 0.58,
     "response_mode": "typed",
-    "prompt": "Read: 'The new policy aims to reduce plastic waste...' What is the policy?",
-    "answer_key": "reduce plastic waste",
+    "prompt": "Listen to the description of a movie and summarize its genre and main conflict.",
+    "stimulus": "Reviewer: 'Shadow Land' is a dark thriller set in futuristic Berlin. It follows a detective who discovers that his own department is hiding evidence of a massive corporate crime.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Thriller about a detective uncovering corruption."
+    },
+    "rubric": {
+      "content_expectation": "Mentions genre (thriller) and the conflict (corruption/evidence hiding).",
+      "language_expectation": "Correct use of relative clauses.",
+      "scoring_notes": "Needs to connect the detective to the crime."
+    },
     "evidence_policy": {
-      "reading": {
-        "weight": 1.0,
-        "direct": true
-      },
-      "writing": {
-        "weight": 0.6,
-        "direct": false
+      "listening": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.4, "direct": false },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["media", "summary"]
+  },
+  {
+    "id": "B1_R_01",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.41,
+    "response_mode": "mcq",
+    "prompt": "Read the workplace internal email. What is the purpose of the new policy?",
+    "stimulus": "Subject: Desk Sharing Policy. Effective Monday, all staff will use a hot-desking system. This change aims to reduce overhead costs and encourage better collaboration between departments.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["To give everyone a bigger desk", "To cut costs and improve teamwork", "To fire underperforming staff", "To renovate the office"],
+        "correct_index": 1
       }
-    }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["work", "communication"]
+  },
+  {
+    "id": "B1_R_02",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "B1",
+    "difficulty": 0.44,
+    "response_mode": "typed",
+    "prompt": "Read the text and write one benefit of the new railway branch.",
+    "stimulus": "The city council approved the East Link railway today. The project will connect isolated suburbs to the center, reducing the daily commute time for over 50,000 residents.",
+    "answer_key": {
+      "type": "exact",
+      "value": "reducing commute time"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["travel", "city_life"]
+  },
+  {
+    "id": "B1_R_03",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "B1",
+    "difficulty": 0.47,
+    "response_mode": "typed",
+    "prompt": "Read the text and summarize the main idea in 1–2 sentences.",
+    "stimulus": "Remote work is becoming the standard for many tech firms. While it saves money on office rent, studies show that long-term isolation can lead to decreased employee morale and a lack of company culture.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Remote work has financial benefits but carries social risks for morale."
+    },
+    "rubric": {
+      "content_expectation": "Mentions both the cost saving and the morale/culture risk.",
+      "language_expectation": "Uses connectors like 'although' or 'however'.",
+      "scoring_notes": "Balanced summary required."
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "writing": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["work", "summary"]
+  },
+  {
+    "id": "B1_R_04",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.49,
+    "response_mode": "mcq",
+    "prompt": "Read the article snippet. What does the study suggest about brain health?",
+    "stimulus": "Recent research suggests that learning a musical instrument in old age can significantly delay the onset of memory-related diseases. The cognitive effort required to read music and coordinate movements keeps neuro-pathways active.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Music cures memory loss", "Instrument training helps old brains stay active", "Listening to music is enough for health", "Coordination is more important than music"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 50,
+    "tags": ["health", "science"]
+  },
+  {
+    "id": "B1_R_05",
+    "skill": "reading",
+    "task_type": "reading_inference",
+    "target_cefr": "B1",
+    "difficulty": 0.52,
+    "response_mode": "mcq",
+    "prompt": "Read and choose the best inference. What can we assume about the speaker's tone?",
+    "stimulus": "Wow, another meeting about the color of the lobby. This is surely the most efficient use of our time this week.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Enthusiastic", "Sarcastic", "Serious", "Helpful"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["inference", "pragmatics"]
+  },
+  {
+    "id": "B1_R_06",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.55,
+    "response_mode": "mcq",
+    "prompt": "Read the email. What should the recipient prioritize?",
+    "stimulus": "Hi Kevin, the client call is at 3 PM. Please make sure the budget slides are ready by 2 PM so we can review them. Ignore the project timeline update for now; we can finish that tomorrow.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Client call", "Project timeline", "Budget slides", "Meeting Julia"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["work", "communication"]
+  },
+  {
+    "id": "B1_R_07",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "B1",
+    "difficulty": 0.57,
+    "response_mode": "typed",
+    "prompt": "Read the text and write the year the museum opened.",
+    "stimulus": "The National Art Museum was first conceived in 1995, but due to funding delays, it didn't open its doors to the public until 2004. Since then, it has hosted over 10 million visitors.",
+    "answer_key": {
+      "type": "exact",
+      "value": "2004"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["history", "data"]
+  },
+  {
+    "id": "B1_R_08",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.58,
+    "response_mode": "mcq",
+    "prompt": "Read the travel advice. What is the best way to save money on attractions?",
+    "stimulus": "Traveling to Vienna is pricey. To save money, buy a 'City Card' before you arrive. It offers free transport and deep discounts on museums. Booking individual tickets at the gate is almost always the most expensive option.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Buy individual tickets", "Buy a City Card", "Avoid the museums", "Arrive late in the day"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["travel", "advice"]
+  },
+  {
+    "id": "B1_W_01",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "B1",
+    "difficulty": 0.43,
+    "response_mode": "typed",
+    "prompt": "Write about your typical workday. Include your morning routine and one main task. (40–60 words)",
+    "stimulus": "Describe workplace routines.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "A paragraph describing routines and a task."
+    },
+    "rubric": {
+      "content_expectation": "Covers daily routine and at least one concrete work task.",
+      "language_expectation": "Consistent simple present. Use of sequence markers (first, next, usually).",
+      "scoring_notes": "Needs to move beyond A2-level 'I eat breakfast' to actual professional context."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 300,
+    "tags": ["work", "routine"]
+  },
+  {
+    "id": "B1_W_02",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "B1",
+    "difficulty": 0.46,
+    "response_mode": "typed",
+    "prompt": "Is it better to work alone or in a team? Give two reasons for your opinion. (50–70 words)",
+    "stimulus": "Expressing professional opinion.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Argumentative response with two supports."
+    },
+    "rubric": {
+      "content_expectation": "Clear stance and two logically distinct reasons.",
+      "language_expectation": "Use of 'In my opinion', 'On the other hand', 'Furthermore'.",
+      "scoring_notes": "Logical coherence is paramount."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 420,
+    "tags": ["opinion", "work"]
+  },
+  {
+    "id": "B1_W_03",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "B1",
+    "difficulty": 0.49,
+    "response_mode": "typed",
+    "prompt": "Describe a place you visited that had beautiful nature. Describe what you saw and how you felt. (60 words)",
+    "stimulus": "Topic: Travel and environment.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Atmospheric description of a place."
+    },
+    "rubric": {
+      "content_expectation": "Physical details plus emotional or atmospheric notes.",
+      "language_expectation": "Adjectives (stunning, peaceful, vast). Simple past or present.",
+      "scoring_notes": "Evaluates descriptive range."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 480,
+    "tags": ["travel", "description"]
+  },
+  {
+    "id": "B1_W_04",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "B1",
+    "difficulty": 0.52,
+    "response_mode": "typed",
+    "prompt": "You are late for a meeting. Write an email to your manager apologizing and explaining why. (30–40 words)",
+    "stimulus": "Topic: Professional courtesy.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Apology and justification."
+    },
+    "rubric": {
+      "content_expectation": "Explicit apology and a realistic reason (traffic, tech issues).",
+      "language_expectation": "Appropriate formal or semi-formal register.",
+      "scoring_notes": "Functional adequacy of the apology."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 180,
+    "tags": ["work", "interaction"]
+  },
+  {
+    "id": "B1_W_05",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "B1",
+    "difficulty": 0.54,
+    "response_mode": "typed",
+    "prompt": "Should cities ban cars from their centers? Why or why not? (60 words)",
+    "stimulus": "Topic: Environment and urban life.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Balanced or strong stance on urban car bans."
+    },
+    "rubric": {
+      "content_expectation": "Connects car bans to pollution, safety, or convenience.",
+      "language_expectation": "Modal verbs of possibility (could, would, might).",
+      "scoring_notes": "Handles social concepts."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 600,
+    "tags": ["community", "opinion"]
+  },
+  {
+    "id": "B1_W_06",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "B1",
+    "difficulty": 0.56,
+    "response_mode": "typed",
+    "prompt": "Ask for clarification on a project deadline in a formal tone. (2 sentences)",
+    "stimulus": "Writing a clarification request.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Formal inquiry."
+    },
+    "rubric": {
+      "content_expectation": "Polite request for specific date/time info.",
+      "language_expectation": "Indirect questions (I was wondering if..., Could you please clarify...).",
+      "scoring_notes": "Formal register awareness."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.9, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["work", "grammar"]
+  },
+  {
+    "id": "B1_W_07",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "B1",
+    "difficulty": 0.58,
+    "response_mode": "typed",
+    "prompt": "Summarize a news story you heard recently. What happened and why is it important? (60 words)",
+    "stimulus": "Topic: Current events.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "News summary with significance note."
+    },
+    "rubric": {
+      "content_expectation": "Reports facts and offers a brief 'importance' note.",
+      "language_expectation": "Passive voice (It was reported, ...is considered).",
+      "scoring_notes": "Narrative complexity."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 600,
+    "tags": ["media", "production"]
+  },
+  {
+    "id": "B1_S_01",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "B1",
+    "difficulty": 0.42,
+    "response_mode": "audio",
+    "prompt": "Explain what your most important job responsibility is.",
+    "stimulus": "Topic: Work.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of professional duty."
+    },
+    "rubric": {
+      "content_expectation": "Identify a task and its context.",
+      "language_expectation": "I am responsible for..., My main task is...",
+      "scoring_notes": "Fluency and task-specific vocab."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["work", "speaking"]
+  },
+  {
+    "id": "B1_S_02",
+    "skill": "speaking",
+    "task_type": "speaking_descriptive",
+    "target_cefr": "B1",
+    "difficulty": 0.45,
+    "response_mode": "audio",
+    "prompt": "Describe a useful piece of technology you use every day. Why is it helpful?",
+    "stimulus": "Topic: Technology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Oral description of high-tech object."
+    },
+    "rubric": {
+      "content_expectation": "Describe physical item and its utility.",
+      "language_expectation": "Relative clauses (which allows me to...).",
+      "scoring_notes": "Technical vocabulary."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["technology", "speaking"]
+  },
+  {
+    "id": "B1_S_03",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "B1",
+    "difficulty": 0.48,
+    "response_mode": "audio",
+    "prompt": "Should students have to wear uniforms? What do you think?",
+    "stimulus": "Topic: Education.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Opinion on school uniforms."
+    },
+    "rubric": {
+      "content_expectation": "States opinion and a reason (equality, identity).",
+      "language_expectation": "'On one hand', 'In my view'.",
+      "scoring_notes": "Argumentative flow."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["education", "opinion"]
+  },
+  {
+    "id": "B1_S_04",
+    "skill": "speaking",
+    "task_type": "speaking_descriptive",
+    "target_cefr": "B1",
+    "difficulty": 0.51,
+    "response_mode": "audio",
+    "prompt": "Describe a book or movie that you really enjoyed. What happened in it?",
+    "stimulus": "Topic: Culture.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Brief plot summary and reaction."
+    },
+    "rubric": {
+      "content_expectation": "Summarizes story and why it was good.",
+      "language_expectation": "Adjectives (exciting, moving, scary) and past tenses.",
+      "scoring_notes": "Narrative coherence."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["culture", "speaking"]
+  },
+  {
+    "id": "B1_S_05",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "B1",
+    "difficulty": 0.53,
+    "response_mode": "audio",
+    "prompt": "Give someone advice on how to save money while traveling.",
+    "stimulus": "Topic: Travel.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Oral advice."
+    },
+    "rubric": {
+      "content_expectation": "Offer at least one concrete tip.",
+      "language_expectation": "Modals (You should, You could), Conditional (If you...).",
+      "scoring_notes": "Communicative effectiveness."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["travel", "advice"]
+  },
+  {
+    "id": "B1_S_06",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B1",
+    "difficulty": 0.56,
+    "response_mode": "audio",
+    "prompt": "Tell me about a difficult situation you had to solve at work or school.",
+    "stimulus": "Topic: Challenges.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Personal narrative of problem-solving."
+    },
+    "rubric": {
+      "content_expectation": "Describe problem, action, and result.",
+      "language_expectation": "Use of 'managed to', 'finally', 'due to'.",
+      "scoring_notes": "Tests endurance and structural range."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["work", "experience"]
+  },
+  {
+    "id": "B1_S_07",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "B1",
+    "difficulty": 0.58,
+    "response_mode": "audio",
+    "prompt": "Is social media good for our community? Why or why not?",
+    "stimulus": "Topic: Modern technology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Stance on social media's community impact."
+    },
+    "rubric": {
+      "content_expectation": "Identify an impact (connection vs isolation).",
+      "language_expectation": "'In conclusion', 'It depends on...'.",
+      "scoring_notes": "Abstract concept handling."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["community", "opinion"]
   }
 ]

@@ -1,18 +1,713 @@
 [
   {
+    "id": "A2_L_01",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.27,
+    "response_mode": "mcq",
+    "prompt": "Listen to the conversation. Why is the woman going to the store?",
+    "stimulus": "Woman: Hi Marc, I'm going to the supermarket. We don't have any eggs or milk for breakfast. Marc: Okay, could you also buy some bread please?",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["To buy bread", "To buy eggs and milk", "To work", "To see a friend"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["daily_life", "shopping"]
+  },
+  {
+    "id": "A2_L_02",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.29,
+    "response_mode": "typed",
+    "prompt": "Listen and write where they decided to meet.",
+    "stimulus": "Man: Do you want to meet at the cinema at 7? Woman: Let's meet at the cafe instead. It's quieter. Man: Fine, see you at the cafe.",
+    "answer_key": {
+      "type": "exact",
+      "value": "cafe"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["social", "meeting"]
+  },
+  {
+    "id": "A2_L_03",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.31,
+    "response_mode": "mcq",
+    "prompt": "Listen to the travel announcement. Which platform is the train to Paris leaving from?",
+    "stimulus": "Announcement: The train for Paris via Lille is now arriving at Platform 4. Please have your tickets ready.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Platform 1", "Platform 4", "Platform 14", "Platform 40"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["travel", "train"]
+  },
+  {
+    "id": "A2_L_04",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.33,
+    "response_mode": "mcq",
+    "prompt": "Listen to the description. What did he do yesterday?",
+    "stimulus": "Man: Yesterday was Saturday. I stayed at home and cleaned my kitchen. It took all morning.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Went to work", "Visited friends", "Cleaned his kitchen", "Went shopping"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["routine", "past_simple"]
+  },
+  {
+    "id": "A2_L_05",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.35,
+    "response_mode": "typed",
+    "prompt": "Listen and write the price of the ticket.",
+    "stimulus": "Ticket Agent: That will be twelve pounds fifty for the child's ticket, please. Father: Here you go, thirteen pounds.",
+    "answer_key": {
+      "type": "exact",
+      "value": "12.50"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["shopping", "numbers"]
+  },
+  {
+    "id": "A2_L_06",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.36,
+    "response_mode": "mcq",
+    "prompt": "Listen to the teacher. When is the homework due?",
+    "stimulus": "Teacher: Class, your essays are due next Friday. Do not forget to send them by email before midnight.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["This Friday", "Today", "Next Friday", "Monday"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["school", "time"]
+  },
+  {
+    "id": "A2_L_07",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.38,
+    "response_mode": "mcq",
+    "prompt": "Listen to the friend's call. What is the problem?",
+    "stimulus": "Friend: Hello, I'm so sorry, I can't come tonight. I have a very bad headache and I need to sleep.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["He is working", "He has a headache", "He is lost", "He is too late"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["social", "health"]
+  },
+  {
+    "id": "A2_L_08",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.40,
+    "response_mode": "typed",
+    "prompt": "Listen and write the name of the hotel mentioned.",
+    "stimulus": "Woman: We stayed at the Blue Lake Hotel. It was very beautiful and near the mountains.",
+    "answer_key": {
+      "type": "exact",
+      "value": "Blue Lake Hotel"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["travel", "hotel"]
+  },
+  {
     "id": "A2_R_01",
     "skill": "reading",
     "task_type": "reading_mcq",
     "target_cefr": "A2",
-    "difficulty": 0.45,
-    "response_mode": "multiple_choice",
-    "prompt": "Read: 'The library is open from 9 AM to 5 PM.' Is it open at 10 AM?",
-    "answer_key": "Yes",
-    "evidence_policy": {
-      "reading": {
-        "weight": 1.0,
-        "direct": true
+    "difficulty": 0.26,
+    "response_mode": "mcq",
+    "prompt": "Read the text. Where did she go last summer?",
+    "stimulus": "Last summer, Clara visited her grandparents in Italy. She spent two weeks in a small village by the sea.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["To France", "To Spain", "To Italy", "To Portugal"],
+        "correct_index": 2
       }
-    }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["travel", "past_simple"]
+  },
+  {
+    "id": "A2_R_02",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.28,
+    "response_mode": "mcq",
+    "prompt": "Read the advertisement. When is the restaurant closed?",
+    "stimulus": "PIZZA KING: Open Monday to Saturday 12 PM - 10 PM. Closed on Sundays.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Monday", "Saturday", "Sunday", "Friday"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 25,
+    "tags": ["shopping", "time"]
+  },
+  {
+    "id": "A2_R_03",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.30,
+    "response_mode": "typed",
+    "prompt": "Read the note and write what he needs to buy.",
+    "stimulus": "Hi John, we need some juice for the party. Can you get some? I have already bought the snacks.",
+    "answer_key": {
+      "type": "exact",
+      "value": "juice"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["shopping", "notes"]
+  },
+  {
+    "id": "A2_R_04",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.32,
+    "response_mode": "mcq",
+    "prompt": "Read the description. Why is he tired?",
+    "stimulus": "Simon is very tired today because he worked until 11 PM last night. He had a lot of reports to finish.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["He is sick", "He worked late", "He woke up early", "He went to a party"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["routine", "work"]
+  },
+  {
+    "id": "A2_R_05",
+    "skill": "reading",
+    "task_type": "reading_inference",
+    "target_cefr": "A2",
+    "difficulty": 0.34,
+    "response_mode": "mcq",
+    "prompt": "Read and choose the best inference. What can we say about the cake?",
+    "stimulus": "The cake was on the table five minutes ago. Now, the plate is empty and the dog is looking very happy.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The dog ate the cake", "The cake is in the oven", "She threw the cake away", "The dog is sleeping"],
+        "correct_index": 0
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["inference", "logic"]
+  },
+  {
+    "id": "A2_R_06",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.35,
+    "response_mode": "mcq",
+    "prompt": "Read the travel blog. What is the most favorite thing about the city?",
+    "stimulus": "I love visiting Bangkok. The food is spicy and delicious, the people are very friendly, but my favorite thing is the beautiful old temples.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The food", "The temples", "The people", "The city center"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["travel", "opinion"]
+  },
+  {
+    "id": "A2_R_07",
+    "skill": "reading",
+    "task_type": "reading_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.37,
+    "response_mode": "typed",
+    "prompt": "Read and write the name of the mountain mentioned.",
+    "stimulus": "The group decided to climb Mount Evans tomorrow morning. It is not very high but the view is great.",
+    "answer_key": {
+      "type": "exact",
+      "value": "Mount Evans"
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.2, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["nature", "mountain"]
+  },
+  {
+    "id": "A2_R_08",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.39,
+    "response_mode": "mcq",
+    "prompt": "Read the email. What should Mark do?",
+    "stimulus": "Hi Mark, can you please call the doctor and change my appointment to Wednesday? I have to work on Tuesday. Thanks, Julia.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Call Julia", "Change an appointment", "Go to work", "Go to the doctor"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["email", "correspondence"]
+  },
+  {
+    "id": "A2_W_01",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "A2",
+    "difficulty": 0.27,
+    "response_mode": "typed",
+    "prompt": "Write about what you did last weekend. (25–35 words)",
+    "stimulus": "Describe past activities.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "A paragraph in simple past."
+    },
+    "rubric": {
+      "content_expectation": "Mentions at least two activities from the past weekend.",
+      "language_expectation": "Correct use of simple past verbs. Time markers (Saturday, then).",
+      "scoring_notes": "Look for basic narrative flow."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["past_events", "production"]
+  },
+  {
+    "id": "A2_W_02",
+    "skill": "writing",
+    "task_type": "writing_opinion",
+    "target_cefr": "A2",
+    "difficulty": 0.30,
+    "response_mode": "typed",
+    "prompt": "Do you prefer living in a city or a village? Why? (2 sentences)",
+    "stimulus": "Expressing preference.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Preference plus one reason."
+    },
+    "rubric": {
+      "content_expectation": "States a choice and a supporting reason.",
+      "language_expectation": "Comparatives (better, quieter) or 'because'.",
+      "scoring_notes": "Coherence between choice and reason is important."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 180,
+    "tags": ["opinion", "comparatives"]
+  },
+  {
+    "id": "A2_W_03",
+    "skill": "writing",
+    "task_type": "writing_descriptive",
+    "target_cefr": "A2",
+    "difficulty": 0.33,
+    "response_mode": "typed",
+    "prompt": "Describe a person you know. (Physical appearance and personality - 3 sentences)",
+    "stimulus": "Topic: A friend or family member.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of looks and character."
+    },
+    "rubric": {
+      "content_expectation": "Mentions hair/eyes/height and a personality trait (kind, funny).",
+      "language_expectation": "Adjectives and 'has/is'.",
+      "scoring_notes": "Evidence of lexical range in adjectives."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["people", "adjectives"]
+  },
+  {
+    "id": "A2_W_04",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "A2",
+    "difficulty": 0.36,
+    "response_mode": "typed",
+    "prompt": "Write a message to a friend. Invite them to go to the cinema this Saturday.",
+    "stimulus": "Topic: Social invitation.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "An invitation with a time/place."
+    },
+    "rubric": {
+      "content_expectation": "Explicit invitation and a temporal reference.",
+      "language_expectation": "Modals of suggestion (Would you like, Let's).",
+      "scoring_notes": "Functional adequacy of the invitation."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.5, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["social", "interaction"]
+  },
+  {
+    "id": "A2_W_05",
+    "skill": "writing",
+    "task_type": "writing_description",
+    "target_cefr": "A2",
+    "difficulty": 0.38,
+    "response_mode": "typed",
+    "prompt": "Write about your favorite gadget (phone, laptop, etc.). Why do you like it? (30 words)",
+    "stimulus": "Topic: Technology.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Topic and function description."
+    },
+    "rubric": {
+      "content_expectation": "Namest a gadget and its use (take photos, play games).",
+      "language_expectation": "Present simple, relative pronouns (that, which) optional.",
+      "scoring_notes": "Vocabulary related to technology."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["technology", "production"]
+  },
+  {
+    "id": "A2_W_06",
+    "skill": "writing",
+    "task_type": "writing_short_response",
+    "target_cefr": "A2",
+    "difficulty": 0.39,
+    "response_mode": "typed",
+    "prompt": "Ask for information about a train ticket (price, time, etc.). (2 sentences)",
+    "stimulus": "Writing an inquiry.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Inquiry questions."
+    },
+    "rubric": {
+      "content_expectation": "Formulate at least two questions.",
+      "language_expectation": "Wh- questions, auxiliary verbs.",
+      "scoring_notes": "Grammar of interrogative sentences."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.9, "direct": false },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["travel", "questions"]
+  },
+  {
+    "id": "A2_W_07",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "A2",
+    "difficulty": 0.40,
+    "response_mode": "typed",
+    "prompt": "Write about your dream job. (30–40 words)",
+    "stimulus": "Topic: Careers.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Occupation description and reasons."
+    },
+    "rubric": {
+      "content_expectation": "Mention a job and why it is attractive.",
+      "language_expectation": "Subordinate clauses (because, so).",
+      "scoring_notes": "Ability to handle future/conditional intent."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.7, "direct": false },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 300,
+    "tags": ["jobs", "production"]
+  },
+  {
+    "id": "A2_S_01",
+    "skill": "speaking",
+    "task_type": "speaking_descriptive",
+    "target_cefr": "A2",
+    "difficulty": 0.28,
+    "response_mode": "audio",
+    "prompt": "Describe your best friend. (Appearances and personality)",
+    "stimulus": "Topic: Friends.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Oral description."
+    },
+    "rubric": {
+      "content_expectation": "Mentions height/hair and one personality trait.",
+      "language_expectation": "Intelligible oral production, basic accuracy.",
+      "scoring_notes": "Fluent enough for basic description."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["people", "speaking"]
+  },
+  {
+    "id": "A2_S_02",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A2",
+    "difficulty": 0.31,
+    "response_mode": "audio",
+    "prompt": "How do you get to school or work? (Transportation route)",
+    "stimulus": "Topic: Transportation.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of a journey."
+    },
+    "rubric": {
+      "content_expectation": "Mentiones vehicle and time/general route.",
+      "language_expectation": "'I take the bus', 'It takes 20 minutes'.",
+      "scoring_notes": "Tests frequency and transport vocabulary."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["travel", "routine"]
+  },
+  {
+    "id": "A2_S_03",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "A2",
+    "difficulty": 0.34,
+    "response_mode": "audio",
+    "prompt": "Which season do you like most? Why?",
+    "stimulus": "Topic: Seasons.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Preference plus reason."
+    },
+    "rubric": {
+      "content_expectation": "Selection of season + reason (weather, holidays).",
+      "language_expectation": "'I like summer because it's hot'.",
+      "scoring_notes": "Basic connective use."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.4, "direct": false },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["nature", "opinion"]
+  },
+  {
+    "id": "A2_S_04",
+    "skill": "speaking",
+    "task_type": "speaking_descriptive",
+    "target_cefr": "A2",
+    "difficulty": 0.36,
+    "response_mode": "audio",
+    "prompt": "Tell me about your home. (How many rooms, kitchen, garden?)",
+    "stimulus": "Topic: Housing.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Description of living space."
+    },
+    "rubric": {
+      "content_expectation": "Mentioning rooms and key features.",
+      "language_expectation": "Existential 'there is/are', numbers.",
+      "scoring_notes": "Spacial vocabulary."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["home", "speaking"]
+  },
+  {
+    "id": "A2_S_05",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A2",
+    "difficulty": 0.38,
+    "response_mode": "audio",
+    "prompt": "Ask a shop assistant for the price and if they have a larger size of a shirt.",
+    "stimulus": "Roleplay scenario.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Functional inquiries."
+    },
+    "rubric": {
+      "content_expectation": "Price check + size request.",
+      "language_expectation": "Polite questions (How much is...? Do you have...?).",
+      "scoring_notes": "Social adequacy and clarity."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 60,
+    "tags": ["shopping", "functional"]
+  },
+  {
+    "id": "A2_S_06",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "A2",
+    "difficulty": 0.39,
+    "response_mode": "audio",
+    "prompt": "What did you do on your last holiday? (Say 3-4 things).",
+    "stimulus": "Topic: Past holidays.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Sequence of past events."
+    },
+    "rubric": {
+      "content_expectation": "List of activities in the past.",
+      "language_expectation": "Consistent use of simple past.",
+      "scoring_notes": "Tests duration and complexity of narrative."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["travel", "past_simple"]
+  },
+  {
+    "id": "A2_S_07",
+    "skill": "speaking",
+    "task_type": "speaking_opinion",
+    "target_cefr": "A2",
+    "difficulty": 0.40,
+    "response_mode": "audio",
+    "prompt": "Is it important to learn English? Why?",
+    "stimulus": "Topic: Language learning.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Expression of importance and reasons."
+    },
+    "rubric": {
+      "content_expectation": "Argument for English importance.",
+      "language_expectation": "Subordination (because, so).",
+      "scoring_notes": "Abstract concept handling at basic level."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 90,
+    "tags": ["opinion", "education"]
   }
 ]
