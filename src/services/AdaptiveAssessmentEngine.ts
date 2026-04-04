@@ -179,7 +179,8 @@ export class AdaptiveAssessmentEngine {
       type: nextItem.task_type as any,
       response_mode: nextItem.response_mode as any,
       audioUrl: nextItem.audio_url, 
-      stimulus: nextItem.stimulus, // Pass stimulus for fallback
+      stimulus: nextItem.stimulus, 
+      options: nextItem.answer_key?.value?.options || nextItem.options, // Extract options from nested answer_key if exists
       _efset: nextItem 
     } as any;
   }
@@ -233,7 +234,9 @@ export class AdaptiveAssessmentEngine {
     }
 
     // 2. Score + Map to Evidence
-    const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect);
+    // Map 'voice' -> 'audio' and 'typed_fallback' or undefined -> 'typed' for the mapper
+    const actualMode = responseMode === 'voice' ? 'audio' : 'typed';
+    const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect, actualMode);
 
     // 3. Update Skill States
     for (const evidence of evidences) {

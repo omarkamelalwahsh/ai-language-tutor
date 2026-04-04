@@ -24,7 +24,8 @@ export interface QuestionBankItem {
   difficulty: number; // 0.0 - 1.0 within the band, or absolute 0-6 relative
   response_mode: 'typed' | 'audio' | 'multiple_choice';
   prompt: string;
-  answer_key: string;
+  answer_key: any; // Can be string or { type: string, value: any }
+  options?: string[]; // Top-level options for backward compatibility
   audio_url?: string; // Optional URL for audio stimulus
   stimulus?: string; // Optional text stimulus/transcript
   evidence_policy: EvidencePolicy;

@@ -240,8 +240,10 @@ export class AssessmentAnalysisService {
     const sum = sortedIndices.reduce((a, b) => a + b, 0);
     const avg = sum / sortedIndices.length;
     
-    // Rounded correctly based on confidence
-    const finalIndex = highConfidence ? Math.round(avg) : Math.floor(avg);
+    // Rounded correctly based on confidence: 
+    // Always round up if it's .5 or higher to avoid user frustration, 
+    // even in medium confidence scenarios.
+    const finalIndex = Math.round(avg);
     
     return CEFR_ORDER[Math.max(0, Math.min(finalIndex, CEFR_ORDER.length - 1))] as CefrLevel;
   }
@@ -352,7 +354,7 @@ export class AssessmentAnalysisService {
 
   private static buildOverallRationale(skills: Record<SkillName, SkillAssessmentResult>, estimated: CefrLevel): string[] {
     const rationale = [
-      `Your linguistic profile align with the ${estimated} band.`,
+      `Your linguistic profile aligns with the ${estimated} band.`,
       `Core proficiency is driven by strong performance in ${Object.values(skills).filter(s => getBandOrder(s.estimatedLevel) >= getBandOrder(estimated)).map(s => s.skill).join(', ')}.`
     ];
 

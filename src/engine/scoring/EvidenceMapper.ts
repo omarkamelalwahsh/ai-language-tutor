@@ -8,7 +8,8 @@ export class EvidenceMapper {
   static mapSignalToEvidence(
     item: QuestionBankItem, 
     signal: LLMSignal,
-    isCorrect: boolean // used as a fallback or for MCQ
+    isCorrect: boolean, // used as a fallback or for MCQ
+    actualResponseMode?: 'typed' | 'audio' | 'multiple_choice'
   ): SkillEvidence[] {
     
     // 1. Calculate base scores from signal
@@ -38,10 +39,11 @@ export class EvidenceMapper {
     const taskPower = getEvidentialPower(item.task_type);
     
     for (const [skillStr, policy] of Object.entries(item.evidence_policy)) {
-       // Typed answers must NOT count as speaking
-       if (skillStr === 'speaking' && item.response_mode === 'typed') {
-           continue; 
-       }
+        // ❌ Speaking Guard: Block speaking credit if the user typed their response 
+        // regardless of the intended task type.
+        if (skillStr === 'speaking' && actualResponseMode === 'typed') {
+            continue; 
+        }
        
        evidences.push({
            skill: skillStr,
