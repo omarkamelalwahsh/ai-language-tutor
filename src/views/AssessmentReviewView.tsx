@@ -39,36 +39,50 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
   const renderCorrectAnswer = (ev: TaskEvaluation, legacy?: AssessmentQuestion) => {
     const raw = ev.rawSignals || {};
     const answerKey = (raw.answerKey as any) || legacy?.correctAnswer || legacy?.acceptedAnswers;
-    const isMcq = (raw.answerKey as any)?.options || ['mcq', 'reading_mcq', 'listening_mcq'].includes(legacy?.type || '');
+    
+    if (!answerKey) return null;
 
-    if (isMcq && answerKey) {
-      const correctStr = typeof answerKey === 'string' ? answerKey : (answerKey.correct_answer || '');
+    // Handle new dynamic bank structure (Nested Object)
+    let displayValue: any = answerKey;
+    let isMCQ = false;
+
+    if (typeof answerKey === 'object' && answerKey !== null) {
+      if ('value' in answerKey) {
+        displayValue = answerKey.value;
+        if (answerKey.type === 'mcq' && displayValue?.options && displayValue?.correct_index !== undefined) {
+          displayValue = displayValue.options[displayValue.correct_index];
+          isMCQ = true;
+        }
+      } else if ('correct_answer' in answerKey) {
+        displayValue = answerKey.correct_answer;
+        isMCQ = true;
+      }
+    }
+
+    if (isMCQ || typeof displayValue === 'string') {
       return (
         <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
           <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Correct Answer</p>
-          <p className="text-sm font-bold text-emerald-900">{correctStr}</p>
+          <p className="text-sm font-bold text-emerald-900">{String(displayValue)}</p>
         </div>
       );
     }
     
-    if (answerKey) {
-      const answers = Array.isArray(answerKey) ? answerKey : [String(answerKey)];
+    // Handle list of keywords (Exact Match or Array)
+    const answers = Array.isArray(displayValue) ? displayValue : [String(displayValue)];
         
-      return (
-        <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Target Keywords</p>
-          <div className="flex flex-wrap gap-2">
-            {answers.map((ans, i) => (
-              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-800 font-bold whitespace-nowrap">
-                {ans}
-              </span>
-            ))}
-          </div>
+    return (
+      <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Target Keywords</p>
+        <div className="flex flex-wrap gap-2">
+          {answers.map((ans, i) => (
+            <span key={i} className="text-xs bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-800 font-bold whitespace-nowrap">
+              {String(ans)}
+            </span>
+          ))}
         </div>
-      );
-    }
-
-    return null;
+      </div>
+    );
   };
 
   const staggerContainer = {

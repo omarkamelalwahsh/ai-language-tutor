@@ -267,6 +267,7 @@ export class AdaptiveAssessmentEngine {
       primarySkill: efsetItem.skill as any,
       validAttempt: true,
       channels: {
+        comprehension: isCorrect ? 1.0 : 0.0,
         taskCompletion: signal.task_completion,
         grammarAccuracy: signal.grammar_control,
         lexicalRange: signal.lexical_range,
