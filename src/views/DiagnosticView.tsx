@@ -146,7 +146,7 @@ const TaskQuestion: React.FC<{
         </div>
       )}
 
-      {isListening && (
+      {isListening && task.audioUrl && (
          <div className="mb-8">
            <AudioPlaybackControl 
              audioUrl={task.audioUrl} 
@@ -344,9 +344,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       const firstQ = engine.getNextQuestion();
       if (firstQ) {
         setCurrentTask(firstQ);
-        const progress = engine.getProgress();
-        setProgress(progress);
-        (window as any)._lastBenchmark = progress.currentBand;
+        const p = engine.getProgress();
+        setProgress(p);
+        (window as any)._lastBenchmark = p.currentBand;
       }
     }
   }, [engine, currentTask]);

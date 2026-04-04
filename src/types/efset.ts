@@ -25,6 +25,7 @@ export interface QuestionBankItem {
   response_mode: 'typed' | 'audio' | 'multiple_choice';
   prompt: string;
   answer_key: string;
+  audio_url?: string; // Optional URL for audio stimulus
   evidence_policy: EvidencePolicy;
 }
 

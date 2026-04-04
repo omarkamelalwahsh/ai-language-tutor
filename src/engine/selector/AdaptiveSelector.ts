@@ -19,91 +19,103 @@ export class AdaptiveSelector {
 
   public selectNext(state: SelectorState): QuestionBankItem | null {
     const { skills, askedQuestionIds, currentOverallLevel } = state;
+    const questionCount = askedQuestionIds.size;
 
-    // 1. Identify skills missing direct evidence
-    const coreSkills: SkillName[] = ['reading', 'listening', 'writing', 'speaking'];
-    const skillsToPrioritize = coreSkills.filter(
-      s => skills[s].directEvidenceCount === 0
-    );
+    // --------------------------------------------------------------------------
+    // PHASE 1: STRUCTURED CALIBRATION (First 4 questions)
+    // --------------------------------------------------------------------------
+    if (questionCount < 4) {
+      const calibrationOrder: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
+      const targetSkill = calibrationOrder[questionCount];
+      console.log(`[Selector] Phase 1: CALIBRATION | target: ${targetSkill}`);
+      return this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
+    }
 
+    // --------------------------------------------------------------------------
+    // PHASE 3: REPAIR / COVERAGE (Near the end or if evidence is low)
+    // --------------------------------------------------------------------------
+    const coreSkills: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
+    const underEvidenced = coreSkills.filter(s => skills[s].directEvidenceCount < 2);
+    
+    if (questionCount >= 12 && underEvidenced.length > 0) {
+      const targetSkill = underEvidenced[0];
+      console.log(`[Selector] Phase 3: REPAIR | target: ${targetSkill}`);
+      return this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
+    }
+
+    // --------------------------------------------------------------------------
+    // PHASE 2: ADAPTIVE ROUTING
+    // --------------------------------------------------------------------------
+    
+    // Choose skill based on lowest confidence or missing evidence
     let targetSkill: SkillName;
-    if (skillsToPrioritize.length > 0) {
-      targetSkill = skillsToPrioritize[Math.floor(Math.random() * skillsToPrioritize.length)];
+    const missingAny = coreSkills.filter(s => skills[s].directEvidenceCount === 0);
+    
+    if (missingAny.length > 0) {
+      targetSkill = missingAny[Math.floor(Math.random() * missingAny.length)];
     } else {
-      // Pick skill with lowest confidence
-      targetSkill = (Object.keys(skills) as SkillName[]).sort(
-        (a, b) => skills[a].confidence - skills[b].confidence
-      )[0];
+      targetSkill = coreSkills.sort((a, b) => skills[a].confidence - skills[b].confidence)[0];
     }
 
     const skillState = skills[targetSkill];
     const currentIndex = LEVEL_ORDER.indexOf(currentOverallLevel);
     
-    // 2. Momentum Tracking (Fast Drop)
-    // If the last 3 answers for this skill were < 0.4 score, demote significantly
-    const recent = skillState.history.slice(-3);
-    if (recent.length === 3 && recent.every(h => h.score < 0.4)) {
-       const demotedIndex = Math.max(0, currentIndex - 2);
-       console.log(`[Momentum] Critical failure trend for ${targetSkill}. Demoting to ${LEVEL_ORDER[demotedIndex]}.`);
-       return this.pickFromLevel(LEVEL_ORDER[demotedIndex], targetSkill, askedQuestionIds);
-    }
+    // Boundary Testing with Momentum
+    const recent = skillState.history.slice(-2);
+    const isStruggling = recent.length === 2 && recent.every(h => h.score < 0.4);
+    const isExelling = recent.length === 2 && recent.every(h => h.score > 0.8);
 
-    // 3. Boundary Testing (Probe model)
-    const rand = Math.random();
-    let probeDifficulty: CEFRLevel = currentOverallLevel;
-
-    if (rand < 0.20 && currentIndex > 0) {
-       probeDifficulty = LEVEL_ORDER[currentIndex - 1]; // Checkdown L-1
-       console.log(`[Selector] Probe: Checkdown L-1 for ${targetSkill} -> ${probeDifficulty}`);
-    } else if (rand > 0.80 && currentIndex < LEVEL_ORDER.length - 1) {
-       probeDifficulty = LEVEL_ORDER[currentIndex + 1]; // Reach L+1
-       console.log(`[Selector] Probe: Reach L+1 for ${targetSkill} -> ${probeDifficulty}`);
+    let probeLevel: CEFRLevel = currentOverallLevel;
+    if (isStruggling && currentIndex > 0) {
+      probeLevel = LEVEL_ORDER[currentIndex - 1]; // Step down
+    } else if (isExelling && currentIndex < LEVEL_ORDER.length - 1) {
+      probeLevel = LEVEL_ORDER[currentIndex + 1]; // Step up
     } else {
-       // Target current estimated level
-       const estimatedSkillLevel = this.scoreToLevel(skillState.score);
-       probeDifficulty = estimatedSkillLevel;
+      // Random Probe logic (20/60/20)
+      const rand = Math.random();
+      if (rand < 0.2 && currentIndex > 0) {
+        probeLevel = LEVEL_ORDER[currentIndex - 1];
+      } else if (rand > 0.8 && currentIndex < LEVEL_ORDER.length - 1) {
+        probeLevel = LEVEL_ORDER[currentIndex + 1];
+      }
     }
 
-    const item = this.pickFromLevel(probeDifficulty, targetSkill, askedQuestionIds);
-    if (item && !askedQuestionIds.has(item.id)) return item;
+    console.log(`[Selector] Phase 2: ADAPTIVE | skill: ${targetSkill} | target: ${probeLevel}`);
+    const item = this.pickFromLevel(probeLevel, targetSkill, askedQuestionIds);
+    
+    if (item) return item;
 
-    // Fallback: search neighbors
-    const neighbors = [currentIndex - 1, currentIndex + 1].filter(
-      i => i >= 0 && i < LEVEL_ORDER.length
-    );
-    for (const ni of neighbors) {
-       const fallback = this.pickFromLevel(LEVEL_ORDER[ni], targetSkill, askedQuestionIds);
-       if (fallback && !askedQuestionIds.has(fallback.id)) return fallback;
-    }
-
-    // Final safety filter: if we somehow got here, check ALL banks for the target skill
+    // --------------------------------------------------------------------------
+    // FALLBACKS (Exhaustion Management)
+    // --------------------------------------------------------------------------
+    console.log(`[Selector] Target level ${probeLevel} for ${targetSkill} exhausted. Searching neighbors...`);
+    
+    // Try other levels for the SAME skill
     for (const level of LEVEL_ORDER) {
-       const desperateFallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
-       if (desperateFallback && !askedQuestionIds.has(desperateFallback.id)) return desperateFallback;
+      const fallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
+      if (fallback) return fallback;
     }
 
-    console.warn(`[Selector] Full exhaustion for ${targetSkill}. No more questions available.`);
+    // Try other skills at ANY level (Desperation)
+    for (const skill of coreSkills) {
+      for (const level of LEVEL_ORDER) {
+        const desperateFallback = this.pickFromLevel(level, skill, askedQuestionIds);
+        if (desperateFallback) return desperateFallback;
+      }
+    }
+
     return null;
   }
 
   private pickFromLevel(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
     const bank = this.banks[level] || [];
     const available = bank.filter(
-      q => !askedIds.has(q.id) && (q.skill === skill || skill in q.evidence_policy)
+      q => !askedIds.has(q.id) && (q.skill === skill || (q.evidence_policy && skill in q.evidence_policy))
     );
-    if (available.length === 0) {
-      console.log(`[Selector] Bank exhausted for ${level} - ${skill}.`);
-      return null;
-    }
+    
+    if (available.length === 0) return null;
+    
+    // Pick the most distinct task type if possible (TBD: could add task type tracking here)
     return available[Math.floor(Math.random() * available.length)];
-  }
-
-  private scoreToLevel(score: number): CEFRLevel {
-    if (score < 0.40) return 'A1';
-    if (score < 0.55) return 'A2';
-    if (score < 0.70) return 'B1';
-    if (score < 0.83) return 'B2';
-    if (score < 0.93) return 'C1';
-    return 'C2';
   }
 }

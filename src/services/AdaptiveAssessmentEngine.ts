@@ -37,6 +37,7 @@ import { SignalExtractor } from '../engine/scoring/SignalExtractor';
 import { EvidenceMapper } from '../engine/scoring/EvidenceMapper';
 import { SkillAggregator } from '../engine/cefr/SkillAggregator';
 import { CEFREngine } from '../engine/cefr/CEFREngine';
+import { BankValidator } from './BankValidator';
 import { FinalReportBuilder } from '../engine/cefr/FinalReportBuilder';
 
 // Import Banks
@@ -56,8 +57,8 @@ const BAND_VALUE: Record<DifficultyBand, number> = { A1: 1, A2: 2, B1: 3, B2: 4,
 
 const CONFIG = {
   MIN_QUESTIONS: 8,
-  MAX_QUESTIONS: 30,
-  CONFIDENCE_STOP_THRESHOLD: 0.75, // Refined EF SET stop threshold
+  MAX_QUESTIONS: 20, // Reduced to 20 for tighter session
+  CONFIDENCE_STOP_THRESHOLD: 0.75, 
 } as const;
 
 export class AdaptiveAssessmentEngine {
@@ -77,6 +78,15 @@ export class AdaptiveAssessmentEngine {
   };
 
   constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile) {
+    // 1. Validate Banks
+    const report = BankValidator.validate(this.banks);
+    if (!report.isValid) {
+       console.error('[BankValidator] Errors found in banks:', report.errors);
+       // In production, we might want to throw or fallback, but here we log and continue
+    } else {
+       console.log(`[BankValidator] Banks valid! Items: ${report.stats.totalItems}`);
+    }
+
     this.selector = new AdaptiveSelector(this.banks);
     
     const skillsList: EFSETSkillName[] = ['listening', 'reading', 'writing', 'speaking', 'grammar', 'vocabulary'];
@@ -128,17 +138,20 @@ export class AdaptiveAssessmentEngine {
   public getNextQuestion(): AssessmentQuestion | null {
     if (this.state.completed) return null;
     
-    // Stop condition: Confidence threshold + Min Questions
-    const canStop = this.efsetOverall.confidence >= CONFIG.CONFIDENCE_STOP_THRESHOLD && 
-                    this.state.questionsAnswered >= CONFIG.MIN_QUESTIONS &&
-                    this.efsetOverall.status === 'stable';
+    const uniqueAnsweredCount = this.askedQuestionIds.size;
 
-    if (this.state.questionsAnswered >= CONFIG.MAX_QUESTIONS || canStop) {
+    // 1. Final Stop Condition Check
+    const isConfidenceTargetReached = this.efsetOverall.confidence >= CONFIG.CONFIDENCE_STOP_THRESHOLD;
+    const isMinQuestionsMet = uniqueAnsweredCount >= CONFIG.MIN_QUESTIONS;
+    const isStable = this.efsetOverall.status === 'stable';
+
+    if (uniqueAnsweredCount >= CONFIG.MAX_QUESTIONS || (isConfidenceTargetReached && isMinQuestionsMet && isStable)) {
       this.state.completed = true;
-      console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${this.state.questionsAnswered}`);
+      console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${uniqueAnsweredCount}`);
       return null;
     }
 
+    // 2. Select Next Item
     const nextItem = this.selector.selectNext({
       skills: this.efsetSkills,
       askedQuestionIds: this.askedQuestionIds,
@@ -147,17 +160,25 @@ export class AdaptiveAssessmentEngine {
 
     if (!nextItem) {
       this.state.completed = true;
+      console.warn('[Engine] No more questions available in bank. Stopping.');
       return null;
+    }
+
+    // 3. CRITICAL: Mark as asked BEFORE returning to prevent rapid-fire repetition
+    this.askedQuestionIds.add(nextItem.id);
+    if (!this.state.askedQuestionIds.includes(nextItem.id)) {
+      this.state.askedQuestionIds.push(nextItem.id);
     }
 
     return {
       id: nextItem.id,
       prompt: nextItem.prompt,
-      skill: nextItem.skill,
-      primarySkill: nextItem.skill,
+      skill: nextItem.skill as any,
+      primarySkill: nextItem.skill as any,
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
       responseMode: nextItem.response_mode as any,
+      audioUrl: nextItem.audio_url, // Fixed: pass audio_url from bank
       _efset: nextItem 
     } as any;
   }
@@ -169,12 +190,13 @@ export class AdaptiveAssessmentEngine {
     responseMode?: ResponseMode,
     speakingMeta?: SpeakingSubmissionMeta
   ): Promise<{ correct: boolean; score: number }> {
-    // 1. Mark as asked immediately (Sync both Internal Set and Public State)
+    // 1. Ensure ID is tracked (should already be in askedQuestionIds from getNextQuestion)
     if (!this.askedQuestionIds.has(question.id)) {
       this.askedQuestionIds.add(question.id);
       this.state.askedQuestionIds.push(question.id);
     }
-    this.state.questionsAnswered++;
+    
+    this.state.questionsAnswered = this.askedQuestionIds.size;
 
     const efsetItem = (question as any)._efset as QuestionBankItem;
     if (!efsetItem) {
@@ -220,7 +242,6 @@ export class AdaptiveAssessmentEngine {
 
     // 4. Update Overall State
     this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
-    this.state.questionsAnswered++;
     
     // Audit Trail Update
     if (efsetItem.skill === 'speaking') {
@@ -236,14 +257,39 @@ export class AdaptiveAssessmentEngine {
        }
     }
 
-    // Record History (Legacy)
-    const skillName = efsetItem.skill as EFSETSkillName;
-    const reportVal = this.efsetSkills[skillName];
+    // 4. Record Evaluation (Legacy and New)
+    const taskEval: TaskEvaluation = {
+      taskId: efsetItem.id,
+      primarySkill: efsetItem.skill as any,
+      validAttempt: true,
+      channels: {
+        taskCompletion: signal.task_completion,
+        grammarAccuracy: signal.grammar_control,
+        lexicalRange: signal.lexical_range,
+        coherence: signal.coherence,
+      },
+      responseMode,
+      speakingMeta,
+      skillEvidence: evidences.reduce((acc, e) => ({ ...acc, [e.skill]: e.score }), {}),
+      descriptorEvidence: evidences.map(e => ({
+        descriptorId: e.skill,
+        support: e.score,
+        sourceSkill: e.skill as any,
+        weight: e.weight
+      })),
+      notes: [],
+      difficulty: efsetItem.target_cefr as any,
+      skill: efsetItem.skill as any,
+    };
+    this.state.taskEvaluations.push(taskEval);
+
+    // Record History (Legacy compatible)
+    const reportVal = this.efsetSkills[efsetItem.skill as EFSETSkillName];
     this.state.answerHistory.push({
       taskId: efsetItem.id,
       questionId: efsetItem.id,
-      skill: efsetItem.skill as AssessmentSkill,
-      difficulty: BAND_VALUE[efsetItem.target_cefr as DifficultyBand] || 1,
+      skill: efsetItem.skill as any,
+      difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
       correct: isCorrect,
       score: reportVal.score,
       answer,
@@ -304,15 +350,8 @@ export class AdaptiveAssessmentEngine {
     return levels[Math.max(0, Math.min(5, Math.floor(val - 1)))];
   }
 
-  public getProgress() {
-    return {
-      answered: this.state.questionsAnswered,
-      total: CONFIG.MAX_QUESTIONS,
-      percentage: Math.min(100, (this.state.questionsAnswered / CONFIG.MAX_QUESTIONS) * 100),
-      currentBand: this.efsetOverall.levelRange[0] as DifficultyBand,
-      confidence: this.efsetOverall.confidence,
-      completed: this.state.completed,
-    };
+  public getEvaluations(): TaskEvaluation[] {
+    return this.state.taskEvaluations;
   }
 
   public forceComplete(): void {
