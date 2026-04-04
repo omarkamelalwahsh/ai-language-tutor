@@ -71,11 +71,12 @@ export class AdaptiveSelector {
     } else if (isExelling && currentIndex < LEVEL_ORDER.length - 1) {
       probeLevel = LEVEL_ORDER[currentIndex + 1]; // Step up
     } else {
-      // Random Probe logic (20/60/20)
+      // Random Probe logic (Aggressive Probing: If user is high performing, increase reach probability)
+      const reachProb = skillState.confidence >= 0.5 ? 0.4 : 0.2;
       const rand = Math.random();
       if (rand < 0.2 && currentIndex > 0) {
         probeLevel = LEVEL_ORDER[currentIndex - 1];
-      } else if (rand > 0.8 && currentIndex < LEVEL_ORDER.length - 1) {
+      } else if (rand > (1 - reachProb) && currentIndex < LEVEL_ORDER.length - 1) {
         probeLevel = LEVEL_ORDER[currentIndex + 1];
       }
     }
