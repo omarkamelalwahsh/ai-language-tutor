@@ -48,8 +48,7 @@ export class BankValidator {
 
           // 2. Audio Validation
           if ((item.skill === 'listening' || item.task_type.includes('listening')) && !item.audio_url) {
-             report.errors.push(`Listening task ${item.id} is missing audio_url.`);
-             report.isValid = false;
+             report.warnings.push(`Listening task ${item.id} is missing audio_url. UI will fallback to text stimulus.`);
           }
 
           // 3. Response Mode Validation

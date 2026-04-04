@@ -354,6 +354,17 @@ export class AdaptiveAssessmentEngine {
     return this.state.taskEvaluations;
   }
 
+  public getProgress() {
+    return {
+      answered: this.state.questionsAnswered,
+      total: CONFIG.MAX_QUESTIONS,
+      percentage: Math.min(100, (this.state.questionsAnswered / CONFIG.MAX_QUESTIONS) * 100),
+      currentBand: this.efsetOverall.levelRange[0] as DifficultyBand,
+      confidence: this.efsetOverall.confidence,
+      completed: this.state.completed,
+    };
+  }
+
   public forceComplete(): void {
     this.state.completed = true;
   }
