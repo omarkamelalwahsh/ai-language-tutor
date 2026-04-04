@@ -169,12 +169,20 @@ export class AdaptiveAssessmentEngine {
     responseMode?: ResponseMode,
     speakingMeta?: SpeakingSubmissionMeta
   ): Promise<{ correct: boolean; score: number }> {
+    // 1. Mark as asked immediately (Sync both Internal Set and Public State)
+    if (!this.askedQuestionIds.has(question.id)) {
+      this.askedQuestionIds.add(question.id);
+      this.state.askedQuestionIds.push(question.id);
+    }
+    this.state.questionsAnswered++;
+
     const efsetItem = (question as any)._efset as QuestionBankItem;
-    if (!efsetItem) return { correct: true, score: 0.5 };
+    if (!efsetItem) {
+       // Graceful fallback: If metadata is missing, we don't score, but we don't repeat the question.
+       return { correct: true, score: 0.5 };
+    }
 
-    this.askedQuestionIds.add(efsetItem.id);
-
-    // 1. LLM Signal Extraction
+    // 2. LLM Signal Extraction
     let signal: LLMSignal = {
       content_accuracy: 1, task_completion: 1, grammar_control: 1, 
       lexical_range: 1, syntactic_complexity: 1, coherence: 1, 
@@ -259,10 +267,12 @@ export class AdaptiveAssessmentEngine {
          evidenceCount: state.directEvidenceCount,
          status: state.status as any,
          matchedDescriptors: state.history.map(h => ({ 
-           descriptorId: h.taskId, 
-           support: h.score, 
-           strength: h.weight, 
-           supported: h.score > 0.5 
+           descriptorId: h.taskId,
+           descriptorText: 'Signal-based evidence',
+           level: this.valueToLevel(h.difficulty) as CefrLevel,
+           supported: h.score > 0.5,
+           strength: h.weight,
+           sourceTaskIds: [h.taskId]
          })),
          missingDescriptors: [],
          isCapped: false,
@@ -287,6 +297,11 @@ export class AdaptiveAssessmentEngine {
     if (range[0] === range[1]) return range[0] as BandLabel;
     // Map L1, L2 to L1_L2 for IntermediateBand support
     return `${range[0]}_${range[1]}` as BandLabel;
+  }
+
+  private valueToLevel(val: number): CEFRLevel {
+    const levels: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    return levels[Math.max(0, Math.min(5, Math.floor(val - 1)))];
   }
 
   public getProgress() {

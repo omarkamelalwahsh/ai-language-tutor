@@ -80,10 +80,14 @@ export class AdaptiveSelector {
   }
 
   private pickFromLevel(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
-    const available = this.banks[level].filter(
+    const bank = this.banks[level] || [];
+    const available = bank.filter(
       q => !askedIds.has(q.id) && (q.skill === skill || skill in q.evidence_policy)
     );
-    if (available.length === 0) return null;
+    if (available.length === 0) {
+      console.log(`[Selector] Bank exhausted for ${level} - ${skill}.`);
+      return null;
+    }
     return available[Math.floor(Math.random() * available.length)];
   }
 
