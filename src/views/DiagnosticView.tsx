@@ -313,7 +313,9 @@ interface DiagnosticViewProps {
 }
 
 export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onboardingState }) => {
-  const engine = useMemo(() => {
+  const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
+  
+  if (!engineRef.current) {
     let startBand: any = 'A2';
     if (onboardingState?.goal === 'casual') startBand = 'A1';
     if (onboardingState?.goal === 'professional') startBand = 'B1';
@@ -325,8 +327,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       preferredTopics: (onboardingState.topics || []) as string[],
     } : undefined;
 
-    return new AdaptiveAssessmentEngine(startBand, contextProfile);
-  }, [onboardingState]);
+    engineRef.current = new AdaptiveAssessmentEngine(startBand, contextProfile);
+  }
+
+  const engine = engineRef.current;
   const [currentTask, setCurrentTask] = useState<AssessmentQuestion | null>(null);
   const [progress, setProgress] = useState(engine.getProgress());
   const [feedbackState, setFeedbackState] = useState<{ show: boolean; correct: boolean }>({
@@ -336,12 +340,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const [isEvaluating, setIsEvaluating] = useState(false);
 
   useEffect(() => {
-    const firstQ = engine.getNextQuestion();
-    setCurrentTask(firstQ);
-    const progress = engine.getProgress();
-    setProgress(progress);
-    (window as any)._lastBenchmark = progress.currentBand;
-  }, [engine]);
+    if (!currentTask) {
+      const firstQ = engine.getNextQuestion();
+      if (firstQ) {
+        setCurrentTask(firstQ);
+        const progress = engine.getProgress();
+        setProgress(progress);
+        (window as any)._lastBenchmark = progress.currentBand;
+      }
+    }
+  }, [engine, currentTask]);
 
   const handleNextTask = useCallback(
     async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {

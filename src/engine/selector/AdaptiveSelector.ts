@@ -65,7 +65,7 @@ export class AdaptiveSelector {
     }
 
     const item = this.pickFromLevel(probeDifficulty, targetSkill, askedQuestionIds);
-    if (item) return item;
+    if (item && !askedQuestionIds.has(item.id)) return item;
 
     // Fallback: search neighbors
     const neighbors = [currentIndex - 1, currentIndex + 1].filter(
@@ -73,9 +73,16 @@ export class AdaptiveSelector {
     );
     for (const ni of neighbors) {
        const fallback = this.pickFromLevel(LEVEL_ORDER[ni], targetSkill, askedQuestionIds);
-       if (fallback) return fallback;
+       if (fallback && !askedQuestionIds.has(fallback.id)) return fallback;
     }
 
+    // Final safety filter: if we somehow got here, check ALL banks for the target skill
+    for (const level of LEVEL_ORDER) {
+       const desperateFallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
+       if (desperateFallback && !askedQuestionIds.has(desperateFallback.id)) return desperateFallback;
+    }
+
+    console.warn(`[Selector] Full exhaustion for ${targetSkill}. No more questions available.`);
     return null;
   }
 
