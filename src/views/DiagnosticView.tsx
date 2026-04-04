@@ -339,9 +339,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
   
   if (!engineRef.current) {
-    let startBand: any = 'A2';
-    if (onboardingState?.goal === 'casual') startBand = 'A1';
-    if (onboardingState?.goal === 'professional') startBand = 'B1';
+    // Always start from B1 (Intermediate) to allow both upward and downward adaptation
+    const startBand: any = 'B1';
     
     // Map onboarding state to learner context profile
     const contextProfile: LearnerContextProfile | undefined = onboardingState ? {

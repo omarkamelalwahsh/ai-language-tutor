@@ -1,5 +1,4 @@
-import { CEFRLevel, SkillState, SkillName, SkillStatus } from '../../types/efset';
-import { SkillEvidence } from '../scoring/EvidenceMapper';
+import { CEFRLevel, SkillState, SkillName, SkillStatus, SkillEvidence } from '../../types/efset';
 
 const LEVEL_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -25,14 +24,26 @@ export class SkillAggregator {
        direct: evidence.direct
     }];
 
-    // Recalculate properties with Difficulty Weighting:
-    // weightedScore = score * difficulty * weight
-    const directEvidenceCount = history.filter(h => h.direct).length;
+    // Recalculate properties with Recency-Weighted Exponential Decay:
+    // Newer items have much higher impact than older ones.
+    const RECENT_BIAS = 0.85; // Decay factor per step back
     
-    // Use difficulty as a multiplier for evidential power
-    const totalImpact = history.reduce((sum, h) => sum + (h.difficulty * h.weight), 0);
-    const weightedSum = history.reduce((sum, h) => sum + (h.score * h.difficulty * h.weight), 0);
+    let totalImpact = 0;
+    let weightedSum = 0;
+
+    // Iterate backwards from newest to oldest
+    const reversedHistory = [...history].reverse();
+    reversedHistory.forEach((h, index) => {
+       const recencyWeight = Math.pow(RECENT_BIAS, index);
+       const impact = h.difficulty * h.weight * recencyWeight;
+       
+       totalImpact += impact;
+       weightedSum += (h.score * impact);
+    });
+
     const score = totalImpact > 0 ? weightedSum / totalImpact : 0;
+    
+    const directEvidenceCount = history.filter(h => h.direct).length;
 
     // Consistency: standard deviation or similar.
     let consistency = 1.0;

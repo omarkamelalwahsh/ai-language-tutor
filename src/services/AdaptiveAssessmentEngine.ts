@@ -284,6 +284,13 @@ export class AdaptiveAssessmentEngine {
       notes: [],
       difficulty: efsetItem.target_cefr as any,
       skill: efsetItem.skill as any,
+      rawSignals: {
+        answer,
+        prompt: efsetItem.prompt,
+        skill: efsetItem.skill,
+        level: efsetItem.target_cefr,
+        answerKey: efsetItem.answer_key
+      }
     };
     this.state.taskEvaluations.push(taskEval);
 

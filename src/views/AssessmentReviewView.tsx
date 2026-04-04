@@ -36,20 +36,23 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
     return QUESTION_BANK.find(q => q.id === id);
   };
 
-  const renderCorrectAnswer = (question: AssessmentQuestion) => {
-    if (['mcq', 'reading_mcq', 'listening_mcq'].includes(question.type)) {
+  const renderCorrectAnswer = (ev: TaskEvaluation, legacy?: AssessmentQuestion) => {
+    const raw = ev.rawSignals || {};
+    const answerKey = (raw.answerKey as any) || legacy?.correctAnswer || legacy?.acceptedAnswers;
+    const isMcq = (raw.answerKey as any)?.options || ['mcq', 'reading_mcq', 'listening_mcq'].includes(legacy?.type || '');
+
+    if (isMcq && answerKey) {
+      const correctStr = typeof answerKey === 'string' ? answerKey : (answerKey.correct_answer || '');
       return (
         <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
           <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Correct Answer</p>
-          <p className="text-sm font-bold text-emerald-900">{question.correctAnswer}</p>
+          <p className="text-sm font-bold text-emerald-900">{correctStr}</p>
         </div>
       );
     }
     
-    if (question.acceptedAnswers || question.correctAnswer) {
-      const answers = Array.isArray(question.acceptedAnswers || question.correctAnswer) 
-        ? (question.acceptedAnswers || question.correctAnswer) as string[]
-        : [question.correctAnswer as string];
+    if (answerKey) {
+      const answers = Array.isArray(answerKey) ? answerKey : [String(answerKey)];
         
       return (
         <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
@@ -107,8 +110,14 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
           className="space-y-4"
         >
           {evaluations.map((ev, idx) => {
-            const question = getQuestion(ev.taskId);
-            if (!question) return null;
+            // Attempt legacy lookup, but favor metadata from the dynamic engine
+            const legacyQuestion = getQuestion(ev.taskId);
+            
+            const prompt = ev.rawSignals?.prompt as string || legacyQuestion?.prompt;
+            const skill = ev.rawSignals?.skill as string || legacyQuestion?.skill || ev.primarySkill;
+            const level = ev.rawSignals?.level as string || legacyQuestion?.difficulty || ev.difficulty;
+
+            if (!prompt) return null;
 
             const isCorrect = (ev.channels?.comprehension ?? 0) >= 0.5;
 
@@ -125,8 +134,8 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                   {/* Meta */}
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-wrap gap-2">
-                       <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${skillColors[question.skill]}`}>
-                         {skillIcons[question.skill]} {question.skill}
+                       <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${skillColors[skill] || 'bg-slate-50'}`}>
+                         {skillIcons[skill]} {skill}
                        </span>
                        
                        {/* Response Mode Badge */}
@@ -142,7 +151,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                        )}
 
                        <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full uppercase tracking-tighter">
-                         Level {question.difficulty}
+                         Level {level}
                        </span>
                     </div>
                     {isCorrect ? (
@@ -158,8 +167,8 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
 
                   {/* Question Content */}
                   <div className="space-y-2">
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Question {idx + 1}</p>
-                    <p className="font-bold text-slate-900 leading-snug">{question.prompt}</p>
+                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Question {idx + 1}</p>
+                     <p className="font-bold text-slate-900 leading-snug">{prompt}</p>
                   </div>
 
                   {/* User Answer */}
@@ -168,7 +177,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                     <p className={`font-bold ${isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>{ev.rawSignals?.answer || 'No text answer'}</p>
                     
                     {/* Correction if wrong */}
-                    {!isCorrect && renderCorrectAnswer(question)}
+                    {!isCorrect && renderCorrectAnswer(ev, legacyQuestion)}
                   </div>
 
                   {/* Engine Notes */}
