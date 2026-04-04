@@ -1,0 +1,22 @@
+[
+  {
+    "id": "B1_R_01",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "B1",
+    "difficulty": 0.58,
+    "response_mode": "typed",
+    "prompt": "Read: 'The new policy aims to reduce plastic waste...' What is the policy?",
+    "answer_key": "reduce plastic waste",
+    "evidence_policy": {
+      "reading": {
+        "weight": 1.0,
+        "direct": true
+      },
+      "writing": {
+        "weight": 0.6,
+        "direct": false
+      }
+    }
+  }
+]

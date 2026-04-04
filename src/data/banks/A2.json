@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A2_R_01",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.45,
+    "response_mode": "multiple_choice",
+    "prompt": "Read: 'The library is open from 9 AM to 5 PM.' Is it open at 10 AM?",
+    "answer_key": "Yes",
+    "evidence_policy": {
+      "reading": {
+        "weight": 1.0,
+        "direct": true
+      }
+    }
+  }
+]

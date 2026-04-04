@@ -1,0 +1,18 @@
+[
+  {
+    "id": "C2_R_01",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "C2",
+    "difficulty": 0.70,
+    "response_mode": "typed",
+    "prompt": "Read the existential text. Summarize the nuanced argument.",
+    "answer_key": "nuanced understanding of being",
+    "evidence_policy": {
+      "reading": {
+        "weight": 1.0,
+        "direct": true
+      }
+    }
+  }
+]

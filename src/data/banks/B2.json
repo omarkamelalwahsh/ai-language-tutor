@@ -1,0 +1,18 @@
+[
+  {
+    "id": "B2_R_01",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "B2",
+    "difficulty": 0.58,
+    "response_mode": "typed",
+    "prompt": "Read the text on renewable energy. What is the main concern?",
+    "answer_key": "intermittent nature of power",
+    "evidence_policy": {
+      "reading": {
+        "weight": 1.0,
+        "direct": true
+      }
+    }
+  }
+]

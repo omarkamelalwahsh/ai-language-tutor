@@ -1,0 +1,38 @@
+[
+  {
+    "id": "A1_R_01",
+    "skill": "reading",
+    "task_type": "reading_summary",
+    "target_cefr": "A1",
+    "difficulty": 0.58,
+    "response_mode": "typed",
+    "prompt": "Read: 'My name is Sara. I am 10 years old. I have a cat.' How old is Sara?",
+    "answer_key": "10",
+    "evidence_policy": {
+      "reading": {
+        "weight": 1.0,
+        "direct": true
+      },
+      "vocabulary": {
+        "weight": 0.3,
+        "direct": false
+      }
+    }
+  },
+  {
+    "id": "A1_G_01",
+    "skill": "grammar",
+    "task_type": "multiple_choice",
+    "target_cefr": "A1",
+    "difficulty": 0.3,
+    "response_mode": "multiple_choice",
+    "prompt": "Choose the correct word: 'She ___ my best friend.' (am / is / are / be)",
+    "answer_key": "is",
+    "evidence_policy": {
+      "grammar": {
+        "weight": 1.0,
+        "direct": true
+      }
+    }
+  }
+]
