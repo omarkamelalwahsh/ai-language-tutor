@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, MessageSquare, Focus, TrendingUp, TrendingDown, Shield, CheckCircle2, XCircle } from 'lucide-react';
+import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward } from 'lucide-react';
+
 import { FadeTransition } from '../lib/animations';
-import { AssessmentQuestion, AssessmentOutcome, TaskEvaluation, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
+import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
 import { TaskResult, OnboardingState } from '../types/app';
 import { SessionTask } from '../types/runtime';
@@ -17,7 +18,10 @@ const TaskQuestion: React.FC<{
   task: AssessmentQuestion;
   questionNumber: number;
   onCompleteTask: (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => void;
-}> = ({ task, questionNumber, onCompleteTask }) => {
+  onSkip: () => void;
+  onSwap: () => void;
+}> = ({ task, questionNumber, onCompleteTask, onSkip, onSwap }) => {
+
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [scanComplete, setScanComplete] = useState(false);
@@ -64,14 +68,6 @@ const TaskQuestion: React.FC<{
     writing: 'bg-purple-50 border-purple-200 text-purple-700',
     listening: 'bg-green-50 border-green-200 text-green-700',
     speaking: 'bg-rose-50 border-rose-200 text-rose-700',
-  };
-
-  const difficultyColors: Record<string, string> = {
-    A1: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-    A2: 'bg-green-50 border-green-200 text-green-700',
-    B1: 'bg-blue-50 border-blue-200 text-blue-700',
-    B2: 'bg-indigo-50 border-indigo-200 text-indigo-700',
-    C1: 'bg-purple-50 border-purple-200 text-purple-700',
   };
 
   const variants = {
@@ -178,7 +174,6 @@ const TaskQuestion: React.FC<{
       {task.skill === 'speaking' && (
          <div className="mb-2 mt-4">
            <SpeakingModule 
-             // Map AssessmentQuestion to SessionTask locally for the module since they are decoupled
              task={{ taskId: task.id, taskType: 'speaking', targetSkill: 'speaking', prompt: task.prompt, learningObjective: '', supportSettings: { allowHints: false, allowReplay: false, maxRetries: 0 }, difficultyTarget: task.difficulty, completionCondition: '' } as SessionTask}
              onSubmit={(payload) => {
                const responseTime = Date.now() - startTime.current;
@@ -213,12 +208,7 @@ const TaskQuestion: React.FC<{
             <textarea
               autoFocus
               className="w-full flex-1 min-h-[140px] p-5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none text-slate-900 placeholder-slate-400 shadow-inner"
-              placeholder={
-                task.type.includes('short_answer') ? "Write a short answer (1–5 words)..." :
-                task.type.includes('summary') ? "Write a brief summary..." :
-                task.type.includes('description') ? "Describe the item in detail..." :
-                "Type your response here..."
-              }
+              placeholder="Type your response here..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
@@ -284,10 +274,32 @@ const TaskQuestion: React.FC<{
         )}
       </div>
       )}
+
+      {/* Question Controls: Swap/Skip */}
+      <div className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-100">
+        <button
+          onClick={onSwap}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-[11px] uppercase tracking-wide transition-all group"
+          title="Change this question for another at the same level"
+        >
+          <RefreshCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+          Change Question
+        </button>
+        <button
+          onClick={onSkip}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-[11px] uppercase tracking-wide transition-all group"
+          title="Skip this question and move to the next"
+        >
+          <SkipForward className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          Skip Task
+        </button>
+        <div className="ml-auto text-[10px] font-bold text-slate-300 uppercase tracking-widest hidden sm:block">
+          Need a different challenge?
+        </div>
+      </div>
     </motion.div>
   );
 };
-
 
 // ============================================================================
 // Feedback Flash Component
@@ -316,17 +328,14 @@ const AnswerFeedback: React.FC<{
             correct ? 'bg-emerald-500 text-white' : 'bg-red-400 text-white'
           }`}
         >
-          {correct ? (
-            <CheckCircle2 className="w-10 h-10" />
-          ) : (
-            <XCircle className="w-10 h-10" />
-          )}
+          {correct ? <CheckCircle2 className="w-10 h-10" /> : <XCircle className="w-10 h-10" />}
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
 );
 
+// ============================================================================
 // Main Diagnostic View
 // ============================================================================
 
@@ -339,10 +348,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
   
   if (!engineRef.current) {
-    // Always start from B1 (Intermediate) to allow both upward and downward adaptation
     const startBand: any = 'B1';
-    
-    // Map onboarding state to learner context profile
     const contextProfile: LearnerContextProfile | undefined = onboardingState ? {
       goal: onboardingState.goal || undefined,
       goalContext: onboardingState.goalContext || undefined,
@@ -376,34 +382,24 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const handleNextTask = useCallback(
     async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
       if (!currentTask || isEvaluating) return;
-
       setIsEvaluating(true);
 
       try {
-        // Submit to adaptive engine (now async via Groq)
         const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         setProgress(engine.getProgress());
-
-        // Show feedback flash
         setFeedbackState({ show: true, correct });
 
-        // After feedback, load next question or complete
         setTimeout(() => {
           setFeedbackState({ show: false, correct: false });
           setIsEvaluating(false);
-
           const nextQ = engine.getNextQuestion();
-
           if (nextQ) {
             setCurrentTask(nextQ);
             const nextProgress = engine.getProgress();
             setProgress(nextProgress);
             (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
-            // Assessment complete
-            const evaluations = engine.getEvaluations();
-            const outcome = engine.getOutcome();
-            onComplete(evaluations, outcome);
+            onComplete(engine.getEvaluations(), engine.getOutcome());
           }
         }, 600);
       } catch (err) {
@@ -414,9 +410,27 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     [currentTask, engine, isEvaluating, onComplete]
   );
 
+  const handleSkip = useCallback(() => {
+    if (!currentTask || isEvaluating) return;
+    const nextQ = engine.skipQuestion(currentTask.id);
+    if (nextQ) {
+      setCurrentTask(nextQ);
+      setProgress(engine.getProgress());
+    } else {
+      onComplete(engine.getEvaluations(), engine.getOutcome());
+    }
+  }, [currentTask, isEvaluating, engine, onComplete]);
+
+  const handleSwap = useCallback(() => {
+    if (!currentTask || isEvaluating) return;
+    const swappedQ = engine.swapQuestion(currentTask.id);
+    if (swappedQ) {
+      setCurrentTask(swappedQ);
+    }
+  }, [currentTask, isEvaluating, engine]);
+
   if (!currentTask) return null;
 
-  // Difficulty indicator colors
   const bandColor = (() => {
     const b = progress.currentBand;
     if (b === 'A1' || b === 'A2') return 'bg-emerald-500';
@@ -429,16 +443,11 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   return (
     <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center pt-20 px-4 pb-12">
       <div className="w-full max-w-2xl flex flex-col h-full mt-4">
-        {/* Progress Header */}
         <div className="mb-8">
           <div className="flex justify-between text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">
             <span>Adaptive Assessment</span>
-            <span>
-              Task {progress.answered + 1} · ~{progress.total} estimated
-            </span>
+            <span>Task {progress.answered + 1} · ~{progress.total} estimated</span>
           </div>
-
-          {/* Progress bar */}
           <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner flex">
             <motion.div
               className={`h-full transition-colors ${bandColor}`}
@@ -448,31 +457,20 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
               transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
-
-          {/* Meta indicators */}
           <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Testing:</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                {currentTask.skill}
-              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{currentTask.skill}</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <Shield className="w-3 h-3 text-slate-400" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Reliability: {confidencePercent}%
-                </span>
-              </div>
+            <div className="flex items-center gap-1">
+              <Shield className="w-3 h-3 text-slate-400" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Reliability: {confidencePercent}%</span>
             </div>
           </div>
         </div>
 
-        {/* Question Card */}
         <div className="bg-white rounded-[2rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-slate-100 flex-1 min-h-[500px] flex flex-col relative overflow-hidden">
-          {/* Answer feedback overlay */}
           <AnswerFeedback correct={feedbackState.correct} show={feedbackState.show} />
-
           {isEvaluating && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-30 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3">
@@ -481,13 +479,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
               </div>
             </div>
           )}
-
           <AnimatePresence mode="wait">
             <TaskQuestion
               key={currentTask.id}
               task={currentTask}
               questionNumber={progress.answered + 1}
               onCompleteTask={handleNextTask}
+              onSkip={handleSkip}
+              onSwap={handleSwap}
             />
           </AnimatePresence>
         </div>

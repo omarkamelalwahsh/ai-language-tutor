@@ -717,5 +717,77 @@
     },
     "estimated_time_sec": 120,
     "tags": ["community", "opinion"]
+  },
+  {
+    "id": "B1_L_09",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.55,
+    "response_mode": "mcq",
+    "prompt": "Listen to the career advisor. What is the most important factor in choosing a job according to the speaker?",
+    "stimulus": "Advisor: While salary is often the first thing people look at, long-term satisfaction usually comes from alignment with your core values. If you enjoy the day-to-day tasks, you'll be much more resilient when challenges arise.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["High salary", "Core values alignment", "Short commute", "Easy tasks"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.4, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["career", "advice"]
+  },
+  {
+    "id": "B1_R_09",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.57,
+    "response_mode": "mcq",
+    "prompt": "Read the tech article. What is the main benefit of the new app?",
+    "stimulus": "The new 'FocusMax' app claims to help users regain control of their time. By blocking distracting notifications during work hours, it allows for 'deep work' sessions that were previously impossible in our constantly connected environment.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Making more phone calls", "Blocking distractions", "Playing games better", "Saving battery life"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 50,
+    "tags": ["technology", "productivity"]
+  },
+  {
+    "id": "B1_S_08",
+    "skill": "speaking",
+    "task_type": "speaking_extended_turn",
+    "target_cefr": "B1",
+    "difficulty": 0.59,
+    "response_mode": "audio",
+    "prompt": "Where do you see yourself in five years? Tell me about your goals.",
+    "stimulus": "Topic: Future aspirations.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Detailed oral plan for the future."
+    },
+    "rubric": {
+      "content_expectation": "Mention specific career or personal milestones.",
+      "language_expectation": "Use of future tenses (will/going to) and time clauses.",
+      "scoring_notes": "Look for coherence."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "grammar": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["future", "speaking"]
   }
 ]
+

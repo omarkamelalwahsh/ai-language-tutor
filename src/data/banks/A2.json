@@ -709,5 +709,74 @@
     },
     "estimated_time_sec": 90,
     "tags": ["opinion", "education"]
+  },
+  {
+    "id": "A2_L_09",
+    "skill": "listening",
+    "task_type": "listening_short_answer",
+    "target_cefr": "A2",
+    "difficulty": 0.42,
+    "response_mode": "typed",
+    "prompt": "Listen and write the name of the lost object.",
+    "stimulus": "Woman: Excuse me, I've lost my umbrella. It's blue with white spots. Has anyone found it? Staff: Let me check the lost property office.",
+    "answer_key": {
+      "type": "exact",
+      "value": "umbrella"
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["lost_property", "objects"]
+  },
+  {
+    "id": "A2_R_09",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.41,
+    "response_mode": "mcq",
+    "prompt": "Read the text. What did the family do on Sunday?",
+    "stimulus": "On Saturday, the Smith family went to the zoo. It was great! On Sunday, they stayed home because it was raining. They watched movies and ate popcorn all day.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Went to the zoo", "Stayed home", "Went swimming", "Visited friends"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 40,
+    "tags": ["weekend", "routine"]
+  },
+  {
+    "id": "A2_W_08",
+    "skill": "writing",
+    "task_type": "writing_paragraph",
+    "target_cefr": "A2",
+    "difficulty": 0.43,
+    "response_mode": "typed",
+    "prompt": "Write about your favorite movie. Why do you like it? (30 words)",
+    "stimulus": "Topic: Entertainment.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Movie description and reason."
+    },
+    "rubric": {
+      "content_expectation": "Mentions a movie and a simple reason.",
+      "language_expectation": "Simple sentences, use of 'because'.",
+      "scoring_notes": "Look for clarity."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 240,
+    "tags": ["movies", "opinion"]
   }
 ]
+

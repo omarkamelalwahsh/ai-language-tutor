@@ -720,5 +720,77 @@
     },
     "estimated_time_sec": 150,
     "tags": ["health", "technology"]
+  },
+  {
+    "id": "B2_L_09",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.78,
+    "response_mode": "mcq",
+    "prompt": "Listen to the finance podcast. What is the speaker's view on digital currencies?",
+    "stimulus": "Host: Is Bitcoin the new gold? Analyst: It's volatile, certainly. But the underlying blockchain technology is what's revolutionary. It could redefine how we perceive trust and transaction security in a decentralized world. We are looking at a fundamental shift in the global financial architecture.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["They are a passing fad", "They are exactly like gold", "Blockchain is a revolutionary shift in finance", "They are too dangerous to use"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 65,
+    "tags": ["finance", "technology"]
+  },
+  {
+    "id": "B2_R_09",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.80,
+    "response_mode": "mcq",
+    "prompt": "Read the report. What is the main barrier to renewable energy adoption mentioned?",
+    "stimulus": "While solar and wind costs have plummeted, the Achilles' heel of renewable transition remains energy storage. Our current grid infrastructure was built for steady, fossil-fuel-based output; it struggles to manage the intermittent nature of renewables without massive investment in battery technology and grid modernization.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["High costs of panels", "Lack of wind", "Storage and grid infrastructure", "Public opposition"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 70,
+    "tags": ["environment", "infrastructure"]
+  },
+  {
+    "id": "B2_W_08",
+    "skill": "writing",
+    "task_type": "writing_argument",
+    "target_cefr": "B2",
+    "difficulty": 0.82,
+    "response_mode": "typed",
+    "prompt": "Write a short proposal for reducing urban traffic congestion in a major city. (100 words)",
+    "stimulus": "Topic: Urban planning.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Proposal with specific traffic solutions."
+    },
+    "rubric": {
+      "content_expectation": "Mention of public transport, congestion charges, or infrastructure.",
+      "language_expectation": "Use of conditional structures (If we were to..., we would...).",
+      "scoring_notes": "Formal tone."
+    },
+    "evidence_policy": {
+      "writing": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.8, "direct": false }
+    },
+    "estimated_time_sec": 600,
+    "tags": ["urban_planning", "writing"]
   }
 ]
+

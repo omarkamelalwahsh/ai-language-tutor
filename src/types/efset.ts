@@ -22,7 +22,7 @@ export interface QuestionBankItem {
   task_type: string;
   target_cefr: CEFRLevel;
   difficulty: number; // 0.0 - 1.0 within the band, or absolute 0-6 relative
-  response_mode: 'typed' | 'audio' | 'multiple_choice';
+  response_mode: 'typed' | 'audio' | 'multiple_choice' | 'mcq';
   prompt: string;
   answer_key: any; // Can be string or { type: string, value: any }
   options?: string[]; // Top-level options for backward compatibility

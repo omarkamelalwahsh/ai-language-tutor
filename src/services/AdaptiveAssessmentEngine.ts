@@ -213,8 +213,24 @@ export class AdaptiveAssessmentEngine {
       typo_severity: 0, confidence: 1
     };
 
-    const isMCQ = efsetItem.response_mode === 'multiple_choice';
-    const isCorrect = isMCQ ? (answer.trim() === efsetItem.answer_key) : true;
+    const isMCQ = efsetItem.response_mode === 'multiple_choice' || efsetItem.response_mode === 'mcq';
+    let isCorrect = true;
+
+    if (isMCQ) {
+       // Extract correct option text for comparison
+       const key = efsetItem.answer_key;
+       let correctText = '';
+       
+       if (typeof key === 'string') {
+         correctText = key;
+       } else if (key?.value?.options && key?.value?.correct_index !== undefined) {
+         correctText = key.value.options[key.value.correct_index];
+       } else if (key?.correct_answer) {
+         correctText = key.correct_answer;
+       }
+
+       isCorrect = answer.trim() === correctText.trim();
+    }
 
     if (!isMCQ) {
        const llmOutput = await evaluateWithGroq({
@@ -312,7 +328,65 @@ export class AdaptiveAssessmentEngine {
     return { correct: isCorrect, score: reportVal.score };
   }
 
+  public swapQuestion(currentQuestionId: string): AssessmentQuestion | null {
+    // 1. Locate the current item to identify its level and skill
+    let currentItem: QuestionBankItem | undefined;
+    let currentLevel: CEFRLevel | undefined;
+
+    for (const [level, items] of Object.entries(this.banks) as [CEFRLevel, QuestionBankItem[]][]) {
+      const match = items.find(i => i.id === currentQuestionId);
+      if (match) {
+        currentItem = match;
+        currentLevel = level;
+        break;
+      }
+    }
+
+    if (!currentItem || !currentLevel) return null;
+
+    // 2. Request a swap from selector (while blocking current ID)
+    const nextItem = this.selector.selectSwap(
+      currentLevel, 
+      currentItem.skill as EFSETSkillName, 
+      this.askedQuestionIds
+    );
+
+    if (!nextItem) return null;
+
+    // 3. Update tracking: Remove old ID, add new one
+    this.askedQuestionIds.delete(currentQuestionId);
+    this.askedQuestionIds.add(nextItem.id);
+    
+    // Update legacy state tracking if relevant
+    const idx = this.state.askedQuestionIds.indexOf(currentQuestionId);
+    if (idx !== -1) {
+      this.state.askedQuestionIds[idx] = nextItem.id;
+    }
+
+    // 4. Return formatted question
+    return {
+      id: nextItem.id,
+      prompt: nextItem.prompt,
+      skill: nextItem.skill as any,
+      primarySkill: nextItem.skill as any,
+      difficulty: nextItem.target_cefr as DifficultyBand,
+      type: nextItem.task_type as any,
+      response_mode: nextItem.response_mode as any,
+      audioUrl: nextItem.audio_url,
+      stimulus: nextItem.stimulus,
+      options: nextItem.answer_key?.value?.options || nextItem.options,
+      _efset: nextItem
+    } as any;
+  }
+
+  public skipQuestion(currentQuestionId: string): AssessmentQuestion | null {
+    // Treat as "asked" but not "evaluated" (neutral signal)
+    // We don't remove it from askedQuestionIds so it doesn't reappear immediately
+    return this.getNextQuestion();
+  }
+
   public getOutcome(): AssessmentOutcome {
+
     const report = FinalReportBuilder.build(this.efsetSkills, this.efsetOverall);
     
     const skillResults = {} as AssessmentOutcome['skillBreakdown'];

@@ -17,7 +17,13 @@ export class AdaptiveSelector {
     this.banks = banks;
   }
 
+  public selectSwap(currentLevel: CEFRLevel, currentSkill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
+    console.log(`[Selector] SWAP | skill: ${currentSkill} | level: ${currentLevel}`);
+    return this.pickFromLevel(currentLevel, currentSkill, askedIds);
+  }
+
   public selectNext(state: SelectorState): QuestionBankItem | null {
+
     const { skills, askedQuestionIds, currentOverallLevel } = state;
     const questionCount = askedQuestionIds.size;
 

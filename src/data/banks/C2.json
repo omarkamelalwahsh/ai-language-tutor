@@ -717,5 +717,52 @@
     },
     "estimated_time_sec": 300,
     "tags": ["philosophy", "history"]
+  },
+  {
+    "id": "C2_L_09",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.98,
+    "response_mode": "mcq",
+    "prompt": "Listen to the philosophical discourse on 'The Death of the Author'. What is the primary implication for literary criticism?",
+    "stimulus": "Philosopher: Once a text is published, the author's intentions become irrelevant. The text is no longer theirs; it is a space where multiple meanings collide, and it is the reader who ultimately synthesizes these meanings. Criticism, therefore, should abandon the 'hunt' for the author's hidden message and focus instead on the reader's active role in constructing meaning.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Authors should explain their work", "The reader is the source of meaning, not the author", "Meaning is fixed at the moment of writing", "Literature is a dead art form"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 120,
+    "tags": ["philosophy", "literature"]
+  },
+  {
+    "id": "C2_R_09",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C2",
+    "difficulty": 1.00,
+    "response_mode": "mcq",
+    "prompt": "Read the abstract. What is the fundamental conclusion regarding quantum entanglement and locality?",
+    "stimulus": "Recent investigations into non-local correlations suggest a radical departure from classical spatial intuition. The persistence of entanglement over macroscopic distances defies the principle of locality, implying that the universe is fundamentally non-separable. This phenomenon necessitates a re-evaluation of the 'spatiotemporal' framework as an emergent, rather than primitive, property of reality.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["The universe follows classical spatial laws", "Locality is a primitive property of reality", "The universe is non-separable and locality is emergent", "Entanglement is a localized phenomenon"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.7, "direct": false }
+    },
+    "estimated_time_sec": 150,
+    "tags": ["physics", "science"]
   }
 ]
+

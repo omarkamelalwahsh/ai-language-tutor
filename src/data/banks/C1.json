@@ -718,5 +718,52 @@
     },
     "estimated_time_sec": 240,
     "tags": ["society", "psychology"]
+  },
+  {
+    "id": "C1_L_09",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.88,
+    "response_mode": "mcq",
+    "prompt": "Listen to the lecture on behavioral economics. What is the speaker's main point about 'loss aversion'?",
+    "stimulus": "Lecturer: Loss aversion describes why we feel the pain of losing something twice as much as the joy of gaining something equal. This cognitive bias explains why investors hold onto losing stocks for too long—they're not just irrational; they're biologically wired to avoid the psychological sting of a realized loss.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Gains feel better than losses hurt", "Losses hurt twice as much as gains feel good", "Investors are always rational", "Realizing a loss is physically painful"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 80,
+    "tags": ["economics", "psychology"]
+  },
+  {
+    "id": "C1_R_09",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.92,
+    "response_mode": "mcq",
+    "prompt": "Read the analysis. What is the author's primary critique of the proposed social policy?",
+    "stimulus": "While the policy aims for equity, it fails to account for the 'perverse incentives' it creates. By subsidizing short-term outcomes without addressing systemic barriers, it risks entrenching the very dependency it seeks to alleviate. True reform requires a structural overhaul, not a fiscal band-aid.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["It is too expensive", "It creates perverse incentives and dependency", "It is morally wrong", "It is a perfect solution"],
+        "correct_index": 1
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.6, "direct": false }
+    },
+    "estimated_time_sec": 100,
+    "tags": ["policy", "analysis"]
   }
 ]
+

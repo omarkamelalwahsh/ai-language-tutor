@@ -707,5 +707,77 @@
     },
     "estimated_time_sec": 40,
     "tags": ["social", "directions"]
+  },
+  {
+    "id": "A1_L_06",
+    "skill": "listening",
+    "task_type": "listening_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.22,
+    "response_mode": "mcq",
+    "prompt": "Listen to the hobby description. What does John like doing?",
+    "stimulus": "John: I have many hobbies. I like reading books and I love playing soccer with my friends on weekends.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Reading and soccer", "Swimming", "Cooking", "Driving"],
+        "correct_index": 0
+      }
+    },
+    "evidence_policy": {
+      "listening": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 30,
+    "tags": ["hobbies", "personal_info"]
+  },
+  {
+    "id": "A1_R_06",
+    "skill": "reading",
+    "task_type": "reading_mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.28,
+    "response_mode": "mcq",
+    "prompt": "Read the text. What is the weather like today?",
+    "stimulus": "Today is a beautiful day in Madrid. The sun is shining and it is very warm. Many people are in the park.",
+    "answer_key": {
+      "type": "mcq",
+      "value": {
+        "options": ["Rainy", "Cold", "Sunny and warm", "Snowing"],
+        "correct_index": 2
+      }
+    },
+    "evidence_policy": {
+      "reading": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.3, "direct": false }
+    },
+    "estimated_time_sec": 35,
+    "tags": ["weather", "daily_life"]
+  },
+  {
+    "id": "A1_S_08",
+    "skill": "speaking",
+    "task_type": "speaking_short_response",
+    "target_cefr": "A1",
+    "difficulty": 0.30,
+    "response_mode": "audio",
+    "prompt": "Tell me about your favorite food. Why do you like it?",
+    "stimulus": "Personal preference scenario.",
+    "answer_key": {
+      "type": "rubric",
+      "value": "Food name plus basic reason."
+    },
+    "rubric": {
+      "content_expectation": "I like [food] because it is [reason].",
+      "language_expectation": "Basic sentence structure.",
+      "scoring_notes": "Focus on clarity."
+    },
+    "evidence_policy": {
+      "speaking": { "weight": 1.0, "direct": true },
+      "vocabulary": { "weight": 0.5, "direct": false }
+    },
+    "estimated_time_sec": 45,
+    "tags": ["food", "opinion"]
   }
 ]
+
