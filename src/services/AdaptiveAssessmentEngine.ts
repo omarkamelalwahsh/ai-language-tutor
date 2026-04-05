@@ -72,15 +72,23 @@ export class AdaptiveAssessmentEngine {
   private loadedLevels = new Set<CEFRLevel>();
 
   constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile) {
+    // 🛡️ Always start at B1 for balanced diagnostic coverage unless explicitly overridden
+    const finalStartingBand = startingBand || 'B1';
     this.selector = new AdaptiveSelector(this.banks);
     
     const skillsList: EFSETSkillName[] = ['listening', 'reading', 'writing', 'speaking', 'grammar', 'vocabulary'];
     this.efsetSkills = {} as Record<EFSETSkillName, SkillState>;
     
+    // Determine initial numeric score based on starting band to avoid A2-anchoring
+    const initialScoreMap: Record<DifficultyBand, number> = {
+      'A1': 0.25, 'A2': 0.48, 'B1': 0.62, 'B2': 0.77, 'C1': 0.88, 'C2': 0.96
+    };
+    const initialScore = initialScoreMap[finalStartingBand] || 0.5;
+
     for (const skill of skillsList) {
       this.efsetSkills[skill] = {
-        score: 0.5, 
-        levelRange: [startingBand as CEFRLevel, startingBand as CEFRLevel],
+        score: initialScore, 
+        levelRange: [finalStartingBand as CEFRLevel, finalStartingBand as CEFRLevel],
         confidence: 0,
         directEvidenceCount: 0,
         consistency: 1.0,
@@ -350,7 +358,49 @@ export class AdaptiveAssessmentEngine {
       taskType: efsetItem.task_type as any
     });
 
+    // 5. Calibration Reset Logic (Double Leapfrog Trigger)
+    // After 4 questions, we evaluate the "Linguistic Portfolio" to see if we should jump levels.
+    if (this.state.questionsAnswered === 4) {
+       this.performCalibrationReset();
+    }
+
     return { correct: isCorrect, score: reportVal.score };
+  }
+
+  private performCalibrationReset() {
+    console.log('[Engine] 🧭 Running Calibration Reset (4-item evaluation)...');
+    
+    // Calculate average linguistic signals (Complexity, Lexical Range, Grammar)
+    const signals = this.state.taskEvaluations.slice(0, 4).map(ev => ({
+       comp: ev.channels?.lexicalRange || 0,
+       gram: ev.channels?.grammarAccuracy || 0,
+       acc: ev.channels?.taskCompletion || 0
+    }));
+
+    const avgLinguistic = signals.reduce((acc, s) => acc + (s.comp * 0.4 + s.gram * 0.4 + s.acc * 0.2), 0) / 4;
+    
+    console.log(`[Engine] Diagnostic Signature Score: ${avgLinguistic.toFixed(2)}`);
+
+    if (avgLinguistic > 0.88) {
+       console.log('[Engine] 🚀 HIGH PROFICIENCY DETECTED! Jumping to C1 (Leapfrog).');
+       this.jumpToLevel('C1');
+    } else if (avgLinguistic < 0.40) {
+       console.log('[Engine] 📉 STRUGGLING DETECTED. Adjusting to A2.');
+       this.jumpToLevel('A2');
+    }
+  }
+
+  private jumpToLevel(level: CEFRLevel) {
+    const scoreMap: Record<string, number> = { A1: 0.25, A2: 0.48, B1: 0.62, B2: 0.77, C1: 0.88, C2: 0.96 };
+    const newScore = scoreMap[level] || 0.5;
+
+    // Update all skills and overall state
+    for (const skill of Object.keys(this.efsetSkills) as EFSETSkillName[]) {
+       this.efsetSkills[skill].score = newScore;
+       this.efsetSkills[skill].levelRange = [level, level];
+    }
+    this.efsetOverall.levelRange = [level, level];
+    this.efsetOverall.confidence = 0.5; // Artificial boost to stabilize routing
   }
 
   public async swapQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {

@@ -377,7 +377,9 @@ export class AssessmentAnalysisService {
       `Core proficiency is driven by strong performance in ${Object.values(skills).filter(s => getBandOrder(s.estimatedLevel) >= getBandOrder(estimated)).map(s => s.skill).join(', ')}.`
     ];
 
-    if (skills.speaking.evidenceCount === 0 || skills.writing.evidenceCount === 0) {
+    if (skills.speaking.evidenceCount === 0 && skills.writing.evidenceCount > 0) {
+      rationale.push("Overall level capped: You didn't record any speaking audio. Please retake speaking tasks with your microphone to fully verify your C1/C2 potential.");
+    } else if (skills.speaking.evidenceCount === 0 || skills.writing.evidenceCount === 0) {
       rationale.push("Overall level capped due to insufficient evidence in productive skills (Speaking/Writing).");
     } else {
       rationale.push("Consistency across productive and receptive tasks remains stable.");

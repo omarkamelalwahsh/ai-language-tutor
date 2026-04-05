@@ -11,9 +11,13 @@ export type BaseCEFRLevel = typeof CEFR_ORDER[number];
  */
 export function normalizeBand(level: string): BaseCEFRLevel {
   if (!level) return 'A1';
-  const normalized = level.toUpperCase().replace('+', '') as BaseCEFRLevel;
+  
+  // Handle ranges like B1_B2 or B2-C1 by taking the first part
+  const firstPart = level.split(/[_-]/)[0];
+  const normalized = firstPart.toUpperCase().replace('+', '') as BaseCEFRLevel;
+  
   if (normalized === 'PRE-A1' as any) return 'A1';
-  if (CEFR_ORDER.includes(normalized)) return normalized;
+  if (CEFR_ORDER.includes(normalized)) return (normalized as any);
   return 'A1'; // Fallback
 }
 

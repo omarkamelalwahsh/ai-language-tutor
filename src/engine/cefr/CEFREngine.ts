@@ -50,8 +50,15 @@ export class CEFREngine {
 
   private static scoreToOverallRange(score: number, confidence: number): [CEFRLevel, CEFRLevel] {
     const level = this.mapScoreToLevel(score);
+    
+    // High confidence: return exact level
     if (confidence >= 0.75) return [level, level];
     
+    // Mid confidence: return exact level if we are deep in the band (score buffer)
+    // This allows the "Overall Level" to reflect growth faster
+    if (confidence >= 0.45) return [level, level];
+
+    // Very low confidence: return conservative bracket
     const idx = LEVEL_ORDER.indexOf(level);
     const prev = idx > 0 ? LEVEL_ORDER[idx - 1] : level;
     return [prev, level];

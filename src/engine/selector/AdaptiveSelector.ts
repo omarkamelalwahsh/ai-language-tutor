@@ -68,23 +68,35 @@ export class AdaptiveSelector {
     
     // Boundary Testing with Momentum
     const recent = skillState.history.slice(-2);
-    const isStruggling = recent.length === 2 && recent.every(h => h.score < 0.4);
-    const isExelling = recent.length === 2 && recent.every(h => h.score > 0.8);
+    const isStruggling = recent.length >= 1 && recent.every(h => h.score < 0.4);
+    const isExelling = recent.length >= 1 && recent.every(h => h.score > 0.82);
 
     let probeLevel: CEFRLevel = currentOverallLevel;
-    if (isStruggling && currentIndex > 0) {
-      probeLevel = LEVEL_ORDER[currentIndex - 1]; // Step down
+    
+    // 🚀 NEW: Leapfrog Strategy (+2 / -2 Jumps)
+    const latestScore = recent.length > 0 ? recent[recent.length - 1].score : 0.5;
+    
+    if (latestScore > 0.92 && currentIndex < LEVEL_ORDER.length - 2) {
+       // LEAP UP (+2): B1 -> C1
+       probeLevel = LEVEL_ORDER[currentIndex + 2];
+       console.log(`[Selector] LEAP UP! +2 to ${probeLevel}`);
+    } else if (latestScore < 0.25 && currentIndex > 1) {
+       // LEAP DOWN (-2): B1 -> A1
+       probeLevel = LEVEL_ORDER[currentIndex - 2];
+       console.log(`[Selector] LEAP DOWN! -2 to ${probeLevel}`);
+    } else if (isStruggling && currentIndex > 0) {
+       probeLevel = LEVEL_ORDER[currentIndex - 1]; // Step down
     } else if (isExelling && currentIndex < LEVEL_ORDER.length - 1) {
-      probeLevel = LEVEL_ORDER[currentIndex + 1]; // Step up
+       probeLevel = LEVEL_ORDER[currentIndex + 1]; // Step up
     } else {
-      // Random Probe logic (Aggressive Probing: If user is high performing, increase reach probability)
-      const reachProb = skillState.confidence >= 0.5 ? 0.4 : 0.2;
-      const rand = Math.random();
-      if (rand < 0.2 && currentIndex > 0) {
-        probeLevel = LEVEL_ORDER[currentIndex - 1];
-      } else if (rand > (1 - reachProb) && currentIndex < LEVEL_ORDER.length - 1) {
-        probeLevel = LEVEL_ORDER[currentIndex + 1];
-      }
+       // Fast-Track Probing
+       const reachProb = skillState.confidence >= 0.3 ? 0.6 : 0.3;
+       const rand = Math.random();
+       if (rand < 0.1 && currentIndex > 0) {
+         probeLevel = LEVEL_ORDER[currentIndex - 1];
+       } else if (rand > (1 - reachProb) && currentIndex < LEVEL_ORDER.length - 1) {
+         probeLevel = LEVEL_ORDER[currentIndex + 1];
+       }
     }
 
     console.log(`[Selector] Phase 2: ADAPTIVE | skill: ${targetSkill} | target: ${probeLevel}`);

@@ -133,9 +133,10 @@ export class ReviewExplanationBuilder {
        this.applySpeakingLogic(review, data.responseMode, data.score);
     } else if (normalizedType.includes('listen')) {
        this.applyListeningLogic(review, data.audioSrc);
+    } else if (correctness === 'correct') {
+       review.explanation.whyCorrect = "Your answer successfully met the task requirements.";
     } else {
-       if (correctness === 'correct') review.explanation.whyCorrect = "Your answer successfully met the task requirements.";
-       else review.explanation.whatWentWrong = "Your answer did not fully address the requirements.";
+       review.explanation.whatWentWrong = "Your answer did not fully address the requirements.";
     }
 
     // Global Overrides
@@ -177,13 +178,18 @@ export class ReviewExplanationBuilder {
 
   private static applySpeakingLogic(review: AnswerReviewItem, mode: string | undefined, score: number) {
     if (mode === 'typed_fallback') {
-      review.explanation.levelNote = "Note: Typed fallback was used for this speaking task.";
+      review.explanation.levelNote = "⚠️ Speaking Mastery was NOT assessed because you typed your response. To receive a Speaking grade, you must use the microphone.";
+      review.explanation.improvementTip = "بناءً على طلبك، لم يتم احتساب هذه المحاولة في مهارة التحدث لأنها كتبت نصياً. يرجى إعادة المحاولة باستخدام الميكروفون لتقييم نطقك وطلاقتك.";
+      review.answerLevel = "N/A (Typed)";
     }
+    
     if (review.result === "correct") {
       review.explanation.whyCorrect = "Your response is natural and captures the prompt's requirements well.";
     } else {
       review.explanation.whyIncorrect = "The communication was a bit disjointed or the response was too brief.";
-      review.explanation.improvementTip = "Try to elaborate more on your ideas to show higher fluency.";
+      if (!review.explanation.improvementTip && mode !== 'typed_fallback') {
+         review.explanation.improvementTip = "Try to elaborate more on your ideas to show higher fluency.";
+      }
     }
   }
 

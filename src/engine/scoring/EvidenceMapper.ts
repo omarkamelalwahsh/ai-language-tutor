@@ -39,10 +39,10 @@ export class EvidenceMapper {
     const taskPower = getEvidentialPower(item.task_type);
     
     for (const [skillStr, policy] of Object.entries(item.evidence_policy)) {
-        // ❌ Speaking Guard: Block speaking credit if the user typed their response 
-        // regardless of the intended task type.
+        // ❌ Speaking Guard: Zero credit for 'Speaking' mastery if the user typed 
+        // their response. No audio = no speaking evidence.
         if (skillStr === 'speaking' && actualResponseMode === 'typed') {
-            continue; 
+             continue; 
         }
        
        evidences.push({
