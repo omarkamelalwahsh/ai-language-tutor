@@ -1,3 +1,4 @@
+import { AnswerReviewItem } from './assessment';
 export type SupportedSkillTask = 'speaking' | 'writing' | 'listening' | 'vocabulary';
 
 export interface SessionTask {
@@ -46,23 +47,4 @@ export interface TaskFeedbackPayload {
   canAdvance: boolean;
 }
 
-export type AnswerReviewItem = {
-  questionId: string;
-  skill: string;
-  taskType: string;
-  questionLevel: string;
-  answerLevel: string;
-  result: "correct" | "incorrect" | "partial";
-  prompt: string;
-  stimulus?: string;
-  userAnswer: string;
-  correctAnswer?: string;
-  explanation: {
-    whyCorrect?: string;
-    whyIncorrect?: string;
-    whatWentWrong?: string;
-    modelAnswer?: string;
-    improvementTip?: string;
-    levelNote?: string;
-  };
-};
+

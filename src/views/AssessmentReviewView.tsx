@@ -2,7 +2,8 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, CheckCircle2, XCircle, HelpCircle, 
-  Mic, PenTool, Headphones, BookOpen, BrainCircuit, Activity
+  Mic, PenTool, Headphones, BookOpen, BrainCircuit, Activity,
+  Zap, AlertCircle, Lightbulb, BarChart2, Brain
 } from 'lucide-react';
 import { TaskEvaluation, AssessmentQuestion } from '../types/assessment';
 import { QUESTION_BANK } from '../data/assessment-questions';
@@ -121,91 +122,120 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
           variants={staggerContainer} 
           initial="hidden" 
           animate="show" 
-          className="space-y-4"
+          className="space-y-6"
         >
           {evaluations.map((ev, idx) => {
-            // Attempt legacy lookup, but favor metadata from the dynamic engine
-            const legacyQuestion = getQuestion(ev.taskId);
+            const review = ev.reviewData;
             
-            const prompt = ev.rawSignals?.prompt as string || legacyQuestion?.prompt;
-            const skill = ev.rawSignals?.skill as string || legacyQuestion?.skill || ev.primarySkill;
-            const level = ev.rawSignals?.level as string || legacyQuestion?.difficulty || ev.difficulty;
+            // Fallback for older sessions or if data is missing
+            if (!review) {
+              const legacyQuestion = getQuestion(ev.taskId);
+              const prompt = ev.rawSignals?.prompt as string || legacyQuestion?.prompt;
+              if (!prompt) return null;
 
-            if (!prompt) return null;
+              return (
+                <div key={ev.taskId} className="p-4 bg-slate-100 rounded-xl border border-slate-200 opacity-60">
+                   <p className="text-xs font-bold text-slate-400 mb-1">Legacy Record: {ev.taskId}</p>
+                   <p className="text-sm font-medium text-slate-700">{prompt}</p>
+                </div>
+              );
+            }
 
-            const isCorrect = (ev.channels?.comprehension ?? 0) >= 0.5;
+            const isCorrect = review.result === 'correct';
+            const isPartial = review.result === 'partial';
 
             return (
               <motion.div 
                 key={ev.taskId} 
                 variants={staggerItem}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all group"
               >
-                {/* Status bar */}
-                <div className={`h-1.5 w-full ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                {/* Card Header */}
+                <div className={`p-5 border-b flex items-center justify-between ${isCorrect ? 'bg-emerald-50/50 border-emerald-100' : isPartial ? 'bg-amber-50/50 border-amber-100' : 'bg-rose-50/50 border-rose-100'}`}>
+                  <div className="flex gap-4 items-center flex-wrap">
+                    <span className="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-3 py-1 rounded-full shadow-sm">{review.skill}</span>
+                    <div className="flex gap-1.5 items-center">
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target Level:</span>
+                       <span className="text-[10px] font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm">{review.questionLevel}</span>
+                    </div>
+                    <div className="flex gap-1.5 items-center">
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your Performance:</span>
+                       <span className={`text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${review.answerLevel !== review.questionLevel ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-slate-200 text-slate-700'}`}>{review.answerLevel}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className={`text-xs font-black uppercase tracking-widest ${isCorrect ? 'text-emerald-700' : isPartial ? 'text-amber-700' : 'text-rose-700'}`}>
+                       {review.result}
+                     </span>
+                     {isCorrect ? <CheckCircle2 className="w-5 h-5 text-emerald-500"/> : isPartial ? <AlertCircle className="w-5 h-5 text-amber-500"/> : <XCircle className="w-5 h-5 text-rose-500"/>}
+                  </div>
+                </div>
                 
-                <div className="p-6 space-y-4">
-                  {/* Meta */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex flex-wrap gap-2">
-                       <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${skillColors[skill] || 'bg-slate-50'}`}>
-                         {skillIcons[skill]} {skill}
-                       </span>
-                       
-                       {/* Response Mode Badge */}
-                       {ev.responseMode === 'voice' && (
-                         <span className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-emerald-200">
-                           <Mic className="w-3 h-3" /> Voice Recording
-                         </span>
-                       )}
-                       {ev.responseMode === 'typed_fallback' && (
-                         <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[10px] font-black uppercase border border-amber-200">
-                           <PenTool className="w-3 h-3" /> Typed Fallback
-                         </span>
-                       )}
+                {/* Card Body */}
+                <div className="p-6 space-y-6">
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Diagnostic Question {idx + 1}</p>
+                     <p className="text-slate-800 font-bold text-lg leading-snug">{review.prompt}</p>
+                   </div>
 
-                       <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full uppercase tracking-tighter">
-                         Level {level}
-                       </span>
-                    </div>
-                    {isCorrect ? (
-                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs whitespace-nowrap">
-                        <CheckCircle2 className="w-4 h-4" /> Correct
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs whitespace-nowrap">
-                        <XCircle className="w-4 h-4" /> Incorrect
-                      </div>
-                    )}
-                  </div>
+                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-inner group-hover:bg-white transition-colors duration-500 ring-1 ring-black/5">
+                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Student Response</p>
+                     <p className="text-slate-900 font-bold font-serif text-[15px] italic leading-relaxed">"{review.userAnswer}"</p>
+                   </div>
 
-                  {/* Question Content */}
-                  <div className="space-y-2">
-                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Question {idx + 1}</p>
-                     <p className="font-bold text-slate-900 leading-snug">{prompt}</p>
-                  </div>
+                   {review.correctAnswer && (
+                     <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+                       <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">Expected Target</p>
+                       <p className="text-emerald-900 font-black">{review.correctAnswer}</p>
+                     </div>
+                   )}
 
-                  {/* User Answer */}
-                  <div className={`p-4 rounded-2xl border ${isCorrect ? 'bg-emerald-50/30 border-emerald-100' : 'bg-rose-50/30 border-rose-100'}`}>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Your Response</p>
-                    <p className={`font-bold ${isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>{ev.rawSignals?.answer || 'No text answer'}</p>
-                    
-                    {/* Correction if wrong */}
-                    {!isCorrect && renderCorrectAnswer(ev, legacyQuestion)}
-                  </div>
-
-                  {/* Engine Notes */}
-                  {ev.notes && ev.notes.length > 0 && (
-                    <div className="pt-2 flex flex-col gap-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Linguistic Rationale</p>
-                      {ev.notes.map((note, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                          <Activity className="w-3 h-3 text-indigo-400" />
-                          {note}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                   {/* Explanations Layer */}
+                   <div className="space-y-4 mt-6 border-t border-slate-100 pt-6">
+                     {review.explanation.whyCorrect && (
+                       <div className="flex items-start gap-4">
+                         <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
+                            <CheckCircle2 className="w-4 h-4 shrink-0"/>
+                         </div>
+                         <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Linguistic Success:</strong>{review.explanation.whyCorrect}</p>
+                       </div>
+                     )}
+                     {review.explanation.whatWentWrong && (
+                       <div className="flex items-start gap-4">
+                         <div className="p-1.5 bg-rose-100 rounded-lg text-rose-600">
+                            <Zap className="w-4 h-4 shrink-0"/>
+                         </div>
+                         <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">The Issue:</strong>{review.explanation.whatWentWrong}</p>
+                       </div>
+                     )}
+                     {review.explanation.levelNote && (
+                       <div className="flex items-start gap-4 bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 ring-1 ring-indigo-200/20">
+                         <div className="p-1.5 bg-indigo-600 rounded-lg text-white">
+                            <BarChart2 className="w-4 h-4 shrink-0"/>
+                         </div>
+                         <p className="text-indigo-950 text-xs font-semibold leading-relaxed max-w-3xl"><strong className="uppercase tracking-widest text-[9px] block text-indigo-400 mb-1">Pedagogical Insight</strong>{review.explanation.levelNote}</p>
+                       </div>
+                     )}
+                     {review.explanation.modelAnswer && (
+                       <div className="flex items-start gap-4">
+                         <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500">
+                            <Brain className="w-4 h-4 shrink-0"/>
+                         </div>
+                         <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Better Phrasing:</strong>{review.explanation.modelAnswer}</p>
+                       </div>
+                     )}
+                     {review.explanation.improvementTip && (
+                       <div className="flex items-start gap-4 bg-amber-50 p-5 rounded-2xl border border-amber-200/50 shadow-sm">
+                         <div className="p-2 bg-amber-200 rounded-xl text-amber-700 flex items-center justify-center">
+                            <Lightbulb className="w-5 h-5 shrink-0"/>
+                         </div>
+                         <p className="text-amber-950 text-sm font-bold leading-relaxed max-w-3xl">
+                           <span className="text-[10px] uppercase tracking-widest text-amber-500 block mb-1">Improvement strategy</span>
+                           {review.explanation.improvementTip}
+                         </p>
+                       </div>
+                     )}
+                   </div>
                 </div>
               </motion.div>
             );

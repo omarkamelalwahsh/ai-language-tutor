@@ -138,6 +138,7 @@ export type TaskEvaluation = {
   // Legacy paths to keep UI working while we refactor
   rawSignals?: Record<string, number | string | boolean>;
   relevance?: number;
+  reviewData?: AnswerReviewItem; // newly added
   taskCompletion?: number;
   isOffTopic?: boolean;
   missingContentPoints?: string[];
@@ -159,6 +160,27 @@ export type TaskEvaluation = {
     extractedSignals: Record<string, number>;
     skillUpdates: Record<string, number>;
     reason: string;
+  };
+};
+
+export type AnswerReviewItem = {
+  questionId: string;
+  skill: string;
+  taskType: string;
+  questionLevel: string;
+  answerLevel: string;
+  result: "correct" | "incorrect" | "partial";
+  prompt: string;
+  stimulus?: string;
+  userAnswer: string;
+  correctAnswer?: string;
+  explanation: {
+    whyCorrect?: string;
+    whyIncorrect?: string;
+    whatWentWrong?: string;
+    modelAnswer?: string;
+    improvementTip?: string;
+    levelNote?: string;
   };
 };
 

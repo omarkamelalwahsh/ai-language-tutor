@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward } from 'lucide-react';
+import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain } from 'lucide-react';
 
 import { FadeTransition } from '../lib/animations';
 import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
@@ -366,6 +366,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     correct: false,
   });
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     let isSubscribed = true;
@@ -404,7 +405,11 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
             setProgress(nextProgress);
             (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
-            onComplete(engine.getEvaluations(), engine.getOutcome());
+            setIsCompleting(true);
+            // Small artificial delay to ensure the user feels the "Finalizing" transition
+            setTimeout(() => {
+              onComplete(engine.getEvaluations(), engine.getOutcome());
+            }, 800);
           }
         }, 300); // Reduced delay since visual feedback is removed
       } catch (err) {
@@ -422,7 +427,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       setCurrentTask(nextQ);
       setProgress(engine.getProgress());
     } else {
-      onComplete(engine.getEvaluations(), engine.getOutcome());
+      setIsCompleting(true);
+      setTimeout(() => {
+        onComplete(engine.getEvaluations(), engine.getOutcome());
+      }, 800);
     }
   }, [currentTask, isEvaluating, engine, onComplete]);
 
@@ -434,7 +442,22 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     }
   }, [currentTask, isEvaluating, engine]);
 
-  if (!currentTask) return null;
+  if (isCompleting || !currentTask) {
+    return (
+      <FadeTransition className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
+            <Brain className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Finalizing your Assessment</h3>
+            <p className="text-slate-500 font-medium">Computing evidence-backed CEFR levels...</p>
+          </div>
+        </div>
+      </FadeTransition>
+    );
+  }
 
   const bandColor = (() => {
     const b = currentTask.difficulty;

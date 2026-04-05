@@ -40,6 +40,7 @@ import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { BankValidator } from './BankValidator';
 import { FinalReportBuilder } from '../engine/cefr/FinalReportBuilder';
 import { ASSESSMENT_CONFIG } from '../config/assessment-config';
+import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuilder';
 
 // Dynamic Loader for Question Banks to optimize bundle size
 const BANK_LOADERS: Record<CEFRLevel, () => Promise<any>> = {
@@ -325,6 +326,10 @@ export class AdaptiveAssessmentEngine {
         answerKey: efsetItem.answer_key
       }
     };
+    
+    // Generate explanation data
+    taskEval.reviewData = ReviewExplanationBuilder.buildFromAssessment(question, taskEval, answer);
+
     this.state.taskEvaluations.push(taskEval);
 
     // Record History (Legacy compatible)

@@ -1,4 +1,5 @@
-import { SessionTask, TaskEvaluationResult, AnswerReviewItem } from '../../types/runtime';
+import { SessionTask, TaskEvaluationResult } from '../../types/runtime';
+import { AnswerReviewItem, TaskEvaluation, AssessmentQuestion } from '../../types/assessment';
 
 export class ReviewExplanationBuilder {
   /**
@@ -24,58 +25,120 @@ export class ReviewExplanationBuilder {
   }
 
   /**
-   * Core generation logic for review items
+   * Builds from Practice Session data
    */
   public static build(
     task: SessionTask,
     result: TaskEvaluationResult,
     userAnswer: string
   ): AnswerReviewItem {
-    
-    // 1. Establish Levels
-    const questionLevel = task.difficultyTarget || "B1"; 
-    const answerLevel = this.estimateAnswerLevel(result.successScore, questionLevel);
-
-    // 2. Establish Correctness
-    let correctness: "correct" | "incorrect" | "partial" = "incorrect";
-    if (result.successScore >= 80) correctness = "correct";
-    else if (result.successScore >= 50) correctness = "partial";
-    else correctness = "incorrect";
-
-    // Build base item
-    const review: AnswerReviewItem = {
-      questionId: task.taskId,
+    return this.internalBuild({
+      id: task.taskId,
       skill: task.targetSkill,
-      taskType: task.taskType,
+      type: task.taskType,
+      level: task.difficultyTarget || "B1",
+      prompt: task.prompt,
+      userAnswer,
+      score: result.successScore,
+      meaningSuccess: result.meaningSuccess,
+      responseMode: result.responseMode,
+      complexity: result.dimensions?.complexity,
+      targetWord: task.payload?.targetWord,
+      audioSrc: task.payload?.audioSrc
+    });
+  }
+
+  /**
+   * Builds from Diagnostic Assessment data
+   */
+  public static buildFromAssessment(
+    question: AssessmentQuestion,
+    evaluation: TaskEvaluation,
+    userAnswer: string
+  ): AnswerReviewItem {
+    // Map diagnostic channels to meaning success
+    const meaningSuccess = (evaluation.channels?.comprehension ?? 0) >= 0.8;
+    const score = Math.round((evaluation.channels?.comprehension || 0) * 100);
+
+    // Extract correct answer if available
+    let correctAnswer: string | undefined;
+    const key = evaluation.rawSignals?.answerKey as any;
+    if (typeof key === 'string') correctAnswer = key;
+    else if (key?.value?.options && key?.value?.correct_index !== undefined) {
+      correctAnswer = key.value.options[key.value.correct_index];
+    } else if (key?.correct_answer) {
+      correctAnswer = key.correct_answer;
+    }
+
+    return this.internalBuild({
+      id: question.id,
+      skill: question.primarySkill,
+      type: question.type,
+      level: question.difficulty,
+      prompt: question.prompt,
+      userAnswer,
+      score: score,
+      meaningSuccess,
+      responseMode: evaluation.responseMode,
+      complexity: (evaluation.channels?.lexicalRange || 0) * 100,
+      targetWord: correctAnswer,
+      audioSrc: question.audioUrl
+    });
+  }
+
+  /**
+   * Unified internal builder
+   */
+  private static internalBuild(data: {
+    id: string;
+    skill: string;
+    type: string;
+    level: string;
+    prompt: string;
+    userAnswer: string;
+    score: number;
+    meaningSuccess: boolean;
+    responseMode?: string;
+    complexity?: number;
+    targetWord?: string;
+    audioSrc?: string;
+  }): AnswerReviewItem {
+    const questionLevel = data.level; 
+    const answerLevel = this.estimateAnswerLevel(data.score, questionLevel);
+
+    let correctness: "correct" | "incorrect" | "partial" = "incorrect";
+    if (data.score >= 80) correctness = "correct";
+    else if (data.score >= 50) correctness = "partial";
+
+    const review: AnswerReviewItem = {
+      questionId: data.id,
+      skill: data.skill,
+      taskType: data.type,
       questionLevel,
       answerLevel,
       result: correctness,
-      prompt: task.prompt,
-      userAnswer: userAnswer || "(No answer provided)",
+      prompt: data.prompt,
+      userAnswer: data.userAnswer || "(No answer provided)",
       explanation: {}
     };
 
-    // 3. Task Type Routing
-    switch (task.taskType) {
-      case 'vocabulary':
-        this.populateVocabularyReview(review, task, result);
-        break;
-      case 'writing':
-        this.populateWritingReview(review, task, result);
-        break;
-      case 'speaking':
-        this.populateSpeakingReview(review, task, result);
-        break;
-      case 'listening':
-        this.populateListeningReview(review, task, result);
-        break;
-      default:
-        // Generic fallback
-        if (correctness === 'correct') review.explanation.whyCorrect = "Your answer successfully met the task requirements.";
-        else review.explanation.whatWentWrong = "Your answer did not fully address the requirements.";
+    // Task Type Routing
+    const normalizedType = data.type.toLowerCase();
+    
+    if (normalizedType.includes('vocabulary') || normalizedType === 'mcq' || normalizedType === 'fill_blank') {
+       this.applyVocabLogic(review, data.targetWord, data.meaningSuccess);
+    } else if (normalizedType.includes('write')) {
+       this.applyWritingLogic(review, data.complexity || 0);
+    } else if (normalizedType.includes('speak') || normalizedType === 'picture_description') {
+       this.applySpeakingLogic(review, data.responseMode, data.score);
+    } else if (normalizedType.includes('listen')) {
+       this.applyListeningLogic(review, data.audioSrc);
+    } else {
+       if (correctness === 'correct') review.explanation.whyCorrect = "Your answer successfully met the task requirements.";
+       else review.explanation.whatWentWrong = "Your answer did not fully address the requirements.";
     }
 
-    // 4. Global Overrides based on answer vs question level
+    // Global Overrides
     if (correctness === "correct" && answerLevel !== questionLevel) {
       review.explanation.levelNote = `Your answer was correct in meaning, but written using simpler language than expected for a ${questionLevel} task.`;
       if (!review.explanation.improvementTip) {
@@ -86,67 +149,50 @@ export class ReviewExplanationBuilder {
     return review;
   }
 
-  // --- Specific Strategies ---
-
-  private static populateVocabularyReview(review: AnswerReviewItem, task: SessionTask, result: TaskEvaluationResult) {
-    const targetWord = task.payload?.targetWord || "the correct vocabulary word";
-    review.correctAnswer = targetWord;
-
+  private static applyVocabLogic(review: AnswerReviewItem, targetWord: string | undefined, meaningSuccess: boolean) {
+    const word = targetWord || "the target word";
+    review.correctAnswer = word;
     if (review.result === "correct") {
-      review.explanation.whyCorrect = `You successfully identified "${targetWord}" as the correct vocabulary in this context.`;
+      review.explanation.whyCorrect = `Correct! "${word}" is the precise term required by the context.`;
+    } else if (meaningSuccess) {
+      review.explanation.whyIncorrect = "Good attempt! You understood the meaning, but the specific term was slightly different.";
+      review.explanation.whatWentWrong = `We were looking for "${word}".`;
+      review.explanation.improvementTip = `Recall synonyms or specific phrasal verbs for "${review.userAnswer}".`;
     } else {
-      if (result.meaningSuccess) {
-        review.explanation.whyIncorrect = `You got the general meaning right, but we were looking for a specific advanced phrase.`;
-        review.explanation.whatWentWrong = `Your answer "${review.userAnswer}" does not precisely match the target phrase or its correct grammatical form.`;
-      } else {
-        review.explanation.whyIncorrect = `The intended meaning requires a specific piece of vocabulary that was missing.`;
-        review.explanation.whatWentWrong = `Your choice did not fit the sentence structure or semantic context of the prompt.`;
-      }
-      review.explanation.improvementTip = `Review the usage of "${targetWord}" in similar full sentences.`;
+      review.explanation.whyIncorrect = "The choice of word didn't quite capture the intended meaning or fit the structure.";
+      review.explanation.improvementTip = `Look at how "${word}" functions in this specific type of sentence.`;
     }
   }
 
-  private static populateWritingReview(review: AnswerReviewItem, task: SessionTask, result: TaskEvaluationResult) {
+  private static applyWritingLogic(review: AnswerReviewItem, complexity: number) {
     if (review.result === "correct") {
-      review.explanation.whyCorrect = "Your written response was well-structured, coherent, and directly answered the prompt.";
-      if (result.dimensions?.complexity > 70) {
-        review.explanation.improvementTip = "Great use of complex sentence structures and connectors!";
-      }
+      review.explanation.whyCorrect = "Excellent structure. You used varied sentence forms and clear logic.";
     } else if (review.result === "partial") {
-      review.explanation.whyIncorrect = "Your response addressed the prompt but lacked structural complexity or depth.";
-      review.explanation.whatWentWrong = "You might have missed using connectors (like 'however', 'therefore') or wrote very short, disconnected sentences.";
-      review.explanation.modelAnswer = "A strong response would use at least 2 complete sentences connected smoothly with introductory phrases.";
-      review.explanation.improvementTip = "Try to connect your ideas using linking words next time.";
+      review.explanation.whyIncorrect = "The sentences are correct but could be more connected.";
+      review.explanation.improvementTip = "Try using connectors like 'although', 'furthermore', or 'consequently'.";
     } else {
-      review.explanation.whyIncorrect = "The response was too short, grammatically incomplete, or didn't address the main prompt.";
-      review.explanation.whatWentWrong = "A complete sentence with a subject, verb, and object was expected.";
+      review.explanation.whyIncorrect = "The response lacks the required depth or grammatical range.";
     }
   }
 
-  private static populateSpeakingReview(review: AnswerReviewItem, task: SessionTask, result: TaskEvaluationResult) {
-    if (result.responseMode === 'typed_fallback') {
-      review.explanation.levelNote = "Note: You typed your answer in a speaking task, which limits our ability to measure pronunciation and fluency.";
+  private static applySpeakingLogic(review: AnswerReviewItem, mode: string | undefined, score: number) {
+    if (mode === 'typed_fallback') {
+      review.explanation.levelNote = "Note: Typed fallback was used for this speaking task.";
     }
-
     if (review.result === "correct") {
-      review.explanation.whyCorrect = "You communicated your ideas clearly and achieved the communicative goal.";
-    } else if (review.result === "partial") {
-      review.explanation.whyIncorrect = "We understood your main point, but the delivery could be more natural.";
-      review.explanation.whatWentWrong = "You might have hesitated frequently, or used overly simple vocabulary for the situation.";
-      review.explanation.improvementTip = "Practice speaking this response a few times out loud until it flows without long pauses.";
+      review.explanation.whyCorrect = "Your response is natural and captures the prompt's requirements well.";
     } else {
-      review.explanation.whyIncorrect = "The core message was unclear or task instructions were not followed.";
+      review.explanation.whyIncorrect = "The communication was a bit disjointed or the response was too brief.";
+      review.explanation.improvementTip = "Try to elaborate more on your ideas to show higher fluency.";
     }
   }
 
-  private static populateListeningReview(review: AnswerReviewItem, task: SessionTask, result: TaskEvaluationResult) {
+  private static applyListeningLogic(review: AnswerReviewItem, audioSrc: string | undefined) {
     if (review.result === "correct") {
-      review.explanation.whyCorrect = "Excellent comprehension. You captured the key points from the audio clip.";
+      review.explanation.whyCorrect = "Great! You accurately identified the key information from the audio.";
     } else {
-      review.explanation.whyIncorrect = "You missed the main gist or specific detail required by the prompt.";
-      if (task.payload?.audioSrc) {
-        review.explanation.improvementTip = "Try listening to the audio again at a slower speed and focus on stressed keywords.";
-      }
+      review.explanation.whyIncorrect = "Some details from the audio were missed or misinterpreted.";
+      review.explanation.improvementTip = "Focus on the main stressed words when listening next time.";
     }
   }
 }
