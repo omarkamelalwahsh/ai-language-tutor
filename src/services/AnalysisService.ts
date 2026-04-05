@@ -33,15 +33,32 @@ export class AssessmentAnalysisService {
     for (const skill of ALL_SKILLS) {
       const engineSkill = outcome.skillBreakdown[skill as AssessmentSkill];
       
-      // Normalize BandLabel to CefrLevel (e.g. A1_A2 -> A1 or A2 based on rounding)
-      const normalizedLevel = this.normalizeEngineBand(engineSkill.band);
+      if (!engineSkill) {
+        // Safe fallback for untested skills
+        skillResults[skill] = {
+          skill,
+          estimatedLevel: "A1",
+          confidence: { band: "low", score: 0, reasons: ["Skill not tested in this session"] },
+          evidenceCount: 0,
+          descriptors: [],
+          strengths: [],
+          weaknesses: [`No evidence collected for ${skill}`],
+          taskCoverage: { total: 5, completed: 0, valid: 0 },
+          subscores: [],
+          status: "insufficient_data"
+        };
+        continue;
+      }
+
+      // Normalize BandLabel to CefrLevel
+      const normalizedLevel = this.normalizeEngineBand(engineSkill.band || "A1");
 
       skillResults[skill] = {
         skill,
         estimatedLevel: normalizedLevel,
         confidence: {
-          band: this.valueToConfidenceBand(engineSkill.confidence),
-          score: engineSkill.confidence,
+          band: this.valueToConfidenceBand(engineSkill.confidence ?? 0),
+          score: engineSkill.confidence ?? 0,
           reasons: []
         },
         evidenceCount: engineSkill.evidenceCount,
@@ -49,16 +66,18 @@ export class AssessmentAnalysisService {
         strengths: engineSkill.matchedDescriptors.slice(0, 3).map(d => d.descriptorText),
         weaknesses: engineSkill.missingDescriptors.slice(0, 3).map(id => {
           const entry = getDescriptorById(id);
-          const [skill, level] = id.split('_');
-          return entry?.canonicalTextEn || `Needs improvement in ${skill} (${level})`;
+          const parts = id.split('_');
+          const s = parts[0];
+          const l = parts[1];
+          return entry?.canonicalTextEn || `Needs improvement in ${s} (${l})`;
         }),
-        masteryScore: engineSkill.score / 100, // Pass actual score proxy
+        masteryScore: (engineSkill.score || 0) / 100,
         taskCoverage: {
           total: 5,
           completed: engineSkill.evidenceCount,
           valid: engineSkill.evidenceCount
         },
-        subscores: [], // Can be extracted from features if needed
+        subscores: [],
         status: engineSkill.status,
         isCapped: engineSkill.isCapped,
         cappedReason: engineSkill.cappedReason

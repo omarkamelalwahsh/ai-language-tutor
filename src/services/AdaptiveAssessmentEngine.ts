@@ -418,6 +418,22 @@ export class AdaptiveAssessmentEngine {
     const skillResults = {} as AssessmentOutcome['skillBreakdown'];
     for (const s of ALL_SKILLS) {
        const state = this.efsetSkills[s as EFSETSkillName];
+       
+       if (!state) {
+         // Placeholder for a skill not present in the efset model (safety)
+         skillResults[s] = {
+           band: 'A1',
+           score: 0,
+           confidence: 0,
+           evidenceCount: 0,
+           status: 'insufficient_data',
+           matchedDescriptors: [],
+           missingDescriptors: [],
+           isCapped: false
+         };
+         continue;
+       }
+
        skillResults[s] = {
          band: this.rangeToLabel(state.levelRange),
          score: Math.round(state.score * 100),

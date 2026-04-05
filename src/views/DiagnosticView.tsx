@@ -442,7 +442,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     }
   }, [currentTask, isEvaluating, engine]);
 
-  if (isCompleting || !currentTask) {
+  if (isCompleting) {
     return (
       <FadeTransition className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-6">
@@ -456,6 +456,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
           </div>
         </div>
       </FadeTransition>
+    );
+  }
+
+  if (!currentTask) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+      </div>
     );
   }
 
