@@ -200,7 +200,7 @@ describe('Trace 1: Listening + written response propagation', () => {
     console.log('Vocabulary evidence count:', vocabEstimate.evidenceCount, 'uncertainty:', vocabEstimate.uncertainty);
 
     // Next question should NOT be random — it should target the weaker productive skills
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     expect(next).toBeDefined();
     console.log('Next question selected:', next!.id, '| primarySkill:', next!.primarySkill, '| type:', next!.type);
     console.log('=== END TRACE 1 ===\n');
@@ -369,7 +369,7 @@ describe('Trace 4: Adaptive routing coherence', () => {
     console.log('Current evidence counts:', evidenceCounts);
 
     // Get next question and trace the selection rationale
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     expect(next).toBeDefined();
 
     // What we expect: 
@@ -466,7 +466,7 @@ describe('Trace 5: Productive weakness hunting', () => {
 
     // Now get the next question — check if it prefers a question
     // that ALSO carries grammar/vocabulary evidence, rather than just any random MCQ
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     expect(next).toBeDefined();
 
     console.log('Next question after weak grammar:', next!.id);
@@ -652,7 +652,7 @@ describe('Trace 7: Debug payload audit — full interaction trace', () => {
     expect(lastEval.debug?.reason).toContain('short_text');
 
     // 6. Next-question rationale (post-answer)
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     console.log('\n6. NEXT QUESTION RATIONALE:');
     if (next) {
       console.log('  Selected:', next.id);

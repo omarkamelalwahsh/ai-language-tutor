@@ -1,7 +1,7 @@
 import { SessionTask, TaskEvaluationResult, TaskFeedbackPayload } from '../types/runtime';
 import { AssessmentSessionResult, SkillName } from '../types/assessment';
-
-/** Text analysis helper (mirrors AnalysisService.analyzeText logic) */
+import { SemanticEvaluator } from './SemanticEvaluator';
+import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuilder';
 function analyzeResponse(text: string): {
   wordCount: number;
   sentenceCount: number;
@@ -142,7 +142,7 @@ export class RuntimeService {
    * Deterministic evaluation of user responses using real text analysis.
    * Produces nuanced feedback based on task type and response quality.
    */
-  public static evaluateResponse(task: SessionTask, responsePayload: any): { feedback: TaskFeedbackPayload; result?: TaskEvaluationResult } {
+  public static async evaluateResponse(task: SessionTask, responsePayload: any): Promise<{ feedback: TaskFeedbackPayload; result?: TaskEvaluationResult }> {
     // Extract text from response (handle different module shapes)
     const rawText: string =
       typeof responsePayload === 'string' ? responsePayload :
@@ -157,24 +157,47 @@ export class RuntimeService {
     if (task.taskType === 'vocabulary') {
       const target = task.payload?.targetWord?.toLowerCase() || '';
       const userAnswer = rawText.toLowerCase().trim();
-      const isCorrect = userAnswer.includes(target) || target.includes(userAnswer);
+      const isExactMatch = userAnswer.includes(target) || target.includes(userAnswer);
 
-      if (isCorrect) {
+      // SBERT Semantic Check
+      const similarity = await SemanticEvaluator.calculateSimilarity(userAnswer, target);
+      const isSemanticMatch = similarity > 0.85;
+
+      if (isExactMatch || isSemanticMatch) {
+        // Did they get the meaning right but made a grammatical / typo error?
+        const isGrammarError = !isExactMatch && isSemanticMatch;
+        let primaryMessage = 'Correct! That\'s exactly the right word in this context.';
+        
+        if (isGrammarError) {
+          primaryMessage = `Good job! You got the right meaning, but the exact word we were looking for is "${task.payload?.targetWord}".`;
+        }
+
         return {
           feedback: {
             taskId: task.taskId,
-            feedbackType: 'praise',
-            primaryMessage: 'Correct! That\'s exactly the right word in this context.',
+            feedbackType: isGrammarError ? 'correction' : 'praise',
+            primaryMessage,
             canAdvance: true,
           },
-          result: this.buildResult(task, 95, analysis, true, responseMode),
+          result: this.buildResult(task, isGrammarError ? 85 : 95, analysis, true, responseMode, rawText),
+        };
+      } else if (similarity > 0.60) {
+        // They are on the right track conceptually, but it's not the right word
+        return {
+          feedback: {
+            taskId: task.taskId,
+            feedbackType: 'hint',
+            primaryMessage: `You're thinking in the right direction, but that's not the exact word. Think about how phrasal verbs change form.`,
+            suggestedRetryConstraint: `Use the phrase "${task.payload?.targetWord}" in the correct form.`,
+            canAdvance: false,
+          },
         };
       } else {
         return {
           feedback: {
             taskId: task.taskId,
             feedbackType: 'hint',
-            primaryMessage: `Not quite. The correct answer is "${task.payload?.targetWord}". Think about how phrasal verbs change form.`,
+            primaryMessage: `Not quite. The correct answer is "${task.payload?.targetWord}".`,
             suggestedRetryConstraint: `Use the phrase "${task.payload?.targetWord}" in the correct form.`,
             canAdvance: false,
           },
@@ -204,7 +227,7 @@ export class RuntimeService {
           primaryMessage: praise,
           canAdvance: true,
         },
-        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 60) : score, analysis, true, responseMode),
+        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 60) : score, analysis, true, responseMode, rawText),
       };
     }
 
@@ -222,7 +245,7 @@ export class RuntimeService {
           suggestedRetryConstraint: 'Write at least 2 full sentences with a linking word.',
           canAdvance: true,
         },
-        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 50) : score, analysis, true, responseMode),
+        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 50) : score, analysis, true, responseMode, rawText),
       };
     }
 
@@ -250,9 +273,10 @@ export class RuntimeService {
     score: number,
     analysis: ReturnType<typeof analyzeResponse>,
     meaningSuccess: boolean,
-    responseMode?: string
+    responseMode?: string,
+    rawText: string = ''
   ): TaskEvaluationResult {
-    return {
+    const result: TaskEvaluationResult = {
       taskId: task.taskId,
       taskType: task.taskType,
       successScore: score,
@@ -270,5 +294,8 @@ export class RuntimeService {
       meaningSuccess,
       naturalnessSuccess: score >= 50,
     };
+    
+    result.reviewData = ReviewExplanationBuilder.build(task, result, rawText);
+    return result;
   }
 }

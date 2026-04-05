@@ -32,7 +32,7 @@ describe('CEFR Evaluation Migration - End to End Schema Verification', () => {
   it('AdaptiveAssessmentEngine successfully processes valid signal-based schema and divergence', async () => {
     const engine = new AdaptiveAssessmentEngine('A2');
     
-    const question = engine.getNextQuestion();
+    const question = await engine.getNextQuestion();
     expect(question).toBeDefined();
 
     // Mock the evaluating service to return a perfect C1 signal schema

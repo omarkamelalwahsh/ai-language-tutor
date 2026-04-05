@@ -14,7 +14,7 @@ async function run() {
   // 1. Cold Start Check
   console.log('\n[1] Checking Cold Start (Broad Spectrum Priority)...');
   const engine = new AdaptiveAssessmentEngine('B1', profile);
-  const q1 = engine.getNextQuestion();
+  const q1 = await engine.getNextQuestion();
   console.log('First question selected:', q1?.id, q1?.type, '(Expected: A multi-skill task)');
   
   // 2. Feedback Loop Check (Struggle Dampening)
@@ -30,7 +30,7 @@ async function run() {
   
   console.log('Checking next question selection with dampening...');
   // The log should show " (Dampened)" and the boost should be halved
-  const next = engine.getNextQuestion();
+  const next = await engine.getNextQuestion();
   console.log('Next question selected after struggle:', next?.id);
 }
 

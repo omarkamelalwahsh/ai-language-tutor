@@ -23,19 +23,19 @@ describe('AdaptiveAssessmentEngine Stability', () => {
   it('Phase 1: Should follow the forced L->R->W->S calibration sequence', async () => {
     const engine = new AdaptiveAssessmentEngine('B1');
     
-    const q1 = engine.getNextQuestion();
+    const q1 = await engine.getNextQuestion();
     expect(q1?.skill).toBe('listening');
     await engine.submitAnswer(q1!, 'A', 1000);
 
-    const q2 = engine.getNextQuestion();
+    const q2 = await engine.getNextQuestion();
     expect(q2?.skill).toBe('reading');
     await engine.submitAnswer(q2!, 'A', 1000);
 
-    const q3 = engine.getNextQuestion();
+    const q3 = await engine.getNextQuestion();
     expect(q3?.skill).toBe('writing');
     await engine.submitAnswer(q3!, 'A', 1000);
 
-    const q4 = engine.getNextQuestion();
+    const q4 = await engine.getNextQuestion();
     expect(q4?.skill).toBe('speaking');
     await engine.submitAnswer(q4!, 'A', 1000);
     
@@ -48,7 +48,7 @@ describe('AdaptiveAssessmentEngine Stability', () => {
     const askedIds = new Set<string>();
     
     for (let i = 0; i < 15; i++) {
-        const q = engine.getNextQuestion();
+        const q = await engine.getNextQuestion();
         if (!q) break;
         
         expect(askedIds.has(q.id)).toBe(false);
@@ -61,9 +61,9 @@ describe('AdaptiveAssessmentEngine Stability', () => {
   it('Progress and Counter: Should accurately reflect unique questions', async () => {
     const engine = new AdaptiveAssessmentEngine('B1');
     
-    const q1 = engine.getNextQuestion();
+    const q1 = await engine.getNextQuestion();
     // Simulate double-call to getNextQuestion (rerender style)
-    const q1_repeat = engine.getNextQuestion();
+    const q1_repeat = await engine.getNextQuestion();
     
     expect(q1?.id).not.toBe(q1_repeat?.id); // Should have moved to next due to immediate marking
     
@@ -76,12 +76,12 @@ describe('AdaptiveAssessmentEngine Stability', () => {
     
     // Simulate 20 questions
     for (let i = 0; i < 20; i++) {
-      const q = engine.getNextQuestion();
+      const q = await engine.getNextQuestion();
       if (!q) break;
       await engine.submitAnswer(q, 'A', 100);
     }
     
-    const lastQ = engine.getNextQuestion();
+    const lastQ = await engine.getNextQuestion();
     expect(lastQ).toBeNull();
     expect(engine.getProgress().completed).toBe(true);
   });

@@ -82,7 +82,7 @@ describe('Multi-Skill Behavioral Verification Suite', () => {
       console.log(`  ${s.padEnd(12)}: evidence=${e.evidenceCount}, uncertainty=${e.uncertainty.toFixed(3)}`);
     }
 
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     console.log('Next Question:', next?.id, '| skill:', next?.primarySkill, '| type:', next?.type);
 
     // ── Assertions ──
@@ -222,7 +222,7 @@ describe('Multi-Skill Behavioral Verification Suite', () => {
       console.log(`  ${s.padEnd(12)}: evidence=${e.evidenceCount}, uncertainty=${e.uncertainty.toFixed(3)}, confidence=${e.confidence.toFixed(3)}`);
     }
 
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     console.log('Next Question:', next?.id);
     console.log('  primary:', next?.primarySkill, '| type:', next?.type, '| difficulty:', next?.difficulty);
     console.log('  weights:', JSON.stringify(next?.evidenceWeights));
@@ -270,7 +270,7 @@ describe('Multi-Skill Behavioral Verification Suite', () => {
     };
     await engine.submitAnswer(listQ, 'Library', 2000);
 
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
 
     console.log('');
     console.log('━'.repeat(62));
@@ -420,7 +420,7 @@ describe('Multi-Skill Behavioral Verification Suite', () => {
 
     console.log(`\n5. REASON: ${ev.debug?.reason}`);
 
-    const next = engine.getNextQuestion();
+    const next = await engine.getNextQuestion();
     console.log('\n6. NEXT QUESTION RATIONALE:');
     if (next) {
       console.log(`   Selected: ${next.id}`);

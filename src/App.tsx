@@ -169,6 +169,7 @@ export default function App() {
             <AdvancedDashboard
               result={assessmentResult}
               dashboardData={DashboardService.buildPayload(assessmentResult)}
+              assessmentOutcome={assessmentOutcome}
               onStartSession={() => navigateTo('LEARNING_LOOP')}
               onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
             />

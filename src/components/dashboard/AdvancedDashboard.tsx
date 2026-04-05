@@ -7,12 +7,13 @@ import {
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown
 } from 'lucide-react';
 
-import { AssessmentSessionResult, SkillName, SkillAssessmentResult } from '../../types/assessment';
+import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 
 interface AdvancedDashboardProps {
   result: AssessmentSessionResult;
   dashboardData: AdvancedDashboardPayload;
+  assessmentOutcome?: AssessmentOutcome | null;
   onStartSession: () => void;
   onNavigateLeaderboard: () => void;
 }
@@ -47,7 +48,7 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, onStartSession, onNavigateLeaderboard }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
 
@@ -215,47 +216,173 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <p className="text-slate-500 text-sm">Detailed breakdowns of your learning signals and patterns.</p>
               </motion.div>
 
-              {/* Per-Skill Deep Cards */}
-              {skills.map((skillRes: SkillAssessmentResult) => (
-                <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3 font-bold capitalize text-slate-800">
-                      {skillIcons[skillRes.skill] || <Activity className="w-5 h-5" />} {skillRes.skill}
-                    </div>
-                    <span className="text-xl font-extrabold text-indigo-600">{skillRes.estimatedLevel}</span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mastery</p>
-                      <p className="text-2xl font-extrabold text-slate-900">{Math.round((skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
-                      <p className="text-2xl font-extrabold text-slate-900">{skillRes.evidenceCount}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Consistency</p>
-                      <p className="text-lg font-bold text-slate-800 capitalize">{skillRes.status}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                      <p className="text-lg font-bold text-indigo-600 capitalize">{skillRes.confidence.band}</p>
-                    </div>
-                  </div>
-                  {/* Subskill Bars */}
-                  <div className="space-y-2">
-                    {(skillRes.subscores || []).map(sub => (
-                      <div key={sub.name} className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-600 w-8">{Math.round(sub.value * 100)}</span>
+              {/* ===== Assessment Outcome Section ===== */}
+              {assessmentOutcome ? (
+                <>
+                  {/* Overall Summary Card */}
+                  <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><BarChart2 className="w-5 h-5" /></div>
+                        <h3 className="text-xl font-bold text-slate-900">Assessment Result</h3>
                       </div>
-                    ))}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center">
+                          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Overall Level</p>
+                          <p className="text-4xl font-extrabold text-indigo-700">{assessmentOutcome.overallBand}</p>
+                        </div>
+                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confidence</p>
+                          <p className="text-3xl font-extrabold text-slate-900">{Math.round(assessmentOutcome.overallConfidence * 100)}%</p>
+                        </div>
+                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Questions</p>
+                          <p className="text-3xl font-extrabold text-slate-900">{assessmentOutcome.totalQuestions}</p>
+                        </div>
+                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Stop Reason</p>
+                          <p className="text-lg font-bold text-slate-700 capitalize">{assessmentOutcome.stopReason?.replace(/_/g, ' ') || '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.section>
+
+                  {/* Per-Skill Outcome Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {(Object.entries(assessmentOutcome.skillBreakdown) as [AssessmentSkill, typeof assessmentOutcome.skillBreakdown[AssessmentSkill]][]).map(([skillName, skillData]) => {
+                      const bandColorClass = (() => {
+                        const b = String(skillData.band);
+                        if (b.startsWith('A')) return 'from-emerald-50 to-emerald-100/50 border-emerald-100';
+                        if (b.startsWith('B')) return 'from-blue-50 to-blue-100/50 border-blue-100';
+                        return 'from-purple-50 to-purple-100/50 border-purple-100';
+                      })();
+                      const bandTextClass = (() => {
+                        const b = String(skillData.band);
+                        if (b.startsWith('A')) return 'text-emerald-700';
+                        if (b.startsWith('B')) return 'text-blue-700';
+                        return 'text-purple-700';
+                      })();
+                      const statusColor = skillData.status === 'stable' ? 'bg-emerald-100 text-emerald-700' : skillData.status === 'emerging' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500';
+                      return (
+                        <motion.section key={skillName} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                          <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600">
+                                {skillIcons[skillName] || <Activity className="w-5 h-5" />}
+                              </div>
+                              <h4 className="font-bold text-slate-800 capitalize text-lg">{skillName}</h4>
+                            </div>
+                            <div className={`px-3 py-1.5 rounded-xl bg-gradient-to-br ${bandColorClass} border`}>
+                              <span className={`text-xl font-extrabold ${bandTextClass}`}>{skillData.band}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 mb-4">
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
+                              <p className="text-2xl font-extrabold text-slate-900">{skillData.score}</p>
+                            </div>
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
+                              <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillData.confidence * 100)}%</p>
+                            </div>
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
+                              <p className="text-2xl font-extrabold text-slate-900">{skillData.evidenceCount}</p>
+                            </div>
+                          </div>
+                          {/* Score bar */}
+                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+                            <motion.div
+                              className="h-full bg-indigo-500 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, skillData.score)}%` }}
+                              transition={{ duration: 0.8, ease: 'easeOut' }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${statusColor}`}>
+                              {skillData.status?.replace(/_/g, ' ') || 'unknown'}
+                            </span>
+                            {skillData.speakingFallbackApplied && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" /> Fallback
+                              </span>
+                            )}
+                            {skillData.isCapped && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" /> Capped
+                              </span>
+                            )}
+                          </div>
+                        </motion.section>
+                      );
+                    })}
                   </div>
+                </>
+              ) : (
+                /* Empty State */
+                <motion.section variants={staggerItem} className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                    <BarChart2 className="w-8 h-8 text-slate-300" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">No Assessment Result Yet</h3>
+                  <p className="text-slate-500 mb-6 max-w-md mx-auto">Complete an adaptive assessment to unlock detailed skill analytics, per-level breakdowns, and confidence metrics.</p>
+                  <button onClick={onStartSession} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)]">
+                    Start Assessment
+                  </button>
                 </motion.section>
-              ))}
+              )}
+
+              {/* Per-Skill Deep Cards from Session Result (always shown if skills exist) */}
+              {skills.length > 0 && (
+                <>
+                  <motion.div variants={staggerItem}>
+                    <h3 className="text-lg font-bold text-slate-900 mt-4 mb-1">Session-Level Skill Analysis</h3>
+                    <p className="text-slate-400 text-xs">Detailed per-skill breakdown from the processed session result.</p>
+                  </motion.div>
+                  {skills.map((skillRes: SkillAssessmentResult) => (
+                    <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3 font-bold capitalize text-slate-800">
+                          {skillIcons[skillRes.skill] || <Activity className="w-5 h-5" />} {skillRes.skill}
+                        </div>
+                        <span className="text-xl font-extrabold text-indigo-600">{skillRes.estimatedLevel}</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mastery</p>
+                          <p className="text-2xl font-extrabold text-slate-900">{Math.round((skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%</p>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
+                          <p className="text-2xl font-extrabold text-slate-900">{skillRes.evidenceCount}</p>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Consistency</p>
+                          <p className="text-lg font-bold text-slate-800 capitalize">{skillRes.status}</p>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
+                          <p className="text-lg font-bold text-indigo-600 capitalize">{skillRes.confidence.band}</p>
+                        </div>
+                      </div>
+                      {/* Subskill Bars */}
+                      <div className="space-y-2">
+                        {(skillRes.subscores || []).map(sub => (
+                          <div key={sub.name} className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
+                            </div>
+                            <span className="text-xs font-bold text-slate-600 w-8">{Math.round(sub.value * 100)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.section>
+                  ))}
+                </>
+              )}
 
               {/* Descriptor Evidence */}
               {skills.some(s => s.descriptors.length > 0) && (

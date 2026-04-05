@@ -24,7 +24,7 @@ describe('Adaptive Pacing & Topic Relevance', () => {
   });
 
   describe('Topic Preference Priority', () => {
-    it('should prioritize questions with matching topicTags', () => {
+    it('should prioritize questions with matching topicTags', async () => {
       // Setup: Preferred topics "business" and "technology"
       const engine = new AdaptiveAssessmentEngine('A1', {
         preferredTopics: ['business', 'technology'],
@@ -32,7 +32,7 @@ describe('Adaptive Pacing & Topic Relevance', () => {
       });
 
       // Selection should happen
-      const nextQ = engine.getNextQuestion();
+      const nextQ = await engine.getNextQuestion();
       
       // Verify that the selected question has "business" or "technology" tags
       // or "professional" goal tag

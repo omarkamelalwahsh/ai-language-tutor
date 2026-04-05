@@ -33,6 +33,7 @@ export interface TaskEvaluationResult {
   meaningSuccess: boolean;
   naturalnessSuccess: boolean;
   responseMode?: 'voice' | 'typed_fallback' | 'text';
+  reviewData?: AnswerReviewItem; // newly added
 }
 
 export interface TaskFeedbackPayload {
@@ -44,3 +45,24 @@ export interface TaskFeedbackPayload {
   modelAnswer?: string; // Revealed only if necessary
   canAdvance: boolean;
 }
+
+export type AnswerReviewItem = {
+  questionId: string;
+  skill: string;
+  taskType: string;
+  questionLevel: string;
+  answerLevel: string;
+  result: "correct" | "incorrect" | "partial";
+  prompt: string;
+  stimulus?: string;
+  userAnswer: string;
+  correctAnswer?: string;
+  explanation: {
+    whyCorrect?: string;
+    whyIncorrect?: string;
+    whatWentWrong?: string;
+    modelAnswer?: string;
+    improvementTip?: string;
+    levelNote?: string;
+  };
+};

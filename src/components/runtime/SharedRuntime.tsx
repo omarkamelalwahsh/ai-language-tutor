@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SessionTask, TaskFeedbackPayload, TaskEvaluationResult } from '../../types/runtime';
 import { AssessmentSessionResult } from '../../types/assessment';
 import { RuntimeService } from '../../services/RuntimeService';
-import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw, XCircle, AlertCircle, Lightbulb } from 'lucide-react';
 
 // Import modules
 import { SpeakingModule } from './modules/SpeakingModule';
@@ -43,8 +43,8 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     
     const responseTimeMs = Date.now() - taskStartTime.current;
 
-    setTimeout(() => {
-      const { feedback: newFeedback, result } = RuntimeService.evaluateResponse(currentTask, responsePayload);
+    setTimeout(async () => {
+      const { feedback: newFeedback, result } = await RuntimeService.evaluateResponse(currentTask, responsePayload);
       
       // Enrich result with actual behavioral signals
       if (result) {
@@ -122,21 +122,21 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     const totalTime = uniqueResults.reduce((sum, r) => sum + r.responseTimeMs, 0);
 
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-10 rounded-3xl shadow-xl max-w-lg w-full border border-slate-100"
+          className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl max-w-4xl w-full border border-slate-100 my-8"
         >
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-emerald-100">
               <Trophy className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Session Complete!</h2>
-            <p className="text-slate-500">Great work. Here's how you did.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Answer Review Sheet</h2>
+            <p className="text-slate-500">Let's review your performance in detail.</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-4 mb-10">
             <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto mb-2" />
               <p className="text-2xl font-extrabold text-slate-900">{uniqueResults.length}</p>
@@ -154,26 +154,107 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
             </div>
           </div>
 
-          {/* Per-task breakdown */}
-          <div className="space-y-3 mb-8">
-            {uniqueResults.map(r => (
-              <div key={r.taskId} className="flex justify-between items-center bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold uppercase tracking-widest bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md">{r.taskType}</span>
+          <div className="space-y-6 mb-10">
+            <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Detailed Task Answers</h3>
+            {uniqueResults.map((r, i) => {
+              const review = r.reviewData;
+              if (!review) return null;
+
+              const isCorrect = review.result === 'correct';
+              const isPartial = review.result === 'partial';
+              
+              return (
+                <div key={r.taskId} className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                  {/* Card Header */}
+                  <div className={`p-4 border-b flex items-center justify-between ${isCorrect ? 'bg-emerald-50/50 border-emerald-100' : isPartial ? 'bg-amber-50/50 border-amber-100' : 'bg-rose-50/50 border-rose-100'}`}>
+                    <div className="flex gap-4 items-center flex-wrap">
+                      <span className="text-xs font-bold uppercase tracking-widest bg-slate-800 text-white px-3 py-1 rounded-full">{review.skill}</span>
+                      <div className="flex gap-1.5 items-center">
+                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Level:</span>
+                         <span className="text-xs font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm">{review.questionLevel}</span>
+                      </div>
+                      <div className="flex gap-1.5 items-center">
+                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Level:</span>
+                         <span className={`text-xs font-extrabold px-2 py-0.5 rounded shadow-sm ${review.answerLevel !== review.questionLevel ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200' : 'bg-slate-200 text-slate-700'}`}>{review.answerLevel}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className={`text-sm font-extrabold uppercase tracking-widest ${isCorrect ? 'text-emerald-700' : isPartial ? 'text-amber-700' : 'text-rose-700'}`}>
+                         {review.result}
+                       </span>
+                       {isCorrect ? <CheckCircle2 className="w-5 h-5 text-emerald-500 border border-emerald-200 bg-emerald-50 rounded-full"/> : isPartial ? <AlertCircle className="w-5 h-5 text-amber-500 border border-amber-200 bg-amber-50 rounded-full"/> : <XCircle className="w-5 h-5 text-rose-500 border border-rose-200 bg-rose-50 rounded-full"/>}
+                    </div>
+                  </div>
+                  
+                  {/* Card Body */}
+                  <div className="p-5 space-y-5">
+                     <div>
+                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Prompt</p>
+                       <p className="text-slate-800 font-medium text-[15px]">{review.prompt}</p>
+                     </div>
+
+                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 ring-1 ring-black/5">
+                       <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1.5">Your Answer</p>
+                       <p className="text-slate-900 font-medium">{review.userAnswer}</p>
+                     </div>
+
+                     {review.correctAnswer && (
+                       <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                         <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1.5">Target Answer</p>
+                         <p className="text-emerald-900 font-bold">{review.correctAnswer}</p>
+                       </div>
+                     )}
+
+                     {/* Explanations Layer */}
+                     <div className="space-y-3.5 mt-6 border-t border-slate-200 pt-5">
+                       {review.explanation.whyCorrect && (
+                         <div className="flex items-start gap-3">
+                           <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0"/>
+                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Correct:</strong>{review.explanation.whyCorrect}</p>
+                         </div>
+                       )}
+                       {review.explanation.whatWentWrong && (
+                         <div className="flex items-start gap-3">
+                           <Zap className="w-5 h-5 text-rose-500 mt-0.5 shrink-0"/>
+                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">What Went Wrong:</strong>{review.explanation.whatWentWrong}</p>
+                         </div>
+                       )}
+                       {review.explanation.whyIncorrect && (
+                         <div className="flex items-start gap-3">
+                           <AlertCircle className="w-5 h-5 text-rose-500 mt-0.5 shrink-0"/>
+                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Incorrect:</strong>{review.explanation.whyIncorrect}</p>
+                         </div>
+                       )}
+                       {review.explanation.levelNote && (
+                         <div className="flex items-start gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                           <BarChart2 className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0"/>
+                           <p className="text-indigo-900 text-sm leading-relaxed max-w-3xl"><strong className="text-indigo-950 mr-1">Level Note:</strong>{review.explanation.levelNote}</p>
+                         </div>
+                       )}
+                       {review.explanation.modelAnswer && (
+                         <div className="flex items-start gap-3">
+                           <Brain className="w-5 h-5 text-slate-400 mt-0.5 shrink-0"/>
+                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Model Idea:</strong>{review.explanation.modelAnswer}</p>
+                         </div>
+                       )}
+                       {review.explanation.improvementTip && (
+                         <div className="flex items-start gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200/60 mt-3 shadow-sm">
+                           <Lightbulb className="w-5 h-5 text-amber-500 mt-0.5 shrink-0"/>
+                           <p className="text-amber-900 text-sm font-medium leading-relaxed max-w-3xl"><strong className="uppercase tracking-widest text-[10px] bg-amber-200/50 px-2 py-0.5 rounded mr-2 align-middle">Tip</strong>{review.explanation.improvementTip}</p>
+                         </div>
+                       )}
+                     </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-sm font-bold ${r.successScore >= 70 ? 'text-emerald-600' : 'text-amber-600'}`}>{r.successScore}%</span>
-                  {r.meaningSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <button
             onClick={onExit}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-indigo-600/20"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold tracking-wide uppercase py-4 rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98]"
           >
-            Return to Dashboard
+            Finish Review
           </button>
         </motion.div>
       </div>
