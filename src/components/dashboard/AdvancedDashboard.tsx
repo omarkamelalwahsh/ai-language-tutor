@@ -16,6 +16,7 @@ interface AdvancedDashboardProps {
   assessmentOutcome?: AssessmentOutcome | null;
   onStartSession: () => void;
   onNavigateLeaderboard: () => void;
+  onViewReview: () => void;
 }
 
 const staggerContainer = {
@@ -48,7 +49,7 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
 
@@ -244,6 +245,20 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Stop Reason</p>
                           <p className="text-lg font-bold text-slate-700 capitalize">{assessmentOutcome.stopReason?.replace(/_/g, ' ') || '—'}</p>
                         </div>
+                      </div>
+                      
+                      {/* Detailed Review Action */}
+                      <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                         <div>
+                            <h4 className="font-bold text-slate-800">Detailed Answer Analysis</h4>
+                            <p className="text-xs text-slate-500">View individual task scores, grammar feedback, and explainers.</p>
+                         </div>
+                         <button 
+                            onClick={onViewReview}
+                            className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-indigo-100"
+                         >
+                            View Full Review Sheet <ArrowRight className="w-4 h-4" />
+                         </button>
                       </div>
                     </div>
                   </motion.section>
@@ -472,6 +487,29 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           {/* ========= REVIEW ========= */}
           {activeTab === 'review' && (
             <motion.div key="review" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
+              {/* Assessment Report Section */}
+              <motion.section variants={staggerItem} className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-200/50">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16" />
+                 <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-6">
+                       <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                       <h3 className="text-xl font-bold">Latest Assessment Report</h3>
+                    </div>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                       <div>
+                          <p className="text-indigo-200 text-sm font-medium mb-1">Authenticated Proficiency</p>
+                          <p className="text-4xl font-black">{result.overall.estimatedLevel} <span className="text-lg font-bold text-indigo-300">Level</span></p>
+                       </div>
+                       <button 
+                          onClick={onViewReview}
+                          className="w-full md:w-auto bg-white text-indigo-900 hover:bg-indigo-50 px-6 py-3 rounded-xl font-bold transition-all shadow-lg"
+                       >
+                          View Full Response Analysis
+                       </button>
+                    </div>
+                 </div>
+              </motion.section>
+
               <motion.div variants={staggerItem}>
                 <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Review Queue</h2>
                 <p className="text-slate-500 text-sm">Items that need reinforcement before they fade.</p>

@@ -68,6 +68,26 @@ export default function App() {
   const [assessmentResult, setAssessmentResult] = useState<AssessmentSessionResult | null>(null);
   const [devModeActive, setDevModeActive] = useState(false);
 
+  // 💾 State Persistence: Load from localStorage on mount
+  React.useEffect(() => {
+    const savedResult = localStorage.getItem('last_assessment_result');
+    const savedOutcome = localStorage.getItem('last_assessment_outcome');
+    const savedEvaluations = localStorage.getItem('last_assessment_evals');
+
+    if (savedResult) setAssessmentResult(JSON.parse(savedResult));
+    if (savedOutcome) setAssessmentOutcome(JSON.parse(savedOutcome));
+    if (savedEvaluations) setTaskResults(JSON.parse(savedEvaluations));
+  }, []);
+
+  // 💾 State Persistence: Save to localStorage when state changes
+  React.useEffect(() => {
+    if (assessmentResult) {
+      localStorage.setItem('last_assessment_result', JSON.stringify(assessmentResult));
+      localStorage.setItem('last_assessment_outcome', JSON.stringify(assessmentOutcome));
+      localStorage.setItem('last_assessment_evals', JSON.stringify(taskResults));
+    }
+  }, [assessmentResult, assessmentOutcome, taskResults]);
+
   const navigateTo = (newView: ViewState) => {
     setView(newView);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -172,6 +192,7 @@ export default function App() {
               assessmentOutcome={assessmentOutcome}
               onStartSession={() => navigateTo('LEARNING_LOOP')}
               onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
+              onViewReview={() => navigateTo('ASSESSMENT_REVIEW')}
             />
           </FadeTransition>
         )}
