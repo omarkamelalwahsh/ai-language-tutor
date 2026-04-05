@@ -138,6 +138,10 @@ export class AdaptiveAssessmentEngine {
     if (this.state.completed) return null;
     
     const uniqueAnsweredCount = this.askedQuestionIds.size;
+    
+    // Ensure the current level's bank is loaded before selection
+    const currentLevel = this.efsetOverall.levelRange[0];
+    await this.ensureLevelLoaded(currentLevel);
 
     // 1. Final Stop Condition Check
     const isConfidenceTargetReached = this.efsetOverall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD;
