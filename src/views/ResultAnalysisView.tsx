@@ -21,7 +21,9 @@ interface ResultAnalysisViewProps {
 
 export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, assessmentOutcome, onContinue, onReview }) => {
   const speakingAudit = assessmentOutcome?.speakingAudit;
-  const isSpeakingFallback = speakingAudit?.fallbackApplied;
+  const isSpeakingMissing = (result.skills.speaking?.evidenceCount ?? 0) === 0;
+  const isWritingMissing = (result.skills.writing?.evidenceCount ?? 0) === 0;
+  const isProvisional = isSpeakingMissing || isWritingMissing;
 
   const confidenceLabel = result.overall.confidence >= 0.8 ? `Confident ${result.overall.estimatedLevel}` :
                           result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
@@ -63,17 +65,17 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
         </motion.div>
 
         {/* Assessment Integrity Notice (Conditional) */}
-        {isSpeakingFallback && (
-          <motion.div variants={staggerItem} className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex gap-4 items-start shadow-sm">
-            <div className="bg-amber-100 p-2 rounded-lg">
-              <AlertTriangle className="w-6 h-6 text-amber-600" />
+        {isProvisional && (
+          <motion.div variants={staggerItem} className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 flex gap-4 items-start shadow-sm shadow-indigo-100">
+            <div className="bg-indigo-100 p-2 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-indigo-600" />
             </div>
-            <div>
-              <h3 className="text-amber-900 font-bold mb-1">Assessment Integrity Notice: Speaking Fallback Applied</h3>
-              <p className="text-amber-800 text-sm leading-relaxed">
-                {speakingAudit?.rationale || "Spoken evidence was missing for one or more speaking tasks. Your speaking proficiency has been capped at A1 to ensure assessment accuracy."}
+            <div className="flex-1">
+              <h3 className="text-indigo-900 font-bold mb-1">Provisional Proficiency Detected</h3>
+              <p className="text-indigo-800 text-sm leading-relaxed">
+                We've estimated your overall proficiency as <strong>{result.overall.estimatedLevel}</strong> based on your strong performance in {skills.filter(s => (s.evidenceCount ?? 0) > 0).map(s => s.skill).join(', ')}. 
+                However, because <strong>{isSpeakingMissing ? 'Speaking' : ''}{isSpeakingMissing && isWritingMissing ? ' and ' : ''}{isWritingMissing ? 'Writing' : ''}</strong> {isSpeakingMissing && isWritingMissing ? 'were' : 'was'} not fully tested, this result is marked as provisional.
               </p>
-              <button className="mt-3 text-xs font-bold text-amber-700 hover:text-amber-900 underline uppercase tracking-widest">Why does this happen?</button>
             </div>
           </motion.div>
         )}
@@ -86,8 +88,15 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
             <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Estimated Level</p>
             <div className="flex items-center gap-4">
               <span className="text-7xl font-black text-indigo-600 tracking-tighter">{result.overall.estimatedLevel}</span>
-              <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold border border-indigo-100">
-                {confidenceLabel}
+              <div className="flex flex-col gap-1.5">
+                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold border border-indigo-100 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> {confidenceLabel}
+                </div>
+                {isProvisional && (
+                   <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold border border-amber-100 flex items-center gap-1.5 uppercase tracking-wider">
+                     <AlertTriangle className="w-3 h-3" /> Provisional Result
+                   </div>
+                )}
               </div>
             </div>
             <p className="text-slate-600 leading-relaxed max-w-md pt-2">
@@ -126,12 +135,12 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({ result, 
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, (skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%` }} />
                     </div>
-                    {skillRes.skill === 'speaking' && isSpeakingFallback && (
+                    {skillRes.skill === 'speaking' && isSpeakingMissing && (
                       <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-amber-600 uppercase tracking-tighter">
-                        <ShieldAlert className="w-3 h-3" /> Insufficient spoken evidence
+                        <AlertTriangle className="w-3 h-3" /> No spoken evidence captured
                       </div>
                     )}
-                    {skillRes.skill === 'speaking' && !isSpeakingFallback && speakingAudit?.validVoiceSubmissions > 0 && (
+                    {skillRes.skill === 'speaking' && !isSpeakingMissing && (
                       <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
                         <ShieldCheck className="w-3 h-3" /> Validated voice evidence
                       </div>

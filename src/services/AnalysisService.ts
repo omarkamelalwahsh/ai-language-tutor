@@ -90,7 +90,7 @@ export class AssessmentAnalysisService {
       overall: {
         estimatedLevel: this.inferOverallLevel(skillResults, outcome.overallConfidence),
         confidence: outcome.overallConfidence,
-        rationale: this.buildOverallRationale(skillResults, outcome.overallBand as any)
+        rationale: this.buildOverallRationale(skillResults, this.inferOverallLevel(skillResults, outcome.overallConfidence))
       },
       skills: skillResults,
       behavioralProfile: {
@@ -211,19 +211,9 @@ export class AssessmentAnalysisService {
     const medianOrder = getBandOrder(medianLevel);
 
     // CORE SKILL COVERAGE GUARD:
-    // If Speaking or Writing has 0 evidence, the overall level cannot exceed A1+.
-    const hasSpeakingBody = skills.speaking.evidenceCount > 0;
-    const hasWritingBody = skills.writing.evidenceCount > 0;
-    
+    // If Speaking or Writing has 0 evidence, we no longer hard-cap at A1+.
+    // Instead, we just note it's 'provisional' in the rationale.
     let finalLevel = medianLevel;
-
-    if (!hasSpeakingBody || !hasWritingBody) {
-      const currentOrder = getBandOrder(finalLevel);
-      if (currentOrder > 0) { // If above A1
-        console.log(`[CoverageGuard] Capping level at A1+ due to missing ${hasSpeakingBody ? '' : 'Speaking'} ${hasWritingBody ? '' : 'Writing'}`);
-        finalLevel = "A1+";
-      }
-    }
 
     // Apply Structural Caps (Grammar/Vocabulary)
     const grammarLevel = skills.grammar.estimatedLevel;

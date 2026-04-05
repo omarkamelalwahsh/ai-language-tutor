@@ -1,4 +1,5 @@
 import { CEFRLevel, QuestionBankItem, SkillState, SkillName } from '../../types/efset';
+import { CEFREngine } from '../cefr/CEFREngine';
 
 export interface SelectorState {
   skills: Record<SkillName, SkillState>;
@@ -64,7 +65,11 @@ export class AdaptiveSelector {
     }
 
     const skillState = skills[targetSkill];
-    const currentIndex = LEVEL_ORDER.indexOf(currentOverallLevel);
+    
+    // 🧠 Skill-Specific Baseline: Calculate level based on THIS skill's score, not the average.
+    // This allows a C1 Writing skill to probe C2 regardless of other skills.
+    const skillLevel = CEFREngine.mapScoreToLevel(skillState.score);
+    const currentIndex = LEVEL_ORDER.indexOf(skillLevel);
     
     // Boundary Testing with Momentum
     const recent = skillState.history.slice(-2);
