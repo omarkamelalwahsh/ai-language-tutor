@@ -368,15 +368,20 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const [isEvaluating, setIsEvaluating] = useState(false);
 
   useEffect(() => {
+    let isSubscribed = true;
     if (!currentTask) {
-      const firstQ = engine.getNextQuestion();
-      if (firstQ) {
-        setCurrentTask(firstQ);
-        const p = engine.getProgress();
-        setProgress(p);
-        (window as any)._lastBenchmark = p.currentBand;
-      }
+      const loadInitial = async () => {
+        const firstQ = await engine.getNextQuestion();
+        if (isSubscribed && firstQ) {
+          setCurrentTask(firstQ);
+          const p = engine.getProgress();
+          setProgress(p);
+          (window as any)._lastBenchmark = p.currentBand;
+        }
+      };
+      loadInitial();
     }
+    return () => { isSubscribed = false; };
   }, [engine, currentTask]);
 
   const handleNextTask = useCallback(
@@ -389,10 +394,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
         setProgress(engine.getProgress());
         setFeedbackState({ show: true, correct });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           setFeedbackState({ show: false, correct: false });
           setIsEvaluating(false);
-          const nextQ = engine.getNextQuestion();
+          const nextQ = await engine.getNextQuestion();
           if (nextQ) {
             setCurrentTask(nextQ);
             const nextProgress = engine.getProgress();
@@ -401,7 +406,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
           } else {
             onComplete(engine.getEvaluations(), engine.getOutcome());
           }
-        }, 600);
+        }, 300); // Reduced delay since visual feedback is removed
       } catch (err) {
         console.error("Evaluation error:", err);
         setIsEvaluating(false);
@@ -410,9 +415,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     [currentTask, engine, isEvaluating, onComplete]
   );
 
-  const handleSkip = useCallback(() => {
+  const handleSkip = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
-    const nextQ = engine.skipQuestion(currentTask.id);
+    const nextQ = await engine.skipQuestion(currentTask.id);
     if (nextQ) {
       setCurrentTask(nextQ);
       setProgress(engine.getProgress());
@@ -421,9 +426,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     }
   }, [currentTask, isEvaluating, engine, onComplete]);
 
-  const handleSwap = useCallback(() => {
+  const handleSwap = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
-    const swappedQ = engine.swapQuestion(currentTask.id);
+    const swappedQ = await engine.swapQuestion(currentTask.id);
     if (swappedQ) {
       setCurrentTask(swappedQ);
     }
@@ -432,7 +437,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   if (!currentTask) return null;
 
   const bandColor = (() => {
-    const b = progress.currentBand;
+    const b = currentTask.difficulty;
     if (b === 'A1' || b === 'A2') return 'bg-emerald-500';
     if (b === 'B1' || b === 'B2') return 'bg-blue-500';
     return 'bg-purple-500';
@@ -470,7 +475,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
         </div>
 
         <div className="bg-white rounded-[2rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-slate-100 flex-1 min-h-[500px] flex flex-col relative overflow-hidden">
-          <AnswerFeedback correct={feedbackState.correct} show={feedbackState.show} />
+          {/* AnswerFeedback removed per user request */}
           {isEvaluating && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-30 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3">

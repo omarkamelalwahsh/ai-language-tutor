@@ -93,7 +93,8 @@ describe('AdaptiveAssessmentEngine - Core Tests', () => {
         taskType: 'short_text'
       });
 
-      const grammar = testEngine.getState().skillEstimates.grammar;
+      const report = testEngine.getOutcome();
+      const grammar = report.skillBreakdown.grammar;
       // Mastery = C1(100), Demonst = C1(100)
       // Score = (100 * 0.7) + (100 * 0.3) = 100.
       expect(grammar.score).toBeGreaterThan(95);
@@ -112,9 +113,10 @@ describe('AdaptiveAssessmentEngine - Core Tests', () => {
             });
         }
         
-        const reading = testEngine.getState().skillEstimates.reading;
+        const report = testEngine.getOutcome();
+        const reading = report.skillBreakdown.reading;
         expect(reading.band).toBe('B1_B2'); // score 60
-        expect(reading.stability).toBe('emerging');
+        expect(reading.status).toBe('emerging');
     });
   });
 });

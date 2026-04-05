@@ -39,14 +39,17 @@ import { SkillAggregator } from '../engine/cefr/SkillAggregator';
 import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { BankValidator } from './BankValidator';
 import { FinalReportBuilder } from '../engine/cefr/FinalReportBuilder';
+import { ASSESSMENT_CONFIG } from '../config/assessment-config';
 
-// Import Banks
-import A1_BANK from '../data/banks/A1.json';
-import A2_BANK from '../data/banks/A2.json';
-import B1_BANK from '../data/banks/B1.json';
-import B2_BANK from '../data/banks/B2.json';
-import C1_BANK from '../data/banks/C1.json';
-import C2_BANK from '../data/banks/C2.json';
+// Dynamic Loader for Question Banks to optimize bundle size
+const BANK_LOADERS: Record<CEFRLevel, () => Promise<any>> = {
+  'A1': () => import('../data/banks/A1.json'),
+  'A2': () => import('../data/banks/A2.json'),
+  'B1': () => import('../data/banks/B1.json'),
+  'B2': () => import('../data/banks/B2.json'),
+  'C1': () => import('../data/banks/C1.json'),
+  'C2': () => import('../data/banks/C2.json'),
+};
 
 // ============================================================================
 // Constants
@@ -54,12 +57,6 @@ import C2_BANK from '../data/banks/C2.json';
 
 const ALL_SKILLS: AssessmentSkill[] = ['reading', 'writing', 'listening', 'speaking', 'vocabulary', 'grammar'];
 const BAND_VALUE: Record<DifficultyBand, number> = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
-
-const CONFIG = {
-  MIN_QUESTIONS: 8,
-  MAX_QUESTIONS: 20, // Reduced to 20 for tighter session
-  CONFIDENCE_STOP_THRESHOLD: 0.75, 
-} as const;
 
 export class AdaptiveAssessmentEngine {
   private state: AdaptiveAssessmentState;
@@ -69,24 +66,11 @@ export class AdaptiveAssessmentEngine {
   private askedQuestionIds: Set<string> = new Set();
   
   private banks: Record<CEFRLevel, QuestionBankItem[]> = {
-    'A1': A1_BANK as any,
-    'A2': A2_BANK as any,
-    'B1': B1_BANK as any,
-    'B2': B2_BANK as any,
-    'C1': C1_BANK as any,
-    'C2': C2_BANK as any
+    'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
   };
+  private loadedLevels = new Set<CEFRLevel>();
 
   constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile) {
-    // 1. Validate Banks
-    const report = BankValidator.validate(this.banks);
-    if (!report.isValid) {
-       console.error('[BankValidator] Errors found in banks:', report.errors);
-       // In production, we might want to throw or fallback, but here we log and continue
-    } else {
-       console.log(`[BankValidator] Banks valid! Items: ${report.stats.totalItems}`);
-    }
-
     this.selector = new AdaptiveSelector(this.banks);
     
     const skillsList: EFSETSkillName[] = ['listening', 'reading', 'writing', 'speaking', 'grammar', 'vocabulary'];
@@ -110,13 +94,11 @@ export class AdaptiveAssessmentEngine {
       status: 'insufficient_data'
     };
 
-    // Initialize state (Legacy Compatibility)
+    // Initialize unified state
     this.state = {
-      currentTargetBand: startingBand,
       askedQuestionIds: [],
       answerHistory: [],
       taskEvaluations: [],
-      skillEstimates: {} as any,
       overallConfidence: 0,
       questionsAnswered: 0,
       completed: false,
@@ -135,23 +117,56 @@ export class AdaptiveAssessmentEngine {
     };
   }
 
-  public getNextQuestion(): AssessmentQuestion | null {
+  private async ensureLevelLoaded(level: CEFRLevel): Promise<void> {
+    if (this.loadedLevels.has(level)) return;
+    
+    console.log(`[Engine] Lazy loading bank for level: ${level}...`);
+    try {
+      const module = await BANK_LOADERS[level]();
+      // handle either default or direct array import if needed
+      const data = module.default || module;
+      this.banks[level] = Array.isArray(data) ? data : [];
+      this.loadedLevels.add(level);
+      console.log(`[Engine] Loaded ${this.banks[level].length} items for ${level}`);
+    } catch (err) {
+      console.error(`[Engine] Failed to load bank for ${level}:`, err);
+    }
+  }
+
+  public async getNextQuestion(): Promise<AssessmentQuestion | null> {
     if (this.state.completed) return null;
     
     const uniqueAnsweredCount = this.askedQuestionIds.size;
 
     // 1. Final Stop Condition Check
-    const isConfidenceTargetReached = this.efsetOverall.confidence >= CONFIG.CONFIDENCE_STOP_THRESHOLD;
-    const isMinQuestionsMet = uniqueAnsweredCount >= CONFIG.MIN_QUESTIONS;
+    const isConfidenceTargetReached = this.efsetOverall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD;
+    const isMinQuestionsMet = uniqueAnsweredCount >= ASSESSMENT_CONFIG.MIN_QUESTIONS;
     const isStable = this.efsetOverall.status === 'stable';
 
-    if (uniqueAnsweredCount >= CONFIG.MAX_QUESTIONS || (isConfidenceTargetReached && isMinQuestionsMet && isStable)) {
+    if (uniqueAnsweredCount >= ASSESSMENT_CONFIG.MAX_QUESTIONS || (isConfidenceTargetReached && isMinQuestionsMet && isStable)) {
       this.state.completed = true;
       console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${uniqueAnsweredCount}`);
       return null;
     }
 
     // 2. Select Next Item
+    const nextItemPre = this.selector.selectNext({
+      skills: this.efsetSkills,
+      askedQuestionIds: this.askedQuestionIds,
+      currentOverallLevel: this.efsetOverall.levelRange[0]
+    });
+
+    if (!nextItemPre) {
+      this.state.completed = true;
+      console.warn('[Engine] No more questions available in current state. Stopping.');
+      return null;
+    }
+
+    // 3. Ensure level is actually loaded (it might be a neighbor level step up/down)
+    await this.ensureLevelLoaded(nextItemPre.target_cefr as CEFRLevel);
+    
+    // Select again after loading just in case (though normally nextItemPre is enough, 
+    // we want to ensure we didn't just pick from an empty bank)
     const nextItem = this.selector.selectNext({
       skills: this.efsetSkills,
       askedQuestionIds: this.askedQuestionIds,
@@ -160,7 +175,6 @@ export class AdaptiveAssessmentEngine {
 
     if (!nextItem) {
       this.state.completed = true;
-      console.warn('[Engine] No more questions available in bank. Stopping.');
       return null;
     }
 
@@ -169,6 +183,8 @@ export class AdaptiveAssessmentEngine {
     if (!this.state.askedQuestionIds.includes(nextItem.id)) {
       this.state.askedQuestionIds.push(nextItem.id);
     }
+
+    const originalOptions = nextItem.answer_key?.value?.options || nextItem.options;
 
     return {
       id: nextItem.id,
@@ -180,7 +196,7 @@ export class AdaptiveAssessmentEngine {
       response_mode: nextItem.response_mode as any,
       audioUrl: nextItem.audio_url, 
       stimulus: nextItem.stimulus, 
-      options: nextItem.answer_key?.value?.options || nextItem.options, // Extract options from nested answer_key if exists
+      options: originalOptions ? this.shuffle(originalOptions) : undefined, 
       _efset: nextItem 
     } as any;
   }
@@ -328,7 +344,7 @@ export class AdaptiveAssessmentEngine {
     return { correct: isCorrect, score: reportVal.score };
   }
 
-  public swapQuestion(currentQuestionId: string): AssessmentQuestion | null {
+  public async swapQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {
     // 1. Locate the current item to identify its level and skill
     let currentItem: QuestionBankItem | undefined;
     let currentLevel: CEFRLevel | undefined;
@@ -344,7 +360,10 @@ export class AdaptiveAssessmentEngine {
 
     if (!currentItem || !currentLevel) return null;
 
-    // 2. Request a swap from selector (while blocking current ID)
+    // 2. Ensure bank is loaded (should be already, but just in case)
+    await this.ensureLevelLoaded(currentLevel);
+
+    // 3. Request a swap from selector (while blocking current ID)
     const nextItem = this.selector.selectSwap(
       currentLevel, 
       currentItem.skill as EFSETSkillName, 
@@ -363,6 +382,8 @@ export class AdaptiveAssessmentEngine {
       this.state.askedQuestionIds[idx] = nextItem.id;
     }
 
+    const originalOptions = nextItem.answer_key?.value?.options || nextItem.options;
+
     // 4. Return formatted question
     return {
       id: nextItem.id,
@@ -374,15 +395,15 @@ export class AdaptiveAssessmentEngine {
       response_mode: nextItem.response_mode as any,
       audioUrl: nextItem.audio_url,
       stimulus: nextItem.stimulus,
-      options: nextItem.answer_key?.value?.options || nextItem.options,
+      options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;
   }
 
-  public skipQuestion(currentQuestionId: string): AssessmentQuestion | null {
+  public async skipQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {
     // Treat as "asked" but not "evaluated" (neutral signal)
     // We don't remove it from askedQuestionIds so it doesn't reappear immediately
-    return this.getNextQuestion();
+    return await this.getNextQuestion();
   }
 
   public getOutcome(): AssessmentOutcome {
@@ -420,7 +441,7 @@ export class AdaptiveAssessmentEngine {
       weaknesses: [],
       answerHistory: [...this.state.answerHistory],
       totalQuestions: this.state.questionsAnswered,
-      stopReason: report.overall.confidence >= CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
+      stopReason: report.overall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
       speakingAudit: this.state.speakingAudit
     };
   }
@@ -443,15 +464,28 @@ export class AdaptiveAssessmentEngine {
   public getProgress() {
     return {
       answered: this.state.questionsAnswered,
-      total: CONFIG.MAX_QUESTIONS,
-      percentage: Math.min(100, (this.state.questionsAnswered / CONFIG.MAX_QUESTIONS) * 100),
+      total: ASSESSMENT_CONFIG.MAX_QUESTIONS,
+      percentage: Math.min(100, (this.state.questionsAnswered / ASSESSMENT_CONFIG.MAX_QUESTIONS) * 100),
       currentBand: this.efsetOverall.levelRange[0] as DifficultyBand,
       confidence: this.efsetOverall.confidence,
       completed: this.state.completed,
     };
   }
 
+  private shuffle<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   public forceComplete(): void {
     this.state.completed = true;
+  }
+
+  public getState(): AdaptiveAssessmentState {
+    return this.state;
   }
 }

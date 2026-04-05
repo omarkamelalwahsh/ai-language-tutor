@@ -363,18 +363,14 @@ export type SkillEstimate = {
 
 /** Full adaptive state maintained during the assessment */
 export type AdaptiveAssessmentState = {
-  currentTargetBand: DifficultyBand;
   askedQuestionIds: string[];
   answerHistory: AnswerRecord[];
   taskEvaluations: TaskEvaluation[];
-  skillEstimates: Record<AssessmentSkill, SkillEstimate>;
   overallConfidence: number;
   questionsAnswered: number;
   completed: boolean;
   /** Reason the assessment stopped */
   stopReason?: 'max_reached' | 'confidence_threshold' | 'level_stabilized' | 'pool_exhausted';
-  /** Track jumps that require a validation question */
-  pendingValidationBand?: DifficultyBand;
   /** Speaking evidence audit trail */
   speakingAudit: SpeakingAuditTrail;
   /** User-selected context profile for personalization */

@@ -1,4 +1,5 @@
 import { CEFRLevel, SkillState, SkillName, SkillStatus, SkillEvidence } from '../../types/efset';
+import { ASSESSMENT_CONFIG } from '../../config/assessment-config';
 
 const LEVEL_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -26,7 +27,7 @@ export class SkillAggregator {
 
     // Recalculate properties with Recency-Weighted Exponential Decay:
     // Newer items have much higher impact than older ones.
-    const RECENT_BIAS = 0.85; // Decay factor per step back
+    const RECENT_BIAS = ASSESSMENT_CONFIG.RECENCY_WEIGHT_DECAY; 
     
     let totalImpact = 0;
     let weightedSum = 0;
