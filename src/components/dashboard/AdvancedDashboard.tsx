@@ -17,6 +17,7 @@ interface AdvancedDashboardProps {
   onStartSession: () => void;
   onNavigateLeaderboard: () => void;
   onViewReview: () => void;
+  isArchitecting?: boolean;
 }
 
 const staggerContainer = {
@@ -49,7 +50,7 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, isArchitecting }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
 
@@ -572,23 +573,102 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
 
           {/* ========= JOURNEY ========= */}
           {activeTab === 'journey' && (
-            <motion.div key="journey" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-6">
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Level Journey</h2>
-                <p className="text-slate-500 text-sm">Track your progress, consistency, and path to your next level.</p>
+            <motion.div key="journey" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-10 pb-20">
+              {/* Journey Header */}
+              <motion.div variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 bg-indigo-100/50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-indigo-100 uppercase tracking-widest">
+                       {isArchitecting ? (
+                         <span className="flex items-center gap-2">
+                           <BrainCircuit className="w-3 h-3 animate-pulse" /> 
+                           AI Architecting Journey...
+                         </span>
+                       ) : 'Linguistic Roadmap'}
+                    </div>
+                    <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{isArchitecting ? 'Visualizing your path...' : dashboardData.journey.journeyTitle}</h2>
+                    <p className="text-slate-500 font-medium max-w-xl">{isArchitecting ? 'Our AI engine is currently analyzing your technical gaps to build a high-impact roadmap. This will take a few seconds.' : dashboardData.journey.targetCapabilitiesSummary}</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-slate-900 p-6 rounded-2xl text-white shadow-xl">
+                    <div className="text-center">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Current</p>
+                      <p className="text-2xl font-black text-indigo-400">{dashboardData.journey.currentStage}</p>
+                    </div>
+                    <div className="h-10 w-px bg-slate-700" />
+                    <ArrowRight className="w-5 h-5 text-slate-500" />
+                    <div className="h-10 w-px bg-slate-700" />
+                    <div className="text-center">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Target</p>
+                      <p className="text-2xl font-black text-emerald-400">{dashboardData.journey.targetStage}</p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
-              {dashboardData.isNewLearner ? (
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center">
-                   <Target className="w-12 h-12 text-indigo-300 mx-auto mb-4" />
-                   <h3 className="text-xl font-bold text-slate-800 mb-2">Initial Diagnostic Complete</h3>
-                   <p className="text-slate-500 mb-6">You are professionally assessed at the <strong>{result.overall.estimatedLevel}</strong> level.</p>
-                   <button onClick={onStartSession} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold">Begin Learning Journey</button>
+
+              {/* Vertical Roadmap Container */}
+              <div className="relative max-w-3xl mx-auto pl-8 md:pl-0">
+                {/* Connecting Line */}
+                <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500/20 via-indigo-500 to-indigo-500/10 -translate-x-1/2 rounded-full pointer-events-none" />
+                
+                <div className="space-y-12 relative">
+                  {dashboardData.journey.nodes.map((node, index) => {
+                    const isLeft = index % 2 === 0;
+                    const isCompleted = node.status === 'completed';
+                    const isCurrent = node.status === 'current';
+                    const isLocked = node.status === 'locked';
+
+                    return (
+                      <motion.div 
+                        key={node.id} 
+                        variants={staggerItem}
+                        className={`flex flex-col md:flex-row items-center gap-8 ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+                      >
+                        {/* Content Card */}
+                        <div className={`w-full md:w-[45%] ${isLeft ? 'md:text-right' : 'md:text-left'}`}>
+                          <div className={`p-6 bg-white rounded-3xl border shadow-sm transition-all hover:shadow-md ${isCurrent ? 'border-indigo-400 ring-4 ring-indigo-50' : 'border-slate-100'} ${isLocked ? 'opacity-60' : ''}`}>
+                             <div className={`flex items-center gap-3 mb-2 ${isLeft ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+                                <div className={`p-2 rounded-xl ${isCurrent ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                                   {skillIcons[node.iconType as any] || <Route className="w-5 h-5" />}
+                                </div>
+                                <h4 className="font-bold text-slate-800">{node.title}</h4>
+                             </div>
+                             <p className="text-sm text-slate-500 leading-relaxed">{node.description}</p>
+                             {isCurrent && (
+                               <button onClick={onStartSession} className="mt-4 w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
+                                 Begin This Objective
+                               </button>
+                             )}
+                          </div>
+                        </div>
+
+                        {/* Node Marker */}
+                        <div className="absolute left-4 md:left-1/2 w-10 h-10 -translate-x-1/2 flex items-center justify-center z-10">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 ${isCompleted ? 'bg-emerald-500 border-emerald-100' : isCurrent ? 'bg-white border-indigo-600 animate-pulse' : 'bg-slate-100 border-slate-200'}`}>
+                             {isCompleted ? <CheckCircle2 className="w-5 h-5 text-white" /> : 
+                              isCurrent ? <div className="w-4 h-4 rounded-full bg-indigo-600" /> : 
+                              <div className="w-3 h-3 rounded-full bg-slate-300" />}
+                          </div>
+                        </div>
+
+                        {/* Spacer for other side */}
+                        <div className="hidden md:block w-[45%]" />
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p>Journey view coming soon...</p>
-                </div>
-              )}
+              </div>
+
+              {/* Celebration Footer */}
+              <motion.div variants={staggerItem} className="bg-emerald-900 rounded-3xl p-10 text-white text-center relative overflow-hidden">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-3xl -mr-32 -mt-32" />
+                 <Crown className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+                 <h3 className="text-2xl font-black mb-2">Final Objective: {dashboardData.journey.targetStage}</h3>
+                 <p className="text-emerald-200 max-w-lg mx-auto mb-8 font-medium">Complete all bridge tasks and checkpoints to unlock the official assessment for your next level.</p>
+                 <div className="flex justify-center gap-4">
+                    <button onClick={onStartSession} className="bg-white text-emerald-900 px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition-colors">Start Current Path</button>
+                 </div>
+              </motion.div>
             </motion.div>
           )}
 

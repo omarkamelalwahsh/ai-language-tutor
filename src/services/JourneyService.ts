@@ -1,21 +1,26 @@
 import { AssessmentSessionResult, SkillName, CefrLevel } from '../types/assessment';
-import { getNextBand, normalizeBand } from '../lib/cefr-utils';
+import { getNextBand } from '../lib/cefr-utils';
 import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
 import { CEFR_CATALOG, CefrDescriptor, getDescriptorById } from '../data/cefr-catalog';
+import { InferenceGateway, LLMJourneyNode } from './InferenceGateway';
 
+/**
+ * Service to generate the Learner Journey Roadmap.
+ * Supports both deterministic (static) and LLM-driven (dynamic) generation.
+ */
 export class JourneyService {
   
+  /**
+   * Deterministic generation based on CEFR catalog.
+   * Used as an immediate response and fallback for LLM failures.
+   */
   public static buildJourney(result: AssessmentSessionResult): LearnerJourneyPayload {
     const currentLevel = result.overall.estimatedLevel;
     const targetLevel = getNextBand(currentLevel);
     
-    // 1. Identify Gaps (Descriptors at current level that are missing/weak)
     const gaps = this.identifyGaps(result);
-    
-    // 2. Identify Next Objectives (Descriptors at target level)
     const objectives = this.identifyObjectives(targetLevel);
-
-    const nodes = this.generateDynamicNodes(gaps, objectives);
+    const nodes = this.generateStaticNodes(gaps, objectives);
 
     return {
       currentStage: currentLevel,
@@ -27,33 +32,91 @@ export class JourneyService {
     };
   }
 
+  /**
+   * AI-Driven generation using the "Journey Architect" prompt.
+   * Provides personalized, high-impact nodes based on specific performance.
+   */
+  public static async generateDynamicJourney(result: AssessmentSessionResult): Promise<LearnerJourneyPayload> {
+    const currentLevel = result.overall.estimatedLevel;
+    const targetLevel = getNextBand(currentLevel);
+
+    // 1. Prepare Inputs for LLM
+    const gaps = this.identifyGaps(result).map(g => `${g.skill}: ${g.canonicalTextEn}`);
+    const performance = [
+      `Overall Confidence: ${Math.round(result.overall.confidence * 100)}%`,
+      ...result.overall.rationale
+    ].join(' | ');
+
+    // 2. Call LLM Architect
+    const response = await InferenceGateway.generateJourney({
+      currentLevel,
+      targetLevel,
+      gaps,
+      recentPerformance: performance
+    });
+
+    if (!response || !response.nodes) {
+      console.warn('[JourneyService] LLM generation failed or returned no nodes. Falling back to static.');
+      return this.buildJourney(result);
+    }
+
+    // 3. Map LLM nodes to UI structure
+    const nodes: JourneyNode[] = response.nodes.map((node: LLMJourneyNode, index: number) => ({
+      id: node.id || `node_${index}`,
+      type: node.type === 'CHECKPOINT' ? 'checkpoint' : 'task',
+      status: index === 0 ? 'current' : 'locked',
+      title: node.title,
+      description: node.description,
+      iconType: this.mapIconType(node.icon, node.skills?.[0]),
+      estimatedDuration: `${(node.difficulty || 2) * 15} mins`
+    }));
+
+    return {
+      currentStage: currentLevel,
+      targetStage: targetLevel,
+      journeyTitle: `AI Architected Path to ${targetLevel}`,
+      currentCapabilitiesSummary: `Personalized roadmap addressing ${gaps.length} technical gaps.`,
+      targetCapabilitiesSummary: `Dynamic progression focused on ${targetLevel} proficiency.`,
+      nodes
+    };
+  }
+
+  // ---- Private Helpers ----
+
+  private static mapIconType(iconHint: string, skillHint?: string): JourneyNode['iconType'] {
+    const normalized = (iconHint || skillHint || '').toLowerCase();
+    
+    if (normalized.includes('mic') || normalized.includes('speaking')) return 'speaking';
+    if (normalized.includes('pen') || normalized.includes('writing')) return 'writing';
+    if (normalized.includes('ear') || normalized.includes('listening')) return 'listening';
+    if (normalized.includes('book') || normalized.includes('reading')) return 'listening'; // Reading uses book/listening icon style
+    if (normalized.includes('grammar')) return 'grammar';
+    if (normalized.includes('vocab') || normalized.includes('word') || normalized.includes('lightbulb')) return 'vocabulary';
+    
+    return 'assessment';
+  }
+
   private static identifyGaps(result: AssessmentSessionResult): CefrDescriptor[] {
     const gaps: CefrDescriptor[] = [];
     
     Object.values(result.skills).forEach(skillResult => {
-      // Use the explicit missingDescriptors from the engine's Layer 6 inference
       if (!skillResult.weaknesses) return;
 
-      skillResult.weaknesses.forEach(descId => {
-        const desc = getDescriptorById(descId); // Use catalog helper
-        if (desc) {
-          gaps.push(desc);
-        } else {
-          // Fallback fuzzy search if catalog ID mismatch
-          const fuzzy = CEFR_CATALOG.find(d => d.id.includes(descId));
-          if (fuzzy) gaps.push(fuzzy);
-        }
+      skillResult.weaknesses.forEach(descText => {
+        // Try to find descriptor in catalog by text or ID fallback
+        const desc = CEFR_CATALOG.find(d => d.canonicalTextEn === descText || d.id === descText);
+        if (desc) gaps.push(desc);
       });
     });
     
-    return gaps.slice(0, 5); // Limit to top 5 primary gaps
+    return gaps.slice(0, 5);
   }
 
   private static identifyObjectives(targetLevel: CefrLevel): CefrDescriptor[] {
     return CEFR_CATALOG.filter(d => d.level === targetLevel).slice(0, 3);
   }
 
-  private static generateDynamicNodes(gaps: CefrDescriptor[], objectives: CefrDescriptor[]): JourneyNode[] {
+  private static generateStaticNodes(gaps: CefrDescriptor[], objectives: CefrDescriptor[]): JourneyNode[] {
     const nodes: JourneyNode[] = [];
     let nodeIndex = 0;
 
@@ -65,7 +128,7 @@ export class JourneyService {
         status: nodeIndex === 0 ? 'current' : 'locked',
         title: `Bridge: ${gap.skill.charAt(0).toUpperCase() + gap.skill.slice(1)}`,
         description: gap.canonicalTextEn,
-        iconType: (gap.skill === 'grammar' || gap.skill === 'vocabulary') ? gap.skill : (gap.skill as any),
+        iconType: this.mapIconType('', gap.skill),
       });
       nodeIndex++;
     });
@@ -88,7 +151,7 @@ export class JourneyService {
         status: 'locked',
         title: `Target: ${obj.skill.charAt(0).toUpperCase() + obj.skill.slice(1)}`,
         description: obj.canonicalTextEn,
-        iconType: (obj.skill === 'grammar' || obj.skill === 'vocabulary') ? obj.skill : (obj.skill as any),
+        iconType: this.mapIconType('', obj.skill),
       });
     });
 

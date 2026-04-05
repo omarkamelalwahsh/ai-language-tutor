@@ -66,7 +66,9 @@ export default function App() {
   const [taskResults, setTaskResults] = useState<TaskEvaluation[]>([]);
   const [assessmentOutcome, setAssessmentOutcome] = useState<AssessmentOutcome | null>(null);
   const [assessmentResult, setAssessmentResult] = useState<AssessmentSessionResult | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [devModeActive, setDevModeActive] = useState(false);
+  const [isArchitecting, setIsArchitecting] = useState(false);
 
   // 💾 State Persistence: Load from localStorage on mount
   React.useEffect(() => {
@@ -85,8 +87,37 @@ export default function App() {
       localStorage.setItem('last_assessment_result', JSON.stringify(assessmentResult));
       localStorage.setItem('last_assessment_outcome', JSON.stringify(assessmentOutcome));
       localStorage.setItem('last_assessment_evals', JSON.stringify(taskResults));
+      
+      // Initialize Dashboard Data if not already set
+      if (!dashboardData) {
+        setDashboardData(DashboardService.buildPayload(assessmentResult));
+      }
     }
-  }, [assessmentResult, assessmentOutcome, taskResults]);
+  }, [assessmentResult, assessmentOutcome, taskResults, dashboardData]);
+
+  // Handle Dynamic Journey Generation
+  React.useEffect(() => {
+    if (assessmentResult && !isArchitecting) {
+      const triggerDynamicJourney = async () => {
+        setIsArchitecting(true);
+        try {
+          const { JourneyService } = await import('./services/JourneyService');
+          const dynamicJourney = await JourneyService.generateDynamicJourney(assessmentResult);
+          
+          setDashboardData((prev: any) => ({
+            ...prev,
+            journey: dynamicJourney
+          }));
+        } catch (err) {
+          console.error('[App] Failed to architect dynamic journey:', err);
+        } finally {
+          setIsArchitecting(false);
+        }
+      };
+      
+      triggerDynamicJourney();
+    }
+  }, [assessmentResult]); // Only run when assessmentResult changes
 
   const navigateTo = (newView: ViewState) => {
     setView(newView);
@@ -188,11 +219,12 @@ export default function App() {
           <FadeTransition key="dashboard" className="min-h-screen bg-slate-50">
             <AdvancedDashboard
               result={assessmentResult}
-              dashboardData={DashboardService.buildPayload(assessmentResult)}
+              dashboardData={dashboardData || DashboardService.buildPayload(assessmentResult)}
               assessmentOutcome={assessmentOutcome}
               onStartSession={() => navigateTo('LEARNING_LOOP')}
               onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
               onViewReview={() => navigateTo('ASSESSMENT_REVIEW')}
+              isArchitecting={isArchitecting}
             />
           </FadeTransition>
         )}
