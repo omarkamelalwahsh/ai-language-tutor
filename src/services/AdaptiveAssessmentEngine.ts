@@ -272,12 +272,16 @@ export class AdaptiveAssessmentEngine {
     }
     
     this.state.questionsAnswered = this.askedQuestionIds.size;
-
-    const efsetItem = (question as any)._efset as QuestionBankItem;
-    if (!efsetItem) {
-       // Graceful fallback: If metadata is missing, we don't score, but we don't repeat the question.
-       return { correct: true, score: 0.5 };
+    const efsetItem = this.state.currentQuestion as EFSETQuestionItem;
+    // 🛡️ NULL GUARD: Exit if question or relevant data is missing
+    if (!efsetItem || !efsetItem.metadata) {
+      console.error("[Engine] Attempted to submit with missing question context.");
+      return { correct: false, score: 0 };
     }
+
+    const correctText = efsetItem.content?.options 
+      ? efsetItem.content.options.find(o => o.isCorrect)?.text 
+      : efsetItem.content?.answer;
 
     // 2. LLM Signal Extraction
     let signal: LLMSignal = {

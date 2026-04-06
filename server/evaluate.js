@@ -235,46 +235,41 @@ app.post('/api/evaluate', async (req, res) => {
       parsed = JSON.parse(response.choices[0].message.content);
     }
     
-    // Determine the user ID to use for logging
+    // ⚡ NON-BLOCKING PERSISTENCE: Return result to user ASAP, don't let DB hang 
+    const internalQId = payload.question.db_id || payload.question.id;
     const targetUserId = payload.userId || 'anonymous-session';
     
-    const internalQId = payload.question.db_id || payload.question.id;
+    const persistData = async () => {
+      try {
+        const tasks = [
+          supabase.from('assessment_responses').insert({
+            user_id: targetUserId === 'anonymous-session' ? null : targetUserId,
+            skill: payload.skill,
+            current_band: payload.currentBand,
+            question_id: internalQId,
+            answer: payload.learnerAnswer,
+            answer_level: parsed.suggestedBand || payload.currentBand,
+            explanation: { rationale: parsed.reasoning || "Automated", confidence: parsed.confidence || 0.8 }
+          })
+        ];
 
-    // 🔥 OPTIMIZATION: Run DB updates in PARALLEL to beat the 10s Vercel timeout
-    const dbTasks = [];
-
-    // Task 1: Save response
-    dbTasks.push(supabase
-      .from('assessment_responses')
-      .insert({
-        user_id: targetUserId === 'anonymous-session' ? null : targetUserId,
-        skill: payload.skill,
-        current_band: payload.currentBand,
-        question_id: internalQId,
-        answer: payload.learnerAnswer,
-        answer_level: parsed.suggestedBand || payload.currentBand,
-        explanation: {
-          rationale: parsed.reasoning || "Automated assessment",
-          confidence: parsed.confidence || 0.8,
-          assessment_id: payload.assessmentId || 'direct-eval'
+        if (targetUserId !== 'anonymous-session') {
+          tasks.push(supabase.from('profiles').update({ 
+            last_assessed_level: parsed.suggestedBand || payload.currentBand 
+          }).eq('id', targetUserId));
         }
-      }));
 
-    // Task 2: Update Profile Level
-    if (targetUserId !== 'anonymous-session') {
-      dbTasks.push(supabase
-        .from('profiles')
-        .update({ last_assessed_level: parsed.suggestedBand || payload.currentBand })
-        .eq('id', targetUserId));
-    }
+        await Promise.all(tasks);
+        console.log('[Server] Async Persistence Success.');
+      } catch (e) {
+        console.warn('[Server] Async Persistence failed (non-blocking):', e.message);
+      }
+    };
 
-    // Await all DB tasks simultaneously with a 4s timeout limit
-    try {
-      await Promise.all(dbTasks);
-      console.log('[Server] Cloud Persistence Successful.');
-    } catch (dbErr) {
-      console.error('[Server] DB Sync failed or timed out:', dbErr);
-    }
+    // We FIRE the persistence task but DON'T wait for it to finish the response
+    // Vercel might kill it, so we try our best. For a real production app, 
+    // we'd use a background queue, but this is the fastest 'as was' fix.
+    persistData(); 
 
     return res.status(200).json(parsed);
   } catch (err) {
