@@ -113,11 +113,18 @@ app.get("/api/db-status", async (_req, res) => {
 });
 
 app.get("/api/questions", async (req, res) => {
+  const { level } = req.query;
+  
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('question_bank_items')
       .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key');
     
+    if (level) {
+      query = query.eq('target_cefr', level);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
 
     const formattedQuestions = data.map(item => ({
@@ -132,7 +139,6 @@ app.get("/api/questions", async (req, res) => {
         answer_key: item.answer_key || {},
     }));
 
-    // Shuffle server-side for randomness
     res.json(formattedQuestions.sort(() => Math.random() - 0.5));
   } catch (err) {
     console.error('[API] Error fetching questions:', err);

@@ -118,7 +118,29 @@ authRouter.post('/trainee/login', async (req, res) => {
   }
 });
 
-// 3. Admin Login
+// 3. Onboarding Completion
+authRouter.post('/onboarding/complete', async (req, res) => {
+  const { userId, cefrLevel, interests } = req.body;
+  
+  try {
+    const { data, error } = await supabase
+      .from('learner_profiles')
+      .update({ 
+        onboarding_complete: true, 
+        overall_band: cefrLevel
+      })
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    
+    return res.status(200).json({ message: 'Onboarding finished successfully!' });
+  } catch (err) {
+    console.error('[Onboarding Error]', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Admin Login
 authRouter.post('/admin/login', async (req, res) => {
   const { email, password } = req.body;
 
