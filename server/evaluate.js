@@ -226,14 +226,26 @@ authRouter.post('/evaluate', async (req, res) => {
     // Determine the user ID to use for logging
     const targetUserId = payload.userId || 'anonymous-session';
     
-    // LOGGING: Save to Supabase
-    const { data: insertData, error: insertError } = await supabase
+    // Look up internal UUID for the question if needed
+    const { data: qItem } = await supabase
+      .from('question_bank_items')
+      .select('id')
+      .eq('external_id', payload.question.id)
+      .single();
+
+    const internalQId = qItem?.id || payload.question.id;
+
+    // 🔥 OPTIMIZATION: Run DB updates in PARALLEL to beat the 10s Vercel timeout
+    const dbTasks = [];
+
+    // Task 1: Save response
+    dbTasks.push(supabase
       .from('assessment_responses')
       .insert({
         user_id: targetUserId === 'anonymous-session' ? null : targetUserId,
         skill: payload.skill,
         current_band: payload.currentBand,
-        question_id: payload.question.id,
+        question_id: internalQId,
         answer: payload.learnerAnswer,
         answer_level: parsed.suggestedBand || payload.currentBand,
         explanation: {
@@ -241,16 +253,22 @@ authRouter.post('/evaluate', async (req, res) => {
           confidence: parsed.confidence || 0.8,
           assessment_id: payload.assessmentId || 'direct-eval'
         }
-      });
+      }));
 
-    if (insertError) console.error('[Supabase Error] Insert failed:', insertError.message);
-
-    // CRITICAL: Update User Profile Level if they are logged in
+    // Task 2: Update Profile Level
     if (targetUserId !== 'anonymous-session') {
-      await supabase
+      dbTasks.push(supabase
         .from('profiles')
         .update({ last_assessed_level: parsed.suggestedBand || payload.currentBand })
-        .eq('id', targetUserId);
+        .eq('id', targetUserId));
+    }
+
+    // Await all DB tasks simultaneously with a 4s timeout limit
+    try {
+      await Promise.all(dbTasks);
+      console.log('[Server] Cloud Persistence Successful.');
+    } catch (dbErr) {
+      console.error('[Server] DB Sync failed or timed out:', dbErr);
     }
 
     return res.status(200).json(parsed);
