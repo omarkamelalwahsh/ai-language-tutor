@@ -61,26 +61,32 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     if (step < totalOnboardingSteps) {
       setStep(step + 1);
     } else {
-      // Mark onboarding as complete in DB
+      // Mark onboarding as complete in DB (Non-blocking)
       const userId = localStorage.getItem('auth_user_id');
       const token = localStorage.getItem('auth_token');
       
+      const finishOnboarding = () => onComplete(state);
+
       if (userId && token) {
-        try {
-          await fetch('/api/auth/onboarding/complete', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ userId })
-          });
-        } catch (err) {
-          console.error('[Onboarding] Failed to mark completion in DB:', err);
-        }
+        // We use a non-blocking approach to ensure UI never freezes
+        fetch('/api/auth/onboarding/complete', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ userId, cefrLevel: 'A1', interests: state.topics })
+        }).catch(err => {
+          console.error('[Onboarding] Background completion failed:', err);
+        }).finally(() => {
+          finishOnboarding();
+        });
+        
+        // Safety timeout: If fetch hangs for > 3s, proceed anyway
+        setTimeout(finishOnboarding, 3000);
+      } else {
+        finishOnboarding();
       }
-      
-      onComplete(state);
     }
   };
 

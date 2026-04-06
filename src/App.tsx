@@ -6,7 +6,6 @@ import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from './ty
 import { DashboardService } from './services/DashboardService';
 
 // Views
-import { RoleSelectionView } from './views/RoleSelectionView';
 import { AuthView } from './views/AuthView';
 import { OnboardingView } from './views/OnboardingView';
 import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
@@ -71,15 +70,23 @@ export default function App() {
   const [devModeActive, setDevModeActive] = useState(false);
   const [isArchitecting, setIsArchitecting] = useState(false);
 
-  // 💾 State Persistence: Load from localStorage on mount
+  // 💾 State Persistence: Load from localStorage on mount with Error Handling
   React.useEffect(() => {
-    const savedResult = localStorage.getItem('last_assessment_result');
-    const savedOutcome = localStorage.getItem('last_assessment_outcome');
-    const savedEvaluations = localStorage.getItem('last_assessment_evals');
+    const loadSafe = (key: string, setter: (val: any) => void) => {
+      const data = localStorage.getItem(key);
+      if (data && data !== 'undefined') {
+        try {
+          setter(JSON.parse(data));
+        } catch (err) {
+          console.error(`[App] Corrupted ${key} detected, clearing...`, err);
+          localStorage.removeItem(key);
+        }
+      }
+    };
 
-    if (savedResult) setAssessmentResult(JSON.parse(savedResult));
-    if (savedOutcome) setAssessmentOutcome(JSON.parse(savedOutcome));
-    if (savedEvaluations) setTaskResults(JSON.parse(savedEvaluations));
+    loadSafe('last_assessment_result', setAssessmentResult);
+    loadSafe('last_assessment_outcome', setAssessmentOutcome);
+    loadSafe('last_assessment_evals', setTaskResults);
   }, []);
 
   // 💾 State Persistence: Save to localStorage when state changes
@@ -148,7 +155,7 @@ export default function App() {
         {view === 'AUTH' && (
           <AuthView 
             role={userRole}
-            onBack={() => navigateTo('ROLE_SELECTION')}
+            onBack={() => navigateTo('LANDING')}
             onLogin={(role, onboardingComplete) => {
               if (role === 'admin') {
                 navigateTo('ADMIN_DASHBOARD');
