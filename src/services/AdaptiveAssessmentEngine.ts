@@ -135,9 +135,15 @@ export class AdaptiveAssessmentEngine {
       };
 
       for (const item of allItems) {
-        const cefr = item.target_cefr as CEFRLevel;
+        // Robust normalization: Trim and Uppercase to handle 'a1', 'A 1', etc.
+        const cefrraw = (item.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
+        const cefr = cefrraw as CEFRLevel;
+        
         if (grouped[cefr]) {
           grouped[cefr].push(item);
+        } else {
+          // Fallback: If level is invalid, put it in A1 as safety
+          grouped['A1'].push(item);
         }
       }
 
@@ -173,33 +179,31 @@ export class AdaptiveAssessmentEngine {
     }
 
     // 2. Select Next Item
-    const nextItemPre = this.selector.selectNext({
-      skills: this.efsetSkills,
-      askedQuestionIds: this.askedQuestionIds,
-      currentOverallLevel: this.efsetOverall.levelRange[0]
-    });
-
-    if (!nextItemPre) {
-      this.state.completed = true;
-      console.warn('[Engine] No more questions available in current state. Stopping.');
-      return null;
-    }
-
-    // 3. Ensure level is actually loaded (it might be a neighbor level step up/down)
-    await this.ensureLevelLoaded(nextItemPre.target_cefr as CEFRLevel);
-    
-    // Select again after loading just in case (though normally nextItemPre is enough, 
-    // we want to ensure we didn't just pick from an empty bank)
-    const nextItem = this.selector.selectNext({
+    let nextItem = this.selector.selectNext({
       skills: this.efsetSkills,
       askedQuestionIds: this.askedQuestionIds,
       currentOverallLevel: this.efsetOverall.levelRange[0]
     });
 
     if (!nextItem) {
+      // DESPERATION FALLBACK: If the logic returns null, just pick any random question 
+      // from any level to avoid the "No questions available" crash.
+      console.warn('[Engine] Question selection logic returned null. Using desperation fallback...');
+      const allBanks = Object.values(this.banks).flat().filter(q => !this.askedQuestionIds.has(q.id));
+      if (allBanks.length > 0) {
+        nextItem = allBanks[Math.floor(Math.random() * allBanks.length)];
+      }
+    }
+
+    if (!nextItem) {
       this.state.completed = true;
+      console.warn('[Engine] NO QUESTIONS AVAILABLE in any bank. Stopping.');
       return null;
     }
+
+    // 3. Ensure level is actually loaded (it might be a neighbor level step up/down)
+    const targetCefr = (nextItem.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as CEFRLevel;
+    await this.ensureLevelLoaded(targetCefr);
 
     // 3. CRITICAL: Mark as asked BEFORE returning to prevent rapid-fire repetition
     this.askedQuestionIds.add(nextItem.id);
