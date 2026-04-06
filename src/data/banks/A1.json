@@ -709,7 +709,7 @@
     "tags": ["social", "directions"]
   },
   {
-    "id": "A1_L_06",
+    "id": "A1_L_09",
     "skill": "listening",
     "task_type": "listening_mcq",
     "target_cefr": "A1",
@@ -732,7 +732,7 @@
     "tags": ["hobbies", "personal_info"]
   },
   {
-    "id": "A1_R_06",
+    "id": "A1_R_09",
     "skill": "reading",
     "task_type": "reading_mcq",
     "target_cefr": "A1",

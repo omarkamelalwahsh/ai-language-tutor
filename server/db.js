@@ -9,12 +9,13 @@ dotenv.config();
  * Handles connections to the "AI-Native Language" database.
  */
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '12345678',
-  database: process.env.DB_NAME || 'AI-Native Language',
-  // Database names with spaces are handled by the driver if passed as a string
+  connectionString: process.env.DATABASE_URL,
+  // We can also have fallback settings if DATABASE_URL is missing
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 pool.on('error', (err) => {
