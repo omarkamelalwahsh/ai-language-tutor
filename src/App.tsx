@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react';
 import { OnboardingState, ViewState } from './types/app';
 import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from './types/assessment';
 import { DashboardService } from './services/DashboardService';
+import { supabase } from './lib/supabaseClient';
 
 // Views
 import { AuthView } from './views/AuthView';
@@ -87,6 +88,20 @@ export default function App() {
     loadSafe('last_assessment_result', setAssessmentResult);
     loadSafe('last_assessment_outcome', setAssessmentOutcome);
     loadSafe('last_assessment_evals', setTaskResults);
+
+    // Supabase Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[App] Auth event:', event);
+      if (session) {
+        localStorage.setItem('auth_token', session.access_token);
+        localStorage.setItem('auth_user_id', session.user.id);
+      } else {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user_id');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // 💾 State Persistence: Save to localStorage when state changes

@@ -16,11 +16,11 @@
   "routes": [
     {
       "src": "/api/auth/(.*)",
-      "dest": "server/evaluate.js"
+      "dest": "/server/evaluate.js"
     },
     {
       "src": "/api/(.*)",
-      "dest": "server/evaluate.js"
+      "dest": "/server/evaluate.js"
     },
     {
       "src": "/(.*)",
@@ -32,7 +32,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "index.html"
+      "dest": "/index.html"
     }
   ]
 }

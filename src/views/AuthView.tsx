@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User as UserIcon, Loader2, ArrowLeft, Shield } from 'lucide-react';
 import { FadeTransition } from '../lib/animations';
 import { UserRole } from '../types/app';
+import { supabase } from '../lib/supabaseClient';
 
 export interface AuthViewProps {
   onLogin: (role: UserRole, onboardingComplete: boolean) => void;
@@ -33,32 +34,62 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
 
     setLoading(true);
     try {
-      const endpoint = role === 'admin' 
-        ? '/api/auth/admin/login' 
-        : (isLogin ? '/api/auth/trainee/login' : '/api/auth/trainee/signup');
+      if (role === 'admin') {
+        // Admins login directly
+        const { data, error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (loginError) throw loginError;
+        
+        localStorage.setItem('auth_token', data.session.access_token);
+        localStorage.setItem('auth_user_id', data.user.id);
+        
+        onLogin('admin', true);
+      } else {
+        if (isLogin) {
+          // Trainee Login
+          const { data, error: loginError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (loginError) throw loginError;
 
-      const body = isLogin 
-        ? { email, password } 
-        : { name, email, password };
+          localStorage.setItem('auth_token', data.session.access_token);
+          localStorage.setItem('auth_user_id', data.user.id);
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+          // Check if onboarding is complete from learner_profiles
+          const { data: profile } = await supabase
+            .from('learner_profiles')
+            .select('onboarding_complete')
+            .eq('user_id', data.user.id)
+            .single();
 
-      const data = await res.json();
+          onLogin('user', profile?.onboarding_complete || false);
+        } else {
+          // Trainee Signup
+          const { data, error: signupError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: name,
+                role: 'user'
+              }
+            }
+          });
+          
+          if (signupError) throw signupError;
+          if (!data.session) {
+             throw new Error("Please check your email to verify your account.");
+          }
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Authentication failed');
+          localStorage.setItem('auth_token', data.session.access_token);
+          localStorage.setItem('auth_user_id', data.user.id);
+
+          onLogin('user', false);
+        }
       }
-
-      // Save token locally
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('auth_user_id', data.user.id);
-      
-      onLogin(role, data.user.onboarding_complete);
-
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
     } finally {

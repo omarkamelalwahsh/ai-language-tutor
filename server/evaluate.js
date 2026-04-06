@@ -15,9 +15,9 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 
 const CONFIG = {
-  model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+  model: "llama-3.1-8b-instant",
   temperature: 0.1,
-  maxTokens: 700,
+  maxTokens: 500,
   requestTimeoutMs: 8000,
 };
 
@@ -232,21 +232,33 @@ app.post('/api/evaluate', async (req, res) => {
         reasoning: "Automated MCQ validation"
       };
     } else {
-      // 🧠 AI EVALUATION: Original logic for open-ended tasks
+      // 🧠 AI EVALUATION: Optimized path for non-MCQ tasks
       if (!llmClient || circuitBreaker.isOpen()) {
-        return res.json(fallbackResult(payload.currentBand, "LLM unavailable"));
+        parsed = fallbackResult(payload.currentBand, "LLM unavailable");
+      } else {
+        // 🛡️ TIMEOUT GUARD: Race the LLM call against an 8s hard limit to beat Vercel's 10s
+        try {
+          const aiTask = llmClient.chat.completions.create({
+              model: CONFIG.model,
+              messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: JSON.stringify(payload) },
+              ],
+              response_format: { type: "json_object" }
+          });
+
+          const timeoutTask = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Timeout")), 8000)
+          );
+
+          console.log('[Server] Dispatching AI Assessment...');
+          const response = await Promise.race([aiTask, timeoutTask]);
+          parsed = JSON.parse(response.choices[0].message.content);
+        } catch (tmErr) {
+          console.warn('[Server] AI Timeout or Error. Providing fallback...', tmErr.message);
+          parsed = fallbackResult(payload.currentBand, "Processing threshold exceeded. Using heuristic fallback.");
+        }
       }
-
-      const response = await llmClient.chat.completions.create({
-          model: CONFIG.model,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: JSON.stringify(payload) },
-          ],
-          response_format: { type: "json_object" }
-      });
-
-      parsed = JSON.parse(response.choices[0].message.content);
     }
     
     // ⚡ NON-BLOCKING PERSISTENCE: Return result to user ASAP, don't let DB hang 

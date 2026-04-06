@@ -173,6 +173,23 @@ export class AdaptiveAssessmentEngine {
       console.log(`[Engine] Loaded ${allItems.length} database items successfully.`);
     } catch (err) {
       console.error(`[Engine] Failed to load database bank:`, err);
+      console.log(`[Engine] Falling back to local offline question bank...`);
+      try {
+        const localBank = await import('../data/assessment-questions');
+        const localItems = localBank.QUESTION_BANK || [];
+        const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
+          'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
+        };
+        for (const item of localItems) {
+            const cefr = ((item as any).target_cefr || item.difficulty || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as CEFRLevel;
+            if (grouped[cefr]) grouped[cefr].push(item as any);
+        }
+        this.banks = grouped;
+        Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
+        console.log(`[Engine] Loaded fallback offline items successfully.`);
+      } catch (fallbackErr) {
+        console.error(`[Engine] Local fallback also failed:`, fallbackErr);
+      }
     }
   }
 
@@ -275,9 +292,9 @@ export class AdaptiveAssessmentEngine {
     
     // 🛡️ SAFENET: Ensure we have the question item and its metadata
     // Cast to unknown first to satisfy TypeScript
-    const efsetItem = (question as unknown) as QuestionBankItem;
+    const efsetItem = ((question as any)._efset || question) as QuestionBankItem;
     if (!efsetItem || !efsetItem.prompt) {
-      console.error("[Engine] Attempted to submit with missing question context.");
+      console.error("[Engine] Attempted to submit with missing question context.", question);
       return { correct: false, score: 0 };
     }
 
@@ -313,20 +330,93 @@ export class AdaptiveAssessmentEngine {
        
        // Fire-and-forget logging to server for MCQ to keep UI fast
        const userId = localStorage.getItem('auth_user_id');
-       fetch('/api/evaluate', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({
-           userId,
-           skill: efsetItem.skill,
-           currentBand: efsetItem.target_cefr,
-           question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
-           learnerAnswer: answer,
-           assessmentId: "session-" + Math.random().toString(36).substr(2, 9),
-           isMCQ: true, // Tell server it's just a log, no need for LLM
-           isCorrect
-         })
-       }).catch(e => console.warn('[Engine] MCQ background log failed:', e));
+       const payload = {
+         userId,
+         skill: efsetItem.skill,
+         currentBand: efsetItem.target_cefr,
+         question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
+         learnerAnswer: answer,
+         assessmentId: "session-" + Math.random().toString(36).substr(2, 9),
+         isMCQ: true,
+         isCorrect
+       };
+
+    try {
+      // 🛡️ OPTIMISTIC TIMEOUT: Stop waiting after 12s and use local fallback to keep the user moving
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      const response = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+      
+      const result = await response.json();
+      console.log("[Engine] Evaluation Received:", result);
+      
+      // Extract numeric signals for mapping
+      const signal: LLMSignal = {
+        content_accuracy: result.content_accuracy ?? (isCorrect ? 1.0 : 0.0),
+        task_completion: result.task_completion ?? 0.5,
+        grammar_control: result.grammar_control ?? 0.5,
+        lexical_range: result.lexical_sophistication ?? 0.5,
+        syntactic_complexity: result.syntactic_complexity ?? 0.5,
+        coherence: result.coherence ?? 0.5,
+        typo_severity: result.typo_severity ?? 0.1,
+        confidence: result.confidence ?? 0.5
+      };
+
+      // Update engine state with AI signals
+      const evidence = EvidenceMapper.mapSignalToEvidence(
+        efsetItem, 
+        signal, 
+        isCorrect,
+        (responseMode as string) === 'audio' ? 'audio' : 'typed'
+      );
+      
+      // Update local skills directly 
+      const skillName = efsetItem.skill as any;
+      if (this.efsetSkills[skillName]) {
+          this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + signal.content_accuracy) / 2;
+      }
+      return { correct: result.isCorrect ?? isCorrect, score: result.confidence ?? 0.5 };
+
+    } catch (err) {
+      console.warn("[Engine] Server Latency/Error. Using Optimistic Fallback:", err.message);
+      
+      // 🚀 OPTIMISTIC FALLBACK: Don't block the user. Proceed with local evidence.
+      const fallbackSignal: LLMSignal = {
+        content_accuracy: isCorrect ? 1.0 : 0.0,
+        task_completion: isCorrect ? 1.0 : 0.0,
+        lexical_range: 0.5,
+        syntactic_complexity: 0.5,
+        coherence: 0.5,
+        grammar_control: 0.5,
+        typo_severity: 0.1,
+        confidence: 0.5
+      };
+
+      const evidence = EvidenceMapper.mapSignalToEvidence(
+        efsetItem, 
+        fallbackSignal, 
+        isCorrect,
+        (responseMode as string) === 'audio' ? 'audio' : 'typed'
+      );
+      
+      // Update local skills directly 
+      const skillName = efsetItem.skill as any;
+      if (this.efsetSkills[skillName]) {
+          this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + fallbackSignal.content_accuracy) / 2;
+      }
+      
+      return { correct: isCorrect, score: 0.5 };
+    }
 
        // Update local state and move on IMMEDIATELY
        this.askedQuestionIds.add(efsetItem.id);
