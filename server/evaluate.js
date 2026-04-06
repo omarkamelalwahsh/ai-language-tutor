@@ -206,22 +206,34 @@ authRouter.post('/evaluate', async (req, res) => {
   const payload = req.body;
   console.log('[Server] Evaluation request received for user:', payload.userId);
   
-  // (Assuming validation happened or simplified for refactor brevity)
-  if (!llmClient || circuitBreaker.isOpen()) {
-    return res.json(fallbackResult(payload.currentBand, "LLM unavailable"));
-  }
-
   try {
-    const response = await llmClient.chat.completions.create({
-        model: CONFIG.model,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: JSON.stringify(payload) },
-        ],
-        response_format: { type: "json_object" }
-    });
+    let parsed: any;
 
-    const parsed = JSON.parse(response.choices[0].message.content);
+    if (payload.isMCQ) {
+      // ⚡ MCQ FAST-PATH: Bypass AI for simple multiple-choice tasks
+      parsed = {
+        suggestedBand: payload.currentBand,
+        isCorrect: payload.isCorrect,
+        confidence: 1.0,
+        reasoning: "Automated MCQ validation"
+      };
+    } else {
+      // 🧠 AI EVALUATION: Original logic for open-ended tasks
+      if (!llmClient || circuitBreaker.isOpen()) {
+        return res.json(fallbackResult(payload.currentBand, "LLM unavailable"));
+      }
+
+      const response = await llmClient.chat.completions.create({
+          model: CONFIG.model,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: JSON.stringify(payload) },
+          ],
+          response_format: { type: "json_object" }
+      });
+
+      parsed = JSON.parse(response.choices[0].message.content);
+    }
     
     // Determine the user ID to use for logging
     const targetUserId = payload.userId || 'anonymous-session';

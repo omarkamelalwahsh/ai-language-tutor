@@ -302,7 +302,48 @@ export class AdaptiveAssessmentEngine {
          correctText = key.correct_answer;
        }
 
+       // ⚡ MCQ FAST-PATH: Don't wait for server if we already know the answer 
        isCorrect = answer.trim() === correctText.trim();
+       
+       // Fire-and-forget logging to server for MCQ to keep UI fast
+       const userId = localStorage.getItem('auth_user_id');
+       fetch('/api/evaluate', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           userId,
+           skill: efsetItem.skill,
+           currentBand: efsetItem.target_cefr,
+           question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
+           learnerAnswer: answer,
+           assessmentId: "session-" + Math.random().toString(36).substr(2, 9),
+           isMCQ: true, // Tell server it's just a log, no need for LLM
+           isCorrect
+         })
+       }).catch(e => console.warn('[Engine] MCQ background log failed:', e));
+
+       // Update local state and move on IMMEDIATELY
+       this.askedQuestionIds.add(efsetItem.id);
+       this.state.answerHistory.push({
+         taskId: efsetItem.id,
+         questionId: efsetItem.id,
+         skill: efsetItem.skill as any,
+         difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
+         correct: isCorrect,
+         score: isCorrect ? 1 : 0,
+         answer,
+         responseTimeMs
+       });
+
+       // Update overall state for MCQ
+       const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect, 'typed');
+       for (const evidence of evidences) {
+         const skillName = evidence.skill as EFSETSkillName;
+         this.efsetSkills[skillName] = SkillAggregator.update(this.efsetSkills[skillName], evidence);
+       }
+       this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
+
+       return { correct: isCorrect, score: isCorrect ? 1 : 0 };
     }
     
     // Get userId from localStorage for the engine
