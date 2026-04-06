@@ -373,11 +373,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
     if (!currentTask) {
       const loadInitial = async () => {
         const firstQ = await engine.getNextQuestion();
-        if (isSubscribed && firstQ) {
-          setCurrentTask(firstQ);
-          const p = engine.getProgress();
-          setProgress(p);
-          (window as any)._lastBenchmark = p.currentBand;
+        if (isSubscribed) {
+          if (firstQ) {
+            setCurrentTask(firstQ);
+            const p = engine.getProgress();
+            setProgress(p);
+            (window as any)._lastBenchmark = p.currentBand;
+          } else {
+            console.warn('[Diagnostic] No initial question returned. Completing early.');
+            setIsCompleting(true);
+            await engine.completeAssessment();
+            onComplete(engine.getEvaluations(), engine.getOutcome());
+          }
         }
       };
       loadInitial();

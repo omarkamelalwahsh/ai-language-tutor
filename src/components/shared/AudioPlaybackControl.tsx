@@ -159,8 +159,16 @@ export const AudioPlaybackControl: React.FC<AudioPlaybackControlProps> = ({
 
   return (
     <div className={`bg-indigo-50 border border-indigo-100 p-6 rounded-3xl w-full ${className}`}>
-      {/* Hidden Audio Element */}
-      {audioUrl && <audio ref={audioRef} src={audioUrl} preload="metadata" />}
+      {/* Hidden Audio Element with Pre-loading enabled for Production-ready speed */}
+      {audioUrl && (
+        <audio 
+          ref={audioRef} 
+          src={audioUrl} 
+          preload="auto" 
+          autoPlay={false} 
+          crossOrigin="anonymous" 
+        />
+      )}
       
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">

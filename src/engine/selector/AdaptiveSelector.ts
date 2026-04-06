@@ -35,7 +35,14 @@ export class AdaptiveSelector {
       const calibrationOrder: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
       const targetSkill = calibrationOrder[questionCount];
       console.log(`[Selector] Phase 1: CALIBRATION | target: ${targetSkill}`);
-      return this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
+      const item = this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
+      if (item) return item;
+
+      // Safety: If calibration skill is missing at this level, try to find it at ANY level
+      for (const level of LEVEL_ORDER) {
+        const fallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
+        if (fallback) return fallback;
+      }
     }
 
     // --------------------------------------------------------------------------

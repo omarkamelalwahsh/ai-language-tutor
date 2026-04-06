@@ -218,7 +218,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                   <button
                     onClick={handleStartRecording}
                     disabled={isDisabled}
-                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 font-bold"
+                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 font-bold z-10"
                   >
                     <Mic className="w-8 h-8 mb-1" />
                     <span>Start</span>
@@ -226,16 +226,23 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                 ) : (
                   <button
                     onClick={handleStopRecording}
-                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-[0_15px_30px_rgba(239,68,68,0.4)] transition-all animate-pulse transform active:scale-95 font-bold"
+                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-[0_15px_30px_rgba(239,68,68,0.4)] transition-all transform active:scale-95 font-bold z-10"
                   >
-                    <StopCircle className="w-8 h-8 mb-1" />
-                    <span>Stop</span>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-20" />
+                    <StopCircle className="w-8 h-8 mb-1 relative z-20" />
+                    <span className="relative z-20">Stop</span>
                   </button>
                 )}
                 
-                {/* Visualizer */}
-                <div className="w-48 h-4 bg-slate-100 rounded-full overflow-hidden mt-6 opacity-0 transition-opacity duration-300" style={{ opacity: mode === 'recording' ? 1 : 0 }}>
-                  <div className="h-full bg-emerald-500 transition-all duration-75 origin-left" style={{ width: `${Math.max(2, volume * 100)}%` }} />
+                {/* 🌈 Dynamic Visualizer: Production-grade feedback */}
+                <div 
+                   className="w-48 h-2 bg-slate-100 rounded-full overflow-hidden mt-6 transition-all duration-500" 
+                   style={{ opacity: mode === 'recording' ? 1 : 0, transform: mode === 'recording' ? 'scaleY(1.5)' : 'scaleY(1)' }}
+                 >
+                  <div 
+                    className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 transition-all duration-75 origin-left" 
+                    style={{ width: `${Math.max(4, volume * 100)}%` }} 
+                  />
                 </div>
               </div>
             </>

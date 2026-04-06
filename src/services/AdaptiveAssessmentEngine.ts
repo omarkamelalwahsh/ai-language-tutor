@@ -161,9 +161,13 @@ export class AdaptiveAssessmentEngine {
       };
 
       for (const item of allItems) {
-        // Robust normalization: Trim and Uppercase to handle 'a1', 'A 1', etc.
+        // 🛡️ Robust normalization: Trim and Uppercase to handle 'a1', 'A 1', etc.
         const cefrraw = (item.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
-        const cefr = cefrraw as CEFRLevel;
+        const cefr = (cefrraw as CEFRLevel) || 'A1';
+        
+        // 🧠 Skill Normalization: Trim and Lowercase to prevent matching errors
+        const rawSkill = (item.skill || 'vocabulary').toString().trim().toLowerCase();
+        item.skill = rawSkill as any;
         
         if (grouped[cefr]) {
           grouped[cefr].push(item);
@@ -242,8 +246,10 @@ export class AdaptiveAssessmentEngine {
       if (allAvailable.length > 0) {
         // Sort by distance from current level
         allAvailable.sort((a, b) => {
-          const distA = Math.abs(bandOrder.indexOf(a.target_cefr as DifficultyBand) - currentIndex);
-          const distB = Math.abs(bandOrder.indexOf(b.target_cefr as DifficultyBand) - currentIndex);
+          const cefrA = (a.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as DifficultyBand;
+          const cefrB = (b.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as DifficultyBand;
+          const distA = Math.abs(bandOrder.indexOf(cefrA) - currentIndex);
+          const distB = Math.abs(bandOrder.indexOf(cefrB) - currentIndex);
           return distA - distB;
         });
         nextItem = allAvailable[0];

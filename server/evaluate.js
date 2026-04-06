@@ -145,47 +145,35 @@ app.get("/api/db-status", async (_req, res) => {
 });
 
 app.get("/api/questions", async (req, res) => {
-  let targetLevel = req.query.level || 'A1';
-  
-  try {
-    // 1. Fetch user profile Baseline if authenticated
-    if (req.user) {
-      const { data: profile } = await supabase
-        .from('learner_profiles')
-        .select('overall_band')
-        .eq('user_id', req.user.id)
-        .single();
-      
-      if (profile && profile.overall_band) {
-        targetLevel = profile.overall_band;
-      }
+    try {
+        // 🔓 UNLOCKED: We fetch ALL questions so the client-side adaptive engine 
+        // can jump between levels (Leapfrog) without making new network requests.
+        const { data, error } = await supabase
+            .from('question_bank_items')
+            .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key, audio_url, options, evidence_policy');
+
+        if (error) throw error;
+
+        const formattedQuestions = data.map(item => ({
+            id: item.external_id,
+            skill: item.skill,
+            task_type: item.task_type,
+            target_cefr: item.target_cefr,
+            difficulty: Number(item.difficulty) || 0.5,
+            response_mode: item.task_type.includes('mcq') ? 'mcq' : 'typed',
+            prompt: item.prompt,
+            stimulus: item.stimulus,
+            audio_url: item.audio_url,
+            options: item.options,
+            evidence_policy: item.evidence_policy,
+            answer_key: item.answer_key
+        }));
+
+        res.json(formattedQuestions);
+    } catch (err) {
+        console.error("[Questions] Error:", err);
+        res.status(500).json({ error: err.message });
     }
-
-    let query = supabase
-      .from('question_bank_items')
-      .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key')
-      .eq('target_cefr', targetLevel);
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    const formattedQuestions = data.map(item => ({
-        id: item.external_id,
-        skill: item.skill,
-        task_type: item.task_type,
-        target_cefr: item.target_cefr,
-        difficulty: Number(item.difficulty) || 0.5,
-        response_mode: item.task_type.includes('mcq') ? 'mcq' : 'typed',
-        prompt: item.prompt,
-        stimulus: item.stimulus,
-        answer_key: item.answer_key || {},
-    }));
-
-    res.json(formattedQuestions.sort(() => Math.random() - 0.5));
-  } catch (err) {
-    console.error('[API] Error fetching questions:', err);
-    res.status(500).json({ error: "Failed to fetch questions from Cloud database" });
-  }
 });
 
 // ============================================================================
@@ -261,8 +249,14 @@ app.post('/api/evaluate', async (req, res) => {
       };
     } else {
       // 🧠 AI EVALUATION: Optimized path for non-MCQ tasks
-      if (!llmClient || circuitBreaker.isOpen()) {
-        parsed = fallbackResult(payload.currentBand, "LLM unavailable");
+      if (!llmClient) {
+        return res.status(503).json({ 
+          error: "AI Evaluation unavailable: GROQ_API_KEY is not configured on the server." 
+        });
+      }
+
+      if (circuitBreaker.isOpen()) {
+        parsed = fallbackResult(payload.currentBand, "LLM circuit breaker open");
       } else {
         // 🛡️ TIMEOUT GUARD: Race the LLM call against an 8s hard limit to beat Vercel's 10s
         try {
@@ -358,6 +352,12 @@ app.post('/api/evaluate', async (req, res) => {
 
 // --- SPEECH TO TEXT ENDPOINT ---
 app.post('/api/transcribe', async (req, res) => {
+  if (!llmClient) {
+    return res.status(503).json({ 
+      error: "Transcription service unavailable: GROQ_API_KEY missing in server config." 
+    });
+  }
+
   const form = formidable({});
   
   form.parse(req, async (err, fields, files) => {
