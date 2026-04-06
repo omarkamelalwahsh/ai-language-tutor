@@ -150,7 +150,7 @@ app.get("/api/questions", async (req, res) => {
 // 🌍 Leaderboard & Ranking (Production Ready)
 // ============================================================================
 
-authRouter.get('/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
   try {
     // Fetch users sorted by their most recent assessment performance
     // For a real production app, we'd join with a 'points' column, 
@@ -183,7 +183,7 @@ authRouter.get('/leaderboard', async (req, res) => {
   }
 });
 
-authRouter.get('/admin/stats', async (req, res) => {
+app.get('/api/admin/stats', async (req, res) => {
   try {
     const { count: totalLearners } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
     const { count: completedAssessments } = await supabase.from('assessment_responses').select('*', { count: 'exact', head: true });
@@ -202,12 +202,12 @@ authRouter.get('/admin/stats', async (req, res) => {
 });
 
 // Final handler check
-authRouter.post('/evaluate', async (req, res) => {
+app.post('/api/evaluate', async (req, res) => {
   const payload = req.body;
   console.log('[Server] Evaluation request received for user:', payload.userId);
   
   try {
-    let parsed: any;
+    let parsed;
 
     if (payload.isMCQ) {
       // ⚡ MCQ FAST-PATH: Bypass AI for simple multiple-choice tasks
@@ -238,14 +238,7 @@ authRouter.post('/evaluate', async (req, res) => {
     // Determine the user ID to use for logging
     const targetUserId = payload.userId || 'anonymous-session';
     
-    // Look up internal UUID for the question if needed
-    const { data: qItem } = await supabase
-      .from('question_bank_items')
-      .select('id')
-      .eq('external_id', payload.question.id)
-      .single();
-
-    const internalQId = qItem?.id || payload.question.id;
+    const internalQId = payload.question.db_id || payload.question.id;
 
     // 🔥 OPTIMIZATION: Run DB updates in PARALLEL to beat the 10s Vercel timeout
     const dbTasks = [];
