@@ -162,8 +162,14 @@ export class AdaptiveAssessmentEngine {
         // 🛡️ Robust normalization: Extraction from multiple keys (level, target_cefr, etc.)
         const rawLevel = (item.level || item.target_cefr || (item as any).difficulty_band || 'A1');
         const cefrraw = rawLevel.toString().trim().toUpperCase().replace(/\s+/g, '');
-        const cefr = (cefrraw as CEFRLevel) || 'A1';
+        let cefr = (cefrraw as CEFRLevel) || 'A1';
         
+        // 🎯 ID-Based Inference (Override): If ID implies a level (e.g. B1_L_01), believe the ID!
+        const idLevelMatch = item.id.match(/^(A1|A2|B1|B2|C1|C2)/i);
+        if (idLevelMatch) {
+           cefr = idLevelMatch[1].toUpperCase() as CEFRLevel;
+        }
+
         // 🧠 Skill Normalization: Trim and Lowercase to prevent matching errors
         const rawSkill = (item.skill || 'vocabulary').toString().trim().toLowerCase();
         
@@ -217,8 +223,14 @@ export class AdaptiveAssessmentEngine {
         const localItems = localBank.QUESTION_BANK || [];
         const normalizedFallbackItems = localItems.map(item => {
             const cefrraw = ((item as any).target_cefr || (item as any).difficulty || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
-            const cefr = (cefrraw as CEFRLevel) || 'A1';
+            let cefr = (cefrraw as CEFRLevel) || 'A1';
             
+            // 🎯 ID-Based Inference Override
+            const idLevelMatch = (item as any).id?.match(/^(A1|A2|B1|B2|C1|C2)/i);
+            if (idLevelMatch) {
+               cefr = idLevelMatch[1].toUpperCase() as CEFRLevel;
+            }
+
             // 🎯 response_mode consolidation: Unify legacy 'multiple_choice' to 'mcq'
             const rawMode = ((item as any).response_mode as string || 'typed').trim().toLowerCase();
             const responseMode = rawMode === 'multiple_choice' ? 'mcq' : rawMode;
@@ -226,7 +238,7 @@ export class AdaptiveAssessmentEngine {
             return {
               ...(item as any),
               target_cefr: cefr,
-              level: ((item as any).level || cefr) as CEFRLevel,
+              level: cefr,
               skill: ((item as any).skill || 'vocabulary').toString().trim().toLowerCase(),
               response_mode: responseMode as any
             };
