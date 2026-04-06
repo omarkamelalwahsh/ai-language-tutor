@@ -9,11 +9,11 @@ export class EvidenceMapper {
     item: QuestionBankItem, 
     signal: LLMSignal,
     isCorrect: boolean, // used as a fallback or for MCQ
-    actualResponseMode?: 'typed' | 'audio' | 'multiple_choice'
+    actualResponseMode?: 'typed' | 'audio' | 'mcq'
   ): SkillEvidence[] {
     
     // 1. Calculate base scores from signal
-    const isMCQ = item.response_mode === 'multiple_choice';
+    const isMCQ = item.response_mode === 'mcq';
     const numericDifficulty = BAND_VALUE[item.target_cefr] || 1;
     
     let baseScore = 0;

@@ -9,11 +9,17 @@ export interface SkillEvidence {
   numericDifficulty: number; // 1-6 for A1-C2
 }
 
-export interface EvidencePolicy {
-  [skill: string]: {
+export type EvidencePolicy = {
+  [key in SkillName]?: {
     weight: number;
     direct: boolean;
   };
+};
+
+export interface AnswerKeyObject {
+  type: 'mcq' | 'text' | 'audio_analysis';
+  value: string | number | string[] | { options: string[], correct_index: number };
+  correct_answer?: string;
 }
 
 export interface QuestionBankItem {
@@ -21,10 +27,11 @@ export interface QuestionBankItem {
   skill: string; // primary skill
   task_type: string;
   target_cefr: CEFRLevel;
+  level?: CEFRLevel; // Alias for target_cefr used by selector
   difficulty: number; // 0.0 - 1.0 within the band, or absolute 0-6 relative
-  response_mode: 'typed' | 'audio' | 'multiple_choice' | 'mcq';
+  response_mode: 'typed' | 'audio' | 'mcq';
   prompt: string;
-  answer_key: any; // Can be string or { type: string, value: any }
+  answer_key: string | AnswerKeyObject;
   options?: string[]; // Top-level options for backward compatibility
   audio_url?: string; // Optional URL for audio stimulus
   stimulus?: string; // Optional text stimulus/transcript
@@ -46,7 +53,7 @@ export type SkillStatus = 'stable' | 'provisional' | 'insufficient_data';
 
 export interface SkillState {
   score: number;
-  levelRange: [CEFRLevel, CEFRLevel];
+  levelRange: [CEFRLevel | null, CEFRLevel | null];
   confidence: number;
   directEvidenceCount: number;
   consistency: number;
@@ -61,7 +68,7 @@ export interface SkillState {
 }
 
 export interface OverallState {
-  levelRange: [CEFRLevel, CEFRLevel];
+  levelRange: [CEFRLevel | null, CEFRLevel | null];
   confidence: number;
   status: SkillStatus;
 }
@@ -77,3 +84,4 @@ export interface AssessmentResultOutput {
   };
   overall: OverallState;
 }
+

@@ -156,25 +156,34 @@ export class AdaptiveAssessmentEngine {
       
       const allItems: QuestionBankItem[] = await res.json();
       
-      const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
-        'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
-      };
-
-      for (const item of allItems) {
+      const normalizedItems: QuestionBankItem[] = allItems.map(item => {
         // 🛡️ Robust normalization: Trim and Uppercase to handle 'a1', 'A 1', etc.
         const cefrraw = (item.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
         const cefr = (cefrraw as CEFRLevel) || 'A1';
         
-        // 🧠 Normalize fields on the item itself for selector compatibility
-        item.target_cefr = cefr;
-        (item as any).level = cefr; // Engine compatibility alias
-        
         // 🧠 Skill Normalization: Trim and Lowercase to prevent matching errors
         const rawSkill = (item.skill || 'vocabulary').toString().trim().toLowerCase();
-        item.skill = rawSkill as any;
         
-        if (grouped[cefr]) {
-          grouped[cefr].push(item);
+        // 🎯 response_mode consolidation: Unify legacy 'multiple_choice' to 'mcq'
+        const rawMode = (item.response_mode as string || 'typed').trim().toLowerCase();
+        const responseMode = rawMode === 'multiple_choice' ? 'mcq' : rawMode;
+
+        return {
+          ...item,
+          target_cefr: cefr,
+          level: (item.level || cefr) as CEFRLevel, // 🎯 Mandatory Alias Fix
+          skill: rawSkill as any,
+          response_mode: responseMode as any
+        };
+      });
+
+      const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
+        'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
+      };
+
+      for (const item of normalizedItems) {
+        if (grouped[item.level!]) {
+          grouped[item.level!].push(item);
         } else {
           // Fallback: If level is invalid, put it in A1 as safety
           grouped['A1'].push(item);
@@ -187,6 +196,9 @@ export class AdaptiveAssessmentEngine {
       Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
       
       console.log(`[Engine] Loaded ${allItems.length} database items successfully.`);
+      if (normalizedItems.length > 0) {
+        console.log("Sample Normalized Question:", normalizedItems[0]);
+      }
       if (allItems.length > 0) {
         console.log("Sample Normalized Question:", allItems[0]);
       }
@@ -196,23 +208,35 @@ export class AdaptiveAssessmentEngine {
       try {
         const localBank = await import('../data/assessment-questions');
         const localItems = localBank.QUESTION_BANK || [];
-        const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
-          'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
-        };
-        for (const item of localItems) {
+        const normalizedFallbackItems = localItems.map(item => {
             const cefrraw = ((item as any).target_cefr || (item as any).difficulty || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
             const cefr = (cefrraw as CEFRLevel) || 'A1';
             
-            // Normalize on the item itself
-            (item as any).target_cefr = cefr;
-            (item as any).level = cefr;
-            (item as any).skill = ((item as any).skill || 'vocabulary').toString().trim().toLowerCase();
+            // 🎯 response_mode consolidation: Unify legacy 'multiple_choice' to 'mcq'
+            const rawMode = ((item as any).response_mode as string || 'typed').trim().toLowerCase();
+            const responseMode = rawMode === 'multiple_choice' ? 'mcq' : rawMode;
 
-            if (grouped[cefr]) grouped[cefr].push(item as any);
+            return {
+              ...(item as any),
+              target_cefr: cefr,
+              level: ((item as any).level || cefr) as CEFRLevel,
+              skill: ((item as any).skill || 'vocabulary').toString().trim().toLowerCase(),
+              response_mode: responseMode as any
+            };
+        });
+
+        const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
+          'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
+        };
+        for (const item of normalizedFallbackItems) {
+            if (grouped[item.level]) grouped[item.level].push(item as any);
         }
         this.banks = grouped;
         Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
         console.log(`[Engine] Loaded fallback offline items successfully.`);
+        if (normalizedFallbackItems.length > 0) {
+          console.log("Sample Normalized Offline Question:", normalizedFallbackItems[0]);
+        }
         if (localItems.length > 0) {
           console.log("Sample Normalized Offline Question:", localItems[0]);
         }
@@ -289,7 +313,13 @@ export class AdaptiveAssessmentEngine {
       this.state.askedQuestionIds.push(nextItem.id);
     }
 
-    const originalOptions = nextItem.answer_key?.value?.options || nextItem.options;
+    let originalOptions: string[] | undefined;
+    const ak = nextItem.answer_key;
+    if (typeof ak === 'object' && ak !== null && typeof ak.value === 'object' && ak.value !== null && 'options' in ak.value) {
+      originalOptions = ak.value.options;
+    } else {
+      originalOptions = nextItem.options;
+    }
 
     return {
       id: nextItem.id,
@@ -340,7 +370,7 @@ export class AdaptiveAssessmentEngine {
       typo_severity: 0, confidence: 1
     };
 
-    const isMCQ = efsetItem.response_mode === 'multiple_choice' || efsetItem.response_mode === 'mcq';
+    const isMCQ = efsetItem.response_mode === 'mcq';
     let isCorrect = true;
 
     if (isMCQ) {
@@ -348,13 +378,14 @@ export class AdaptiveAssessmentEngine {
        const key = efsetItem.answer_key;
        let correctText = '';
        
-       if (typeof key === 'string') {
-         correctText = key;
-       } else if (key?.value?.options && key?.value?.correct_index !== undefined) {
-         correctText = key.value.options[key.value.correct_index];
-       } else if (key?.correct_answer) {
-         correctText = key.correct_answer;
-       }
+        if (typeof key === 'string') {
+          correctText = key;
+        } else if (key && typeof key === 'object' && key.value && typeof key.value === 'object' && 'options' in key.value && 'correct_index' in key.value) {
+          const val = key.value as { options: string[], correct_index: number };
+          correctText = val.options[val.correct_index];
+        } else if (key && typeof key === 'object') {
+          correctText = key.correct_answer || (typeof key.value === 'string' ? key.value : '');
+        }
 
        // ⚡ MCQ FAST-PATH: Don't wait for server if we already know the answer 
        isCorrect = answer.trim() === correctText.trim();
@@ -557,7 +588,7 @@ export class AdaptiveAssessmentEngine {
         prompt: efsetItem.prompt,
         skill: efsetItem.skill,
         level: efsetItem.target_cefr,
-        answerKey: efsetItem.answer_key
+        answerKey: typeof efsetItem.answer_key === 'string' ? efsetItem.answer_key : JSON.stringify(efsetItem.answer_key)
       }
     };
     
@@ -663,7 +694,13 @@ export class AdaptiveAssessmentEngine {
       this.state.askedQuestionIds[idx] = nextItem.id;
     }
 
-    const originalOptions = nextItem.answer_key?.value?.options || nextItem.options;
+    let originalOptions: string[] | undefined;
+    const ak = nextItem.answer_key;
+    if (typeof ak === 'object' && ak !== null && typeof ak.value === 'object' && ak.value !== null && 'options' in ak.value) {
+      originalOptions = ak.value.options;
+    } else {
+      originalOptions = nextItem.options;
+    }
 
     // 4. Return formatted question
     return {
