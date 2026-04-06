@@ -42,15 +42,7 @@ import { FinalReportBuilder } from '../engine/cefr/FinalReportBuilder';
 import { ASSESSMENT_CONFIG } from '../config/assessment-config';
 import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuilder';
 
-// Dynamic Loader for Question Banks to optimize bundle size
-const BANK_LOADERS: Record<CEFRLevel, () => Promise<any>> = {
-  'A1': () => import('../data/banks/A1.json'),
-  'A2': () => import('../data/banks/A2.json'),
-  'B1': () => import('../data/banks/B1.json'),
-  'B2': () => import('../data/banks/B2.json'),
-  'C1': () => import('../data/banks/C1.json'),
-  'C2': () => import('../data/banks/C2.json'),
-};
+// Old static JSON bank loaders were removed in favor of dynamic API fetching
 
 // ============================================================================
 // Constants
@@ -127,18 +119,36 @@ export class AdaptiveAssessmentEngine {
   }
 
   private async ensureLevelLoaded(level: CEFRLevel): Promise<void> {
-    if (this.loadedLevels.has(level)) return;
+    // If ANY level is loaded, we assume the whole DB is loaded 
+    // since our API returns all questions in one go.
+    if (this.loadedLevels.size > 0) return;
     
-    console.log(`[Engine] Lazy loading bank for level: ${level}...`);
+    console.log(`[Engine] Fetching randomized question bank from database...`);
     try {
-      const module = await BANK_LOADERS[level]();
-      // handle either default or direct array import if needed
-      const data = module.default || module;
-      this.banks[level] = Array.isArray(data) ? data : [];
-      this.loadedLevels.add(level);
-      console.log(`[Engine] Loaded ${this.banks[level].length} items for ${level}`);
+      const res = await fetch('/api/questions');
+      if (!res.ok) throw new Error("Failed to fetch questions from API");
+      
+      const allItems: QuestionBankItem[] = await res.json();
+      
+      const grouped: Record<CEFRLevel, QuestionBankItem[]> = {
+        'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
+      };
+
+      for (const item of allItems) {
+        const cefr = item.target_cefr as CEFRLevel;
+        if (grouped[cefr]) {
+          grouped[cefr].push(item);
+        }
+      }
+
+      this.banks = grouped;
+      
+      // Mark all levels as loaded
+      Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
+      
+      console.log(`[Engine] Loaded ${allItems.length} database items successfully.`);
     } catch (err) {
-      console.error(`[Engine] Failed to load bank for ${level}:`, err);
+      console.error(`[Engine] Failed to load database bank:`, err);
     }
   }
 
@@ -269,9 +279,11 @@ export class AdaptiveAssessmentEngine {
            id: efsetItem.id,
            prompt: efsetItem.prompt,
            type: efsetItem.task_type,
-           subskills: []
+           subskills: [],
+           target_cefr: efsetItem.target_cefr as any
          },
          learnerAnswer: answer,
+         assessmentId: "session-" + Math.random().toString(36).substr(2, 9), // A temporary session ID generator, would ideally come from authentication state
          descriptors: {}
        });
 

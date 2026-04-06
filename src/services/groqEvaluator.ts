@@ -5,6 +5,7 @@ import { LLMSignal } from '../types/efset';
 export type DifficultyBand = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export type EvaluationPayload = {
+  assessmentId: string; // Add assessment ID
   skill: "reading" | "writing" | "listening" | "speaking" | "vocabulary" | "grammar";
   currentBand: DifficultyBand;
   question: {
@@ -14,6 +15,7 @@ export type EvaluationPayload = {
     subskills: string[];
     semanticIntent?: string;
     requiredContentPoints?: string[];
+    target_cefr?: DifficultyBand; // Added to map back to original question level
   };
   learnerAnswer: string;
   descriptors: Partial<Record<DifficultyBand, string[]>>;

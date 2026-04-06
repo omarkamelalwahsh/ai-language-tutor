@@ -2,12 +2,15 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import pool from "./db.js";
+import { authRouter } from "./auth.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/auth', authRouter);
 
 const CONFIG = {
   model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
@@ -215,6 +218,49 @@ app.get("/health", (_req, res) => {
   });
 });
 
+app.get("/api/db-status", async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT current_database(), current_user, version()');
+    res.json({
+      status: "Connected",
+      database: result.rows[0].current_database,
+      user: result.rows[0].current_user,
+      version: result.rows[0].version
+    });
+  } catch (err) {
+    res.status(500).json({ status: "Disconnected", error: err.message });
+  }
+});
+
+app.get("/api/questions", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key 
+      FROM question_bank_items 
+      ORDER BY RANDOM()
+    `);
+    
+    const formattedQuestions = result.rows.map(row => {
+      return {
+        id: row.external_id,
+        skill: row.skill,
+        task_type: row.task_type,
+        target_cefr: row.target_cefr,
+        difficulty: Number(row.difficulty) || 0.5,
+        response_mode: row.task_type.includes('mcq') ? 'mcq' : 'typed',
+        prompt: row.prompt,
+        stimulus: row.stimulus,
+        answer_key: row.answer_key || {},
+      };
+    });
+
+    res.json(formattedQuestions);
+  } catch (err) {
+    console.error('[API] Error fetching questions:', err);
+    res.status(500).json({ error: "Failed to fetch questions from database" });
+  }
+});
+
 const AUDIT_SYSTEM_PROMPT = `
 You are a Senior CEFR Assessor and Linguistic Auditor.
 
@@ -359,6 +405,26 @@ app.post("/api/evaluate", async (req, res) => {
 
     const sanitized = sanitizeSignalResult(parsed, payload.currentBand);
     circuitBreaker.recordSuccess();
+
+    // Fire-and-forget saving to database (does not block response to frontend)
+    pool.query(
+      `INSERT INTO assessment_responses 
+       (assessment_id, question_id, skill, question_level, answer_level, 
+        user_answer, is_correct, score, explanation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        payload.assessmentId || "test-session",
+        payload.question.id,
+        payload.skill,
+        payload.question.target_cefr || payload.currentBand,
+        sanitized.estimated_band || payload.currentBand,
+        payload.learnerAnswer,
+        sanitized.task_completion > 0.7,
+        sanitized.task_completion,
+        JSON.stringify(sanitized)
+      ]
+    ).catch(dbErr => console.error("❌ Failed to save assessment_response:", dbErr.message));
+
     return res.json(sanitized);
   } catch (err) {
     const message = err?.message || String(err);

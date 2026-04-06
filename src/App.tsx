@@ -6,6 +6,7 @@ import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from './ty
 import { DashboardService } from './services/DashboardService';
 
 // Views
+import { RoleSelectionView } from './views/RoleSelectionView';
 import { AuthView } from './views/AuthView';
 import { OnboardingView } from './views/OnboardingView';
 import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
@@ -60,7 +61,7 @@ const DevModeOverlay = ({ result, show, onClose }: { result: AssessmentSessionRe
 );
 
 export default function App() {
-  const [view, setView] = useState<ViewState>('LANDING');
+  const [view, setView] = useState<ViewState>('ROLE_SELECTION');
   const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
   const [taskResults, setTaskResults] = useState<TaskEvaluation[]>([]);
@@ -129,6 +130,15 @@ export default function App() {
       <DevModeOverlay result={assessmentResult} show={devModeActive} onClose={() => setDevModeActive(false)} />
 
       <AnimatePresence mode="wait">
+        {view === 'ROLE_SELECTION' && (
+          <RoleSelectionView 
+            onSelectRole={(role) => {
+              setUserRole(role);
+              navigateTo('AUTH');
+            }} 
+          />
+        )}
+
         {view === 'LANDING' && (
           <LandingView 
             key="landing" 
@@ -138,14 +148,17 @@ export default function App() {
         )}
 
         {view === 'AUTH' && (
-          <AuthView key="auth" onLogin={(role) => {
-            setUserRole(role);
-            if (role === 'admin') {
-              navigateTo('ADMIN_DASHBOARD');
-            } else {
-              navigateTo('ONBOARDING');
-            }
-          }} />
+          <AuthView 
+            role={userRole}
+            onBack={() => navigateTo('ROLE_SELECTION')}
+            onLogin={(role) => {
+              if (role === 'admin') {
+                navigateTo('ADMIN_DASHBOARD');
+              } else {
+                navigateTo('ONBOARDING');
+              }
+            }} 
+          />
         )}
 
         {view === 'ONBOARDING' && (
