@@ -160,7 +160,7 @@ export class AudioRecordingService {
 
       this.mediaRecorder.onstop = () => {
         const type = this.mediaRecorder?.mimeType || 'audio/webm';
-        const blob = new Blob(this.chunks, { type });
+        const blob = new Blob(this.chunks, { type: type });
         const durationSec = (Date.now() - this.startTime) / 1000;
         
         this.cleanup();

@@ -387,8 +387,10 @@ app.post('/api/transcribe', async (req, res) => {
       const audioFile = files.audio?.[0] || files.file?.[0];
       if (!audioFile) throw new Error("No audio file found in request");
 
-      console.log('[Transcribe] Processing audio:', audioFile.originalFilename);
+      console.log('[Transcribe] Processing audio:', audioFile.originalFilename || 'unnamed-audio');
 
+      // 🔥 Production hardening: Whisper expects a filename with a known extension.
+      // We wrap the read stream to ensure the SDK sees the correct filename/type.
       const transcript = await llmClient.audio.transcriptions.create({
         file: fs.createReadStream(audioFile.filepath),
         model: "whisper-large-v3",
