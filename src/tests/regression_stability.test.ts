@@ -37,7 +37,7 @@ describe('Assessment Engine Stability & Punctuation Regression', () => {
       await engine.submitAnswer(vocabQ, expected, 2000);
 
       // Get the report via getProgress or internal state access
-      const results = engine.getFinalResult();
+      const results = engine.getOutcome();
       const vocabResult = results.skillBreakdown.vocabulary;
 
       // VERIFICATION: directEvidenceCount should NOT be 0
@@ -59,7 +59,7 @@ describe('Assessment Engine Stability & Punctuation Regression', () => {
       
       await engine.submitAnswer(grammarQ, grammarQ.correctAnswer as string, 2000);
 
-      const results = engine.getFinalResult();
+      const results = engine.getOutcome();
       const grammarResult = results.skillBreakdown.grammar;
 
       expect(grammarResult.status).not.toBe('insufficient_data');

@@ -36,7 +36,7 @@ describe('CEFR Evaluation Migration - End to End Schema Verification', () => {
     expect(question).toBeDefined();
 
     // Mock the evaluating service to return a perfect C1 signal schema
-    const mockSignalResponse: groqEvaluator.DescriptorEvaluationResult = {
+    const mockSignalResponse: any = {
       semantic_accuracy: 0.95,
       task_completion: 0.95,
       lexical_sophistication: 0.90,

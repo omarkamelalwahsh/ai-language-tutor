@@ -14,6 +14,24 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRouter);
 
+// --- SUPABASE AUTH MIDDLEWARE ---
+const verifySupabaseAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    req.user = null; // Unauthenticated fallback allowed for now
+    return next();
+  }
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (!error && user) {
+    req.user = user;
+  } else {
+    req.user = null;
+  }
+  next();
+};
+
+app.use(verifySupabaseAuth);
+
 const CONFIG = {
   model: "llama-3.1-8b-instant",
   temperature: 0.1,
@@ -127,16 +145,26 @@ app.get("/api/db-status", async (_req, res) => {
 });
 
 app.get("/api/questions", async (req, res) => {
-  const { level } = req.query;
+  let targetLevel = req.query.level || 'A1';
   
   try {
+    // 1. Fetch user profile Baseline if authenticated
+    if (req.user) {
+      const { data: profile } = await supabase
+        .from('learner_profiles')
+        .select('overall_band')
+        .eq('user_id', req.user.id)
+        .single();
+      
+      if (profile && profile.overall_band) {
+        targetLevel = profile.overall_band;
+      }
+    }
+
     let query = supabase
       .from('question_bank_items')
-      .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key');
-    
-    if (level) {
-      query = query.eq('target_cefr', level);
-    }
+      .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key')
+      .eq('target_cefr', targetLevel);
 
     const { data, error } = await query;
     if (error) throw error;
@@ -263,26 +291,50 @@ app.post('/api/evaluate', async (req, res) => {
     
     // ⚡ NON-BLOCKING PERSISTENCE: Return result to user ASAP, don't let DB hang 
     const internalQId = payload.question.db_id || payload.question.id;
-    const targetUserId = payload.userId || 'anonymous-session';
+    const targetUserId = req.user ? req.user.id : (payload.userId !== 'anonymous-session' ? payload.userId : null);
     
     const persistData = async () => {
       try {
         const tasks = [
           supabase.from('assessment_responses').insert({
-            user_id: targetUserId === 'anonymous-session' ? null : targetUserId,
+            user_id: targetUserId,
+            assessment_id: payload.assessmentId, // Bind it to the global session!
             skill: payload.skill,
             current_band: payload.currentBand,
             question_id: internalQId,
-            answer: payload.learnerAnswer,
-            answer_level: parsed.suggestedBand || payload.currentBand,
-            explanation: { rationale: parsed.reasoning || "Automated", confidence: parsed.confidence || 0.8 }
+            user_answer: payload.learnerAnswer, // explicit prompt requirement
+            is_correct: parsed.isCorrect ?? true, // explicit prompt requirement
+            cefr_level: parsed.suggestedBand || payload.currentBand, // explicit prompt requirement
+            ai_feedback_text: parsed.reasoning || "Automated System Check: Validated.", // explicit prompt requirement
+            answer: payload.learnerAnswer, // Legacy fallback
+            answer_level: parsed.suggestedBand || payload.currentBand, // Legacy fallback
+            explanation: { rationale: parsed.reasoning || "Automated", confidence: parsed.confidence || 0.8 } // Legacy Fallback
           })
         ];
 
-        if (targetUserId !== 'anonymous-session') {
-          tasks.push(supabase.from('profiles').update({ 
-            last_assessed_level: parsed.suggestedBand || payload.currentBand 
-          }).eq('id', targetUserId));
+        // Ensure we strictly update learner profiles & skill states using Atomic logic
+        if (targetUserId) {
+          // 1. Atomic RPC update for Points & Streak
+          tasks.push(supabase.rpc('increment_learner_points', { 
+            target_user: targetUserId, 
+            points_to_add: 10 
+          }));
+
+          // 2. Upsert Skill Mastery (Overwrite the overall levelRange based on new score mapping)
+          tasks.push(supabase.from('skill_states').update({ 
+            score: parsed.confidence || 0.8,
+            "levelRange": [parsed.suggestedBand || payload.currentBand, parsed.suggestedBand || payload.currentBand]
+          }).eq('user_id', targetUserId).eq('skill', payload.skill.toLowerCase()));
+
+          // 3. Log into error_profiles if the UI reported heavily penalized responses or grammar failures
+          if (parsed.isCorrect === false) {
+             tasks.push(supabase.from('error_profiles').insert({
+                user_id: targetUserId,
+                skill: payload.skill,
+                error_type: 'Evaluated Context Error',
+                context: parsed.reasoning || payload.learnerAnswer
+             }));
+          }
         }
 
         await Promise.all(tasks);
@@ -336,7 +388,57 @@ app.post('/api/transcribe', async (req, res) => {
   });
 });
 
-// --- NEW SYNC ENDPOINT ---
+// --- NEW REPORTER ENDPOINTS ---
+
+app.post('/api/assessments/complete', async (req, res) => {
+  const { assessmentId, overallLevel, confidence } = req.body;
+  if (!assessmentId) return res.status(400).json({ error: "Missing assessmentId" });
+
+  try {
+    const targetUserId = req.user ? req.user.id : null;
+    
+    await supabase.from('assessments').insert({
+      id: assessmentId,
+      user_id: targetUserId,
+      overall_level: overallLevel,
+      confidence_score: confidence || 0.5
+    });
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('[Server Error] Assessments Complete crash:', err);
+    res.status(500).json({ error: 'Internal evaluation error' });
+  }
+});
+
+app.get('/api/assessments/:id/responses', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+     // Fetch the assessment metadata
+     const { data: assessmentData } = await supabase
+       .from('assessments')
+       .select('*')
+       .eq('id', id)
+       .single();
+
+     // Fetch all linked responses
+     const { data: responsesData } = await supabase
+       .from('assessment_responses')
+       .select('question_id, user_answer, is_correct, cefr_level, ai_feedback_text, skill')
+       .eq('assessment_id', id);
+
+     return res.status(200).json({
+        assessment: assessmentData,
+        responses: responsesData || []
+     });
+  } catch (err) {
+    console.error('[Server Error] Fetch Responses crash:', err);
+    res.status(500).json({ error: 'Could not fetch assessment report' });
+  }
+});
+
+// --- SYNC ENDPOINT ---
 app.get("/api/user/history/:userId", async (req, res) => {
   const { userId } = req.params;
   

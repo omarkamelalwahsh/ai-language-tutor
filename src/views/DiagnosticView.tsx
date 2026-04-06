@@ -416,9 +416,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
             (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
             setIsCompleting(true);
+            await engine.completeAssessment();
             setTimeout(() => {
               onComplete(engine.getEvaluations(), engine.getOutcome());
-            }, 800);
+            }, 500);
           }
         }, 300);
       } catch (err) {
@@ -441,9 +442,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       setProgress(engine.getProgress());
     } else {
       setIsCompleting(true);
+      await engine.completeAssessment();
       setTimeout(() => {
         onComplete(engine.getEvaluations(), engine.getOutcome());
-      }, 800);
+      }, 500);
     }
   }, [currentTask, isEvaluating, engine, onComplete]);
 

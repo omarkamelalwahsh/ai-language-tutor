@@ -70,6 +70,7 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [devModeActive, setDevModeActive] = useState(false);
   const [isArchitecting, setIsArchitecting] = useState(false);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
 
   // 💾 State Persistence: Load from localStorage on mount with Error Handling
   React.useEffect(() => {
@@ -299,7 +300,11 @@ export default function App() {
           <AssessmentReviewView
             key="assessment_review"
             evaluations={taskResults}
-            onBack={() => navigateTo('RESULT_ANALYSIS')}
+            assessmentId={selectedHistoryId || assessmentResult?.sessionId}
+            onBack={() => {
+              setSelectedHistoryId(null);
+              navigateTo(selectedHistoryId ? 'DASHBOARD' : 'RESULT_ANALYSIS');
+            }}
           />
         )}
 
@@ -321,6 +326,19 @@ export default function App() {
               onStartSession={() => navigateTo('LEARNING_LOOP')}
               onNavigateLeaderboard={() => navigateTo('USER_LEADERBOARD')}
               onViewReview={() => navigateTo('ASSESSMENT_REVIEW')}
+              onViewHistoryReport={(id) => {
+                setSelectedHistoryId(id);
+                navigateTo('ASSESSMENT_REVIEW');
+              }}
+              onLogout={async () => {
+                await supabase.auth.signOut();
+                localStorage.clear();
+                setAssessmentResult(null);
+                setAssessmentOutcome(null);
+                setTaskResults([]);
+                setDashboardData(null);
+                navigateTo('LANDING');
+              }}
               isArchitecting={isArchitecting}
             />
           </FadeTransition>

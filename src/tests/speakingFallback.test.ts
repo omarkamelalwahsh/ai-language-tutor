@@ -5,7 +5,7 @@ import type { AssessmentQuestion } from '../types/assessment';
 
 vi.mock('../services/groqEvaluator', () => ({ evaluateWithGroq: vi.fn() }));
 
-function baseLLM(): groqEvaluator.DescriptorEvaluationResult {
+function baseLLM(): any {
   return {
     semantic_accuracy: 0.8, task_completion: 0.8, lexical_sophistication: 0.8,
     syntactic_complexity: 0.8, coherence: 0.8, grammar_control: 0.8,

@@ -4,11 +4,13 @@ import {
   Mic, PenTool, Headphones, BookOpen, ChevronRight, 
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
-  BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown
+  BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
+  Brain
 } from 'lucide-react';
 
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
+import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 
 interface AdvancedDashboardProps {
   result: AssessmentSessionResult;
@@ -17,6 +19,8 @@ interface AdvancedDashboardProps {
   onStartSession: () => void;
   onNavigateLeaderboard: () => void;
   onViewReview: () => void;
+  onViewHistoryReport?: (id: string) => void;
+  onLogout?: () => void;
   isArchitecting?: boolean;
 }
 
@@ -50,9 +54,27 @@ const sidebarItems = [
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
 
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, isArchitecting }) => {
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, onViewHistoryReport, onLogout, isArchitecting }) => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
+  const supabaseData = useSupabaseDashboard();
+
+  if (supabaseData.isLoading) {
+    return (
+      <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6">
+         <div className="flex flex-col items-center gap-4">
+           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+           <p className="text-slate-500 font-bold animate-pulse">Syncing Learner Profile...</p>
+         </div>
+      </div>
+    );
+  }
+
+  // Derive active values (favoring Database over temporary session memory)
+  const isNewLearner = supabaseData.history.length === 0;
+  const currentStreak = supabaseData.profile?.streak || dashboardData.weeklyRhythm.streakDays || 0;
+  const totalPoints = supabaseData.profile?.points || 0;
+  const currentLevel = supabaseData.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -64,7 +86,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           </div>
           <div>
             <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">AI Tutor</h1>
-            <p className="text-xs text-slate-400 font-bold">{result.overall.estimatedLevel} Learner</p>
+            <p className="text-xs text-slate-400 font-bold">{currentLevel} Learner</p>
           </div>
         </div>
 
@@ -92,14 +114,23 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           </button>
         </nav>
 
-        {/* Quick Stats */}
-        <div className="bg-slate-900 rounded-2xl p-4 text-white mt-4">
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">Streak</p>
-          <p className="text-2xl font-extrabold text-orange-400 mb-1">{dashboardData.weeklyRhythm.streakDays} <span className="text-sm text-slate-500">days</span></p>
-          <p className="text-xs text-slate-400">
-            {dashboardData.isNewLearner ? "Complete first lesson to start" : `${dashboardData.weeklyRhythm.sessionsThisWeek} sessions this week`}
-          </p>
+        {/* Quick Stats Grid */}
+        <div className="bg-slate-900 rounded-2xl p-4 text-white mt-4 grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Streak</p>
+            <p className="text-xl font-extrabold text-orange-400 flex items-center gap-1"><Flame className="w-4 h-4"/>{currentStreak}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Points</p>
+            <p className="text-xl font-extrabold text-indigo-400">{totalPoints}</p>
+          </div>
         </div>
+
+        {onLogout && (
+          <button onClick={onLogout} className="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-slate-100 hover:text-rose-600 transition-colors">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -126,13 +157,47 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
               {/* Header */}
               <motion.div variants={staggerItem} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">Welcome Back</h1>
-                  <p className="text-slate-500 font-medium">{dashboardData.primaryGoalText}</p>
+                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">
+                    Welcome back, {supabaseData.user?.fullName || 'Learner'}
+                  </h1>
+                  <p className="text-slate-500 font-medium">
+                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData.primaryGoalText}
+                  </p>
                 </div>
                 <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
-                  <Play className="w-5 h-5 fill-white" /> {dashboardData.recommendedNextAction.label}
+                  <Play className="w-5 h-5 fill-white" /> {isNewLearner ? "Start Assessment" : "Continue Journey"}
                 </button>
               </motion.div>
+
+              {/* AI Learning Insights (Personalized Roadmap based on DB Errors) */}
+              {supabaseData.errors.length > 0 && (
+                <motion.section variants={staggerItem} className="bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20 my-6 border border-indigo-800">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                  <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                         <div className="p-1.5 bg-indigo-500/30 rounded-lg"><Brain className="w-4 h-4 text-indigo-300" /></div>
+                         <h2 className="text-sm font-bold text-indigo-300 uppercase tracking-widest">Personalized Roadmap Insights</h2>
+                      </div>
+                      <h3 className="text-2xl font-black mb-4">Targeted Practice: {supabaseData.errors[0].category.replace(/_/g, ' ')}</h3>
+                      <div className="bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-sm relative">
+                         <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-amber-400 rotate-45" />
+                         <p className="text-indigo-50 leading-relaxed font-medium ml-2">
+                           <strong className="text-amber-400">💡 Smart Tip:</strong> {supabaseData.errors[0].description}
+                         </p>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-1/3 flex flex-col gap-3">
+                       <button onClick={onStartSession} className="w-full bg-white text-indigo-900 hover:bg-slate-50 px-5 py-3.5 rounded-xl font-bold shadow-lg shadow-white/10 transition-all flex items-center justify-center gap-2">
+                         <Dumbbell className="w-4 h-4" /> Practice This Topic
+                       </button>
+                       <button onClick={() => setActiveTab('review')} className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-indigo-100 hover:text-white border border-indigo-700 px-5 py-3.5 rounded-xl font-bold transition-all">
+                         View All Insights
+                       </button>
+                    </div>
+                  </div>
+                </motion.section>
+              )}
 
               {/* Journey Card */}
               <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
@@ -170,26 +235,25 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </div>
               </motion.section>
 
-              {/* Skill Grid */}
+              {/* Real DB Skill Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {dashboardData.skillAnalytics.map(skill => {
-                  const isCapped = result.skills[skill.skillId]?.isCapped;
+                {supabaseData.skills.map(skill => {
+                  const hasError = supabaseData.errors.some(e => e.category.toLowerCase().includes(skill.skillId.toLowerCase()));
                   return (
-                    <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${skill.isPriority ? 'border-indigo-200 shadow-md shadow-indigo-100/50' : isCapped ? 'border-amber-100 shadow-sm' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
-                      {skill.isPriority && <div className="absolute top-0 right-0 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Priority</div>}
-                      {isCapped && <div className="absolute top-0 right-0 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5"/> Capped</div>}
+                    <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${hasError ? 'border-amber-200 shadow-md shadow-amber-100/50' : skill.isCapped ? 'border-amber-100 shadow-sm' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
+                      {hasError && <div className="absolute top-0 right-0 bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Needs Review</div>}
+                      {skill.isCapped && !hasError && <div className="absolute top-0 right-0 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5"/> Capped</div>}
                       <div className="flex items-center gap-2 text-slate-600 font-bold capitalize mb-3">{skillIcons[skill.skillId]} {skill.skillId}</div>
                       <div className="flex items-end gap-2 mb-2">
-                        <span className="text-3xl font-extrabold text-slate-900">{skill.currentScore}</span>
-                        {skill.progressDirection === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
-                        {skill.stability === 'fragile' && <AlertCircle className="w-4 h-4 text-amber-500 mb-1" />}
+                        <span className="text-3xl font-extrabold text-slate-900">{Math.round(skill.masteryScore)}</span>
+                        {skill.masteryScore > 75 && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
-                        <div className={`h-full ${skill.isPriority ? 'bg-indigo-500' : isCapped ? 'bg-amber-400' : 'bg-slate-400'}`} style={{ width: `${skill.currentScore}%` }} />
+                        <div className={`h-full ${hasError ? 'bg-amber-400' : 'bg-indigo-500'}`} style={{ width: `${skill.masteryScore}%` }} />
                       </div>
                       <div className="flex justify-between text-xs font-bold text-slate-400">
-                        <span>Confidence</span>
-                        <span className={`px-1.5 py-0.5 rounded ${skill.confidenceBand === 'high' ? 'bg-emerald-50 text-emerald-600' : skill.confidenceBand === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>{skill.confidenceBand}</span>
+                        <span>Evidence Collected</span>
+                        <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{skill.evidenceCount} hits</span>
                       </div>
                     </motion.div>
                   );
@@ -677,14 +741,49 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
             <motion.div key="history" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
               <motion.div variants={staggerItem}>
                 <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Session History</h2>
-                <p className="text-slate-500 text-sm">Your recent learning sessions and outcomes.</p>
+                <p className="text-slate-500 text-sm">Your recent overarching assessment records pulled dynamically from the server.</p>
               </motion.div>
-              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                <div className="text-center py-12">
-                  <History className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <p className="text-slate-500 font-medium">Complete your first practice session to see history here.</p>
-                  <button onClick={onStartSession} className="mt-4 text-indigo-600 font-bold text-sm hover:text-indigo-800">Start a Session →</button>
-                </div>
+              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative">
+                {supabaseData.history.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100">
+                      <Target className="w-8 h-8 text-indigo-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-2">No Assessments Completed</h3>
+                    <p className="text-slate-500 font-medium mb-6">Complete your first practice session to generate a comprehensive CEFR report card.</p>
+                    <button onClick={onStartSession} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-indigo-200 transition-all">Start Your First Assessment</button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {supabaseData.history.map((record, i) => (
+                      <div key={record.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group bg-slate-50/50">
+                        <div className="flex items-center gap-4">
+                           <div className="hidden md:flex w-12 h-12 bg-white rounded-full items-center justify-center border border-slate-200 shadow-sm">
+                             <History className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
+                           </div>
+                           <div>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{new Date(record.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                             <div className="flex items-center gap-3">
+                               <h4 className="text-lg font-extrabold text-slate-800">Adaptive Diagnostics</h4>
+                               <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] uppercase font-black tracking-widest rounded">Score: {record.overallLevel}</span>
+                             </div>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                           <div className="text-right hidden md:block mr-2">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Confidence</p>
+                             <p className="text-sm font-bold text-slate-700">{Math.round(record.confidence * 100)}% reliability</p>
+                           </div>
+                           {onViewHistoryReport && (
+                             <button onClick={() => onViewHistoryReport(record.id)} className="w-full md:w-auto px-4 py-2 bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg text-sm font-bold transition-colors">
+                               View Detailed Report
+                             </button>
+                           )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.section>
             </motion.div>
           )}

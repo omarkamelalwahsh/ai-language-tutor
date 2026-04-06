@@ -70,9 +70,13 @@ export async function evaluateWithGroq(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), LLMConfig.requestTimeoutMs);
 
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${LLMConfig.backendUrl}/api/evaluate`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
       signal: controller.signal,
     });

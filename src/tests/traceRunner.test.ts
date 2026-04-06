@@ -14,7 +14,7 @@ import type { AssessmentQuestion, AssessmentSkill } from '../types/assessment';
 
 vi.mock('../services/groqEvaluator', () => ({ evaluateWithGroq: vi.fn() }));
 
-function baseLLM(overrides: Partial<groqEvaluator.DescriptorEvaluationResult> = {}): groqEvaluator.DescriptorEvaluationResult {
+function baseLLM(overrides: Record<string, any> = {}): any {
   return {
     semantic_accuracy: 0.5, task_completion: 0.5, lexical_sophistication: 0.5,
     syntactic_complexity: 0.5, coherence: 0.5, grammar_control: 0.5,
@@ -28,7 +28,7 @@ function est(engine: AdaptiveAssessmentEngine, skill: string) {
 }
 
 function lastEval(engine: AdaptiveAssessmentEngine) {
-  const evals = engine.getTaskEvaluations();
+  const evals = engine.getEvaluations();
   return evals[evals.length - 1];
 }
 

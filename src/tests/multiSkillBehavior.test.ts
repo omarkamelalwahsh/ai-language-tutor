@@ -98,7 +98,7 @@ function makeGrammarMCQ(overrides?: Partial<AssessmentQuestion>): AssessmentQues
 }
 
 /** Builds a mock LLM result with fine-grained channel control */
-function mockLLM(overrides: Partial<groqEvaluator.DescriptorEvaluationResult> = {}): groqEvaluator.DescriptorEvaluationResult {
+function mockLLM(overrides: Record<string, any> = {}): any {
   return {
     semantic_accuracy: 0.5,
     task_completion: 0.5,
@@ -148,7 +148,7 @@ describe('Trace 1: Listening + written response propagation', () => {
 
     const result = await engine.submitAnswer(question, 'He late because traffic. 30 minute.', 3000);
     const state = engine.getState();
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     // ── Verify channel extraction ──
@@ -243,7 +243,7 @@ describe('Trace 2: Writing response affecting grammar/vocabulary state', () => {
       8000
     );
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     console.log('\n=== TRACE 2: Writing -> Grammar/Vocab Propagation ===');
@@ -299,7 +299,7 @@ describe('Trace 3: Strong comprehension + weak expression split', () => {
 
     await engine.submitAnswer(question, 'He late. Traffic bad. 30 minute wait.', 4000);
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     console.log('\n=== TRACE 3: Comprehension vs Expression Split ===');
@@ -506,7 +506,7 @@ describe('Trace 6: Weight application integrity', () => {
 
     await engine.submitAnswer(customWeightQuestion, 'He is going to be late because of traffic.', 3000);
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     console.log('\n=== TRACE 6: Weight Application Integrity ===');
@@ -538,7 +538,7 @@ describe('Trace 6: Weight application integrity', () => {
 
     await engine.submitAnswer(noWeightsQuestion, 'greeting', 2000);
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     console.log('Question had no evidenceWeights defined.');
@@ -561,7 +561,7 @@ describe('Trace 6: Weight application integrity', () => {
 
     await engine.submitAnswer(customQ, 'went', 1500);
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     // The engine must NOT add vocabulary or any other skill that wasn't in evidenceWeights
@@ -615,7 +615,7 @@ describe('Trace 7: Debug payload audit — full interaction trace', () => {
       12000
     );
 
-    const evals = engine.getTaskEvaluations();
+    const evals = engine.getEvaluations();
     const lastEval = evals[evals.length - 1];
 
     console.log('\n=== TRACE 7: FULL DEBUG PAYLOAD AUDIT ===');

@@ -79,9 +79,13 @@ export class AdaptiveAssessmentEngine {
   private banks: Record<CEFRLevel, QuestionBankItem[]> = {
     'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
   };
-  private loadedLevels = new Set<CEFRLevel>();
+  private loadedLevels: Set<CEFRLevel> = new Set();
+  
+  public assessmentId: string; // Expose for routing
 
   constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile) {
+    this.assessmentId = "session-" + Math.random().toString(36).substr(2, 9);
+    
     // 🛡️ Always start at B1 for balanced diagnostic coverage unless explicitly overridden
     const finalStartingBand = startingBand || 'B1';
     this.selector = new AdaptiveSelector(this.banks);
@@ -143,7 +147,11 @@ export class AdaptiveAssessmentEngine {
     
     console.log(`[Engine] Fetching randomized question bank from database...`);
     try {
-      const res = await fetch('/api/questions');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/questions', { headers });
       if (!res.ok) throw new Error("Failed to fetch questions from API");
       
       const allItems: QuestionBankItem[] = await res.json();
@@ -336,7 +344,7 @@ export class AdaptiveAssessmentEngine {
          currentBand: efsetItem.target_cefr,
          question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
          learnerAnswer: answer,
-         assessmentId: "session-" + Math.random().toString(36).substr(2, 9),
+         assessmentId: this.assessmentId, // Bind to instance session
          isMCQ: true,
          isCorrect
        };
@@ -346,9 +354,13 @@ export class AdaptiveAssessmentEngine {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
 
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const response = await fetch('/api/evaluate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal
       });
@@ -458,7 +470,7 @@ export class AdaptiveAssessmentEngine {
            target_cefr: efsetItem.target_cefr as any
          },
          learnerAnswer: answer,
-         assessmentId: "session-" + Math.random().toString(36).substr(2, 9), // A temporary session ID generator, would ideally come from authentication state
+         assessmentId: this.assessmentId, // Bind to instance session
          descriptors: {}
        });
 
@@ -745,6 +757,28 @@ export class AdaptiveAssessmentEngine {
 
   public forceComplete(): void {
     this.state.completed = true;
+  }
+
+  public async completeAssessment(): Promise<void> {
+     try {
+       const report = this.getOutcome();
+       const token = localStorage.getItem('auth_token');
+       const headers: Record<string, string> = { "Content-Type": "application/json" };
+       if (token) headers['Authorization'] = `Bearer ${token}`;
+
+       await fetch('/api/assessments/complete', {
+         method: 'POST',
+         headers,
+         body: JSON.stringify({
+            assessmentId: this.assessmentId,
+            overallLevel: report.overallBand,
+            confidence: report.overallConfidence
+         })
+       });
+       console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
+     } catch (e) {
+       console.error(`[Engine] Failed to commit session:`, e);
+     }
   }
 
   public getState(): AdaptiveAssessmentState {

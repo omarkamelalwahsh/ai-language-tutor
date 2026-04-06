@@ -13,26 +13,8 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "/server/evaluate.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/evaluate.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1",
-      "continue": true
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/server/evaluate.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
