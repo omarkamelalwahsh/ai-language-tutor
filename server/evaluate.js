@@ -167,8 +167,11 @@ app.post("/api/evaluate", async (req, res) => {
     const parsed = JSON.parse(response.choices[0].message.content);
     
     // Fire-and-forget saving to Supabase (via SDK)
+    const userId = payload.userId; // Ensure userId is passed from frontend
+    
     supabase.from('assessment_responses').insert([{
         assessment_id: payload.assessmentId || "session-" + Date.now(),
+        user_id: userId, // CRITICAL: Link to user
         question_id: (await supabase.from('question_bank_items').select('id').eq('external_id', payload.question.id).single()).data?.id,
         skill: payload.skill,
         question_level: payload.question.target_cefr,
@@ -185,6 +188,33 @@ app.post("/api/evaluate", async (req, res) => {
   } catch (err) {
     console.error("[Evaluator] Error:", err.message);
     return res.status(500).json({ error: err.message });
+  }
+});
+
+// --- NEW SYNC ENDPOINT ---
+app.get("/api/user/history/:userId", async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    // 1. Get latest profile (for current level etc.)
+    const { data: profile } = await supabase
+      .from('learner_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    // 2. Get assessment responses (last 50 for performance)
+    const { data: history } = await supabase
+      .from('assessment_responses')
+      .select('*, question_bank_items(prompt, target_cefr)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    res.json({ profile, history: history || [] });
+  } catch (err) {
+    console.error("[History API] Error:", err);
+    res.status(500).json({ error: "Failed to fetch user history" });
   }
 });
 

@@ -48,6 +48,24 @@ import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuil
 // Constants
 // ============================================================================
 
+export type EvaluationPayload = {
+  userId?: string | null; // Link to user for persistence
+  assessmentId: string; // Add assessment ID
+  skill: "reading" | "writing" | "listening" | "speaking" | "vocabulary" | "grammar";
+  currentBand: DifficultyBand;
+  question: {
+    id: string;
+    prompt: string;
+    type: string;
+    subskills: string[];
+    semanticIntent?: string;
+    requiredContentPoints?: string[];
+    target_cefr?: DifficultyBand; // Added to map back to original question level
+  };
+  learnerAnswer: string;
+  descriptors: Partial<Record<DifficultyBand, string[]>>;
+};
+
 const ALL_SKILLS: AssessmentSkill[] = ['reading', 'writing', 'listening', 'speaking', 'vocabulary', 'grammar'];
 const BAND_VALUE: Record<DifficultyBand, number> = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
 
@@ -274,9 +292,13 @@ export class AdaptiveAssessmentEngine {
 
        isCorrect = answer.trim() === correctText.trim();
     }
+    
+    // Get userId from localStorage for the engine
+    const userId = localStorage.getItem('auth_user_id');
 
     if (!isMCQ) {
        const llmOutput = await evaluateWithGroq({
+         userId, // CRITICAL: Forward userId to server
          skill: efsetItem.skill as any,
          currentBand: efsetItem.target_cefr as any,
          question: {

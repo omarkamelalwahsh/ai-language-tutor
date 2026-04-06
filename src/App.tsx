@@ -125,7 +125,63 @@ export default function App() {
       
       triggerDynamicJourney();
     }
-  }, [assessmentResult]); // Only run when assessmentResult changes
+  }, [assessmentResult]);
+
+  // ☁️ Cloud Sync: Fetch History from Supabase if missing
+  React.useEffect(() => {
+    const userId = localStorage.getItem('auth_user_id');
+    const token = localStorage.getItem('auth_token');
+
+    if (userId && token && !assessmentResult) {
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(`/api/user/history/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const { history, profile } = await res.json();
+            if (history && history.length > 0) {
+              console.log('[App] Cloud history found, syncing...');
+              // Reconstruct a basic result from history for the dashboard
+              // This is a simplified reconstruction
+              const latest = history[0];
+              const reconstructed: AssessmentSessionResult = {
+                learnerId: userId,
+                sessionId: latest.assessment_id,
+                generatedAt: latest.created_at,
+                overall: {
+                  estimatedLevel: latest.answer_level as any,
+                  confidence: 0.8,
+                  rationale: ["Synchronized from cloud history."]
+                },
+                behavioralProfile: {
+                  pace: "moderate",
+                  confidenceStyle: "balanced",
+                  selfCorrectionRate: 0.5
+                },
+                metadata: {
+                  assessmentReason: "Cloud Sync Recovery"
+                },
+                skills: {
+                  listening: { skill: 'listening', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
+                  reading: { skill: 'reading', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
+                  writing: { skill: 'writing', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
+                  speaking: { skill: 'speaking', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
+                  vocabulary: { skill: 'vocabulary', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
+                  grammar: { skill: 'grammar', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' }
+                },
+                recommendedNextTasks: ["Continue Learning Journey"]
+              };
+              setAssessmentResult(reconstructed);
+            }
+          }
+        } catch (err) {
+          console.error('[App] Cloud sync failed:', err);
+        }
+      };
+      fetchHistory();
+    }
+  }, [view]); // Run whenever view changes to catch newly logged in users
 
   const navigateTo = (newView: ViewState) => {
     setView(newView);
