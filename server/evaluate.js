@@ -4,6 +4,8 @@ import cors from "cors";
 import OpenAI from "openai";
 import { supabase } from "./supabaseClient.js";
 import { authRouter } from "./auth.js";
+import formidable from 'formidable';
+import fs from 'fs';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -65,8 +67,20 @@ if (process.env.GROQ_API_KEY) {
 }
 
 const SYSTEM_PROMPT = `
-You are a CEFR-aligned linguistic signal extractor.
-Return ONLY valid JSON with linguistic scores.
+You are a CEFR-aligned linguistic signal extractor. 
+Your goal is to extract deep linguistic features from learner responses.
+For SPEAKING/WRITING, score 0-1 for: content_accuracy, grammar_control, lexical_range, syntactic_complexity, coherence.
+If the response is a transcription of a voice recording, be lenient with minor fillers but strict with pronunciation-derived errors.
+Return ONLY valid JSON:
+{
+  "suggestedBand": "A1"|"A2"|"B1"|"B2"|"C1"|"C2",
+  "isCorrect": true|false,
+  "confidence": 0..1,
+  "reasoning": "Brief rationale",
+  "lexical_sophistication": 0..1,
+  "syntactic_complexity": 0..1,
+  "grammar_control": 0..1
+}
 `.trim();
 
 function clamp01(value) {
@@ -278,6 +292,38 @@ app.post('/api/evaluate', async (req, res) => {
   }
 });
 
+// --- SPEECH TO TEXT ENDPOINT ---
+app.post('/api/transcribe', async (req, res) => {
+  const form = formidable({});
+  
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error('[Transcribe] Form error:', err);
+      return res.status(500).json({ error: "Failed to parse audio data" });
+    }
+
+    try {
+      const audioFile = files.audio?.[0] || files.file?.[0];
+      if (!audioFile) throw new Error("No audio file found in request");
+
+      console.log('[Transcribe] Processing audio:', audioFile.originalFilename);
+
+      const transcript = await llmClient.audio.transcriptions.create({
+        file: fs.createReadStream(audioFile.filepath),
+        model: "whisper-large-v3",
+        language: "en",
+        response_format: "json",
+      });
+
+      console.log('[Transcribe] Result:', transcript.text);
+      res.json({ text: transcript.text });
+    } catch (apiErr) {
+      console.error('[Transcribe] API Error:', apiErr);
+      res.status(500).json({ error: apiErr.message });
+    }
+  });
+});
+
 // --- NEW SYNC ENDPOINT ---
 app.get("/api/user/history/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -285,9 +331,9 @@ app.get("/api/user/history/:userId", async (req, res) => {
   try {
     // 1. Get latest profile (for current level etc.)
     const { data: profile } = await supabase
-      .from('learner_profiles')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single();
 
     // 2. Get assessment responses (last 50 for performance)

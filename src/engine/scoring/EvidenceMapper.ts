@@ -34,11 +34,13 @@ export class EvidenceMapper {
        baseScore = (contentScore * 0.6) + (languageScore * 0.4);
     }
     
-    // 2. Map via policy
+    // 🛡️ SAFENET: Ensure evidence_policy exists to avoid Object.entries TypeError
     const evidences: SkillEvidence[] = [];
     const taskPower = getEvidentialPower(item.task_type);
+    const policyMap = item.evidence_policy || {};
     
-    for (const [skillStr, policy] of Object.entries(item.evidence_policy)) {
+    for (const [skillStr, policy] of Object.entries(policyMap)) {
+        const castPolicy = policy as any; // Cast to access sub-properties safely
         // ❌ Speaking Guard: Zero credit for 'Speaking' mastery if the user typed 
         // their response. No audio = no speaking evidence.
         if (skillStr === 'speaking' && actualResponseMode === 'typed') {
@@ -46,12 +48,12 @@ export class EvidenceMapper {
         }
        
        evidences.push({
-           skill: skillStr,
-           score: baseScore,
-           weight: policy.weight * taskPower,
-           direct: policy.direct,
-           numericDifficulty
-       });
+            skill: skillStr as SkillName,
+            score: baseScore,
+            weight: (castPolicy.weight || 0.5) * taskPower,
+            direct: !!castPolicy.direct,
+            numericDifficulty
+        });
     }
     
     return evidences;

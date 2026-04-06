@@ -49,7 +49,7 @@ authRouter.post('/trainee/signup', async (req, res) => {
     // Create Skill States
     const skills = ['listening', 'reading', 'writing', 'speaking', 'grammar', 'vocabulary'];
     const skillData = skills.map(skill => ({ user_id: user.id, skill }));
-    
+
     const { error: skillsError } = await supabase
       .from('skill_states')
       .insert(skillData);
@@ -59,10 +59,10 @@ authRouter.post('/trainee/signup', async (req, res) => {
     // Generate token
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ 
-      message: 'Signup successful', 
-      token, 
-      user: { ...user, onboarding_complete: false } 
+    res.status(201).json({
+      message: 'Signup successful',
+      token,
+      user: { ...user, onboarding_complete: false }
     });
   } catch (err) {
     console.error('[Signup Error]', err);
@@ -92,25 +92,25 @@ authRouter.post('/trainee/login', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-    
+
     const { data: profile } = await supabase
-      .from('learner_profiles')
+      .from('profiles')
       .select('onboarding_complete')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     const onboarding_complete = profile?.onboarding_complete || false;
 
-    res.json({ 
-      message: 'Login successful', 
-      token, 
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email, 
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
         role: user.role,
         onboarding_complete
-      } 
+      }
     });
   } catch (err) {
     console.error('[Login Error]', err);
@@ -121,18 +121,18 @@ authRouter.post('/trainee/login', async (req, res) => {
 // 3. Onboarding Completion
 authRouter.post('/onboarding/complete', async (req, res) => {
   const { userId, cefrLevel, interests } = req.body;
-  
+
   try {
     const { data, error } = await supabase
       .from('learner_profiles')
-      .update({ 
-        onboarding_complete: true, 
+      .update({
+        onboarding_complete: true,
         overall_band: cefrLevel
       })
       .eq('user_id', userId);
 
     if (error) throw error;
-    
+
     return res.status(200).json({ message: 'Onboarding finished successfully!' });
   } catch (err) {
     console.error('[Onboarding Error]', err);

@@ -75,7 +75,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ userId, cefrLevel: 'A1', interests: state.topics })
+          body: JSON.stringify({ 
+            userId, 
+            cefrLevel: state.goal === 'professional' ? 'B1' : 'A2', 
+            interests: state.topics 
+          })
         }).catch(err => {
           console.error('[Onboarding] Background completion failed:', err);
         }).finally(() => {

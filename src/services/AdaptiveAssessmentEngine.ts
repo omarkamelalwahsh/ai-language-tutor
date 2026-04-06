@@ -272,16 +272,18 @@ export class AdaptiveAssessmentEngine {
     }
     
     this.state.questionsAnswered = this.askedQuestionIds.size;
-    const efsetItem = this.state.currentQuestion as EFSETQuestionItem;
-    // 🛡️ NULL GUARD: Exit if question or relevant data is missing
-    if (!efsetItem || !efsetItem.metadata) {
+    
+    // 🛡️ SAFENET: Ensure we have the question item and its metadata
+    // Cast to unknown first to satisfy TypeScript
+    const efsetItem = (question as unknown) as QuestionBankItem;
+    if (!efsetItem || !efsetItem.prompt) {
       console.error("[Engine] Attempted to submit with missing question context.");
       return { correct: false, score: 0 };
     }
 
-    const correctText = efsetItem.content?.options 
-      ? efsetItem.content.options.find(o => o.isCorrect)?.text 
-      : efsetItem.content?.answer;
+    const correctText = typeof efsetItem.answer_key === 'string' 
+      ? efsetItem.answer_key 
+      : (efsetItem.answer_key as any)?.answer || '';
 
     // 2. LLM Signal Extraction
     let signal: LLMSignal = {
