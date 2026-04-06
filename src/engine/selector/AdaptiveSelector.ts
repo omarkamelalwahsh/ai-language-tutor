@@ -141,7 +141,10 @@ export class AdaptiveSelector {
   private pickFromLevel(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
     const bank = this.banks[level] || [];
     const available = bank.filter(
-      q => !askedIds.has(q.id) && (q.skill === skill || (q.evidence_policy && skill in q.evidence_policy))
+      q => !askedIds.has(q.id) && (
+        (q.target_cefr === level) && // Explicit double-check
+        (q.skill === skill || (q.evidence_policy && skill in q.evidence_policy))
+      )
     );
     
     if (available.length === 0) return null;
