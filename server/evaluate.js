@@ -157,7 +157,7 @@ authRouter.get('/leaderboard', async (req, res) => {
     // but here we derive it from activity.
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, target_cefr, onboarding_complete')
+      .select('id, display_name, last_assessed_level, target_cefr, onboarding_complete')
       .eq('onboarding_complete', true)
       .limit(50);
 
@@ -168,10 +168,10 @@ authRouter.get('/leaderboard', async (req, res) => {
       userId: user.id,
       displayName: user.display_name || "Aspiring Learner",
       rank: index + 1,
-      score: 1000 + (data.length - index) * 100, // Derived score for now
+      score: 1000 + (data.length - index) * 100, // Score logic can be refined later
       streak: 5,
       completedModules: 12,
-      level: user.target_cefr || "B1",
+      level: user.last_assessed_level || user.target_cefr || "B1",
       lastActivityAt: "Active",
       teamName: "Global"
     }));
@@ -204,6 +204,7 @@ authRouter.get('/admin/stats', async (req, res) => {
 // Final handler check
 authRouter.post('/evaluate', async (req, res) => {
   const payload = req.body;
+  console.log('[Server] Evaluation request received for user:', payload.userId);
   
   // (Assuming validation happened or simplified for refactor brevity)
   if (!llmClient || circuitBreaker.isOpen()) {
@@ -222,28 +223,40 @@ authRouter.post('/evaluate', async (req, res) => {
 
     const parsed = JSON.parse(response.choices[0].message.content);
     
-    // Fire-and-forget saving to Supabase (via SDK)
-    const userId = payload.userId; // Ensure userId is passed from frontend
+    // Determine the user ID to use for logging
+    const targetUserId = payload.userId || 'anonymous-session';
     
-    supabase.from('assessment_responses').insert([{
-        assessment_id: payload.assessmentId || "session-" + Date.now(),
-        user_id: userId, // CRITICAL: Link to user
-        question_id: (await supabase.from('question_bank_items').select('id').eq('external_id', payload.question.id).single()).data?.id,
+    // LOGGING: Save to Supabase
+    const { data: insertData, error: insertError } = await supabase
+      .from('assessment_responses')
+      .insert({
+        user_id: targetUserId === 'anonymous-session' ? null : targetUserId,
         skill: payload.skill,
-        question_level: payload.question.target_cefr,
-        answer_level: parsed.estimated_band,
-        user_answer: payload.learnerAnswer,
-        is_correct: parsed.task_completion > 0.7,
-        score: parsed.task_completion,
-        explanation: parsed
-    }]).then(({ error }) => {
-        if (error) console.error("❌ Failed to log result to Supabase:", error.message);
-    });
+        current_band: payload.currentBand,
+        question_id: payload.question.id,
+        answer: payload.learnerAnswer,
+        answer_level: parsed.suggestedBand || payload.currentBand,
+        explanation: {
+          rationale: parsed.reasoning || "Automated assessment",
+          confidence: parsed.confidence || 0.8,
+          assessment_id: payload.assessmentId || 'direct-eval'
+        }
+      });
 
-    return res.json(parsed);
+    if (insertError) console.error('[Supabase Error] Insert failed:', insertError.message);
+
+    // CRITICAL: Update User Profile Level if they are logged in
+    if (targetUserId !== 'anonymous-session') {
+      await supabase
+        .from('profiles')
+        .update({ last_assessed_level: parsed.suggestedBand || payload.currentBand })
+        .eq('id', targetUserId);
+    }
+
+    return res.status(200).json(parsed);
   } catch (err) {
-    console.error("[Evaluator] Error:", err.message);
-    return res.status(500).json({ error: err.message });
+    console.error('[Server Error] Evaluation crash:', err);
+    res.status(500).json({ error: 'Internal evaluation error' });
   }
 });
 
