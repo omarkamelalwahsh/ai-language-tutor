@@ -132,56 +132,62 @@ export default function App() {
     const userId = localStorage.getItem('auth_user_id');
     const token = localStorage.getItem('auth_token');
 
-    if (userId && token && !assessmentResult) {
+    if (userId && token && !assessmentResult && (view === 'DASHBOARD' || view === 'AUTH' || view === 'ONBOARDING')) {
       const fetchHistory = async () => {
         try {
           const res = await fetch(`/api/user/history/${userId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
-          if (res.ok) {
-            const { history, profile } = await res.json();
-            if (history && history.length > 0) {
-              console.log('[App] Cloud history found, syncing...');
-              // Reconstruct a basic result from history for the dashboard
-              // This is a simplified reconstruction
-              const latest = history[0];
-              const reconstructed: AssessmentSessionResult = {
-                learnerId: userId,
-                sessionId: latest.assessment_id,
-                generatedAt: latest.created_at,
-                overall: {
-                  estimatedLevel: latest.answer_level as any,
-                  confidence: 0.8,
-                  rationale: ["Synchronized from cloud history."]
-                },
-                behavioralProfile: {
-                  pace: "moderate",
-                  confidenceStyle: "balanced",
-                  selfCorrectionRate: 0.5
-                },
-                metadata: {
-                  assessmentReason: "Cloud Sync Recovery"
-                },
-                skills: {
-                  listening: { skill: 'listening', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
-                  reading: { skill: 'reading', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
-                  writing: { skill: 'writing', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
-                  speaking: { skill: 'speaking', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
-                  vocabulary: { skill: 'vocabulary', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' },
-                  grammar: { skill: 'grammar', estimatedLevel: latest.answer_level as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'stable' }
-                },
-                recommendedNextTasks: ["Continue Learning Journey"]
-              };
-              setAssessmentResult(reconstructed);
+          
+          if (!res.ok) return;
+
+          const data = await res.json();
+          const { history } = data;
+
+          if (history && history.length > 0) {
+            console.log(`[App] ${history.length} cloud responses found. Reaffirming state...`);
+            
+            // If user has history but we are in AUTH or ONBOARDING, they might need to RESUME
+            // For now, let's just reconstruct enough for the dashboard or transition
+            const latest = history[0];
+            const reconstructed: AssessmentSessionResult = {
+              learnerId: userId,
+              sessionId: latest.assessment_id || 'restored-session',
+              generatedAt: latest.created_at,
+              overall: {
+                estimatedLevel: (latest.answer_level || 'B1') as any,
+                confidence: 0.8,
+                rationale: ["Restored from your previous progress."]
+              },
+              behavioralProfile: { pace: "moderate", confidenceStyle: "balanced", selfCorrectionRate: 0.5 },
+              metadata: { assessmentReason: "Resumed Session" },
+              skills: {
+                listening: { skill: 'listening', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' },
+                reading: { skill: 'reading', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' },
+                writing: { skill: 'writing', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' },
+                speaking: { skill: 'speaking', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' },
+                vocabulary: { skill: 'vocabulary', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' },
+                grammar: { skill: 'grammar', estimatedLevel: (latest.answer_level || 'B1') as any, confidence: { band: 'medium', score: 0.5, reasons: [] }, evidenceCount: 1, descriptors: [], strengths: [], weaknesses: [], taskCoverage: { total: 1, completed: 1, valid: 1 }, subscores: [], status: 'provisional' }
+              },
+              recommendedNextTasks: ["Continue Assessment"]
+            };
+
+            setAssessmentResult(reconstructed);
+            
+            // LOGIC: If they have less than e.g. 5 answers, they are probably still in the diagnostic
+            if (history.length < 10 && view === 'AUTH') {
+              console.log('[App] Partial history detected. Suggesting resume...');
+              navigateTo('DIAGNOSTIC');
             }
           }
         } catch (err) {
-          console.error('[App] Cloud sync failed:', err);
+          console.error('[App] Cloud history sync quietly failed (Vercel might not be updated yet):', err);
         }
       };
       fetchHistory();
     }
-  }, [view]); // Run whenever view changes to catch newly logged in users
+  }, [view]); 
+
 
   const navigateTo = (newView: ViewState) => {
     setView(newView);

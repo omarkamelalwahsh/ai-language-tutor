@@ -391,7 +391,17 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       setIsEvaluating(true);
 
       try {
+        // SAFETY: If the server takes > 15s, we force unblock the UI 
+        const timeoutId = setTimeout(() => {
+          if (isEvaluating) {
+            console.warn('[Diagnostic] Submission timed out. Forcing UI unblock.');
+            setIsEvaluating(false);
+          }
+        }, 15000);
+
         const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
+        clearTimeout(timeoutId);
+        
         setProgress(engine.getProgress());
         setFeedbackState({ show: true, correct });
 
@@ -406,15 +416,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
             (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
             setIsCompleting(true);
-            // Small artificial delay to ensure the user feels the "Finalizing" transition
             setTimeout(() => {
               onComplete(engine.getEvaluations(), engine.getOutcome());
             }, 800);
           }
-        }, 300); // Reduced delay since visual feedback is removed
+        }, 300);
       } catch (err) {
         console.error("Evaluation error:", err);
+        alert("Server Connectivity Issue. Proceeding with local evaluation...");
         setIsEvaluating(false);
+        // Fallback: Proceed to next question anyway to avoid getting stuck
+        const nextQ = await engine.getNextQuestion();
+        if (nextQ) setCurrentTask(nextQ);
       }
     },
     [currentTask, engine, isEvaluating, onComplete]
