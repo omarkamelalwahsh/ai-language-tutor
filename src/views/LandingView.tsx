@@ -101,32 +101,32 @@ const BrowserWindowMockup = () => (
 
 export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn }) => {
   return (
-    <FadeTransition className="min-h-screen bg-slate-950 text-slate-200 overflow-x-hidden selection:bg-indigo-500/30">
+    <FadeTransition className="min-h-screen bg-slate-50 text-slate-800 overflow-x-hidden selection:bg-indigo-500/30">
       {/* Background Glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/5 rounded-full blur-[120px]" />
       </div>
 
       {/* Navigation */}
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4">
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between shadow-2xl shadow-black/50">
+        <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl px-6 py-4 flex items-center justify-between shadow-xl shadow-slate-200/50">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                <BrainCircuit className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <span className="text-lg md:text-xl font-bold text-white tracking-tight">AI Tutor<span className="text-indigo-500">.</span></span>
+            <span className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">AI Tutor<span className="text-indigo-600">.</span></span>
           </div>
           <div className="flex items-center gap-2 md:gap-6">
             <button 
               onClick={onSignIn}
-              className="text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-colors"
+              className="text-xs md:text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
             >
               Login
             </button>
             <button 
               onClick={onGetStarted}
-              className="px-4 md:px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] md:text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 active:scale-95"
+              className="px-4 md:px-6 py-2.5 bg-indigo-600 hover:bg-slate-900 text-white text-[11px] md:text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 active:scale-95"
             >
               Get Started <ChevronRight className="w-3 md:w-4 h-3 md:h-4 text-indigo-200" />
             </button>
@@ -142,19 +142,14 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 backdrop-blur-lg">
-               <Zap className="w-4 h-4 text-amber-400" />
-               <span className="text-[11px] font-bold text-amber-100 uppercase tracking-[0.2em] px-1">Powered by Gemini 1.5 Pro</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.05] tracking-tight text-white">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.05] tracking-tight text-slate-900">
               Master Languages with AI that <br className="hidden lg:block"/>
-              <span className="bg-gradient-to-r from-indigo-400 via-white to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-600 via-indigo-400 to-purple-600 bg-clip-text text-transparent">
                 Evolves with You
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+            <p className="text-lg md:text-xl text-slate-500 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
               Quantitative language assessment meets hyper-personalized curriculum. 
               Our engine identifies your CEFR gaps and builds a unique path to proficiency.
             </p>
@@ -162,20 +157,20 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24">
               <button 
                 onClick={onGetStarted}
-                className="w-full sm:w-auto px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all flex items-center justify-center gap-3 active:scale-95 group"
+                className="w-full sm:w-auto px-10 py-5 bg-indigo-600 hover:bg-slate-900 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all flex items-center justify-center gap-3 active:scale-95 group"
               >
                 Start Free Assessment <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button 
                 onClick={onSignIn}
-                className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-lg font-bold rounded-2xl backdrop-blur-xl transition-all flex items-center justify-center gap-3"
+                className="w-full sm:w-auto px-10 py-5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-lg font-bold rounded-2xl shadow-xl shadow-slate-100 transition-all flex items-center justify-center gap-3"
               >
                 View Demo
               </button>
             </div>
           </motion.div>
 
-          {/* Premium Browser Mockup */}
+          {/* Business Preview */}
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
@@ -187,11 +182,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
       </header>
 
       {/* Feature Grid: WHY US? */}
-      <section className="py-24 px-6 relative bg-slate-950">
+      <section className="py-24 px-6 relative bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-sm font-bold text-indigo-400 uppercase tracking-[0.3em] mb-4">Precision Engine</h2>
-            <h3 className="text-4xl md:text-5xl font-black text-white">Engineered for Results.</h3>
+            <h2 className="text-sm font-bold text-indigo-600 uppercase tracking-[0.3em] mb-4">Precision Engine</h2>
+            <h3 className="text-4xl md:text-5xl font-black text-slate-900">Engineered for Results.</h3>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -200,35 +195,35 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
                 icon: <Target className="w-8 h-8" />, 
                 title: "Personalized Error Tracking", 
                 desc: "We don't just score you; we build an error profile from your speech and text to target remediation exactly where you fail.",
-                color: "text-rose-400",
-                bg: "bg-rose-500/10"
+                color: "text-rose-600",
+                bg: "bg-rose-50"
               },
               { 
                 icon: <Mic className="w-8 h-8" />, 
                 title: "Speech Analysis", 
                 desc: "Gemini-powered evaluation of your pronunciation, fluency, and prosody. Get feedback that sounds like it's from a native tutor.",
-                color: "text-indigo-400",
-                bg: "bg-indigo-500/10"
+                color: "text-indigo-600",
+                bg: "bg-indigo-50"
               },
               { 
                 icon: <BarChart3 className="w-8 h-8" />, 
                 title: "Detailed CEFR Reporting", 
                 desc: "Real-time mapping of your skills across global standards. Know your precise level from A1 to C2 with academic rigor.",
-                color: "text-emerald-400",
-                bg: "bg-emerald-500/10"
+                color: "text-emerald-600",
+                bg: "bg-emerald-50"
               }
             ].map((feature, i) => (
               <motion.div 
                 key={i}
                 whileHover={{ y: -10 }}
-                className="p-10 rounded-[2.5rem] bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-indigo-500/30 transition-all flex flex-col gap-6"
+                className="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-white hover:shadow-2xl hover:shadow-indigo-500/10 transition-all flex flex-col gap-6"
               >
                 <div className={`w-16 h-16 rounded-2xl ${feature.bg} ${feature.color} flex items-center justify-center`}>
                   {feature.icon}
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-4">{feature.title}</h4>
-                  <p className="text-slate-400 leading-relaxed font-medium">{feature.desc}</p>
+                  <h4 className="text-xl font-bold text-slate-900 mb-4">{feature.title}</h4>
+                  <p className="text-slate-500 leading-relaxed font-medium">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -237,8 +232,8 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* Structured Path Section */}
-      <section className="py-32 px-6 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/5 rounded-full blur-[160px] pointer-events-none" />
+      <section className="py-32 px-6 relative overflow-hidden bg-slate-50">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[160px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24">
           <div className="flex-1 space-y-12">
@@ -255,11 +250,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
                 viewport={{ once: true }}
                 className="flex gap-6 group"
               >
-                <div className="shrink-0 w-12 h-12 bg-indigo-500/10 border border-white/5 rounded-2xl flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
+                <div className="shrink-0 w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">
                   {point.icon}
                 </div>
                 <div>
-                  <h5 className="text-xl font-bold text-white mb-2">{point.title}</h5>
+                  <h5 className="text-xl font-bold text-slate-900 mb-2">{point.title}</h5>
                   <p className="text-slate-500 font-medium">{point.desc}</p>
                 </div>
               </motion.div>
@@ -267,23 +262,86 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
           </div>
 
           <div className="flex-1 flex flex-col gap-8">
-            <h2 className="text-5xl font-black text-white leading-tight">Beyond chat practice. <br/><span className="text-indigo-500">Structured growth.</span></h2>
-            <p className="text-xl text-slate-400 leading-relaxed font-medium">
+            <h2 className="text-5xl font-black text-slate-900 leading-tight">Beyond chat practice. <br/><span className="text-indigo-600">Structured growth.</span></h2>
+            <p className="text-xl text-slate-500 leading-relaxed font-medium">
               We replace aimless conversation with a deterministic learning loop. 
               Our engine measures your exact mastery of grammar and phonetics, then designs the perfect next lesson.
             </p>
             <div className="pt-4">
-               <button onClick={onGetStarted} className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all border border-white/10 flex items-center gap-3">
+               <a 
+                 href="#how-it-works" 
+                 className="px-8 py-4 bg-white hover:bg-slate-50 text-slate-900 rounded-2xl font-bold transition-all border border-slate-200 inline-flex items-center gap-3 shadow-sm"
+               >
                  How the Engine works <ArrowRight className="w-5 h-5" />
-               </button>
+               </a>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS SECTION */}
+      <section id="how-it-works" className="py-24 px-6 bg-white scroll-mt-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-sm font-bold text-indigo-600 uppercase tracking-[0.3em] mb-4">Under the hood</h2>
+            <h3 className="text-4xl md:text-5xl font-black text-slate-900">How we calibrate to you.</h3>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                step: "01",
+                title: "Gemini Real-Time Analysis",
+                desc: "Every interaction is processed through specialized Gemini 1.5 prompts to evaluate your pronunciation, syntax, and lexical range in under 1 second.",
+                icon: <Mic className="w-6 h-6 text-indigo-600" />
+              },
+              {
+                step: "02",
+                title: "Error Profile Mapping",
+                desc: "We look for recurring patterns across your assessment. Instead of just right/wrong, we identify specifically 'where' you falter at a descriptor level.",
+                icon: <Target className="w-6 h-6 text-rose-600" />
+              },
+              {
+                step: "03",
+                title: "Dynamic Selection Logic",
+                desc: "Our engine consults your skill_states database and pulls the next task that offers the highest 'information gain' to probe your exact boundary.",
+                icon: <Zap className="w-6 h-6 text-amber-600" />
+              }
+            ].map((card, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="p-8 pb-10 bg-slate-50 border border-slate-100 rounded-3xl hover:border-indigo-100 transition-all group"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm text-indigo-600 group-hover:scale-110 transition-transform">
+                    {card.icon}
+                  </div>
+                  <span className="text-3xl font-black text-slate-200 group-hover:text-indigo-100 transition-colors uppercase italic">{card.step}</span>
+                </div>
+                <h4 className="text-xl font-bold text-slate-900 mb-4">{card.title}</h4>
+                <p className="text-slate-500 font-medium leading-relaxed">{card.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <button 
+              onClick={onGetStarted}
+              className="px-10 py-5 bg-indigo-600 hover:bg-slate-900 text-white text-lg font-black rounded-2xl shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-3 mx-auto group active:scale-95"
+            >
+              Sign Up Now <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       <footer className="py-32 px-6">
-        <div className="max-w-5xl mx-auto rounded-[3rem] p-12 md:p-24 bg-gradient-to-br from-indigo-600 to-purple-700 text-center relative overflow-hidden shadow-2xl shadow-indigo-500/20">
+        <div className="max-w-5xl mx-auto rounded-[3rem] p-12 md:p-24 bg-gradient-to-br from-indigo-600 to-indigo-800 text-center relative overflow-hidden shadow-2xl shadow-indigo-500/20">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
           
@@ -299,23 +357,20 @@ export const LandingView: React.FC<LandingViewProps> = ({ onGetStarted, onSignIn
               >
                 Start Assessment
               </button>
-              <button className="flex items-center gap-2 text-white font-bold px-8 py-4 hover:underline">
-                <MessageSquare className="w-5 h-5" /> Chat with Sales
-              </button>
             </div>
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="flex items-center gap-2 grayscale brightness-200 opacity-50">
-             <BrainCircuit className="w-6 h-6" />
-             <span className="text-xl font-bold text-white tracking-tight">AI Tutor.</span>
+        <div className="max-w-7xl mx-auto mt-20 pt-10 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-500 font-medium">
+           <div className="flex items-center gap-2">
+             <BrainCircuit className="w-6 h-6 text-indigo-600" />
+             <span className="text-xl font-bold text-slate-900 tracking-tight">AI Tutor.</span>
            </div>
-           <div className="flex gap-10 text-xs font-bold text-slate-500 uppercase tracking-widest">
-              <a href="#" className="hover:text-indigo-400">Terms</a>
-              <a href="#" className="hover:text-indigo-400">Privacy</a>
-              <a href="#" className="hover:text-indigo-400">Whitepaper</a>
-              <a href="#" className="hover:text-indigo-400">Open Source</a>
+           <div className="flex gap-10 text-xs font-bold uppercase tracking-widest">
+              <a href="#" className="hover:text-indigo-600">Terms</a>
+              <a href="#" className="hover:text-indigo-600">Privacy</a>
+              <a href="#" className="hover:text-indigo-600">Whitepaper</a>
+              <a href="#" className="hover:text-indigo-600">Open Source</a>
            </div>
         </div>
       </footer>
