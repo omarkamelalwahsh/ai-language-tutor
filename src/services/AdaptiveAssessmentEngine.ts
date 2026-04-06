@@ -204,18 +204,30 @@ export class AdaptiveAssessmentEngine {
     });
 
     if (!nextItem) {
-      // DESPERATION FALLBACK: If the logic returns null, just pick any random question 
-      // from any level to avoid the "No questions available" crash.
-      console.warn('[Engine] Question selection logic returned null. Using desperation fallback...');
-      const allBanks = Object.values(this.banks).flat().filter(q => !this.askedQuestionIds.has(q.id));
-      if (allBanks.length > 0) {
-        nextItem = allBanks[Math.floor(Math.random() * allBanks.length)];
+      // SMART FALLBACK: If the logic returns null, find the NEAREST question level 
+      // instead of a completely random one to avoid the C2 shock.
+      console.warn('[Engine] Target level empty. Finding nearest available level...');
+      
+      const currentLevel = this.efsetOverall.levelRange[0] as DifficultyBand;
+      const bandOrder: DifficultyBand[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      const currentIndex = bandOrder.indexOf(currentLevel);
+
+      const allAvailable = Object.values(this.banks).flat().filter(q => !this.askedQuestionIds.has(q.id));
+      
+      if (allAvailable.length > 0) {
+        // Sort by distance from current level
+        allAvailable.sort((a, b) => {
+          const distA = Math.abs(bandOrder.indexOf(a.target_cefr as DifficultyBand) - currentIndex);
+          const distB = Math.abs(bandOrder.indexOf(b.target_cefr as DifficultyBand) - currentIndex);
+          return distA - distB;
+        });
+        nextItem = allAvailable[0];
       }
     }
 
     if (!nextItem) {
       this.state.completed = true;
-      console.warn('[Engine] NO QUESTIONS AVAILABLE in any bank. Stopping.');
+      console.warn('[Engine] TOTAL EXHAUSTION: No questions left in database.');
       return null;
     }
 
