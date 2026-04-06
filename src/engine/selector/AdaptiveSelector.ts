@@ -141,10 +141,19 @@ export class AdaptiveSelector {
   private pickFromLevel(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
     const bank = this.banks[level] || [];
     const available = bank.filter(
-      q => !askedIds.has(q.id) && (
-        (q.target_cefr === level) && // Explicit double-check
-        (q.skill === skill || (q.evidence_policy && skill in q.evidence_policy))
-      )
+      q => {
+        if (askedIds.has(q.id)) return false;
+        
+        // 🛡️ Robust Level Matching (supports 'level' alias or 'target_cefr')
+        const qLevel = ((q as any).level || q.target_cefr || '').toString().trim().toUpperCase();
+        if (qLevel !== level) return false;
+
+        // 🧠 Skill Matching
+        const qSkill = (q.skill || '').toString().trim().toLowerCase();
+        const matchesSkill = qSkill === skill || (q.evidence_policy && skill in q.evidence_policy);
+        
+        return matchesSkill;
+      }
     );
     
     if (available.length === 0) return null;

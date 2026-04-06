@@ -165,6 +165,10 @@ export class AdaptiveAssessmentEngine {
         const cefrraw = (item.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
         const cefr = (cefrraw as CEFRLevel) || 'A1';
         
+        // 🧠 Normalize fields on the item itself for selector compatibility
+        item.target_cefr = cefr;
+        (item as any).level = cefr; // Engine compatibility alias
+        
         // 🧠 Skill Normalization: Trim and Lowercase to prevent matching errors
         const rawSkill = (item.skill || 'vocabulary').toString().trim().toLowerCase();
         item.skill = rawSkill as any;
@@ -183,6 +187,9 @@ export class AdaptiveAssessmentEngine {
       Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
       
       console.log(`[Engine] Loaded ${allItems.length} database items successfully.`);
+      if (allItems.length > 0) {
+        console.log("Sample Normalized Question:", allItems[0]);
+      }
     } catch (err) {
       console.error(`[Engine] Failed to load database bank:`, err);
       console.log(`[Engine] Falling back to local offline question bank...`);
@@ -193,12 +200,22 @@ export class AdaptiveAssessmentEngine {
           'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
         };
         for (const item of localItems) {
-            const cefr = ((item as any).target_cefr || item.difficulty || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as CEFRLevel;
+            const cefrraw = ((item as any).target_cefr || (item as any).difficulty || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
+            const cefr = (cefrraw as CEFRLevel) || 'A1';
+            
+            // Normalize on the item itself
+            (item as any).target_cefr = cefr;
+            (item as any).level = cefr;
+            (item as any).skill = ((item as any).skill || 'vocabulary').toString().trim().toLowerCase();
+
             if (grouped[cefr]) grouped[cefr].push(item as any);
         }
         this.banks = grouped;
         Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
         console.log(`[Engine] Loaded fallback offline items successfully.`);
+        if (localItems.length > 0) {
+          console.log("Sample Normalized Offline Question:", localItems[0]);
+        }
       } catch (fallbackErr) {
         console.error(`[Engine] Local fallback also failed:`, fallbackErr);
       }
