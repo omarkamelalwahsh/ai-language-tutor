@@ -375,7 +375,13 @@ app.post('/api/transcribe', async (req, res) => {
     });
   }
 
-  const form = formidable({});
+  // 🚀 Vercel Production Hardening: Use /tmp as it's the only writable dir.
+  // keepExtensions ensures Whisper knows the audio format via the filename.
+  const form = formidable({
+    uploadDir: '/tmp',
+    keepExtensions: true,
+    maxFileSize: 10 * 1024 * 1024, // 10MB limit
+  });
   
   form.parse(req, async (err, fields, files) => {
     if (err) {
