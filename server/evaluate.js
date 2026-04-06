@@ -145,34 +145,51 @@ app.get("/api/db-status", async (_req, res) => {
 });
 
 app.get("/api/questions", async (req, res) => {
+    console.log("[Questions] Fetching bank from Supabase...");
     try {
-        // 🔓 UNLOCKED: We fetch ALL questions so the client-side adaptive engine 
-        // can jump between levels (Leapfrog) without making new network requests.
+        // 🔒 RESILIENT QUERY: We fetch all columns to avoid crashing if we guessed a column name wrong.
+        // We also use a service role key to bypass RLS for this specific bank-loading step.
         const { data, error } = await supabase
             .from('question_bank_items')
-            .select('external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key, audio_url, options, evidence_policy');
+            .select('*');
 
-        if (error) throw error;
+        if (error) {
+            console.error("[Questions] Supabase Error:", error);
+            return res.status(500).json({ 
+                error: "Database connection failed", 
+                details: error.message,
+                hint: "Check if SUPABASE_SERVICE_ROLE_KEY is correctly set in Vercel."
+            });
+        }
+
+        if (!data || data.length === 0) {
+            console.warn("[Questions] Bank is empty in Supabase.");
+            return res.json([]);
+        }
 
         const formattedQuestions = data.map(item => ({
-            id: item.external_id,
-            skill: item.skill,
-            task_type: item.task_type,
-            target_cefr: item.target_cefr,
+            id: item.external_id || item.id,
+            skill: (item.skill || 'vocabulary').toString().toLowerCase(),
+            task_type: item.task_type || 'essay',
+            target_cefr: item.target_cefr || 'A1',
             difficulty: Number(item.difficulty) || 0.5,
-            response_mode: item.task_type.includes('mcq') ? 'mcq' : 'typed',
-            prompt: item.prompt,
-            stimulus: item.stimulus,
-            audio_url: item.audio_url,
-            options: item.options,
-            evidence_policy: item.evidence_policy,
-            answer_key: item.answer_key
+            response_mode: (item.task_type?.includes('mcq') || item.response_mode === 'multiple_choice') ? 'mcq' : 'typed',
+            prompt: item.prompt || 'Untitled Question',
+            stimulus: item.stimulus || '',
+            audio_url: item.audio_url || null,
+            options: item.options || [],
+            evidence_policy: item.evidence_policy || null,
+            answer_key: item.answer_key || {}
         }));
 
+        console.log(`[Questions] Successfully loaded ${formattedQuestions.length} items.`);
         res.json(formattedQuestions);
     } catch (err) {
-        console.error("[Questions] Error:", err);
-        res.status(500).json({ error: err.message });
+        console.error("[Questions] Unexpected Server Error:", err);
+        res.status(500).json({ 
+            error: "Internal Server Error during bank loading",
+            message: err.message 
+        });
     }
 });
 
