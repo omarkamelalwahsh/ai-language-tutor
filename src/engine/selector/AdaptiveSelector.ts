@@ -42,10 +42,20 @@ export class AdaptiveSelector {
       const item = this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
       if (item) return item;
 
-      // Safety: If calibration skill is missing at this level, try to find it at ANY level
-      for (const level of LEVEL_ORDER) {
+      // 🛡️ Radiating Search: Search levels by proximity to currentOverallLevel
+      // This prevents "fleeing" to A1 if B1 is empty; it will try B2 or A2 first.
+      const targetIndex = LEVEL_ORDER.indexOf(currentOverallLevel);
+      const searchOrder = [...LEVEL_ORDER].sort((a, b) => 
+        Math.abs(LEVEL_ORDER.indexOf(a) - targetIndex) - Math.abs(LEVEL_ORDER.indexOf(b) - targetIndex)
+      );
+
+      for (const level of searchOrder) {
+        if (level === currentOverallLevel) continue; // Already tried in line 42
         const fallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
-        if (fallback) return fallback;
+        if (fallback) {
+          console.log(`[Selector] Phase 1 fallback: Found ${targetSkill} at ${level} (Target was ${currentOverallLevel})`);
+          return fallback;
+        }
       }
     }
 
@@ -149,13 +159,10 @@ export class AdaptiveSelector {
         if (askedIds.has(q.id)) return false;
         
         // 🎯 Alias-First Matching: The engine now ensures 'level' is present and normalized.
-        const matchesLevel = q.level === level || q.target_cefr === level;
-        if (!matchesLevel) return false;
+        if (q.level !== level && q.target_cefr !== level) return false;
 
         // 🧠 Skill Matching: The engine ensures 'skill' is lowercase and trimmed.
-        const matchesSkill = q.skill === skill || (q.evidence_policy && skill in q.evidence_policy);
-        
-        return matchesSkill;
+        return q.skill === skill || (q.evidence_policy && skill in q.evidence_policy);
       }
     );
     

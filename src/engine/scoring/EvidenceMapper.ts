@@ -14,7 +14,8 @@ export class EvidenceMapper {
     
     // 1. Calculate base scores from signal
     const isMCQ = item.response_mode === 'mcq';
-    const numericDifficulty = BAND_VALUE[item.target_cefr] || 1;
+    const lv = item.target_cefr || item.level || 'A1';
+    const numericDifficulty = BAND_VALUE[lv] || 1;
     
     let baseScore = 0;
     if (isMCQ) {

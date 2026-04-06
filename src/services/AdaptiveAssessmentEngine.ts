@@ -112,10 +112,12 @@ export class AdaptiveAssessmentEngine {
     }
 
     this.efsetOverall = {
-      levelRange: [startingBand as CEFRLevel, startingBand as CEFRLevel],
+      levelRange: [finalStartingBand as CEFRLevel, finalStartingBand as CEFRLevel],
       confidence: 0,
       status: 'insufficient_data'
     };
+
+    console.log(`[Engine] Initialized with starting band: ${finalStartingBand}`);
 
     // Initialize unified state
     this.state = {
@@ -157,8 +159,9 @@ export class AdaptiveAssessmentEngine {
       const allItems: QuestionBankItem[] = await res.json();
       
       const normalizedItems: QuestionBankItem[] = allItems.map(item => {
-        // 🛡️ Robust normalization: Trim and Uppercase to handle 'a1', 'A 1', etc.
-        const cefrraw = (item.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '');
+        // 🛡️ Robust normalization: Extraction from multiple keys (level, target_cefr, etc.)
+        const rawLevel = (item.level || item.target_cefr || (item as any).difficulty_band || 'A1');
+        const cefrraw = rawLevel.toString().trim().toUpperCase().replace(/\s+/g, '');
         const cefr = (cefrraw as CEFRLevel) || 'A1';
         
         // 🧠 Skill Normalization: Trim and Lowercase to prevent matching errors
@@ -171,7 +174,7 @@ export class AdaptiveAssessmentEngine {
         return {
           ...item,
           target_cefr: cefr,
-          level: (item.level || cefr) as CEFRLevel, // 🎯 Mandatory Alias Fix
+          level: cefr, // 🎯 Synchronized Alias Fix
           skill: rawSkill as any,
           response_mode: responseMode as any
         };
