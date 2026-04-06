@@ -25,6 +25,7 @@ async function ensureAuthTables() {
       overall_band VARCHAR(10) DEFAULT 'A1',
       total_time_spent INTEGER DEFAULT 0,
       assessments_completed INTEGER DEFAULT 0,
+      onboarding_complete BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -99,7 +100,11 @@ authRouter.post('/trainee/signup', async (req, res) => {
     // Generate token
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ message: 'Signup successful', token, user });
+    res.status(201).json({ 
+      message: 'Signup successful', 
+      token, 
+      user: { ...user, onboarding_complete: false } 
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[Signup Error]', err);
@@ -127,7 +132,21 @@ authRouter.post('/trainee/login', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Login successful', token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    
+    const profileRes = await pool.query('SELECT onboarding_complete FROM learner_profiles WHERE user_id = $1', [user.id]);
+    const onboarding_complete = profileRes.rows[0]?.onboarding_complete || false;
+
+    res.json({ 
+      message: 'Login successful', 
+      token, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        onboarding_complete
+      } 
+    });
   } catch (err) {
     console.error('[Login Error]', err);
     res.status(500).json({ error: 'Internal server error' });

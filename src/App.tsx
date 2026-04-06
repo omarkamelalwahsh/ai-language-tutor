@@ -61,7 +61,7 @@ const DevModeOverlay = ({ result, show, onClose }: { result: AssessmentSessionRe
 );
 
 export default function App() {
-  const [view, setView] = useState<ViewState>('ROLE_SELECTION');
+  const [view, setView] = useState<ViewState>('LANDING');
   const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
   const [taskResults, setTaskResults] = useState<TaskEvaluation[]>([]);
@@ -130,20 +130,18 @@ export default function App() {
       <DevModeOverlay result={assessmentResult} show={devModeActive} onClose={() => setDevModeActive(false)} />
 
       <AnimatePresence mode="wait">
-        {view === 'ROLE_SELECTION' && (
-          <RoleSelectionView 
-            onSelectRole={(role) => {
-              setUserRole(role);
-              navigateTo('AUTH');
-            }} 
-          />
-        )}
-
+        {/* Landing replaces Role Selection as entry point */}
         {view === 'LANDING' && (
           <LandingView 
             key="landing" 
-            onGetStarted={() => navigateTo('AUTH')} 
-            onSignIn={() => navigateTo('AUTH')} 
+            onGetStarted={() => {
+              setUserRole('user');
+              navigateTo('AUTH');
+            }} 
+            onSignIn={() => {
+              setUserRole('user');
+              navigateTo('AUTH');
+            }} 
           />
         )}
 
@@ -151,9 +149,11 @@ export default function App() {
           <AuthView 
             role={userRole}
             onBack={() => navigateTo('ROLE_SELECTION')}
-            onLogin={(role) => {
+            onLogin={(role, onboardingComplete) => {
               if (role === 'admin') {
                 navigateTo('ADMIN_DASHBOARD');
+              } else if (onboardingComplete) {
+                navigateTo('DASHBOARD');
               } else {
                 navigateTo('ONBOARDING');
               }

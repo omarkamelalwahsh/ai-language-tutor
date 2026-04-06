@@ -57,10 +57,29 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
   });
   const totalOnboardingSteps = 5;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < totalOnboardingSteps) {
       setStep(step + 1);
     } else {
+      // Mark onboarding as complete in DB
+      const userId = localStorage.getItem('auth_user_id');
+      const token = localStorage.getItem('auth_token');
+      
+      if (userId && token) {
+        try {
+          await fetch('/api/auth/onboarding/complete', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ userId })
+          });
+        } catch (err) {
+          console.error('[Onboarding] Failed to mark completion in DB:', err);
+        }
+      }
+      
       onComplete(state);
     }
   };
