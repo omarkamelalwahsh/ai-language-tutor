@@ -27,6 +27,10 @@ export class AdaptiveSelector {
 
     const { skills, askedQuestionIds, currentOverallLevel } = state;
     const questionCount = askedQuestionIds.size;
+    
+    // 🔍 Diagnostic Logging for Bank Visibility
+    const totalBankSize = Object.values(this.banks).reduce((acc, b) => acc + b.length, 0);
+    console.log(`[Selector] Diagnostic | Current Bank Visibility: ${totalBankSize} questions.`);
 
     // --------------------------------------------------------------------------
     // PHASE 1: STRUCTURED CALIBRATION (First 4 questions)

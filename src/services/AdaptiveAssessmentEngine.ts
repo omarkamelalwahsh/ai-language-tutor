@@ -190,7 +190,11 @@ export class AdaptiveAssessmentEngine {
         }
       }
 
-      this.banks = grouped;
+      // 🛡️ CRITICAL REFERENCE FIX: Update this.banks in-place 
+      // This ensures that the Selector (which holds a reference to this object) sees the update.
+      (Object.keys(grouped) as CEFRLevel[]).forEach(level => {
+        this.banks[level] = grouped[level];
+      });
       
       // Mark all levels as loaded
       Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
@@ -231,7 +235,12 @@ export class AdaptiveAssessmentEngine {
         for (const item of normalizedFallbackItems) {
             if (grouped[item.level]) grouped[item.level].push(item as any);
         }
-        this.banks = grouped;
+
+        // 🛡️ CRITICAL REFERENCE FIX: Update in-place
+        (Object.keys(grouped) as CEFRLevel[]).forEach(level => {
+          this.banks[level] = grouped[level];
+        });
+
         Object.keys(grouped).forEach(k => this.loadedLevels.add(k as CEFRLevel));
         console.log(`[Engine] Loaded fallback offline items successfully.`);
         if (normalizedFallbackItems.length > 0) {
