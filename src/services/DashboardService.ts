@@ -4,46 +4,54 @@ import { JourneyService } from './JourneyService';
 import { getNextBand } from '../lib/cefr-utils';
 
 export class DashboardService {
-  public static buildPayload(result: AssessmentSessionResult): AdvancedDashboardPayload {
-    const currentLevel = result.overall.estimatedLevel;
+  public static buildPayload(result: AssessmentSessionResult | null): AdvancedDashboardPayload {
+    const currentLevel = result?.overall?.estimatedLevel || 'A1';
     const targetLevel = getNextBand(currentLevel);
 
     return {
-      isNewLearner: true, // Typically true after first assessment
-      primaryGoalText: result.overall.rationale[0] || `Building toward ${targetLevel}.`,
+      isNewLearner: !result,
+      primaryGoalText: result?.overall?.rationale?.[0] || `Building toward ${targetLevel}.`,
       recommendedNextAction: {
-        label: result.recommendedNextTasks[0] || 'Start Practice',
+        label: result?.recommendedNextTasks?.[0] || 'Start Practice',
         actionId: 'practice_1',
         reason: 'Based on your diagnostic evidence.'
       },
       journey: {
-        ...JourneyService.buildJourney(result),
-        currentCapabilitiesSummary: result.overall.rationale.join('. '),
+        ...(result ? JourneyService.buildJourney(result) : {
+          currentStage: 'A1',
+          targetStage: 'A2',
+          journeyTitle: 'Initial Path',
+          nodes: []
+        }),
+        currentCapabilitiesSummary: result?.overall?.rationale?.join('. ') || 'Beginning your path.',
         targetCapabilitiesSummary: `Progressing towards ${targetLevel} benchmarks.`,
       },
-      skillAnalytics: (Object.keys(result.skills) as SkillName[])
-        .filter(s => ['speaking', 'writing', 'listening', 'vocabulary'].includes(s))
-        .map(skillId => {
-          const res = result.skills[skillId];
-          return {
-            skillId: skillId as any,
-            currentScore: Math.round((res.masteryScore ?? res.confidence.score) * 100), // Use actual score proxy, fallback to confidence
-            progressDirection: 'up' as const,
-            stability: res.status === 'stable' ? 'stable' : 'fragile',
-            isPriority: res.status === 'fragile' || res.status === 'insufficient_data',
-            hasReviewPressure: res.weaknesses.length > 0,
-            confidenceBand: res.confidence.band,
-          };
-        }),
-      focusAreas: Object.values(result.skills).flatMap(s => s.weaknesses).slice(0, 5),
-      reviewQueue: Object.values(result.skills).flatMap(s => s.weaknesses).map((w, i) => ({
+      skillAnalytics: result?.skills 
+        ? (Object.keys(result.skills) as SkillName[])
+            .filter(s => ['speaking', 'writing', 'listening', 'vocabulary'].includes(s))
+            .map(skillId => {
+              const res = result.skills[skillId];
+              return {
+                skillId: skillId as any,
+                currentScore: Math.round(((res?.masteryScore ?? res?.confidence?.score) || 0) * 100),
+                progressDirection: 'up' as const,
+                stability: res?.status === 'stable' ? 'stable' : 'fragile',
+                isPriority: res?.status === 'fragile' || res?.status === 'insufficient_data',
+                hasReviewPressure: (res?.weaknesses?.length || 0) > 0,
+                confidenceBand: res?.confidence?.band || 'low',
+              };
+            })
+        : [],
+      focusAreas: result?.skills ? Object.values(result.skills).flatMap(s => s?.weaknesses || []).slice(0, 5) : [],
+      reviewQueue: result?.skills ? Object.values(result.skills).flatMap(s => s?.weaknesses || []).map((w, i) => ({
         itemId: `w${i}`,
         type: 'grammar' as const,
         label: w,
         dueStatus: 'due' as const,
         fragility: 'medium' as const,
-      })),
-      weeklyRhythm: { streakDays: 0, sessionsThisWeek: 0, momentumState: 'building' }
+      })) : [],
+      weeklyRhythm: { streakDays: 0, sessionsThisWeek: 0, momentumState: 'building' },
+      achievements: []
     };
   }
 

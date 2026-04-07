@@ -96,15 +96,15 @@ export class AssessmentSaveService {
       }
 
       // ── 4. user_error_profiles ───────────────────────────────────────────────
+      // ── 4. user_error_profiles (Upsert single profile row) ────────────────
       if (outcome.weaknesses && outcome.weaknesses.length > 0) {
-        const errorsData = outcome.weaknesses.map((w) => ({
-          user_id: userId,
-          skill: 'General', // Heuristic: map specific skill if available in outcome
-          context: w,
-          created_at: new Date().toISOString()
-        }));
-
-        await supabase.from('user_error_profiles').insert(errorsData);
+        await supabase
+          .from('user_error_profiles')
+          .upsert({
+            user_id: userId,
+            weakness_areas: outcome.weaknesses,
+            last_analyzed: new Date().toISOString()
+          }, { onConflict: 'user_id' });
         console.log('[AssessmentSave] ✅ user_error_profiles updated.');
       }
     } catch (e) {

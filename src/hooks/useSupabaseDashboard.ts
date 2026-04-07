@@ -84,12 +84,12 @@ export const useSupabaseDashboard = () => {
             .limit(50),
           supabase
             .from('user_error_profiles')
-            .select('skill, context')
+            .select('weakness_areas')
             .eq('user_id', user.id)
-            .limit(5),
+            .maybeSingle(),
           supabase
             .from('user_achievements')
-            .select('id, achievement_name, achievement_type, earned_at')
+            .select('id, badge_name, earned_at')
             .eq('user_id', user.id)
             .limit(10),
         ]);
@@ -129,17 +129,17 @@ export const useSupabaseDashboard = () => {
                   confidence: h.is_correct ? 1 : 0,      // simplified from logs
                 }))
               : [],
-            errors: errorsRes.data
-              ? errorsRes.data.map((e: any) => ({
-                  category: e.skill || 'General',
-                  description: e.context || 'Needs more practice in this area.',
+            errors: (errorsRes.data as any)?.weakness_areas
+              ? (errorsRes.data as any).weakness_areas.map((w: string) => ({
+                  category: 'Gap',
+                  description: w,
                 }))
               : [],
             achievements: achievementRes.data
-              ? achievementRes.data.map((a: any) => ({
+              ? (achievementRes.data as any[]).map((a: any) => ({
                   id: a.id,
-                  name: a.achievement_name,
-                  type: a.achievement_type,
+                  name: a.badge_name || 'Badge',
+                  type: 'Achievement',
                   earnedAt: a.earned_at,
                 }))
               : [],

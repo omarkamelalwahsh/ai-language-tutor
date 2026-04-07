@@ -332,7 +332,7 @@ export default function App() {
           />
         )}
 
-        {view === 'DASHBOARD' && assessmentResult && (
+        {view === 'DASHBOARD' && (
           <FadeTransition key="dashboard" className="min-h-screen bg-slate-50">
             <AdvancedDashboard
               result={assessmentResult}
