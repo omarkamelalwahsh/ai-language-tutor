@@ -413,6 +413,40 @@ app.post('/api/transcribe', async (req, res) => {
   });
 });
 
+// --- GENERIC CHAT COMPLETION ENDPOINT (For Journey Generation, etc.) ---
+app.post('/api/chat', async (req, res) => {
+  const { messages, temperature, response_format } = req.body;
+  
+  if (!llmClient) {
+    return res.status(503).json({ 
+      error: "LLM service unavailable: GROQ_API_KEY missing." 
+    });
+  }
+
+  if (circuitBreaker.isOpen()) {
+    return res.status(503).json({ error: "Circuit breaker open. Try again later." });
+  }
+
+  try {
+    const aiTask = llmClient.chat.completions.create({
+      model: CONFIG.model,
+      messages: messages || [],
+      temperature: temperature ?? CONFIG.temperature,
+      response_format: response_format || undefined,
+    });
+
+    const timeoutTask = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout")), 9000)
+    );
+
+    const response = await Promise.race([aiTask, timeoutTask]);
+    res.json(response);
+  } catch (err) {
+    console.error('[Server] Chat Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- NEW REPORTER ENDPOINTS ---
 
 app.post('/api/assessments/complete', async (req, res) => {

@@ -71,7 +71,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   }
 
   // Derive active values (favoring Database over temporary session memory)
-  const isNewLearner = supabaseData.history.length === 0;
+  const isNewLearner = (supabaseData.history?.length || 0) === 0;
   const currentStreak = supabaseData.profile?.streak || dashboardData.weeklyRhythm.streakDays || 0;
   const totalPoints = supabaseData.profile?.points || 0;
   const currentLevel = supabaseData.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
@@ -170,7 +170,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
               </motion.div>
 
               {/* AI Learning Insights (Personalized Roadmap based on DB Errors) */}
-              {supabaseData.errors.length > 0 && (
+              {(supabaseData.errors?.length || 0) > 0 && (
                 <motion.section variants={staggerItem} className="bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20 my-6 border border-indigo-800">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                   <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
@@ -179,11 +179,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                          <div className="p-1.5 bg-indigo-500/30 rounded-lg"><Brain className="w-4 h-4 text-indigo-300" /></div>
                          <h2 className="text-sm font-bold text-indigo-300 uppercase tracking-widest">Personalized Roadmap Insights</h2>
                       </div>
-                      <h3 className="text-2xl font-black mb-4">Targeted Practice: {supabaseData.errors[0].category.replace(/_/g, ' ')}</h3>
+                      <h3 className="text-2xl font-black mb-4">Targeted Practice: {supabaseData.errors?.[0]?.category.replace(/_/g, ' ')}</h3>
                       <div className="bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-sm relative">
                          <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-amber-400 rotate-45" />
                          <p className="text-indigo-50 leading-relaxed font-medium ml-2">
-                           <strong className="text-amber-400">💡 Smart Tip:</strong> {supabaseData.errors[0].description}
+                           <strong className="text-amber-400">💡 Smart Tip:</strong> {supabaseData.errors?.[0]?.description}
                          </p>
                       </div>
                     </div>
@@ -744,7 +744,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <p className="text-slate-500 text-sm">Your recent overarching assessment records pulled dynamically from the server.</p>
               </motion.div>
               <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative">
-                {supabaseData.history.length === 0 ? (
+                {(supabaseData.history?.length || 0) === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100">
                       <Target className="w-8 h-8 text-indigo-400" />
@@ -755,7 +755,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {supabaseData.history.map((record, i) => (
+                    {(supabaseData.history || []).map((record, i) => (
                       <div key={record.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group bg-slate-50/50">
                         <div className="flex items-center gap-4">
                            <div className="hidden md:flex w-12 h-12 bg-white rounded-full items-center justify-center border border-slate-200 shadow-sm">
