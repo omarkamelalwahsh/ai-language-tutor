@@ -35,6 +35,15 @@ export interface ReviewItemPayload {
   fragility: 'high' | 'medium' | 'low';
 }
 
+export interface AchievementPayload {
+  id: string;
+  badgeId: string;
+  name: string;
+  type: 'milestone' | 'skill_mastery' | 'streak' | 'challenge';
+  earnedAt: string;
+  description: string;
+}
+
 export interface AdvancedDashboardPayload {
   isNewLearner: boolean;
   primaryGoalText: string;
@@ -47,6 +56,9 @@ export interface AdvancedDashboardPayload {
   skillAnalytics: SkillAnalyticsPayload[];
   focusAreas: string[];
   reviewQueue: ReviewItemPayload[];
+  achievements: AchievementPayload[];
+  isSyncing?: boolean; // Circuit Breaker state
+  lastFullSync?: string;
   weeklyRhythm: {
     streakDays: number;
     sessionsThisWeek: number;

@@ -77,7 +77,20 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const currentLevel = supabaseData.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 relative">
+      {/* Circuit Breaker Overlay or Banner */}
+      <AnimatePresence>
+        {supabaseData.isSyncing && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-amber-500 text-white px-6 py-2 rounded-full shadow-lg font-bold flex items-center gap-2"
+          >
+            <Clock className="w-4 h-4 animate-spin" /> Data Syncing... (Recovering)
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Sidebar Navigation */}
       <aside className="w-64 bg-white border-r border-slate-100 flex flex-col py-6 px-4 hidden md:flex">
         <div className="flex items-center gap-3 px-3 mb-8">

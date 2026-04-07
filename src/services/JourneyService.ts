@@ -3,6 +3,7 @@ import { getNextBand } from '../lib/cefr-utils';
 import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
 import { CEFR_CATALOG, CefrDescriptor, getDescriptorById } from '../data/cefr-catalog';
 import { InferenceGateway, LLMJourneyNode } from './InferenceGateway';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Service to generate the Learner Journey Roadmap.
@@ -71,7 +72,7 @@ export class JourneyService {
       estimatedDuration: `${(node.difficulty || 2) * 15} mins`
     }));
 
-    return {
+    const resultPayload: LearnerJourneyPayload = {
       currentStage: currentLevel,
       targetStage: targetLevel,
       journeyTitle: `AI Architected Path to ${targetLevel}`,
@@ -79,6 +80,24 @@ export class JourneyService {
       targetCapabilitiesSummary: `Dynamic progression focused on ${targetLevel} proficiency.`,
       nodes
     };
+
+    // 4. Persist to Supabase (8-table Alignment)
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('learning_journeys').upsert({
+          user_id: user.id,
+          journey_data: resultPayload,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        });
+        console.log('[JourneyService] ✅ Journey persisted to database.');
+      }
+    } catch (e) {
+      console.warn('[JourneyService] Database persistence failed, returning in-memory result:', e);
+    }
+
+    return resultPayload;
   }
 
   // ---- Private Helpers ----

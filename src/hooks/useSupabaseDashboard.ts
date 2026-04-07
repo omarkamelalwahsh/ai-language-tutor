@@ -29,6 +29,13 @@ export interface DashboardSupabaseData {
     category: string;
     description: string;
   }[];
+  achievements: {
+    id: string;
+    name: string;
+    type: string;
+    earnedAt: string;
+  }[];
+  isSyncing: boolean;
   isLoading: boolean;
   error: string | null;
 }
@@ -40,6 +47,8 @@ export const useSupabaseDashboard = () => {
     skills: [],
     history: [],
     errors: [],
+    achievements: [],
+    isSyncing: false,
     isLoading: true,
     error: null,
   });
@@ -56,8 +65,8 @@ export const useSupabaseDashboard = () => {
           return;
         }
 
-        // Fetch learner data in parallel
-        const [profileRes, skillsRes, historyRes, errorsRes] = await Promise.all([
+        // Fetch learner data in parallel (8-table alignment)
+        const [profileRes, skillsRes, historyRes, errorsRes, achievementRes] = await Promise.all([
           supabase
             .from('learner_profiles')
             .select('id, overall_level, onboarding_complete, points, streak')
@@ -65,20 +74,28 @@ export const useSupabaseDashboard = () => {
             .single(),
           supabase
             .from('skill_states')
-            .select('skill, current_level, confidence')
+            .select('skill, current_level, confidence, updated_at')
             .eq('user_id', user.id),
           supabase
-            .from('assessments')
-            .select('id, created_at, overall_level, confidence_score')
+            .from('assessment_logs')
+            .select('id, created_at, category, is_correct')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(10),
           supabase
-            .from('error_profiles')
+            .from('user_error_profiles')
             .select('skill, context')
             .eq('user_id', user.id)
             .limit(5),
+          supabase
+            .from('user_achievements')
+            .select('id, achievement_name, achievement_type, earned_at')
+            .eq('user_id', user.id)
+            .limit(10),
         ]);
+
+        // Circuit Breaker: If any critical fetch fails, signal sync state
+        const isSyncing = profileRes.error || skillsRes.error;
 
         if (isMounted) {
           setData({
@@ -108,8 +125,8 @@ export const useSupabaseDashboard = () => {
               ? historyRes.data.map((h: any) => ({
                   id: h.id,
                   createdAt: h.created_at,
-                  overallLevel: h.overall_level || 'A1',
-                  confidence: h.confidence_score || 0.5,
+                  overallLevel: h.category || 'General', // mapped from assessment_logs.category
+                  confidence: h.is_correct ? 1 : 0,      // simplified from logs
                 }))
               : [],
             errors: errorsRes.data
@@ -118,6 +135,15 @@ export const useSupabaseDashboard = () => {
                   description: e.context || 'Needs more practice in this area.',
                 }))
               : [],
+            achievements: achievementRes.data
+              ? achievementRes.data.map((a: any) => ({
+                  id: a.id,
+                  name: a.achievement_name,
+                  type: a.achievement_type,
+                  earnedAt: a.earned_at,
+                }))
+              : [],
+            isSyncing: !!isSyncing,
             isLoading: false,
             error: null,
           });

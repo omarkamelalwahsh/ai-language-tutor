@@ -94,6 +94,19 @@ export class AssessmentSaveService {
       } else {
         console.warn('[AssessmentSave] No answer history to save – assessment_logs skipped.');
       }
+
+      // ── 4. user_error_profiles ───────────────────────────────────────────────
+      if (outcome.weaknesses && outcome.weaknesses.length > 0) {
+        const errorsData = outcome.weaknesses.map((w) => ({
+          user_id: userId,
+          skill: 'General', // Heuristic: map specific skill if available in outcome
+          context: w,
+          created_at: new Date().toISOString()
+        }));
+
+        await supabase.from('user_error_profiles').insert(errorsData);
+        console.log('[AssessmentSave] ✅ user_error_profiles updated.');
+      }
     } catch (e) {
       console.error('[AssessmentSave] Unexpected error:', e);
       throw e; // re-throw so DiagnosticView can catch and show saveError
