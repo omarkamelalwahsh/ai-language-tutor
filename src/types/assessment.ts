@@ -357,6 +357,8 @@ export type AnswerRecord = {
   responseMode?: ResponseMode;
   /** Speaking-specific: full submission metadata */
   speakingMeta?: SpeakingSubmissionMeta;
+  /** Correct answer to be saved to db logs */
+  correctAnswer?: string;
 };
 
 export type AssessmentStability = "stable" | "emerging" | "fragile" | "insufficient_data";

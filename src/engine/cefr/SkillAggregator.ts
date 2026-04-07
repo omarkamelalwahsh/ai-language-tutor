@@ -54,14 +54,32 @@ export class SkillAggregator {
        consistency = Math.max(0, 1 - avgDev * 2);
     }
 
-    // Confidence Calculation: 0.4 evidence + 0.3 consistency + 0.3 directRatio
+    // 2. Confidence Calculation (User Request #2)
+    // Add consecutive correct bonus. If the user hits 3 B2s in a row for example, jump confidence up.
+    let consecutiveCorrect = 0;
+    // Iterate backwards chronologically over the raw history
+    for (let i = history.length - 1; i >= 0; i--) {
+        // Consider a score > 0.6 as a "correct/competent" response
+        if (history[i].score > 0.6) {
+           consecutiveCorrect++;
+        } else {
+           break;
+        }
+    }
+    
+    let consecutiveBonus = 0;
+    if (consecutiveCorrect >= 3) consecutiveBonus = 0.2;
+    if (consecutiveCorrect >= 5) consecutiveBonus = 0.4;
+
     const evidenceCountFactor = Math.min(1, history.length / 6); // Need ~6 questions for full confidence
     const directRatio = directEvidenceCount / history.length;
 
-    const confidence = 
+    const confidence = Math.min(1.0, 
       (0.4 * evidenceCountFactor) + 
       (0.3 * consistency) + 
-      (0.3 * directRatio);
+      (0.3 * directRatio) + 
+      consecutiveBonus
+    );
 
     // Determine status
     let status: SkillStatus = 'stable';

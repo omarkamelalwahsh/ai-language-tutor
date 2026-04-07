@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react';
 import { OnboardingState, ViewState } from './types/app';
 import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from './types/assessment';
 import { DashboardService } from './services/DashboardService';
+import { AssessmentAnalysisService } from './services/AnalysisService';
 import { supabase } from './lib/supabaseClient';
 
 // Views
@@ -265,11 +266,25 @@ export default function App() {
           <DiagnosticView 
             key="diagnostic" 
             onboardingState={onboardingState}
-            onComplete={(results, outcome) => {
+            onSaveComplete={(results, outcome) => {
+              // Sync state for Assessment Review & legacy screens
               setTaskResults(results);
               setAssessmentOutcome(outcome);
-              navigateTo('ANALYZING');
-            }} 
+
+              // Build assessmentResult immediately from the outcome (no async state lag)
+              const userId = localStorage.getItem('auth_user_id') || 'user_1';
+              const result = AssessmentAnalysisService.fromAssessmentOutcome(
+                outcome,
+                userId,
+                'session_' + Date.now(),
+                onboardingState || {}
+              );
+              setAssessmentResult(result);
+              setDashboardData(DashboardService.buildPayload(result));
+
+              // Skip ANALYZING → RESULT_ANALYSIS → LEARNING_JOURNEY, go straight to Dashboard
+              navigateTo('DASHBOARD');
+            }}
           />
         )}
 

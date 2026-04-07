@@ -99,24 +99,41 @@ export class AdaptiveSelector {
 
     let probeLevel: CEFRLevel = currentOverallLevel;
     
-    // 🚀 NEW: Leapfrog Strategy (+2 / -2 Jumps)
-    const latestScore = recent.length > 0 ? recent[recent.length - 1].score : 0.5;
+    // 📈 Momentum & Leapfrog Strategy
+    const history = skillState.history;
+    const h3 = history.slice(-3);
     
-    if (latestScore > 0.92 && currentIndex < LEVEL_ORDER.length - 2) {
-       // LEAP UP (+2): B1 -> C1
+    // Formula: (n * 0.5) + (n-1 * 0.3) + (n-2 * 0.2)
+    const s0 = h3.length >= 1 ? h3[h3.length - 1].score : 0.5;
+    const s1 = h3.length >= 2 ? h3[h3.length - 2].score : s0;
+    const s2 = h3.length >= 3 ? h3[h3.length - 3].score : s1;
+    const momentumScore = (s0 * 0.5) + (s1 * 0.3) + (s2 * 0.2);
+
+    // Streak detection for jumps
+    const isHighStreak = h3.length >= 2 && h3.slice(-2).every(h => h.score > 0.90);
+    const isLowStreak = h3.length >= 2 && h3.slice(-2).every(h => h.score < 0.20);
+
+    probeLevel = currentOverallLevel;
+    
+    if (isHighStreak && currentIndex < LEVEL_ORDER.length - 2) {
+       // 🚀 LEAP UP (+2): Requires 2 consecutive > 0.90
        probeLevel = LEVEL_ORDER[currentIndex + 2];
-       console.log(`[Selector] LEAP UP! +2 to ${probeLevel}`);
-    } else if (latestScore < 0.25 && currentIndex > 1) {
-       // LEAP DOWN (-2): B1 -> A1
+       console.log(`[Selector] LEAP UP! +2 to ${probeLevel} (Streak: ${s0}, ${s1})`);
+    } else if (isLowStreak && currentIndex > 1) {
+       // 📉 LEAP DOWN (-2): Requires 2 consecutive < 0.20
        probeLevel = LEVEL_ORDER[currentIndex - 2];
-       console.log(`[Selector] LEAP DOWN! -2 to ${probeLevel}`);
-    } else if (isStruggling && currentIndex > 0) {
-       probeLevel = LEVEL_ORDER[currentIndex - 1]; // Step down
-    } else if (isExelling && currentIndex < LEVEL_ORDER.length - 1) {
-       probeLevel = LEVEL_ORDER[currentIndex + 1]; // Step up
+       console.log(`[Selector] LEAP DOWN! -2 to ${probeLevel} (Loss Streak: ${s0}, ${s1})`);
+    } else if (momentumScore < 0.40 && currentIndex > 0) {
+       // 🐌 Step Down (-1)
+       probeLevel = LEVEL_ORDER[currentIndex - 1];
+       console.log(`[Selector] Momentum Step Down to ${probeLevel} (Momentum: ${momentumScore.toFixed(2)})`);
+    } else if (momentumScore > 0.82 && currentIndex < LEVEL_ORDER.length - 1) {
+       // 🧗 Step Up (+1)
+       probeLevel = LEVEL_ORDER[currentIndex + 1];
+       console.log(`[Selector] Momentum Step Up to ${probeLevel} (Momentum: ${momentumScore.toFixed(2)})`);
     } else {
-       // Fast-Track Probing
-       const reachProb = skillState.confidence >= 0.3 ? 0.6 : 0.3;
+       // ⚖️ Fast-Track Probing (Cautious)
+       const reachProb = skillState.confidence >= 0.4 ? 0.5 : 0.25;
        const rand = Math.random();
        if (rand < 0.1 && currentIndex > 0) {
          probeLevel = LEVEL_ORDER[currentIndex - 1];

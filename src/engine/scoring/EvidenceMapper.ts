@@ -35,6 +35,13 @@ export class EvidenceMapper {
        baseScore = (contentScore * 0.6) + (languageScore * 0.4);
     }
     
+    // 1. Difficulty Weighting (User Request #1)
+    // Scale the base score so a perfect A1 answer maxes out at the A1 threshold,
+    // while a perfect C1/C2 answer can push the score up to the highest tiers.
+    const difficultyScale: Record<number, number> = { 1: 0.35, 2: 0.50, 3: 0.65, 4: 0.80, 5: 0.92, 6: 1.0 };
+    const maxScoreForLevel = difficultyScale[numericDifficulty] || 1.0;
+    baseScore *= maxScoreForLevel;
+    
     // 🛡️ SAFENET: Ensure evidence_policy exists to avoid Object.entries TypeError
     const evidences: SkillEvidence[] = [];
     const taskPower = getEvidentialPower(item.task_type);

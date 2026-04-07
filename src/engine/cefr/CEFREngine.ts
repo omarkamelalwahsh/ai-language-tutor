@@ -8,7 +8,7 @@ export class CEFREngine {
    * Translates a numeric score to a CEFR level based on standardized EF SET thresholds.
    */
   public static mapScoreToLevel(score: number): CEFRLevel {
-    if (score < 0.40) return 'A1';
+    if (isNaN(score) || score == null || score < 0.40) return 'A1';
     if (score < 0.55) return 'A2';
     if (score < 0.70) return 'B1';
     if (score < 0.83) return 'B2';
@@ -22,8 +22,13 @@ export class CEFREngine {
   public static computeOverall(skills: Record<SkillName, SkillState>): OverallState {
     const skillList = Object.values(skills);
     
-    const avgScore = skillList.reduce((sum, s) => sum + s.score, 0) / skillList.length;
-    const avgConfidence = skillList.reduce((sum, s) => sum + s.confidence, 0) / skillList.length;
+    let avgScore = 0;
+    let avgConfidence = 0;
+    
+    if (skillList.length > 0) {
+      avgScore = skillList.reduce((sum, s) => sum + s.score, 0) / skillList.length;
+      avgConfidence = skillList.reduce((sum, s) => sum + s.confidence, 0) / skillList.length;
+    }
     
     const overallLevel = this.mapScoreToLevel(avgScore);
     

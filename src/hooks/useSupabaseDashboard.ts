@@ -8,27 +8,15 @@ export interface DashboardSupabaseData {
   } | null;
   profile: {
     currentLevel: string;
-    points: number;
-    streak: number;
-    targetLevel: string;
+    onboardingComplete: boolean;
   } | null;
   skills: {
-    skillId: string;
-    masteryScore: number;
-    evidenceCount: number;
-    isCapped: boolean;
-  }[];
-  history: {
-    id: string;
-    createdAt: string;
-    overallLevel: string;
+    skill: string;
+    currentLevel: string;
     confidence: number;
   }[];
-  errors: {
-    category: string;
-    description: string;
-  }[];
   isLoading: boolean;
+  error: string | null;
 }
 
 export const useSupabaseDashboard = () => {
@@ -36,68 +24,61 @@ export const useSupabaseDashboard = () => {
     user: null,
     profile: null,
     skills: [],
-    history: [],
-    errors: [],
     isLoading: true,
+    error: null,
   });
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchDashboardData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          if (isMounted) setData(prev => ({ ...prev, isLoading: false }));
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+          if (isMounted) setData(prev => ({ ...prev, isLoading: false, error: 'Not authenticated' }));
           return;
         }
 
-        // 1. Fetch User Identity, Profile & Skills
-        // Since the prompt suggested a Joined Query 'full_name, learner_profiles(*), skill_states(*)',
-        // Supabase requires foreign key setups for joined querying like that. We can alternatively 
-        // run parallel queries to ensure robustness if schema joins aren't perfectly mapped.
-        
-        const [profileRes, skillsRes, historyRes, errorsRes] = await Promise.all([
-          supabase.from('learner_profiles').select('*').eq('id', user.id).single(),
-          supabase.from('skill_states').select('*').eq('learner_id', user.id),
-          supabase.from('assessments').select('*').eq('learner_id', user.id).order('created_at', { ascending: false }).limit(5),
-          supabase.from('error_profiles').select('*').eq('learner_id', user.id).eq('remediation_status', 'active').limit(3)
+        // Fetch learner_profiles and skill_states in parallel
+        const [profileRes, skillsRes] = await Promise.all([
+          supabase
+            .from('learner_profiles')
+            .select('id, overall_level, onboarding_complete')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('skill_states')
+            .select('skill, current_level, confidence')
+            .eq('learner_id', user.id),
         ]);
 
         if (isMounted) {
           setData({
             user: {
               fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Learner',
-              email: user.email || ''
+              email: user.email || '',
             },
-            profile: profileRes.data ? {
-              currentLevel: profileRes.data.overall_band || 'A1',
-              points: profileRes.data.total_points || 0,
-              streak: profileRes.data.streak_days || 0,
-              targetLevel: profileRes.data.target_band || 'B2'
-            } : null,
-            skills: skillsRes.data ? skillsRes.data.map((s: any) => ({
-              skillId: s.skill,
-              masteryScore: s.mastery_score !== null ? s.mastery_score * 100 : 0, // Assume stored as decimal 0-1
-              evidenceCount: s.evidence_count || 0,
-              isCapped: s.capped_flag || false
-            })) : [],
-            history: historyRes.data ? historyRes.data.map((h: any) => ({
-              id: h.id,
-              createdAt: h.created_at,
-              overallLevel: h.overall_level,
-              confidence: h.confidence_score
-            })) : [],
-            errors: errorsRes.data ? errorsRes.data.map((e: any) => ({
-              category: e.error_category,
-              description: e.error_description || "Consistent mistakes noted by AI Assessor."
-            })) : [],
-            isLoading: false
+            profile: profileRes.data
+              ? {
+                  currentLevel: profileRes.data.overall_level || 'A1',
+                  onboardingComplete: profileRes.data.onboarding_complete || false,
+                }
+              : null,
+            skills: skillsRes.data
+              ? skillsRes.data.map((s: any) => ({
+                  skill: s.skill,
+                  currentLevel: s.current_level || 'A1',
+                  confidence: typeof s.confidence === 'number' ? s.confidence : 0,
+                }))
+              : [],
+            isLoading: false,
+            error: null,
           });
         }
-      } catch (err) {
-        console.error("Dashboard Fetch Error:", err);
-        if (isMounted) setData(prev => ({ ...prev, isLoading: false }));
+      } catch (err: any) {
+        console.error('[useSupabaseDashboard] Fetch error:', err);
+        if (isMounted) setData(prev => ({ ...prev, isLoading: false, error: err.message }));
       }
     };
 

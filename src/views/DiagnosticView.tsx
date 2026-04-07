@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain } from 'lucide-react';
+import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain, Save } from 'lucide-react';
 
 import { FadeTransition } from '../lib/animations';
 import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
+import { AssessmentSaveService } from '../services/AssessmentSaveService';
 import { TaskResult, OnboardingState } from '../types/app';
 import { SessionTask } from '../types/runtime';
 import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
@@ -341,12 +342,15 @@ const AnswerFeedback: React.FC<{
 
 interface DiagnosticViewProps {
   onboardingState?: OnboardingState | null;
-  onComplete: (results: TaskResult[], outcome: AssessmentOutcome) => void;
+  /** Called after all 20 questions are done and Supabase is saved. Receives results+outcome so App can build state immediately. */
+  onSaveComplete: (results: TaskResult[], outcome: AssessmentOutcome) => void;
 }
 
-export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onboardingState }) => {
+export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, onboardingState }) => {
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
-  
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   if (!engineRef.current) {
     const startBand: any = 'B1';
     const contextProfile: LearnerContextProfile | undefined = onboardingState ? {
@@ -368,6 +372,29 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
+  const handleAssessmentComplete = useCallback(async () => {
+    setIsCompleting(true);
+    await engine.completeAssessment();
+    const outcome = engine.getOutcome();
+    const evals = engine.getEvaluations();
+
+    // Save to Supabase first
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await AssessmentSaveService.saveAssessmentResults(outcome);
+      console.log('[Diagnostic] ✅ Assessment saved to Supabase successfully.');
+    } catch (err: any) {
+      console.error('[Diagnostic] ❌ Failed to save to Supabase:', err);
+      setSaveError(err?.message || 'Save failed');
+    } finally {
+      setIsSaving(false);
+    }
+
+    // Pass results + outcome back to App for state sync, then navigate to Dashboard
+    onSaveComplete(evals, outcome);
+  }, [engine, onSaveComplete]);
+
   useEffect(() => {
     let isSubscribed = true;
     if (!currentTask) {
@@ -381,16 +408,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
             (window as any)._lastBenchmark = p.currentBand;
           } else {
             console.warn('[Diagnostic] No initial question returned. Completing early.');
-            setIsCompleting(true);
-            await engine.completeAssessment();
-            onComplete(engine.getEvaluations(), engine.getOutcome());
+            await handleAssessmentComplete();
           }
         }
       };
       loadInitial();
     }
     return () => { isSubscribed = false; };
-  }, [engine, currentTask]);
+  }, [engine, currentTask, handleAssessmentComplete]);
 
   const handleNextTask = useCallback(
     async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
@@ -422,11 +447,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
             setProgress(nextProgress);
             (window as any)._lastBenchmark = nextProgress.currentBand;
           } else {
-            setIsCompleting(true);
-            await engine.completeAssessment();
-            setTimeout(() => {
-              onComplete(engine.getEvaluations(), engine.getOutcome());
-            }, 500);
+            await handleAssessmentComplete();
           }
         }, 300);
       } catch (err) {
@@ -438,7 +459,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
         if (nextQ) setCurrentTask(nextQ);
       }
     },
-    [currentTask, engine, isEvaluating, onComplete]
+    [currentTask, engine, isEvaluating, handleAssessmentComplete]
   );
 
   const handleSkip = useCallback(async () => {
@@ -448,13 +469,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
       setCurrentTask(nextQ);
       setProgress(engine.getProgress());
     } else {
-      setIsCompleting(true);
-      await engine.completeAssessment();
-      setTimeout(() => {
-        onComplete(engine.getEvaluations(), engine.getOutcome());
-      }, 500);
+      await handleAssessmentComplete();
     }
-  }, [currentTask, isEvaluating, engine, onComplete]);
+  }, [currentTask, isEvaluating, engine, handleAssessmentComplete]);
 
   const handleSwap = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
@@ -470,11 +487,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onComplete, onbo
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
             <div className="w-16 h-16 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
-            <Brain className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            {isSaving
+              ? <Save className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+              : <Brain className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            }
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-slate-900 mb-2">Finalizing your Assessment</h3>
-            <p className="text-slate-500 font-medium">Computing evidence-backed CEFR levels...</p>
+            <p className="text-slate-500 font-medium">
+              {isSaving ? 'Saving your results securely...' : 'Computing evidence-backed CEFR levels...'}
+            </p>
+            {saveError && (
+              <p className="text-red-500 text-sm mt-2 font-medium">
+                ⚠️ Could not save to cloud, but your results are ready.
+              </p>
+            )}
           </div>
         </div>
       </FadeTransition>

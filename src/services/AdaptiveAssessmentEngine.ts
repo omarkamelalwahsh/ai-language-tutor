@@ -518,6 +518,7 @@ export class AdaptiveAssessmentEngine {
          correct: isCorrect,
          score: isCorrect ? 1 : 0,
          answer,
+         correctAnswer: correctText,
          responseTimeMs
        });
 
@@ -631,6 +632,7 @@ export class AdaptiveAssessmentEngine {
       correct: isCorrect,
       score: reportVal.score,
       answer,
+      correctAnswer: correctText,
       responseTimeMs,
       taskType: efsetItem.task_type as any
     });
@@ -647,22 +649,27 @@ export class AdaptiveAssessmentEngine {
   private performCalibrationReset() {
     console.log('[Engine] 🧭 Running Calibration Reset (4-item evaluation)...');
     
-    // Calculate average linguistic signals (Complexity, Lexical Range, Grammar)
-    const signals = this.state.taskEvaluations.slice(0, 4).map(ev => ({
-       comp: ev.channels?.lexicalRange || 0,
-       gram: ev.channels?.grammarAccuracy || 0,
-       acc: ev.channels?.taskCompletion || 0
-    }));
+    // Calculate weighted signals for each of the first 4 tasks
+    const signals = this.state.taskEvaluations.slice(0, 4).map(ev => {
+       const lex = ev.channels?.lexicalRange || 0;
+       const gram = ev.channels?.grammarAccuracy || 0;
+       const comp = ev.channels?.taskCompletion || 0;
+       return (lex * 0.4 + gram * 0.4 + comp * 0.2);
+    });
 
-    const avgLinguistic = signals.reduce((acc, s) => acc + (s.comp * 0.4 + s.gram * 0.4 + s.acc * 0.2), 0) / 4;
+    // ✂️ Trimmed Mean: Sort and remove highest + lowest to eliminate outliers
+    const sorted = [...signals].sort((a, b) => a - b);
+    const middleTwo = sorted.slice(1, 3); 
+    const avgLinguistic = middleTwo.reduce((acc, v) => acc + v, 0) / 2;
     
-    console.log(`[Engine] Diagnostic Signature Score: ${avgLinguistic.toFixed(2)}`);
+    console.log(`[Engine] Calibration Signature: [${signals.map(s => s.toFixed(2)).join(', ')}]`);
+    console.log(`[Engine] Trimmed Mean Score: ${avgLinguistic.toFixed(2)}`);
 
-    if (avgLinguistic > 0.88) {
-       console.log('[Engine] 🚀 HIGH PROFICIENCY DETECTED! Jumping to C1 (Leapfrog).');
+    if (avgLinguistic > 0.85) {
+       console.log('[Engine] 🚀 STABLE HIGH PROFICIENCY! Jumping to C1 (Calibration).');
        this.jumpToLevel('C1');
-    } else if (avgLinguistic < 0.40) {
-       console.log('[Engine] 📉 STRUGGLING DETECTED. Adjusting to A2.');
+    } else if (avgLinguistic < 0.45) {
+       console.log('[Engine] 📉 CONSISTENT STRUGGLE. Adjusting to A2 (Calibration).');
        this.jumpToLevel('A2');
     }
   }
