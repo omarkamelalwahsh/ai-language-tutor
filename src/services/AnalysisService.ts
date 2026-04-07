@@ -88,9 +88,13 @@ export class AssessmentAnalysisService {
       learnerId,
       sessionId,
       overall: {
-        estimatedLevel: this.inferOverallLevel(skillResults, outcome.overallConfidence),
+        estimatedLevel: outcome.overallBand 
+          ? this.normalizeEngineBand(outcome.overallBand)
+          : this.inferOverallLevel(skillResults, outcome.overallConfidence),
         confidence: outcome.overallConfidence,
-        rationale: this.buildOverallRationale(skillResults, this.inferOverallLevel(skillResults, outcome.overallConfidence))
+        rationale: this.buildOverallRationale(skillResults, outcome.overallBand 
+          ? this.normalizeEngineBand(outcome.overallBand)
+          : this.inferOverallLevel(skillResults, outcome.overallConfidence))
       },
       skills: skillResults,
       behavioralProfile: {
@@ -105,10 +109,16 @@ export class AssessmentAnalysisService {
   }
 
   private static normalizeEngineBand(band: string): CefrLevel {
-    // Bug 4 fix: Conservative normalization. A2_B1 becomes A2+ (not B1)
+    // If it's a bridge band (e.g., A2_B1), normalize to A2+
     if (band.includes('_')) {
-      const lowerBand = band.split('_')[0];
-      return `${lowerBand}+` as CefrLevel;
+      const low = band.split('_')[0];
+      const high = band.split('_')[1];
+      
+      if (low === 'A2' && high === 'B1') return 'A2+' as CefrLevel;
+      if (low === 'B1' && high === 'B2') return 'B1+' as CefrLevel;
+      if (low === 'B2' && high === 'C1') return 'B2+' as CefrLevel;
+      
+      return `${low}+` as CefrLevel;
     }
     return band as CefrLevel;
   }

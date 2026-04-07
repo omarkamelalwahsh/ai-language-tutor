@@ -359,7 +359,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       preferredTopics: (onboardingState.topics || []) as string[],
     } : undefined;
 
-    engineRef.current = new AdaptiveAssessmentEngine(startBand, contextProfile);
+    const userId = localStorage.getItem('auth_user_id');
+    engineRef.current = new AdaptiveAssessmentEngine(startBand, contextProfile, userId);
   }
 
   const engine = engineRef.current;

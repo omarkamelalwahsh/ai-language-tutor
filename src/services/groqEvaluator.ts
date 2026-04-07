@@ -70,7 +70,7 @@ export async function evaluateWithGroq(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), LLMConfig.requestTimeoutMs);
 
-    const token = localStorage.getItem('auth_token');
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 

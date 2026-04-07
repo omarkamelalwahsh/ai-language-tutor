@@ -32,6 +32,7 @@ export const EvidenceMultiplier = {
 };
 
 export function getEvidentialPower(taskType: string): number {
+  if (!taskType) return 0.8; // Default safety fallback
   const normType = taskType.toLowerCase() as keyof typeof EvidentialPower;
   return EvidentialPower[normType] || 0.8;
 }

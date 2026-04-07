@@ -87,11 +87,11 @@ export class JourneyService {
       if (user) {
         await supabase.from('learning_journeys').upsert({
           user_id: user.id,
-          journey_data: resultPayload,
-          status: 'active',
+          nodes: resultPayload.nodes,
+          current_node_id: resultPayload.nodes[0]?.id || null,
           updated_at: new Date().toISOString()
-        });
-        console.log('[JourneyService] ✅ Journey persisted to database.');
+        }, { onConflict: 'user_id' }); // Assuming user_id is unique for journeys
+        console.log('[JourneyService] ✅ Journey persisted to database (Mapped to nodes/current_node_id).');
       }
     } catch (e) {
       console.warn('[JourneyService] Database persistence failed, returning in-memory result:', e);

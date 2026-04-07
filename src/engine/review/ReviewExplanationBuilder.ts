@@ -123,7 +123,7 @@ export class ReviewExplanationBuilder {
     };
 
     // Task Type Routing
-    const normalizedType = data.type.toLowerCase();
+    const normalizedType = (data.type || 'mcq').toLowerCase();
     
     if (normalizedType.includes('vocabulary') || normalizedType === 'mcq' || normalizedType === 'fill_blank') {
        this.applyVocabLogic(review, data.targetWord, data.meaningSuccess);

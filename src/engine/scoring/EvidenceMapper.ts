@@ -13,7 +13,7 @@ export class EvidenceMapper {
   ): SkillEvidence[] {
     
     // 1. Calculate base scores from signal
-    const isMCQ = item.response_mode === 'mcq';
+    const isMCQ = item.response_mode === 'mcq' || (item as any).type === 'mcq' || item.task_type === 'mcq';
     const lv = item.target_cefr || item.level || 'A1';
     const numericDifficulty = BAND_VALUE[lv] || 1;
     
@@ -21,16 +21,24 @@ export class EvidenceMapper {
     if (isMCQ) {
        baseScore = isCorrect ? 1.0 : 0.0;
     } else {
+       // Safe fallbacks for missing signals (e.g. circuit breaker or incorrect mock)
+       const s = (signal || {}) as any;
        const contentScore = 
-         (signal.content_accuracy * ScoreWeights.content.content_accuracy) + 
-         (signal.task_completion * ScoreWeights.content.task_completion);
+         ((s.content_accuracy ?? (isCorrect ? 1 : 0)) * ScoreWeights.content.content_accuracy) + 
+         ((s.task_completion ?? (isCorrect ? 1 : 0)) * ScoreWeights.content.task_completion);
          
+       const language_control = s.grammar_control ?? (isCorrect ? 1 : 0);
+       const lexical_range = s.lexical_range ?? (isCorrect ? 0.5 : 0);
+       const syntactic_complexity = s.syntactic_complexity ?? (isCorrect ? 0.5 : 0);
+       const coherence = s.coherence ?? (isCorrect ? 1 : 0);
+       const typo_severity = s.typo_severity ?? 0.0;
+
        const languageScore = 
-         (signal.grammar_control * ScoreWeights.language.grammar_control) +
-         (signal.lexical_range * ScoreWeights.language.lexical_range) +
-         (signal.syntactic_complexity * ScoreWeights.language.syntactic_complexity) +
-         (signal.coherence * ScoreWeights.language.coherence) +
-         ((1.0 - signal.typo_severity) * ScoreWeights.language.typo_severity);
+         (language_control * ScoreWeights.language.grammar_control) +
+         (lexical_range * ScoreWeights.language.lexical_range) +
+         (syntactic_complexity * ScoreWeights.language.syntactic_complexity) +
+         (coherence * ScoreWeights.language.coherence) +
+         ((1.0 - typo_severity) * ScoreWeights.language.typo_severity);
          
        baseScore = (contentScore * 0.6) + (languageScore * 0.4);
     }
@@ -44,7 +52,8 @@ export class EvidenceMapper {
     
     // 🛡️ SAFENET: Ensure evidence_policy exists to avoid Object.entries TypeError
     const evidences: SkillEvidence[] = [];
-    const taskPower = getEvidentialPower(item.task_type);
+    const rawTaskType = (item.task_type || (item as any).type || 'mcq') as string;
+    const taskPower = getEvidentialPower(rawTaskType);
     const policyMap = item.evidence_policy || {};
     
     for (const [skillStr, policy] of Object.entries(policyMap)) {

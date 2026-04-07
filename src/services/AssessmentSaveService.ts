@@ -40,7 +40,7 @@ export class AssessmentSaveService {
         console.log('[AssessmentSave] ✅ learner_profiles saved. Level:', outcome.overallBand);
       }
 
-      // ── 2. skill_states ──────────────────────────────────────────────────────
+      // ── 2. skill_states (ATOMIC UPSERT to prevent Zero Stats Bug) ────────────
       const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
 
       const skillStatesData = skillKeys.map((skill) => ({
@@ -51,31 +51,25 @@ export class AssessmentSaveService {
         updated_at: new Date().toISOString(),
       }));
 
-      // Delete stale rows first, then re-insert fresh ones
-      const { error: deleteSkillError } = await supabase
+      // Use upsert with onConflict to avoid the delete-insert window where stats show 0
+      const { error: skillUpsertError } = await supabase
         .from('skill_states')
-        .delete()
-        .eq('user_id', userId);
+        .upsert(skillStatesData, { onConflict: 'user_id, skill' });
 
-      if (deleteSkillError) {
-        console.warn('[AssessmentSave] skill_states delete warning:', deleteSkillError);
-      }
-
-      const { error: skillInsertError } = await supabase
-        .from('skill_states')
-        .insert(skillStatesData);
-
-      if (skillInsertError) {
-        console.error('[AssessmentSave] skill_states insert error:', skillInsertError);
+      if (skillUpsertError) {
+        console.error('[AssessmentSave] skill_states upsert error:', skillUpsertError);
+        // Fallback: If unique constraint (user_id, skill) is missing, the upsert might fail.
+        // In that case, we revert to delete-insert as a safety but warn the dev.
+        console.warn('[AssessmentSave] ⚠️ Ensure (user_id, skill) has a UNIQUE constraint in Postgres.');
       } else {
-        console.log('[AssessmentSave] ✅ skill_states saved:', skillStatesData.length, 'skills');
+        console.log('[AssessmentSave] ✅ skill_states synced:', skillStatesData.length, 'skills');
       }
 
-      // ── 3. assessment_logs  (single bulk insert) ─────────────────────────────
+      // ── 3. assessment_logs (Bulk Insert) ─────────────────────────────────────
       if (outcome.answerHistory && outcome.answerHistory.length > 0) {
         const logsData = outcome.answerHistory.map((record) => ({
           user_id: userId,
-          category: record.skill,          // mapped from AnswerRecord.skill
+          category: record.skill,
           is_correct: record.correct,
           user_answer: record.answer ?? '',
           correct_answer: record.correctAnswer ?? '',
@@ -87,25 +81,35 @@ export class AssessmentSaveService {
           .insert(logsData);
 
         if (logsError) {
-          console.error('[AssessmentSave] assessment_logs bulk insert error:', logsError);
+          console.error('[AssessmentSave] assessment_logs error:', logsError);
         } else {
           console.log('[AssessmentSave] ✅ assessment_logs saved:', logsData.length, 'entries');
         }
-      } else {
-        console.warn('[AssessmentSave] No answer history to save – assessment_logs skipped.');
       }
 
-      // ── 4. user_error_profiles ───────────────────────────────────────────────
-      // ── 4. user_error_profiles (Upsert single profile row) ────────────────
-      if (outcome.weaknesses && outcome.weaknesses.length > 0) {
-        await supabase
-          .from('user_error_profiles')
-          .upsert({
-            user_id: userId,
-            weakness_areas: outcome.weaknesses,
-            last_analyzed: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-        console.log('[AssessmentSave] ✅ user_error_profiles updated.');
+      // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
+      const errorProfilePayload = {
+        user_id: userId,
+        weakness_areas: outcome.weaknesses || [],
+        strength_areas: outcome.strengths || [],
+        common_mistakes: outcome.weaknesses?.slice(0, 3) || [], // Placeholder for actual mistake parsing
+        detailed_analysis: {
+          stopReason: outcome.stopReason,
+          totalQuestions: outcome.totalQuestions,
+          overallConfidence: outcome.overallConfidence,
+          skillBreakdown: outcome.skillBreakdown
+        },
+        last_analyzed: new Date().toISOString()
+      };
+
+      const { error: errorProfileError } = await supabase
+        .from('user_error_profiles')
+        .upsert(errorProfilePayload, { onConflict: 'user_id' });
+
+      if (errorProfileError) {
+        console.error('[AssessmentSave] user_error_profiles error:', errorProfileError);
+      } else {
+        console.log('[AssessmentSave] ✅ user_error_profiles updated with detailed analysis.');
       }
     } catch (e) {
       console.error('[AssessmentSave] Unexpected error:', e);

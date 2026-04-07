@@ -81,9 +81,22 @@ export class AdaptiveAssessmentEngine {
   };
   private loadedLevels: Set<CEFRLevel> = new Set();
   
+  private userId: string | null = null;
   public assessmentId: string; // Expose for routing
 
-  constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile) {
+  private safeGetLocalStorage(key: string): string | null {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile, userId: string | null = null) {
+    this.userId = userId || this.safeGetLocalStorage('auth_user_id');
     this.assessmentId = "session-" + Math.random().toString(36).substr(2, 9);
     
     // 🛡️ Always start at B1 for balanced diagnostic coverage unless explicitly overridden
@@ -149,7 +162,7 @@ export class AdaptiveAssessmentEngine {
     
     console.log(`[Engine] Fetching randomized question bank from database...`);
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = this.safeGetLocalStorage('auth_token');
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -414,10 +427,11 @@ export class AdaptiveAssessmentEngine {
        // ⚡ MCQ FAST-PATH: Don't wait for server if we already know the answer 
        isCorrect = answer.trim() === correctText.trim();
        
-       // Fire-and-forget logging to server for MCQ to keep UI fast
-       const userId = localStorage.getItem('auth_user_id');
+
+       // Multi-tenant check: userId is critical for the engine context
+       const currentUserId = this.userId || this.safeGetLocalStorage('auth_user_id');
        const payload = {
-         userId,
+         userId: currentUserId,
          skill: efsetItem.skill,
          currentBand: efsetItem.target_cefr,
          question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
@@ -533,8 +547,8 @@ export class AdaptiveAssessmentEngine {
        return { correct: isCorrect, score: isCorrect ? 1 : 0 };
     }
     
-    // Get userId from localStorage for the engine
-    const userId = localStorage.getItem('auth_user_id');
+    // Get userId from constructor or storage safely
+    const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
 
     if (!isMCQ) {
        const llmOutput = await evaluateWithGroq({
@@ -569,6 +583,8 @@ export class AdaptiveAssessmentEngine {
 
     // 4. Update Overall State
     this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
+    this.state.overallConfidence = this.efsetOverall.confidence;
+    this.state.questionsAnswered = this.state.taskEvaluations.length; // Ensure sync
     
     // Audit Trail Update
     if (efsetItem.skill === 'speaking') {
@@ -828,9 +844,9 @@ export class AdaptiveAssessmentEngine {
 
   public getProgress() {
     return {
-      answered: this.state.questionsAnswered,
+      answered: this.state.taskEvaluations.length,
       total: ASSESSMENT_CONFIG.MAX_QUESTIONS,
-      percentage: Math.min(100, (this.state.questionsAnswered / ASSESSMENT_CONFIG.MAX_QUESTIONS) * 100),
+      percentage: Math.min(100, (this.state.taskEvaluations.length / ASSESSMENT_CONFIG.MAX_QUESTIONS) * 100),
       currentBand: this.efsetOverall.levelRange[0] as DifficultyBand,
       confidence: this.efsetOverall.confidence,
       completed: this.state.completed,
@@ -853,7 +869,7 @@ export class AdaptiveAssessmentEngine {
   public async completeAssessment(): Promise<void> {
      try {
        const report = this.getOutcome();
-       const token = localStorage.getItem('auth_token');
+       const token = this.safeGetLocalStorage('auth_token');
        const headers: Record<string, string> = { "Content-Type": "application/json" };
        if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -874,5 +890,19 @@ export class AdaptiveAssessmentEngine {
 
   public getState(): AdaptiveAssessmentState {
     return this.state;
+  }
+
+  /**
+   * Helper for tests: Force-updates a single skill estimate.
+   */
+  public updateSingleSkillEstimate(skill: EFSETSkillName, evidence: { taskId: string; score: number }) {
+    const numericDiff = 3; // B1 difficulty for force updates
+    this.efsetSkills[skill] = SkillAggregator.update(this.efsetSkills[skill], {
+      skill: skill as any,
+      score: evidence.score,
+      weight: 1.0,
+      direct: true,
+      numericDifficulty: numericDiff
+    });
   }
 }
