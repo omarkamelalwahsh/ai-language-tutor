@@ -44,7 +44,7 @@ export class AssessmentSaveService {
       const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
 
       const skillStatesData = skillKeys.map((skill) => ({
-        learner_id: userId,
+        user_id: userId,
         skill,
         current_level: String(outcome.skillBreakdown[skill].band),
         confidence: outcome.skillBreakdown[skill].confidence,
@@ -55,7 +55,7 @@ export class AssessmentSaveService {
       const { error: deleteSkillError } = await supabase
         .from('skill_states')
         .delete()
-        .eq('learner_id', userId);
+        .eq('user_id', userId);
 
       if (deleteSkillError) {
         console.warn('[AssessmentSave] skill_states delete warning:', deleteSkillError);
@@ -74,7 +74,7 @@ export class AssessmentSaveService {
       // ── 3. assessment_logs  (single bulk insert) ─────────────────────────────
       if (outcome.answerHistory && outcome.answerHistory.length > 0) {
         const logsData = outcome.answerHistory.map((record) => ({
-          learner_id: userId,
+          user_id: userId,
           category: record.skill,          // mapped from AnswerRecord.skill
           is_correct: record.correct,
           user_answer: record.answer ?? '',

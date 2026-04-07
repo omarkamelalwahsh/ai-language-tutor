@@ -50,7 +50,7 @@ export const useSupabaseDashboard = () => {
           supabase
             .from('skill_states')
             .select('skill, current_level, confidence')
-            .eq('learner_id', user.id),
+            .eq('user_id', user.id),
         ]);
 
         if (isMounted) {

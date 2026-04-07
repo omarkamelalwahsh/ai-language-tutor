@@ -61,32 +61,30 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     if (step < totalOnboardingSteps) {
       setStep(step + 1);
     } else {
-      // Mark onboarding as complete in DB (Non-blocking)
+      // Mark onboarding as complete in DB directly via Supabase
       const userId = localStorage.getItem('auth_user_id');
-      const token = localStorage.getItem('auth_token');
-      
       const finishOnboarding = () => onComplete(state);
 
-      if (userId && token) {
-        // We use a non-blocking approach to ensure UI never freezes
-        fetch('/api/auth/onboarding/complete', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ 
-            userId, 
-            cefrLevel: state.goal === 'professional' ? 'B1' : 'A2', 
-            interests: state.topics 
-          })
-        }).catch(err => {
-          console.error('[Onboarding] Background completion failed:', err);
-        }).finally(() => {
-          finishOnboarding();
+      if (userId) {
+        import('../lib/supabaseClient').then(async ({ supabase }) => {
+          try {
+            const { error } = await supabase
+              .from('learner_profiles')
+              .update({ 
+                 overall_level: state.goal === 'professional' ? 'B1' : 'A2', 
+                 onboarding_complete: true,
+                 updated_at: new Date().toISOString()
+              })
+              .eq('id', userId);
+            if (error) console.error('[Onboarding] Profile Update Failed:', error.message);
+          } catch (err: any) {
+             console.error('[Onboarding] Profile Update Error:', err.message);
+          } finally {
+             finishOnboarding();
+          }
         });
-        
-        // Safety timeout: If fetch hangs for > 3s, proceed anyway
+            
+        // Safety timeout
         setTimeout(finishOnboarding, 3000);
       } else {
         finishOnboarding();
