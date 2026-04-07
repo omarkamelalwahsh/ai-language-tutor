@@ -192,7 +192,7 @@ export default function App() {
             setAssessmentResult(reconstructed);
             
             // LOGIC: If they have less than e.g. 5 answers, they are probably still in the diagnostic
-            if (history.length < 10 && view === 'AUTH') {
+            if (history.length < 20 && view === 'AUTH') {
               console.log('[App] Partial history detected. Suggesting resume...');
               navigateTo('DIAGNOSTIC');
             }

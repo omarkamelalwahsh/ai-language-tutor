@@ -81,7 +81,7 @@ export const useSupabaseDashboard = () => {
             .select('id, created_at, category, is_correct')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
-            .limit(10),
+            .limit(50),
           supabase
             .from('user_error_profiles')
             .select('skill, context')

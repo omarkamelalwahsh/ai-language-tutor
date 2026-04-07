@@ -71,7 +71,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             const { error } = await supabase
               .from('learner_profiles')
               .update({ 
-                 overall_level: state.goal === 'professional' ? 'B1' : 'A2', 
+                 overall_level: 'Pending', 
                  onboarding_complete: true,
                  updated_at: new Date().toISOString()
               })
