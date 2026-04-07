@@ -99,16 +99,26 @@ export function buildReport(
     const avgIndex = totalWeight > 0 ? weightedSum / totalWeight : 0;
     overallLevel = indexToCefr(Math.round(avgIndex));
 
-    // Floor by lowest stable skill (conservative approach)
+    // Step 102+: Floor by lowest stable skill (conservative approach)
+    // We've softened this (+2 buffer instead of +1) to prevent the "Grammar A1 Paradox" 
+    // where one low-evidence skill drags down a C1 overall.
     if (stableSkills.length > 0) {
-      const lowestStableIndex = Math.min(...stableSkills.map(d => cefrToIndex(d.level)));
-      const avgRounded = Math.round(avgIndex);
-      // Don't let overall be more than 1 band above the lowest stable skill
-      if (avgRounded > lowestStableIndex + 1) {
-        overallLevel = indexToCefr(lowestStableIndex + 1);
-        notes.push(
-          `Overall capped: lowest stable skill is at ${indexToCefr(lowestStableIndex)}.`
-        );
+      const stableWithHighConfidence = stableSkills.filter(d => d.confidence >= 0.75);
+      
+      if (stableWithHighConfidence.length > 0) {
+        const lowestStableIndex = Math.min(...stableWithHighConfidence.map(d => cefrToIndex(d.level)));
+        const avgRounded = Math.round(avgIndex);
+
+        // Don't let overall be more than 2 bands above the lowest HIGH-CONFIDENCE stable skill
+        if (avgRounded > lowestStableIndex + 2) {
+          overallLevel = indexToCefr(lowestStableIndex + 2);
+          notes.push(
+            `Overall slightly capped: lowest high-confidence skill is at ${indexToCefr(lowestStableIndex)}. ` +
+            `Increased buffer to +2 for adaptive fairness.`
+          );
+        }
+      } else {
+         notes.push('Overall capping skipped: no core skills have reached high stability confidence yet.');
       }
     }
 

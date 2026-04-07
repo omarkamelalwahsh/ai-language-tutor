@@ -62,7 +62,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           const { data: profile } = await supabase
             .from('learner_profiles')
             .select('onboarding_complete')
-            .eq('user_id', data.user.id)
+            .eq('id', data.user.id)
             .single();
 
           onLogin('user', profile?.onboarding_complete || false);

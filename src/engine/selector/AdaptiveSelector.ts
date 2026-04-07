@@ -115,14 +115,16 @@ export class AdaptiveSelector {
 
     probeLevel = currentOverallLevel;
     
-    if (isHighStreak && currentIndex < LEVEL_ORDER.length - 2) {
-       // 🚀 LEAP UP (+2): Requires 2 consecutive > 0.90
-       probeLevel = LEVEL_ORDER[currentIndex + 2];
-       console.log(`[Selector] LEAP UP! +2 to ${probeLevel} (Streak: ${s0}, ${s1})`);
+    if (isHighStreak && currentIndex < LEVEL_ORDER.length - 1) {
+       // 🚀 LEAP UP: (+2) only in early calibration phase, otherwise (+1)
+       const leapSize = (questionCount < 10) ? 2 : 1;
+       probeLevel = LEVEL_ORDER[Math.min(LEVEL_ORDER.length - 1, currentIndex + leapSize)];
+       console.log(`[Selector] LEAP UP! +${leapSize} to ${probeLevel} (Streak detected)`);
     } else if (isLowStreak && currentIndex > 1) {
-       // 📉 LEAP DOWN (-2): Requires 2 consecutive < 0.20
-       probeLevel = LEVEL_ORDER[currentIndex - 2];
-       console.log(`[Selector] LEAP DOWN! -2 to ${probeLevel} (Loss Streak: ${s0}, ${s1})`);
+       // 📉 LEAP DOWN: (-2) only if performance is consistently poor, otherwise (-1)
+       const dropSize = (questionCount < 10) ? 2 : 1;
+       probeLevel = LEVEL_ORDER[Math.max(0, currentIndex - dropSize)];
+       console.log(`[Selector] LEAP DOWN! -${dropSize} to ${probeLevel} (Loss Streak detected)`);
     } else if (momentumScore < 0.40 && currentIndex > 0) {
        // 🐌 Step Down (-1)
        probeLevel = LEVEL_ORDER[currentIndex - 1];
@@ -133,9 +135,9 @@ export class AdaptiveSelector {
        console.log(`[Selector] Momentum Step Up to ${probeLevel} (Momentum: ${momentumScore.toFixed(2)})`);
     } else {
        // ⚖️ Fast-Track Probing (Cautious)
-       const reachProb = skillState.confidence >= 0.4 ? 0.5 : 0.25;
+       const reachProb = skillState.confidence >= 0.4 ? 0.3 : 0.15; // Slightly more cautious
        const rand = Math.random();
-       if (rand < 0.1 && currentIndex > 0) {
+       if (rand < 0.05 && currentIndex > 0) {
          probeLevel = LEVEL_ORDER[currentIndex - 1];
        } else if (rand > (1 - reachProb) && currentIndex < LEVEL_ORDER.length - 1) {
          probeLevel = LEVEL_ORDER[currentIndex + 1];

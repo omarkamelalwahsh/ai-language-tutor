@@ -215,19 +215,19 @@ export class AssessmentAnalysisService {
     // Instead, we just note it's 'provisional' in the rationale.
     let finalLevel = medianLevel;
 
-    // Apply Structural Caps (Grammar/Vocabulary)
+    // ── 3. Apply Structural Caps (Fixed Buffer) ──────────────────────────
+    // Softened: Cap at structuralBase + 2 to prevent "Grammar A1 Paradox"
+    // (where A1 grammar drags C1 listening/reading down to B1).
     const grammarLevel = skills.grammar.estimatedLevel;
     const vocabLevel = skills.vocabulary.estimatedLevel;
     const structuralBase = Math.min(getBandOrder(grammarLevel), getBandOrder(vocabLevel));
-    
     const finalOrder = getBandOrder(finalLevel);
 
-    // Cap at structuralBase + 1 if structures are significantly weaker
-    if (finalOrder > structuralBase + 1) {
-      finalLevel = CEFR_ORDER[structuralBase + 1] as CefrLevel;
-      // Mark skills as capped
+    if (finalOrder > structuralBase + 2) {
+      finalLevel = CEFR_ORDER[Math.min(structuralBase + 2, CEFR_ORDER.length - 1)] as CefrLevel;
+      // Mark core skills as capped
       coreSkills.forEach(s => {
-        if (getBandOrder(skills[s].estimatedLevel) > structuralBase + 1) {
+        if (getBandOrder(skills[s].estimatedLevel) > structuralBase + 2) {
           skills[s].isCapped = true;
         }
       });
