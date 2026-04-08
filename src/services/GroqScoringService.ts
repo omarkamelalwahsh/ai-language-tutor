@@ -1,6 +1,6 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
 
-const GROQ_API_KEY = "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";
+const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const MODEL_A = "llama3-8b-8192";
 const MODEL_B = "llama3-70b-8192";
 
@@ -27,7 +27,7 @@ export class GroqScoringService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${GROQ_API_KEY}`
+          "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model,
