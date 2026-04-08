@@ -67,7 +67,9 @@ export class GroqScoringService {
    * Model A: Fast scoring and error tagging
    */
   public static async scoreWithModelA(question: AssessmentQuestion, answer: string): Promise<ModelAOutput | null> {
-    const systemPrompt = `You are an expert English tutor. Respond ONLY in JSON format.
+    const systemPrompt = `You are an expert English linguist. 
+IMPORTANT: You must respond ONLY in JSON format.
+
 **Role:** Assistant Language Scorer (Instant Feedback)
 **Task:** Diagnostic tagging of the user's answer.
 **Input:** {question, user_answer, correct_answer, category}
