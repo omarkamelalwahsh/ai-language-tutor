@@ -1,6 +1,6 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
 
-const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY || ""; 
 const MODEL_A = "llama3-8b-8192";
 const MODEL_B = "llama3-70b-8192";
 
@@ -23,11 +23,12 @@ export interface ModelBOutput {
 export class GroqScoringService {
   private static async callGroq(model: string, systemPrompt: string, userMessage: string) {
     try {
+      console.log("DEBUG: Sending request with key length:", API_KEY.length);
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Authorization": `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
           model,
