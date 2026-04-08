@@ -247,7 +247,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                             <div className="mt-0.5 p-1.5 bg-amber-50 rounded-lg border border-amber-100 shrink-0">
                               <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                             </div>
-                            <p className="text-sm font-medium text-slate-700 leading-relaxed">{mistake}</p>
+                            <p className="text-sm font-medium text-slate-700 leading-relaxed">
+                              {typeof mistake === 'string' ? mistake : (mistake.issue || mistake.type || JSON.stringify(mistake))}
+                            </p>
                           </div>
                           <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">

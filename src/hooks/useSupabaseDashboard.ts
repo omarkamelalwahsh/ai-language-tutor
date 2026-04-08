@@ -30,7 +30,7 @@ export interface DashboardSupabaseData {
     description: string;
   }[];
   errorProfile: {
-    common_mistakes: string[];
+    common_mistakes: any[];
     weakness_areas: string[];
   } | null;
   achievements: {
