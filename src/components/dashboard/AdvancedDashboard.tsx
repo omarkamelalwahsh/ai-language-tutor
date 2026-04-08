@@ -11,7 +11,9 @@ import {
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
+import { VisualErrorProfile } from './VisualErrorProfile';
 import { cefrToNumeric } from '../../lib/cefrMapper';
+
 
 
 interface AdvancedDashboardProps {
@@ -387,14 +389,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                       </div>
                     ))}
                   </div>
-                  <div className="w-full md:w-1/3 bg-slate-50 p-5 rounded-2xl border border-slate-100 h-max">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Key Evidence</h3>
-                    <ul className="space-y-2 text-slate-700 text-sm font-medium">
-                      {(result?.overall?.rationale || []).map((cap, i) => (
-                        <li key={i} className="flex gap-2"><span className="text-emerald-500">✓</span>{cap}</li>
-                      ))}
-                    </ul>
+                  <div className="w-full md:w-1/3">
+                    <VisualErrorProfile />
                   </div>
+
                 </div>
               </motion.section>
 
