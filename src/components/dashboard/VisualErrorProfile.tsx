@@ -86,7 +86,7 @@ export const VisualErrorProfile = () => {
           <Target className="w-4 h-4 text-slate-500" />
         </div>
 
-        <div className="h-64 w-full">
+        <div className="min-h-[300px] w-full">
           {data.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
