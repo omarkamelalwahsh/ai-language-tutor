@@ -43,6 +43,8 @@ import { BankValidator } from './BankValidator';
 import { FinalReportBuilder } from '../engine/cefr/FinalReportBuilder';
 import { ASSESSMENT_CONFIG } from '../config/assessment-config';
 import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuilder';
+import { AssessmentSaveService } from './AssessmentSaveService';
+
 
 // Old static JSON bank loaders were removed in favor of dynamic API fetching
 
@@ -523,7 +525,18 @@ export class AdaptiveAssessmentEngine {
       this.state.answerHistory[historyIdx].correct = result.isCorrect ?? isCorrect;
       this.state.answerHistory[historyIdx].score = result.confidence ?? 0.5;
 
+      const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
+        user_id: currentUserId!,
+        category: efsetItem.skill,
+        is_correct: result.isCorrect ?? isCorrect,
+        user_answer: answer,
+        correct_answer: correctText,
+        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
+        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
+      }).catch(e => console.error('[Engine] Persistent Log Error:', e));
+
       return { correct: result.isCorrect ?? isCorrect, score: result.confidence ?? 0.5 };
+
 
     } catch (err) {
       console.warn("[Engine] Server Latency/Error. Using Optimistic Fallback:", err.message);
@@ -558,7 +571,18 @@ export class AdaptiveAssessmentEngine {
       this.state.answerHistory[historyIdx].correct = isCorrect;
       this.state.answerHistory[historyIdx].score = 0.5;
       
+      const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
+        user_id: currentUserId!,
+        category: efsetItem.skill,
+        is_correct: isCorrect,
+        user_answer: answer,
+        correct_answer: correctText,
+        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
+        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
+      }).catch(e => console.error('[Engine] Persistent Log Error (Fallback):', e));
+
       return { correct: isCorrect, score: 0.5 };
+
     }
 
        // Removed redundant manual push here since it's now at the top
@@ -703,7 +727,21 @@ export class AdaptiveAssessmentEngine {
        this.performCalibrationReset();
     }
 
+    // 🚀 RESTORE POINT: Save single log if not already saved (covers Text path)
+    if (currentUserId) {
+      AssessmentSaveService.saveSingleAssessmentLog({
+        user_id: currentUserId,
+        category: efsetItem.skill,
+        is_correct: isCorrect,
+        user_answer: answer,
+        correct_answer: correctText,
+        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
+        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
+      }).catch(e => console.error('[Engine] Persistent Log Error (Text Path):', e));
+    }
+
     return { correct: isCorrect, score: reportVal.score };
+
   }
 
   private performCalibrationReset() {

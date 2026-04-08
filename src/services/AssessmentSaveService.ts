@@ -16,10 +16,37 @@ export class AssessmentSaveService {
   }
 
   /**
-   * Saves full assessment results to Supabase after the 20th question.
+   * Saves a single assessment log (individual question) for real-time persistence.
+   */
+  public static async saveSingleAssessmentLog(logData: {
+    user_id: string;
+    category: string;
+    is_correct: boolean;
+    user_answer: string;
+    correct_answer: string;
+    error_tag?: string;
+    brief_explanation?: string;
+  }): Promise<void> {
+    await withRetry(async () => {
+      const { error } = await supabase
+        .from('assessment_logs')
+        .insert([{
+          ...logData,
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+      console.log('[AssessmentSave] 📝 Single question log persisted.');
+    });
+  }
+
+  /**
+   * Saves full assessment results (profile, skills, error profiles) to Supabase.
+   * NOTE: Individual question logs are now handled in real-time.
    */
   public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
     try {
+
       // ── Ensure Auth First ──────────────────────────────────────────────────
       const userId = await this.getAuthenticatedUserId();
       console.log('[AssessmentSave] 🔑 Auth verified for:', userId);
@@ -63,28 +90,10 @@ export class AssessmentSaveService {
       });
 
 
-      // ── 3. assessment_logs (Bulk Insert) ─────────────────────────────────────
-      if (outcome.answerHistory && outcome.answerHistory.length > 0) {
-        const logsData = outcome.answerHistory.map((record) => ({
-          user_id: userId,
-          category: record.skill,
-          is_correct: record.correct,
-          user_answer: record.answer ?? '',
-          correct_answer: record.correctAnswer ?? '',
-          error_tag: record.errorTag,
-          brief_explanation: record.briefExplanation,
-          created_at: new Date().toISOString(),
-        }));
+      // ── 3. assessment_logs (SKIPPED) ──────────────────────────────────────────
+      // Individual logs are now saved in real-time during question submission.
+      // ────────────────────────────────────────────────────────────────────────
 
-        await withRetry(async () => {
-          const { error: logsError } = await supabase
-            .from('assessment_logs')
-            .insert(logsData);
-
-          if (logsError) throw logsError;
-          console.log('[AssessmentSave] ✅ assessment_logs saved:', logsData.length, 'entries');
-        });
-      }
 
 
       // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
