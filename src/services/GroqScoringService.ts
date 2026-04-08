@@ -32,7 +32,7 @@ export class GroqScoringService {
         body: JSON.stringify({
           model,
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: `${systemPrompt}\n\nEnsure the response is a valid JSON object.` },
             { role: "user", content: userMessage }
           ],
           temperature: 0.1,
