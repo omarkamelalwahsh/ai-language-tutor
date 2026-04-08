@@ -67,14 +67,15 @@ export class GroqScoringService {
    * Model A: Fast scoring and error tagging
    */
   public static async scoreWithModelA(question: AssessmentQuestion, answer: string): Promise<ModelAOutput | null> {
-    const systemPrompt = `**Role:** Assistant Language Scorer (Instant Feedback)
+    const systemPrompt = `You are an expert English tutor. Respond ONLY in JSON format.
+**Role:** Assistant Language Scorer (Instant Feedback)
 **Task:** Diagnostic tagging of the user's answer.
 **Input:** {question, user_answer, correct_answer, category}
 **Output (JSON):**
 {
   "is_correct": boolean,
-  "error_tag": "Standardized Tag (e.g., Tense_Mistake, Spelling, Preposition, Syntax, Vocabulary_Mismatch)",
-  "brief_explanation": "Extremely concise (Max 8 words) why it's wrong."
+  "error_tag": "string",
+  "brief_explanation": "string"
 }`;
 
     // Extract correct answer from various possible locations in the object
@@ -95,7 +96,8 @@ export class GroqScoringService {
    * Model B: Deep history analysis and Bridge Level determination
    */
   public static async analyzeWithModelB(evaluations: TaskEvaluation[]): Promise<ModelBOutput | null> {
-    const systemPrompt = `**Role:** Senior CEFR Linguistic Professor
+    const systemPrompt = `You are an expert English tutor. Respond ONLY in JSON format.
+**Role:** Senior CEFR Linguistic Professor
 **Task:** Deep analysis of the student's 20-question assessment session.
 
 **Rules for Analysis:**
