@@ -29,7 +29,7 @@ import { SharedRuntime } from './components/runtime/SharedRuntime';
 
 // Dev Mode overlay
 import { motion } from 'motion/react';
-import { Code, X } from 'lucide-react';
+import { Code, X, Loader2 } from 'lucide-react';
 
 const DevModeOverlay = ({ result, show, onClose }: { result: AssessmentSessionResult | null; show: boolean; onClose: () => void }) => (
   <AnimatePresence>
@@ -70,11 +70,61 @@ export default function App() {
   const [assessmentResult, setAssessmentResult] = useState<AssessmentSessionResult | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [devModeActive, setDevModeActive] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [isArchitecting, setIsArchitecting] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
 
-  // 💾 State Persistence: Load from localStorage on mount with Error Handling
+  // 💾 Initialization: Check Auth & Profile on mount
   React.useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // 1. Check current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) throw sessionError;
+
+        if (session) {
+          console.log('[App] Session found for:', session.user.email);
+          localStorage.setItem('auth_token', session.access_token);
+          localStorage.setItem('auth_user_id', session.user.id);
+
+          // 2. Fetch User Profile to check onboarding status
+          const { data: profile, error: profileError } = await supabase
+            .from('learner_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows found"
+            console.warn('[App] Profile fetch error:', profileError);
+          }
+
+          if (profile) {
+            console.log('[App] Profile found. Onboarding complete:', profile.onboarding_complete);
+            if (profile.onboarding_complete) {
+              navigateTo('DASHBOARD');
+            } else if (profile.last_path === '/diagnostic' || profile.last_path === 'DIAGNOSTIC') {
+              navigateTo('DIAGNOSTIC');
+            } else {
+               navigateTo('ONBOARDING');
+            }
+          } else {
+            // Logged in but no profile record yet
+            navigateTo('ONBOARDING');
+          }
+        } else {
+          console.log('[App] No session found.');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user_id');
+        }
+      } catch (err) {
+        console.error('[App] Initialization error:', err);
+      } finally {
+        setInitializing(false);
+      }
+    };
+
+    // Load from localStorage as fallback/cache for existing session logic
     const loadSafe = (key: string, setter: (val: any) => void) => {
       const data = localStorage.getItem(key);
       if (data && data !== 'undefined') {
@@ -91,7 +141,9 @@ export default function App() {
     loadSafe('last_assessment_outcome', setAssessmentOutcome);
     loadSafe('last_assessment_evals', setTaskResults);
 
-    // Supabase Auth Listener
+    initializeApp();
+
+    // Supabase Auth Listener for subsequent changes (login/logout from other tabs or actions)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[App] Auth event:', event);
       if (session) {
@@ -100,6 +152,8 @@ export default function App() {
       } else {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user_id');
+        // If we log out, ensure we return to landing
+        navigateTo('LANDING');
       }
     });
 
@@ -164,8 +218,32 @@ export default function App() {
           if (history && history.length > 0) {
             console.log(`[App] ${history.length} cloud responses found. Reaffirming state...`);
             
+            // Map logs to TaskEvaluation/AnswerRecord for resumption
+            const mappedHistory = history.map((h: any) => ({
+              taskId: h.task_id || h.id,
+              skill: h.category,
+              primarySkill: h.category,
+              correct: h.is_correct,
+              answer: h.user_answer,
+              correctAnswer: h.correct_answer,
+              score: h.is_correct ? 1 : 0,
+              channels: { comprehension: h.is_correct ? 1 : 0 },
+              errorTag: h.error_tag,
+              briefExplanation: h.brief_explanation
+            }));
+
             // If user has history but we are in AUTH or ONBOARDING, they might need to RESUME
-            // For now, let's just reconstruct enough for the dashboard or transition
+            // LOGIC: If they have less than e.g. 20 answers, they are probably still in the diagnostic
+            if (history.length < 20) {
+               console.log('[App] Partial history detected. Suggesting resume...');
+               setTaskResults(mappedHistory);
+               // We don't build a full AssessmentResult yet for partial sessions
+               if (view === 'AUTH' || view === 'ONBOARDING' || view === 'LANDING') {
+                 navigateTo('DIAGNOSTIC');
+               }
+               return;
+            }
+
             const latest = history[0];
             const reconstructed: AssessmentSessionResult = {
               learnerId: userId,
@@ -210,6 +288,26 @@ export default function App() {
     setView(newView);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (initializing) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse">
+            <Loader2 className="w-8 h-8 text-white animate-spin" />
+          </div>
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-bold text-slate-900">Restoring Your Session</h2>
+            <p className="text-slate-500 text-sm font-medium">Please wait while we prepare your workspace...</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans antialiased text-slate-900 selection:bg-indigo-500/30 selection:text-indigo-900 bg-slate-50 min-h-screen">
@@ -266,6 +364,7 @@ export default function App() {
           <DiagnosticView 
             key="diagnostic" 
             onboardingState={onboardingState}
+            taskResults={taskResults}
             onSaveComplete={(results, outcome) => {
               // Sync state for Assessment Review & legacy screens
               setTaskResults(results);

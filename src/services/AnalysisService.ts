@@ -365,7 +365,7 @@ export class AssessmentAnalysisService {
     const selfCorrectionRate = evaluations.length > 0 ? selfCorrections / evaluations.length : 0;
     
     return {
-      pace: avgLatency > 20000 ? "slow" : avgLatency < 8000 ? "fast" : "moderate",
+      pace: avgLatency > 10000 ? "slow" : avgLatency < 2000 ? "fast" : "moderate",
       confidenceStyle: "balanced",
       selfCorrectionRate
     };

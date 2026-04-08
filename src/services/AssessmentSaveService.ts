@@ -4,11 +4,6 @@ import { AssessmentOutcome } from '../types/assessment';
 export class AssessmentSaveService {
   /**
    * Saves full assessment results to Supabase after the 20th question.
-   *
-   * Tables written:
-   *  - learner_profiles  → overall_level, onboarding_complete
-   *  - skill_states      → skill, current_level, confidence
-   *  - assessment_logs   → category, is_correct, user_answer, correct_answer (bulk insert)
    */
   public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
     try {
@@ -27,7 +22,7 @@ export class AssessmentSaveService {
         .upsert(
           {
             id: userId,
-            overall_level: String(outcome.overallBand),
+            overall_level: String(outcome.finalLevel || outcome.overallBand),
             onboarding_complete: true,
             updated_at: new Date().toISOString(),
           },
@@ -37,10 +32,10 @@ export class AssessmentSaveService {
       if (profileError) {
         console.error('[AssessmentSave] learner_profiles error:', profileError);
       } else {
-        console.log('[AssessmentSave] ✅ learner_profiles saved. Level:', outcome.overallBand);
+        console.log('[AssessmentSave] ✅ learner_profiles saved. Level:', outcome.finalLevel || outcome.overallBand);
       }
 
-      // ── 2. skill_states (ATOMIC UPSERT to prevent Zero Stats Bug) ────────────
+      // ── 2. skill_states (ATOMIC UPSERT) ──────────────────────────────────────
       const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
 
       const skillStatesData = skillKeys.map((skill) => ({
@@ -51,16 +46,12 @@ export class AssessmentSaveService {
         updated_at: new Date().toISOString(),
       }));
 
-      // Use upsert with onConflict to avoid the delete-insert window where stats show 0
       const { error: skillUpsertError } = await supabase
         .from('skill_states')
         .upsert(skillStatesData, { onConflict: 'user_id, skill' });
 
       if (skillUpsertError) {
         console.error('[AssessmentSave] skill_states upsert error:', skillUpsertError);
-        // Fallback: If unique constraint (user_id, skill) is missing, the upsert might fail.
-        // In that case, we revert to delete-insert as a safety but warn the dev.
-        console.warn('[AssessmentSave] ⚠️ Ensure (user_id, skill) has a UNIQUE constraint in Postgres.');
       } else {
         console.log('[AssessmentSave] ✅ skill_states synced:', skillStatesData.length, 'skills');
       }
@@ -73,6 +64,8 @@ export class AssessmentSaveService {
           is_correct: record.correct,
           user_answer: record.answer ?? '',
           correct_answer: record.correctAnswer ?? '',
+          error_tag: record.errorTag, // Preserving Model A details
+          brief_explanation: record.briefExplanation,
           created_at: new Date().toISOString(),
         }));
 
@@ -90,8 +83,14 @@ export class AssessmentSaveService {
       // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
       const errorProfilePayload = {
         user_id: userId,
-        common_mistakes: outcome.weaknesses || [], // renamed from weakness_areas
-        recommendations: outcome.recommendations || [], // expects text[] array
+        common_mistakes: outcome.weaknesses || [],
+        recommendations: outcome.recommendations || [],
+        bridge_delta: outcome.bridgeDelta,
+        bridge_percentage: outcome.bridgePercentage,
+        missing_skills: outcome.missingSkills,
+        action_plan: outcome.actionPlan,
+        final_level: outcome.finalLevel,
+        error_analysis_report: outcome.errorAnalysisReport,
         last_analyzed: new Date().toISOString()
       };
 
@@ -102,11 +101,11 @@ export class AssessmentSaveService {
       if (errorProfileError) {
         console.error('[AssessmentSave] user_error_profiles error:', errorProfileError);
       } else {
-        console.log('[AssessmentSave] ✅ user_error_profiles updated with detailed analysis.');
+        console.log('[AssessmentSave] ✅ user_error_profiles updated with detailed Model B analysis.');
       }
     } catch (e) {
       console.error('[AssessmentSave] Unexpected error:', e);
-      throw e; // re-throw so DiagnosticView can catch and show saveError
+      throw e;
     }
   }
 }

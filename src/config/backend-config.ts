@@ -13,7 +13,7 @@ export const LLMConfig = {
   provider: 'groq' as const,
   model: 'llama-3.1-8b-instant',
   backendUrl: (import.meta as any).env?.PROD ? '' : 'http://localhost:3001',
-  requestTimeoutMs: 8000,
+  requestTimeoutMs: 4000,
   maxRetries: 0, // No retries — fail fast, fallback deterministic
 } as const;
 

@@ -143,6 +143,8 @@ export type TaskEvaluation = {
   isOffTopic?: boolean;
   missingContentPoints?: string[];
   rationale?: string;
+  errorTag?: string; // Model A tag
+  briefExplanation?: string; // Model A brief explanation
   rubricScores?: {
     criterion: string;
     score: number;
@@ -359,6 +361,9 @@ export type AnswerRecord = {
   speakingMeta?: SpeakingSubmissionMeta;
   /** Correct answer to be saved to db logs */
   correctAnswer?: string;
+  /** Model A Analysis */
+  errorTag?: string;
+  briefExplanation?: string;
 };
 
 export type AssessmentStability = "stable" | "emerging" | "fragile" | "insufficient_data";
@@ -403,6 +408,16 @@ export type AdaptiveAssessmentState = {
   topicPerformance: Record<string, { successCount: number; failCount: number }>;
   /** Performance per domain (for feedback loops/dampening) */
   domainPerformance: Record<string, { successCount: number; failCount: number }>;
+  /** Model B Deep Analysis Cache */
+  finalModelB?: {
+    final_level: string;
+    summary: string;
+    bridge_delta: string;
+    bridge_percentage: number;
+    missing_skills: string[];
+    action_plan: string[];
+    error_analysis_report: string;
+  };
 };
 
 /** Final structured output from the adaptive assessment */
@@ -432,6 +447,13 @@ export type AssessmentOutcome = {
   speakingAudit?: SpeakingAuditTrail;
   /** AI-generated personalized recommendations */
   recommendations?: string[];
+  /** Model B Deep Analysis */
+  finalLevel?: CefrLevel;
+  bridgeDelta?: string;
+  bridgePercentage?: number;
+  missingSkills?: string[];
+  actionPlan?: string[];
+  errorAnalysisReport?: string;
 };
 
 /** Legacy QuestionResult type (backward compat) */

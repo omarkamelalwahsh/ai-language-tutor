@@ -5,7 +5,7 @@ import {
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
-  Brain, XCircle, Lightbulb
+  Brain, XCircle, Lightbulb, Zap
 } from 'lucide-react';
 
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
@@ -74,7 +74,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const isNewLearner = (supabaseData?.history?.length || 0) === 0;
   const currentStreak = supabaseData?.profile?.streak || dashboardData?.weeklyRhythm?.streakDays || 0;
   const totalPoints = supabaseData?.profile?.points || 0;
-  const currentLevel = supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
+  const currentLevel = assessmentOutcome?.finalLevel || supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
   return (
     <div className="flex min-h-screen bg-slate-50 relative">
@@ -182,6 +182,50 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </button>
               </motion.div>
 
+              {/* Smart Goal Progress Banner */}
+              {supabaseData.errorProfile?.bridge_delta && (
+                <motion.div 
+                  variants={staggerItem}
+                  className="bg-indigo-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-100"
+                >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
+                        <span className="text-xs font-black uppercase tracking-widest text-indigo-100">Smart Goal Tracker</span>
+                      </div>
+                      <h2 className="text-2xl font-black mb-3 leading-tight">
+                        {supabaseData.errorProfile.bridge_delta}
+                      </h2>
+                      <p className="text-indigo-50 font-medium opacity-90 max-w-lg">
+                        Our engine has detected your momentum. You are technically very close to your next proficiency milestone!
+                      </p>
+                    </div>
+                    
+                    {supabaseData.errorProfile.bridge_percentage !== undefined && (
+                      <div className="shrink-0 text-center">
+                        <div className="relative w-24 h-24 mb-2 flex items-center justify-center">
+                          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
+                            <motion.circle 
+                              cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" 
+                              className="text-amber-400"
+                              strokeDasharray={251.2}
+                              initial={{ strokeDashoffset: 251.2 }}
+                              animate={{ strokeDashoffset: 251.2 - (251.2 * supabaseData.errorProfile.bridge_percentage) / 100 }}
+                              transition={{ duration: 1.5, ease: "easeOut" }}
+                            />
+                          </svg>
+                          <span className="absolute text-xl font-black">{supabaseData.errorProfile.bridge_percentage}%</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Achievement</span>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
               {/* AI Learning Insights (Personalized Roadmap based on DB Errors) */}
               {(supabaseData.errors?.length || 0) > 0 && (
                 <motion.section variants={staggerItem} className="bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20 my-6 border border-indigo-800">
@@ -207,6 +251,53 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                        <button onClick={() => setActiveTab('review')} className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-indigo-100 hover:text-white border border-indigo-700 px-5 py-3.5 rounded-xl font-bold transition-all">
                          View All Insights
                        </button>
+                    </div>
+                  </div>
+                </motion.section>
+              )}
+
+              {/* ===== Expert Recommendations (Model B Analysis) ===== */}
+              {(supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) && (
+                <motion.section variants={staggerItem} className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl my-6 border border-indigo-800">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
+                       <div>
+                         <div className="flex items-center gap-2 mb-3">
+                           <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/30">
+                             <Lightbulb className="w-5 h-5 text-amber-400" />
+                           </div>
+                           <h2 className="text-xl font-black tracking-tight text-white">The Professor's Action Plan</h2>
+                         </div>
+                         <p className="text-indigo-200 font-medium max-w-xl">
+                            {supabaseData.errorProfile.bridge_delta || "Here are the key steps to elevate your linguistic precision."}
+                         </p>
+                       </div>
+                       
+                       {supabaseData.errorProfile.bridge_percentage !== undefined && (
+                         <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-center min-w-[160px]">
+                            <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1">Current Mastery</p>
+                            <div className="flex items-end justify-center gap-1">
+                               <span className="text-4xl font-black text-emerald-400">{supabaseData.errorProfile.bridge_percentage}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-black/40 rounded-full mt-3 overflow-hidden">
+                               <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${supabaseData.errorProfile.bridge_percentage}%` }} />
+                            </div>
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {supabaseData.errorProfile.action_plan.map((step, idx) => (
+                        <div key={idx} className="flex gap-4 bg-white/5 hover:bg-white/10 p-5 rounded-2xl border border-white/5 transition-colors group cursor-pointer">
+                           <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0 self-start group-hover:bg-indigo-500/40 transition-colors">
+                              <span className="text-sm font-black text-indigo-300">{idx + 1}</span>
+                           </div>
+                           <p className="text-sm text-indigo-50 font-medium leading-relaxed">
+                              {step}
+                           </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </motion.section>

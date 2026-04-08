@@ -32,6 +32,9 @@ export interface DashboardSupabaseData {
   errorProfile: {
     common_mistakes: any[];
     weakness_areas: string[];
+    action_plan?: string[];
+    bridge_delta?: string;
+    bridge_percentage?: number;
   } | null;
   achievements: {
     id: string;
@@ -42,6 +45,7 @@ export interface DashboardSupabaseData {
   isSyncing: boolean;
   isLoading: boolean;
   error: string | null;
+  refresh?: () => void;
 }
 
 export const useSupabaseDashboard = () => {
@@ -57,6 +61,8 @@ export const useSupabaseDashboard = () => {
     isLoading: true,
     error: null,
   });
+
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -89,7 +95,7 @@ export const useSupabaseDashboard = () => {
             .limit(50),
           supabase
             .from('user_error_profiles')
-            .select('weakness_areas, common_mistakes')
+            .select('weakness_areas, common_mistakes, action_plan, bridge_delta, bridge_percentage')
             .eq('user_id', user.id)
             .maybeSingle(),
           supabase
@@ -148,6 +154,11 @@ export const useSupabaseDashboard = () => {
                   weakness_areas: Array.isArray((errorsRes.data as any).weakness_areas)
                     ? (errorsRes.data as any).weakness_areas
                     : [],
+                  action_plan: Array.isArray((errorsRes.data as any).action_plan)
+                    ? (errorsRes.data as any).action_plan
+                    : [],
+                  bridge_delta: (errorsRes.data as any).bridge_delta,
+                  bridge_percentage: (errorsRes.data as any).bridge_percentage,
                 }
               : null,
             achievements: achievementRes.data
@@ -174,7 +185,9 @@ export const useSupabaseDashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshTrigger]);
 
-  return data;
+  const refresh = () => setRefreshTrigger(prev => prev + 1);
+
+  return { ...data, refresh };
 };

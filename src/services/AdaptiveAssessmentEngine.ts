@@ -20,6 +20,8 @@ import {
 } from '../types/assessment';
 import { TaskResult } from '../types/app';
 import { evaluateWithGroq } from './groqEvaluator';
+import { supabase } from '../lib/supabaseClient';
+import { GroqScoringService } from './GroqScoringService';
 import { clamp01 } from '../lib/numeric-guards';
 
 // EF SET Architecture Imports
@@ -400,6 +402,21 @@ export class AdaptiveAssessmentEngine {
       ? efsetItem.answer_key 
       : (efsetItem.answer_key as any)?.answer || '';
 
+    // 🎯 CRITICAL BUG FIX: Record history IMMEDIATELY before any early returns or AI delays
+    // This ensures all 20 questions are logged even if the API fails or is too slow.
+    this.state.answerHistory.push({
+      taskId: efsetItem.id,
+      questionId: efsetItem.id,
+      skill: efsetItem.skill as any,
+      difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
+      correct: false, // Default to false until proven correct
+      score: 0,
+      answer,
+      correctAnswer: correctText,
+      responseTimeMs,
+      taskType: efsetItem.task_type as any
+    });
+
     // 2. LLM Signal Extraction
     let signal: LLMSignal = {
       content_accuracy: 1, task_completion: 1, grammar_control: 1, 
@@ -437,14 +454,26 @@ export class AdaptiveAssessmentEngine {
          question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
          learnerAnswer: answer,
          assessmentId: this.assessmentId, // Bind to instance session
-         isMCQ: true,
-         isCorrect
+         isMCQ: true
        };
 
     try {
-      // 🛡️ OPTIMISTIC TIMEOUT: Stop waiting after 12s and use local fallback to keep the user moving
+      // 🤖 MODEL A INVOCATION: Fast scoring and error tagging
+      const modelA = await GroqScoringService.scoreWithModelA(question, answer);
+      
+      if (modelA) {
+         isCorrect = modelA.is_correct;
+         if (typeof window !== 'undefined') (window as any)._lastModelA = modelA;
+         console.log(`[Engine] Model A Analysis: ${modelA.error_tag} - ${modelA.brief_explanation}`);
+      } else {
+         // Fallback to deterministic scoring
+         isCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+         console.warn('[Engine] Model A failed. Using deterministic fallback.');
+      }
+
+      // 🛡️ OPTIMISTIC TIMEOUT: 4s threshold (User B1 recommendation)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -489,6 +518,11 @@ export class AdaptiveAssessmentEngine {
       if (this.efsetSkills[skillName]) {
           this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + signal.content_accuracy) / 2;
       }
+      // Sync with history entry
+      const historyIdx = this.state.answerHistory.length - 1;
+      this.state.answerHistory[historyIdx].correct = result.isCorrect ?? isCorrect;
+      this.state.answerHistory[historyIdx].score = result.confidence ?? 0.5;
+
       return { correct: result.isCorrect ?? isCorrect, score: result.confidence ?? 0.5 };
 
     } catch (err) {
@@ -519,22 +553,15 @@ export class AdaptiveAssessmentEngine {
           this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + fallbackSignal.content_accuracy) / 2;
       }
       
+      // Sync with history entry on fallback
+      const historyIdx = this.state.answerHistory.length - 1;
+      this.state.answerHistory[historyIdx].correct = isCorrect;
+      this.state.answerHistory[historyIdx].score = 0.5;
+      
       return { correct: isCorrect, score: 0.5 };
     }
 
-       // Update local state and move on IMMEDIATELY
-       this.askedQuestionIds.add(efsetItem.id);
-       this.state.answerHistory.push({
-         taskId: efsetItem.id,
-         questionId: efsetItem.id,
-         skill: efsetItem.skill as any,
-         difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
-         correct: isCorrect,
-         score: isCorrect ? 1 : 0,
-         answer,
-         correctAnswer: correctText,
-         responseTimeMs
-       });
+       // Removed redundant manual push here since it's now at the top
 
        // Update overall state for MCQ
        const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect, 'typed');
@@ -568,6 +595,15 @@ export class AdaptiveAssessmentEngine {
        });
 
        if (llmOutput) signal = llmOutput;
+ 
+       // 🤖 MODEL A INVOCATION for short text
+       const modelA = await GroqScoringService.scoreWithModelA(question, answer);
+       if (modelA) {
+          isCorrect = modelA.is_correct;
+          if (typeof window !== 'undefined') (window as any)._lastModelA = modelA;
+       } else {
+          isCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+       }
     }
 
     // 2. Score + Map to Evidence
@@ -630,7 +666,9 @@ export class AdaptiveAssessmentEngine {
         skill: efsetItem.skill,
         level: efsetItem.target_cefr,
         answerKey: typeof efsetItem.answer_key === 'string' ? efsetItem.answer_key : JSON.stringify(efsetItem.answer_key)
-      }
+      },
+      errorTag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
+      briefExplanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
     };
     
     // Generate explanation data
@@ -638,20 +676,26 @@ export class AdaptiveAssessmentEngine {
 
     this.state.taskEvaluations.push(taskEval);
 
-    // Record History (Legacy compatible)
+    // Update history entry with final Model A flags
     const reportVal = this.efsetSkills[efsetItem.skill as EFSETSkillName];
-    this.state.answerHistory.push({
-      taskId: efsetItem.id,
-      questionId: efsetItem.id,
-      skill: efsetItem.skill as any,
-      difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
-      correct: isCorrect,
-      score: reportVal.score,
-      answer,
-      correctAnswer: correctText,
-      responseTimeMs,
-      taskType: efsetItem.task_type as any
-    });
+    const historyIdx = this.state.answerHistory.length - 1;
+    if (this.state.answerHistory[historyIdx]) {
+      this.state.answerHistory[historyIdx].correct = isCorrect;
+      this.state.answerHistory[historyIdx].score = reportVal.score;
+      this.state.answerHistory[historyIdx].errorTag = typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined;
+      this.state.answerHistory[historyIdx].briefExplanation = typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined;
+    }
+
+    // 🚀 RESTORE POINT: Save current progress to DB asynchronously
+    const currentUserId = this.userId || this.safeGetLocalStorage('auth_user_id');
+    if (currentUserId) {
+      supabase.from('learner_profiles').update({
+        current_question_index: this.state.answerHistory.length,
+        last_path: '/diagnostic'
+      }).eq('id', currentUserId).then(({ error }) => {
+        if (error) console.error('[Engine] Failed to save progress step:', error);
+      });
+    }
 
     // 5. Calibration Reset Logic (Double Leapfrog Trigger)
     // After 4 questions, we evaluate the "Linguistic Portfolio" to see if we should jump levels.
@@ -821,10 +865,18 @@ export class AdaptiveAssessmentEngine {
       strengths: [],
       weaknesses: [],
       answerHistory: [...this.state.answerHistory],
-      totalQuestions: this.state.questionsAnswered,
-      stopReason: report.overall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
-      speakingAudit: this.state.speakingAudit
-    };
+       totalQuestions: this.state.questionsAnswered,
+       stopReason: report.overall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
+       speakingAudit: this.state.speakingAudit,
+ 
+       // Model B Analysis
+       finalLevel: (this.state.finalModelB?.final_level as any) || this.rangeToLabel(report.overall.levelRange),
+       bridgeDelta: this.state.finalModelB?.bridge_delta,
+       bridgePercentage: this.state.finalModelB?.bridge_percentage,
+       missingSkills: this.state.finalModelB?.missing_skills,
+       actionPlan: this.state.finalModelB?.action_plan,
+       errorAnalysisReport: this.state.finalModelB?.error_analysis_report
+     };
   }
 
   private rangeToLabel(range: [CEFRLevel, CEFRLevel]): BandLabel {
@@ -840,6 +892,42 @@ export class AdaptiveAssessmentEngine {
 
   public getEvaluations(): TaskEvaluation[] {
     return this.state.taskEvaluations;
+  }
+
+  /**
+   * Reconstructs the internal state of the engine given previous task evaluations
+   * from an interrupted session, allowing the learner to resume seamlessly.
+   */
+  public initializeFromHistory(evaluations: TaskEvaluation[], partialAnswerHistory: AnswerRecord[]) {
+    if (!evaluations || evaluations.length === 0) return;
+    
+    console.log(`[Engine] Reconstructing state from ${evaluations.length} previous tasks...`);
+    
+    for (const task of evaluations) {
+      if (!this.askedQuestionIds.has(task.taskId)) {
+        this.askedQuestionIds.add(task.taskId);
+        this.state.askedQuestionIds.push(task.taskId);
+        this.state.taskEvaluations.push(task);
+      }
+      
+      const skillName = task.primarySkill as EFSETSkillName;
+      if (this.efsetSkills[skillName]) {
+        // Approximate score recovery
+        const score = task.channels?.comprehension !== undefined ? task.channels.comprehension : 0.5;
+        this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + score) / 2;
+        this.efsetSkills[skillName].directEvidenceCount++;
+      }
+    }
+    
+    if (partialAnswerHistory && partialAnswerHistory.length > 0) {
+      this.state.answerHistory = [...partialAnswerHistory];
+    }
+    
+    this.state.questionsAnswered = this.askedQuestionIds.size;
+    this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
+    this.state.overallConfidence = this.efsetOverall.confidence;
+    
+    console.log(`[Engine] Restored state. Resuming at Question ${this.state.questionsAnswered + 1}`);
   }
 
   public getProgress() {
@@ -871,17 +959,32 @@ export class AdaptiveAssessmentEngine {
        const report = this.getOutcome();
        const token = this.safeGetLocalStorage('auth_token');
        const headers: Record<string, string> = { "Content-Type": "application/json" };
-       if (token) headers['Authorization'] = `Bearer ${token}`;
-
-       await fetch('/api/assessments/complete', {
-         method: 'POST',
-         headers,
-         body: JSON.stringify({
-            assessmentId: this.assessmentId,
-            overallLevel: report.overallBand,
-            confidence: report.overallConfidence
-         })
-       });
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+ 
+        // 🤖 MODEL B INVOCATION: Final deep analysis
+        console.log('[Engine] 🧠 Triggering Model B (The Professor) for final analysis...');
+        try {
+          const modelB = await GroqScoringService.analyzeWithModelB(this.state.taskEvaluations);
+          if (modelB) {
+            console.log(`[Engine] Model B Analysis complete. Final Level: ${modelB.final_level}`);
+            this.state.finalModelB = modelB;
+          }
+        } catch (modelBErr) {
+          console.error('[Engine] Model B Analysis failed:', modelBErr);
+        }
+ 
+        const finalOutcome = this.getOutcome();
+ 
+        await fetch('/api/assessments/complete', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+             assessmentId: this.assessmentId,
+             overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
+             confidence: finalOutcome.overallConfidence,
+             modelB: this.state.finalModelB
+          })
+        });
        console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
      } catch (e) {
        console.error(`[Engine] Failed to commit session:`, e);

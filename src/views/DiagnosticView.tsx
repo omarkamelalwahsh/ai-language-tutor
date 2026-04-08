@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain, Save } from 'lucide-react';
 
 import { FadeTransition } from '../lib/animations';
-import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile } from '../types/assessment';
+import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile, TaskEvaluation } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
 import { AssessmentSaveService } from '../services/AssessmentSaveService';
 import { TaskResult, OnboardingState } from '../types/app';
@@ -342,11 +342,12 @@ const AnswerFeedback: React.FC<{
 
 interface DiagnosticViewProps {
   onboardingState?: OnboardingState | null;
+  taskResults?: TaskEvaluation[]; // Added for resumption
   /** Called after all 20 questions are done and Supabase is saved. Receives results+outcome so App can build state immediately. */
   onSaveComplete: (results: TaskResult[], outcome: AssessmentOutcome) => void;
 }
 
-export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, onboardingState }) => {
+export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, onboardingState, taskResults }) => {
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -360,7 +361,15 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     } : undefined;
 
     const userId = localStorage.getItem('auth_user_id');
-    engineRef.current = new AdaptiveAssessmentEngine(startBand, contextProfile, userId);
+    const engine = new AdaptiveAssessmentEngine(startBand, contextProfile, userId);
+    
+    // 🚀 RESUME LOGIC: If we have partial results from App state, inject them into the engine
+    if (taskResults && taskResults.length > 0) {
+      // Map TaskEvaluation back to AnswerRecord if needed, but initializeFromHistory handles TaskEvaluation
+      engine.initializeFromHistory(taskResults, []); 
+    }
+    
+    engineRef.current = engine;
   }
 
   const engine = engineRef.current;
