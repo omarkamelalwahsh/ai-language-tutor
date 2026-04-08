@@ -430,6 +430,8 @@ export type AssessmentOutcome = {
   stopReason: string;
   /** Session-level speaking audit trail */
   speakingAudit?: SpeakingAuditTrail;
+  /** AI-generated personalized recommendations */
+  recommendations?: string[];
 };
 
 /** Legacy QuestionResult type (backward compat) */

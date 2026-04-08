@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Mic, PenTool, Headphones, BookOpen, ChevronRight, 
+  Mic, PenTool, Headphones, BookOpen,
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
-  Brain
+  Brain, XCircle, Lightbulb
 } from 'lucide-react';
 
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
@@ -208,6 +208,61 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                          View All Insights
                        </button>
                     </div>
+                  </div>
+                </motion.section>
+              )}
+
+              {/* ===== Common Mistakes from Error Profile ===== */}
+              {(supabaseData.errorProfile?.common_mistakes?.length ?? 0) > 0 && (
+                <motion.section variants={staggerItem} className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-rose-50 rounded-lg border border-rose-100">
+                        <XCircle className="w-4 h-4 text-rose-500" />
+                      </div>
+                      <h2 className="text-lg font-extrabold text-slate-900">Common Mistakes to Fix</h2>
+                      <span className="bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                        {supabaseData.errorProfile!.common_mistakes.length} identified
+                      </span>
+                    </div>
+                    <button
+                      onClick={onStartSession}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                    >
+                      Practice All <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {supabaseData.errorProfile!.common_mistakes.map((mistake, i) => (
+                      <motion.div
+                        key={i}
+                        variants={staggerItem}
+                        className="bg-white rounded-2xl p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-200 transition-all group relative overflow-hidden"
+                      >
+                        {/* Subtle accent glow */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="relative z-10">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 p-1.5 bg-amber-50 rounded-lg border border-amber-100 shrink-0">
+                              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                            </div>
+                            <p className="text-sm font-medium text-slate-700 leading-relaxed">{mistake}</p>
+                          </div>
+                          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">
+                              Mistake #{i + 1}
+                            </span>
+                            <button
+                              onClick={onStartSession}
+                              className="text-[10px] font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 px-2.5 py-1 rounded-lg border border-indigo-200 hover:border-indigo-600 transition-all flex items-center gap-1"
+                            >
+                              <Dumbbell className="w-2.5 h-2.5" /> Practice
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 </motion.section>
               )}

@@ -17,6 +17,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create the client. If keys are missing, it will use empty strings but won't crash until a call is made.
 // We use fallback to empty strings instead of placeholder.supabase.co to avoid DNS resolution errors.
 export const supabase = createClient(
-  supabaseUrl || 'https://missing-url.supabase.co', 
-  supabaseAnonKey || 'missing-key'
+  supabaseUrl || 'https://missing-url.supabase.co',
+  supabaseAnonKey || 'missing-key',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
 );

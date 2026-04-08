@@ -90,15 +90,8 @@ export class AssessmentSaveService {
       // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
       const errorProfilePayload = {
         user_id: userId,
-        weakness_areas: outcome.weaknesses || [],
-        strength_areas: outcome.strengths || [],
-        common_mistakes: outcome.weaknesses?.slice(0, 3) || [], // Placeholder for actual mistake parsing
-        detailed_analysis: {
-          stopReason: outcome.stopReason,
-          totalQuestions: outcome.totalQuestions,
-          overallConfidence: outcome.overallConfidence,
-          skillBreakdown: outcome.skillBreakdown
-        },
+        common_mistakes: outcome.weaknesses || [], // renamed from weakness_areas
+        recommendations: outcome.recommendations || [], // expects text[] array
         last_analyzed: new Date().toISOString()
       };
 

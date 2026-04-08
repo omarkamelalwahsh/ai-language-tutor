@@ -29,6 +29,10 @@ export interface DashboardSupabaseData {
     category: string;
     description: string;
   }[];
+  errorProfile: {
+    common_mistakes: string[];
+    weakness_areas: string[];
+  } | null;
   achievements: {
     id: string;
     name: string;
@@ -47,6 +51,7 @@ export const useSupabaseDashboard = () => {
     skills: [],
     history: [],
     errors: [],
+    errorProfile: null,
     achievements: [],
     isSyncing: false,
     isLoading: true,
@@ -84,7 +89,7 @@ export const useSupabaseDashboard = () => {
             .limit(50),
           supabase
             .from('user_error_profiles')
-            .select('weakness_areas')
+            .select('weakness_areas, common_mistakes')
             .eq('user_id', user.id)
             .maybeSingle(),
           supabase
@@ -135,6 +140,16 @@ export const useSupabaseDashboard = () => {
                   description: w,
                 }))
               : [],
+            errorProfile: errorsRes.data
+              ? {
+                  common_mistakes: Array.isArray((errorsRes.data as any).common_mistakes)
+                    ? (errorsRes.data as any).common_mistakes
+                    : [],
+                  weakness_areas: Array.isArray((errorsRes.data as any).weakness_areas)
+                    ? (errorsRes.data as any).weakness_areas
+                    : [],
+                }
+              : null,
             achievements: achievementRes.data
               ? (achievementRes.data as any[]).map((a: any) => ({
                   id: a.id,

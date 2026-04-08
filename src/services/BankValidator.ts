@@ -52,7 +52,7 @@ export class BankValidator {
           }
 
           // 3. Response Mode Validation
-          if (item.skill === 'speaking' && item.response_mode === 'multiple_choice') {
+          if (item.skill === 'speaking' && item.response_mode === 'mcq') {
              report.warnings.push(`Speaking task ${item.id} is marked as multiple_choice. This provides low evidence signal.`);
           }
           

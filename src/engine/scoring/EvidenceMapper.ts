@@ -74,7 +74,7 @@ export class EvidenceMapper {
     
     // لو الـ Database مبعتش سياسة، بنعمل Fallback للمهارة الأساسية للسؤال
     if (!policyMap || Object.keys(policyMap).length === 0) {
-        const defaultSkill = (item.category || 'reading') as SkillName;
+        const defaultSkill = (item.skill as SkillName) || 'reading';
         policyMap = { [defaultSkill]: { weight: 1.0, direct: true } };
     }
     
