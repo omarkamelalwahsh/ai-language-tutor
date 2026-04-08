@@ -67,7 +67,28 @@ export const useSupabaseDashboard = () => {
   useEffect(() => {
     let isMounted = true;
 
+    // ── Auth Listener ────────────────────────────────────────────────────────
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      console.log(`[useSupabaseDashboard] Auth Event: ${event}`);
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setRefreshTrigger(prev => prev + 1);
+      } else if (event === 'SIGNED_OUT') {
+        if (isMounted) {
+          setData(prev => ({ 
+            ...prev, 
+            user: null, 
+            profile: null, 
+            skills: [], 
+            history: [], 
+            isLoading: false 
+          }));
+        }
+      }
+    });
+
     const fetchDashboardData = async () => {
+      if (isMounted) setData(prev => ({ ...prev, isLoading: true }));
+      
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -136,8 +157,8 @@ export const useSupabaseDashboard = () => {
               ? historyRes.data.map((h: any) => ({
                   id: h.id,
                   createdAt: h.created_at,
-                  overallLevel: h.category || 'General', // mapped from assessment_logs.category
-                  confidence: h.is_correct ? 1 : 0,      // simplified from logs
+                  overallLevel: h.category || 'General', 
+                  confidence: h.is_correct ? 1 : 0,      
                 }))
               : [],
             errors: (errorsRes.data as any)?.weakness_areas
@@ -184,6 +205,7 @@ export const useSupabaseDashboard = () => {
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, [refreshTrigger]);
 
@@ -191,3 +213,4 @@ export const useSupabaseDashboard = () => {
 
   return { ...data, refresh };
 };
+

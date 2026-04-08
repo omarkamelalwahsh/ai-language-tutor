@@ -34,3 +34,15 @@ export const supabase = createClient(
     }
   }
 );
+/**
+ * 🔐 Auth Guard Utility
+ * Ensures a valid session exists before critical operations.
+ */
+export const ensureAuth = async (): Promise<string> => {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    console.error(' [Supabase] Session verification failed:', error?.message);
+    throw new Error('UNAUTHORIZED_ACCESS');
+  }
+  return user.id;
+};

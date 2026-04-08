@@ -11,6 +11,8 @@ import {
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
+import { cefrToNumeric } from '../../lib/cefrMapper';
+
 
 interface AdvancedDashboardProps {
   result?: AssessmentSessionResult | null;
@@ -455,10 +457,14 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                         <h3 className="text-xl font-bold text-slate-900">Assessment Result</h3>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center">
-                          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Overall Level</p>
-                          <p className="text-4xl font-extrabold text-indigo-700">{assessmentOutcome.overallBand}</p>
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center relative overflow-hidden">
+                          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Numerical Level</p>
+                          <p className="text-4xl font-extrabold text-indigo-700">{cefrToNumeric(assessmentOutcome.overallBand)}</p>
+                          <div className="absolute top-0 right-0 p-1">
+                             <div className="bg-white/50 text-[8px] px-1 font-bold text-indigo-400 rounded border border-indigo-50">Score</div>
+                          </div>
                         </div>
+
                         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confidence</p>
                           <p className="text-3xl font-extrabold text-slate-900">{Math.round(assessmentOutcome.overallConfidence * 100)}%</p>
@@ -514,9 +520,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                               </div>
                               <h4 className="font-bold text-slate-800 capitalize text-lg">{skillName}</h4>
                             </div>
-                            <div className={`px-3 py-1.5 rounded-xl bg-gradient-to-br ${bandColorClass} border`}>
-                              <span className={`text-xl font-extrabold ${bandTextClass}`}>{skillData.band}</span>
-                            </div>
+                             <div className={`px-3 py-1.5 rounded-xl bg-gradient-to-br ${bandColorClass} border flex flex-col items-center`}>
+                               <span className={`text-xl font-extrabold ${bandTextClass}`}>{skillData.band}</span>
+                               <span className="text-[8px] font-bold opacity-60">({cefrToNumeric(String(skillData.band))})</span>
+                             </div>
+
                           </div>
                           <div className="grid grid-cols-3 gap-3 mb-4">
                             <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">

@@ -1,43 +1,50 @@
 import { supabase } from '../lib/supabaseClient';
 import { AssessmentOutcome } from '../types/assessment';
+import { withRetry } from '../lib/utils';
+
 
 export class AssessmentSaveService {
+  /**
+   * Helper to ensure valid user session before DB interaction.
+   */
+  private static async getAuthenticatedUserId(): Promise<string> {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      throw new Error(`Auth context missing: ${error?.message || 'No user session'}`);
+    }
+    return user.id;
+  }
+
   /**
    * Saves full assessment results to Supabase after the 20th question.
    */
   public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        console.error('[AssessmentSave] Auth error – cannot save:', authError);
-        return;
-      }
-
-      const userId = user.id;
+      // ── Ensure Auth First ──────────────────────────────────────────────────
+      const userId = await this.getAuthenticatedUserId();
+      console.log('[AssessmentSave] 🔑 Auth verified for:', userId);
 
       // ── 1. learner_profiles ──────────────────────────────────────────────────
-      const { error: profileError } = await supabase
-        .from('learner_profiles')
-        .upsert(
-          {
-            id: userId,
-            overall_level: String(outcome.finalLevel || outcome.overallBand),
-            onboarding_complete: true,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'id' }
-        );
+      await withRetry(async () => {
+        const { error: profileError } = await supabase
+          .from('learner_profiles')
+          .upsert(
+            {
+              id: userId,
+              overall_level: String(outcome.finalLevel || outcome.overallBand),
+              onboarding_complete: true,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          );
 
-      if (profileError) {
-        console.error('[AssessmentSave] learner_profiles error:', profileError);
-      } else {
-        console.log('[AssessmentSave] ✅ learner_profiles saved. Level:', outcome.finalLevel || outcome.overallBand);
-      }
+        if (profileError) throw profileError;
+        console.log('[AssessmentSave] ✅ learner_profiles saved.');
+      });
+
 
       // ── 2. skill_states (ATOMIC UPSERT) ──────────────────────────────────────
       const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
-
       const skillStatesData = skillKeys.map((skill) => ({
         user_id: userId,
         skill,
@@ -46,15 +53,15 @@ export class AssessmentSaveService {
         updated_at: new Date().toISOString(),
       }));
 
-      const { error: skillUpsertError } = await supabase
-        .from('skill_states')
-        .upsert(skillStatesData, { onConflict: 'user_id, skill' });
+      await withRetry(async () => {
+        const { error: skillUpsertError } = await supabase
+          .from('skill_states')
+          .upsert(skillStatesData, { onConflict: 'user_id, skill' });
 
-      if (skillUpsertError) {
-        console.error('[AssessmentSave] skill_states upsert error:', skillUpsertError);
-      } else {
+        if (skillUpsertError) throw skillUpsertError;
         console.log('[AssessmentSave] ✅ skill_states synced:', skillStatesData.length, 'skills');
-      }
+      });
+
 
       // ── 3. assessment_logs (Bulk Insert) ─────────────────────────────────────
       if (outcome.answerHistory && outcome.answerHistory.length > 0) {
@@ -64,21 +71,21 @@ export class AssessmentSaveService {
           is_correct: record.correct,
           user_answer: record.answer ?? '',
           correct_answer: record.correctAnswer ?? '',
-          error_tag: record.errorTag, // Preserving Model A details
+          error_tag: record.errorTag,
           brief_explanation: record.briefExplanation,
           created_at: new Date().toISOString(),
         }));
 
-        const { error: logsError } = await supabase
-          .from('assessment_logs')
-          .insert(logsData);
+        await withRetry(async () => {
+          const { error: logsError } = await supabase
+            .from('assessment_logs')
+            .insert(logsData);
 
-        if (logsError) {
-          console.error('[AssessmentSave] assessment_logs error:', logsError);
-        } else {
+          if (logsError) throw logsError;
           console.log('[AssessmentSave] ✅ assessment_logs saved:', logsData.length, 'entries');
-        }
+        });
       }
+
 
       // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
       const errorProfilePayload = {
@@ -94,18 +101,21 @@ export class AssessmentSaveService {
         last_analyzed: new Date().toISOString()
       };
 
-      const { error: errorProfileError } = await supabase
-        .from('user_error_profiles')
-        .upsert(errorProfilePayload, { onConflict: 'user_id' });
+      await withRetry(async () => {
+        const { error: errorProfileError } = await supabase
+          .from('user_error_profiles')
+          .upsert(errorProfilePayload, { onConflict: 'user_id' });
 
-      if (errorProfileError) {
-        console.error('[AssessmentSave] user_error_profiles error:', errorProfileError);
-      } else {
-        console.log('[AssessmentSave] ✅ user_error_profiles updated with detailed Model B analysis.');
-      }
+        if (errorProfileError) throw errorProfileError;
+        console.log('[AssessmentSave] ✅ user_error_profiles updated.');
+      });
+
+      console.log('[AssessmentSave] 🚀 Full persistence transaction successful with retry guards.');
+
     } catch (e) {
-      console.error('[AssessmentSave] Unexpected error:', e);
+      console.error('[AssessmentSave] Transaction failed:', e);
       throw e;
     }
   }
 }
+
