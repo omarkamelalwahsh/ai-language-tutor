@@ -1,8 +1,8 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
 
 const API_KEY = import.meta.env.VITE_GROQ_API_KEY || ""; 
-const MODEL_A = "llama3-8b-8192";
-const MODEL_B = "llama3-70b-8192";
+const MODEL_A = "llama-3.1-8b-instant"; 
+const MODEL_B = "llama-3.3-70b-versatile";
 
 export interface ModelAOutput {
   is_correct: boolean;
