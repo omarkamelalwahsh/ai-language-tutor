@@ -526,16 +526,17 @@ export class AdaptiveAssessmentEngine {
       this.state.answerHistory[historyIdx].score = result.confidence ?? 0.5;
 
       const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
-        user_id: currentUserId!,
-        category: efsetItem.skill,
+        category: efsetItem.skill || 'general',
         is_correct: result.isCorrect ?? isCorrect,
         user_answer: answer,
         correct_answer: correctText,
+        suggested_band: String(efsetItem.target_cefr || 'B1'),
         error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
         brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
       }).catch(e => console.error('[Engine] Persistent Log Error:', e));
 
       return { correct: result.isCorrect ?? isCorrect, score: result.confidence ?? 0.5 };
+
 
 
     } catch (err) {
@@ -572,16 +573,17 @@ export class AdaptiveAssessmentEngine {
       this.state.answerHistory[historyIdx].score = 0.5;
       
       const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
-        user_id: currentUserId!,
-        category: efsetItem.skill,
+        category: efsetItem.skill || 'general',
         is_correct: isCorrect,
         user_answer: answer,
         correct_answer: correctText,
+        suggested_band: String(efsetItem.target_cefr || 'B1'),
         error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
         brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
       }).catch(e => console.error('[Engine] Persistent Log Error (Fallback):', e));
 
       return { correct: isCorrect, score: 0.5 };
+
 
     }
 
@@ -728,19 +730,18 @@ export class AdaptiveAssessmentEngine {
     }
 
     // 🚀 RESTORE POINT: Save single log if not already saved (covers Text path)
-    if (currentUserId) {
-      AssessmentSaveService.saveSingleAssessmentLog({
-        user_id: currentUserId,
-        category: efsetItem.skill,
-        is_correct: isCorrect,
-        user_answer: answer,
-        correct_answer: correctText,
-        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
-        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
-      }).catch(e => console.error('[Engine] Persistent Log Error (Text Path):', e));
-    }
+    AssessmentSaveService.saveSingleAssessmentLog({
+      category: efsetItem.skill || 'general',
+      is_correct: isCorrect,
+      user_answer: answer,
+      correct_answer: correctText,
+      suggested_band: String(efsetItem.target_cefr || 'B1'),
+      error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
+      brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
+    }).catch(e => console.error('[Engine] Persistent Log Error (Text Path):', e));
 
     return { correct: isCorrect, score: reportVal.score };
+
 
   }
 

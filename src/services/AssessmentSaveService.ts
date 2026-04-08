@@ -17,28 +17,43 @@ export class AssessmentSaveService {
 
   /**
    * Saves a single assessment log (individual question) for real-time persistence.
+   * Aligned with strict Supabase data formatting (UUID, Boolean casting).
    */
   public static async saveSingleAssessmentLog(logData: {
-    user_id: string;
     category: string;
     is_correct: boolean;
     user_answer: string;
     correct_answer: string;
+    suggested_band: string;
     error_tag?: string;
     brief_explanation?: string;
   }): Promise<void> {
     await withRetry(async () => {
+      // 🔐 Fetch user directly from Auth for UUID integrity
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('UNAUTHORIZED_SAVE_ATTEMPT');
+
+      const logEntry = {
+        user_id: user.id,
+        category: logData.category || 'general',
+        is_correct: Boolean(logData.is_correct),
+        user_answer: logData.user_answer,
+        correct_answer: logData.correct_answer,
+        suggested_band: logData.suggested_band,
+        error_tag: logData.error_tag,
+        brief_explanation: logData.brief_explanation,
+        created_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('assessment_logs')
-        .insert([{
-          ...logData,
-          created_at: new Date().toISOString()
-        }]);
+        .insert([logEntry]);
 
       if (error) throw error;
-      console.log('[AssessmentSave] 📝 Single question log persisted.');
+      console.log('[AssessmentSave] 📝 Single log persisted successfully (UUID Verified).');
     });
   }
+
 
   /**
    * Saves full assessment results (profile, skills, error profiles) to Supabase.
