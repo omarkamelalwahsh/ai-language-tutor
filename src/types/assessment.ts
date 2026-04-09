@@ -408,15 +408,17 @@ export type AdaptiveAssessmentState = {
   topicPerformance: Record<string, { successCount: number; failCount: number }>;
   /** Performance per domain (for feedback loops/dampening) */
   domainPerformance: Record<string, { successCount: number; failCount: number }>;
-  /** Model B Deep Analysis Cache */
-  finalModelB?: {
-    final_level: string;
-    summary: string;
-    bridge_delta: string;
-    bridge_percentage: number;
-    missing_skills: string[];
-    action_plan: string[];
-    error_analysis_report: string;
+  /** Auditor Agent Deep Analysis */
+  finalAuditor?: {
+    final_cefr_level: string;
+    overall_score: number;
+    skills_breakdown: {
+      Grammar: { score: number; observation: string };
+      Technical_Speaking: { score: number; observation: string };
+      Vocabulary: { score: number; observation: string };
+    };
+    diagnosis_report: string;
+    is_consistent: boolean;
   };
 };
 
@@ -454,6 +456,18 @@ export type AssessmentOutcome = {
   missingSkills?: string[];
   actionPlan?: string[];
   errorAnalysisReport?: string;
+  /** Full Auditor Diagnosis */
+  auditorReport?: {
+    final_cefr_level: string;
+    overall_score: number;
+    skills_breakdown: {
+      Grammar: { score: number; observation: string };
+      Technical_Speaking: { score: number; observation: string };
+      Vocabulary: { score: number; observation: string };
+    };
+    diagnosis_report: string;
+    is_consistent: boolean;
+  };
 };
 
 /** Legacy QuestionResult type (backward compat) */

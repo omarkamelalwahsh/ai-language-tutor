@@ -88,6 +88,14 @@ export class AdaptiveAssessmentEngine {
   private userId: string | null = null;
   public assessmentId: string; // Expose for routing
 
+  // State Management for Adaptivity (Vibe Logic)
+  private streakTracking = {
+    consecutivePerfect: 0,
+    consecutiveFailed: 0,
+    currentCalibration: 'B1' as CEFRLevel,
+    proctorAdvice: null as any // Stores the last ProctorOutput
+  };
+
   private safeGetLocalStorage(key: string): string | null {
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       try {
@@ -304,10 +312,34 @@ export class AdaptiveAssessmentEngine {
     if (uniqueAnsweredCount >= ASSESSMENT_CONFIG.MAX_QUESTIONS || (isConfidenceTargetReached && isMinQuestionsMet && isStable)) {
       this.state.completed = true;
       console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${uniqueAnsweredCount}`);
+      
+      // 🕵️ Final Audit Trigger (Auditor Agent)
+      this.finishAssessment();
       return null;
     }
 
-    // 2. Select Next Item
+    // 2. Skill Rotation Logic (Proctor Recommendation)
+    const skillsToProbe: EFSETSkillName[] = ['speaking', 'grammar', 'vocabulary']; // Rotated by Proctor
+    const nextSkill = skillsToProbe[uniqueAnsweredCount % skillsToProbe.length];
+    
+    // 3. Hybrid Generation Support: Check if Proctor has a specific next_question
+    if (this.streakTracking.proctorAdvice?.next_question) {
+      console.log('[Engine] 🤖 Using Proctor Generated Question.');
+      const advice = this.streakTracking.proctorAdvice;
+      
+      return {
+        id: `gen-${Math.random().toString(36).substr(2, 5)}`,
+        prompt: advice.next_question,
+        skill: advice.expected_skill.toLowerCase() as any,
+        primarySkill: advice.expected_skill.toLowerCase() as any,
+        difficulty: advice.current_difficulty_calibration as DifficultyBand,
+        type: 'short_text', // Default for generated questions
+        response_mode: advice.expected_skill === 'Speaking' ? 'voice' : 'typed',
+        _proctorGenerated: true
+      } as any;
+    }
+
+    // 4. Select Next Item from Bank
     let nextItem = this.selector.selectNext({
       skills: this.efsetSkills,
       askedQuestionIds: this.askedQuestionIds,
@@ -392,26 +424,26 @@ export class AdaptiveAssessmentEngine {
     
     this.state.questionsAnswered = this.askedQuestionIds.size;
     
-    // 🛡️ SAFENET: Ensure we have the question item and its metadata
-    // Cast to unknown first to satisfy TypeScript
     const efsetItem = ((question as any)._efset || question) as QuestionBankItem;
     if (!efsetItem || !efsetItem.prompt) {
-      console.error("[Engine] Attempted to submit with missing question context.", question);
       return { correct: false, score: 0 };
     }
 
-    const correctText = typeof efsetItem.answer_key === 'string' 
-      ? efsetItem.answer_key 
-      : (efsetItem.answer_key as any)?.answer || '';
+    const correctAns = efsetItem.answer_key;
+    let correctText = '';
+    if (typeof correctAns === 'string') {
+      correctText = correctAns;
+    } else if (correctAns && typeof correctAns === 'object' && (correctAns as any).value) {
+      correctText = String((correctAns as any).value);
+    }
 
-    // 🎯 CRITICAL BUG FIX: Record history IMMEDIATELY before any early returns or AI delays
-    // This ensures all 20 questions are logged even if the API fails or is too slow.
+    // 🎯 INITIAL LOGGING (Unconfirmed state)
     this.state.answerHistory.push({
       taskId: efsetItem.id,
       questionId: efsetItem.id,
       skill: efsetItem.skill as any,
       difficulty: BAND_VALUE[efsetItem.target_cefr as any] || 1,
-      correct: false, // Default to false until proven correct
+      correct: false,
       score: 0,
       answer,
       correctAnswer: correctText,
@@ -419,327 +451,128 @@ export class AdaptiveAssessmentEngine {
       taskType: efsetItem.task_type as any
     });
 
-    // 2. LLM Signal Extraction
-    let signal: LLMSignal = {
-      content_accuracy: 1, task_completion: 1, grammar_control: 1, 
-      lexical_range: 1, syntactic_complexity: 1, coherence: 1, 
-      typo_severity: 0, confidence: 1
-    };
+    try {
+      // 🤖 PROCTOR AGENT: The single source of truth for scoring and adaptivity
+      const recentHistory = this.state.answerHistory.slice(-5).map(h => ({
+        q: h.questionId,
+        s: h.score,
+        c: h.correct
+      }));
+      
+      const proctor = await GroqScoringService.callProctor(
+        question, 
+        answer, 
+        this.streakTracking.currentCalibration, 
+        JSON.stringify(recentHistory)
+      );
+      
+      if (proctor) {
+        this.streakTracking.proctorAdvice = proctor;
+        const isCorrectResult = proctor.is_correct;
+        const score = proctor.score;
+        
+        console.log(`[Engine] Proctor: ${proctor.detected_level} | ${proctor.expected_skill} | Score: ${score}`);
 
-    const isMCQ = efsetItem.response_mode === 'mcq';
-    let isCorrect = true;
-
-    if (isMCQ) {
-       // Extract correct option text for comparison
-       const key = efsetItem.answer_key;
-       let correctText = '';
-       
-        if (typeof key === 'string') {
-          correctText = key;
-        } else if (key && typeof key === 'object' && key.value && typeof key.value === 'object' && 'options' in key.value && 'correct_index' in key.value) {
-          const val = key.value as { options: string[], correct_index: number };
-          correctText = val.options[val.correct_index];
-        } else if (key && typeof key === 'object') {
-          correctText = key.correct_answer || (typeof key.value === 'string' ? key.value : '');
+        // 1. Streak-based Difficulty Adjustment
+        if (score > 0.85) {
+          this.streakTracking.consecutivePerfect++;
+          this.streakTracking.consecutiveFailed = 0;
+          if (this.streakTracking.consecutivePerfect >= 2) {
+            this.levelUp();
+            this.streakTracking.consecutivePerfect = 0;
+          }
+        } else if (score < 0.4) {
+          this.streakTracking.consecutiveFailed++;
+          this.streakTracking.consecutivePerfect = 0;
+          this.levelDown();
         }
 
-       // ⚡ MCQ FAST-PATH: Don't wait for server if we already know the answer 
-       isCorrect = answer.trim() === correctText.trim();
-       
+        // 2. EFSET Evidence Mapping
+        const signals: LLMSignal = {
+          content_accuracy: score,
+          task_completion: score,
+          grammar_control: score,
+          lexical_range: score,
+          syntactic_complexity: score,
+          coherence: score,
+          typo_severity: isCorrectResult ? 0 : 0.5,
+          confidence: score
+        };
 
-       // Multi-tenant check: userId is critical for the engine context
-       const currentUserId = this.userId || this.safeGetLocalStorage('auth_user_id');
-       const payload = {
-         userId: currentUserId,
-         skill: efsetItem.skill,
-         currentBand: efsetItem.target_cefr,
-         question: { id: efsetItem.id, prompt: efsetItem.prompt, target_cefr: efsetItem.target_cefr },
-         learnerAnswer: answer,
-         assessmentId: this.assessmentId, // Bind to instance session
-         isMCQ: true
-       };
+        const evidences = EvidenceMapper.mapSignalToEvidence(
+          efsetItem, 
+          signals, 
+          isCorrectResult, 
+          (responseMode as string) === 'audio' ? 'audio' : 'typed'
+        );
 
-    try {
-      // 🤖 MODEL A INVOCATION: Fast scoring and error tagging
-      const modelA = await GroqScoringService.scoreWithModelA(question, answer);
-      
-      if (modelA) {
-         isCorrect = modelA.is_correct;
-         if (typeof window !== 'undefined') (window as any)._lastModelA = modelA;
-         console.log(`[Engine] Model A Analysis: ${modelA.error_tag} - ${modelA.brief_explanation}`);
-      } else {
-         // Fallback to deterministic scoring
-         isCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-         console.warn('[Engine] Model A failed. Using deterministic fallback.');
+        for (const evidence of evidences) {
+          const skillName = evidence.skill as EFSETSkillName;
+          this.efsetSkills[skillName] = SkillAggregator.update(this.efsetSkills[skillName], evidence);
+        }
+        this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
+        this.state.overallConfidence = this.efsetOverall.confidence;
+
+        // 3. Evaluation Record
+        const taskEval: TaskEvaluation = {
+          taskId: efsetItem.id,
+          primarySkill: efsetItem.skill as any,
+          validAttempt: true,
+          channels: { comprehension: score, taskCompletion: score },
+          responseMode,
+          speakingMeta,
+          skillEvidence: evidences.reduce((acc, e) => ({ ...acc, [e.skill]: e.score }), {}),
+          descriptorEvidence: evidences.map(e => ({
+            descriptorId: e.skill, support: e.score, sourceSkill: e.skill as any, weight: e.weight
+          })),
+          notes: [proctor.reasoning],
+          difficulty: efsetItem.target_cefr as any,
+          skill: efsetItem.skill as any,
+          errorTag: proctor.error_tag,
+          briefExplanation: proctor.feedback
+        };
+        this.state.taskEvaluations.push(taskEval);
+
+        // 4. Update Answer History
+        const historyIdx = this.state.answerHistory.length - 1;
+        if (this.state.answerHistory[historyIdx]) {
+          this.state.answerHistory[historyIdx].correct = isCorrectResult;
+          this.state.answerHistory[historyIdx].score = score;
+          this.state.answerHistory[historyIdx].errorTag = proctor.error_tag;
+          this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
+        }
+
+        // 5. Atomic Persistence (Multi-Table Logging & Integer Scaling enabled)
+        await AssessmentSaveService.saveSingleAssessmentLog({
+          category: efsetItem.skill || 'general',
+          user_answer: answer,
+          correct_answer: correctText,
+          suggested_band: proctor.detected_level,
+          error_tag: proctor.error_tag,
+          brief_explanation: proctor.feedback,
+          score: score, // Added for integer scaling and assessment_logs
+          question_id: efsetItem.id // Aligned with zero-data-loss policy
+        });
+
+        // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
+        if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
+          // Note: Logic to identify current journey step ID would go here
+          // For now, we signal completion of the "current" context if applicable
+          console.log('[Engine] 🎯 Success criteria met for potential journey step advancement.');
+        }
+
+        return { correct: isCorrectResult, score };
       }
 
-      // 🛡️ OPTIMISTIC TIMEOUT: 4s threshold (User B1 recommendation)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const response = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-
-      if (!response.ok) throw new Error(`Server responded with ${response.status}`);
-      
-      const result = await response.json();
-      console.log("[Engine] Evaluation Received:", result);
-      
-      // Extract numeric signals for mapping
-      const signal: LLMSignal = {
-        content_accuracy: result.content_accuracy ?? (isCorrect ? 1.0 : 0.0),
-        task_completion: result.task_completion ?? 0.5,
-        grammar_control: result.grammar_control ?? 0.5,
-        lexical_range: result.lexical_sophistication ?? 0.5,
-        syntactic_complexity: result.syntactic_complexity ?? 0.5,
-        coherence: result.coherence ?? 0.5,
-        typo_severity: result.typo_severity ?? 0.1,
-        confidence: result.confidence ?? 0.5
-      };
-
-      // Update engine state with AI signals
-      const evidence = EvidenceMapper.mapSignalToEvidence(
-        efsetItem, 
-        signal, 
-        isCorrect,
-        (responseMode as string) === 'audio' ? 'audio' : 'typed'
-      );
-      
-      // Update local skills directly 
-      const skillName = efsetItem.skill as any;
-      if (this.efsetSkills[skillName]) {
-          this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + signal.content_accuracy) / 2;
-      }
-      // Sync with history entry
-      const historyIdx = this.state.answerHistory.length - 1;
-      this.state.answerHistory[historyIdx].correct = result.isCorrect ?? isCorrect;
-      this.state.answerHistory[historyIdx].score = result.confidence ?? 0.5;
-
-      const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
-        category: efsetItem.skill || 'general',
-        user_answer: answer,
-        correct_answer: correctText,
-        suggested_band: String(efsetItem.target_cefr || 'B1'),
-        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
-        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
-      }).catch(e => console.error('[Engine] Persistent Log Error:', e));
-
-      return { correct: result.isCorrect ?? isCorrect, score: result.confidence ?? 0.5 };
-
-
+      // 🛡️ Fallback Logic
+      const deterministicCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+      return { correct: deterministicCorrect, score: deterministicCorrect ? 1.0 : 0.0 };
 
     } catch (err) {
-      console.warn("[Engine] Server Latency/Error. Using Optimistic Fallback:", err.message);
-      
-      // 🚀 OPTIMISTIC FALLBACK: Don't block the user. Proceed with local evidence.
-      const fallbackSignal: LLMSignal = {
-        content_accuracy: isCorrect ? 1.0 : 0.0,
-        task_completion: isCorrect ? 1.0 : 0.0,
-        lexical_range: 0.5,
-        syntactic_complexity: 0.5,
-        coherence: 0.5,
-        grammar_control: 0.5,
-        typo_severity: 0.1,
-        confidence: 0.5
-      };
-
-      const evidence = EvidenceMapper.mapSignalToEvidence(
-        efsetItem, 
-        fallbackSignal, 
-        isCorrect,
-        (responseMode as string) === 'audio' ? 'audio' : 'typed'
-      );
-      
-      // Update local skills directly 
-      const skillName = efsetItem.skill as any;
-      if (this.efsetSkills[skillName]) {
-          this.efsetSkills[skillName].score = (this.efsetSkills[skillName].score + fallbackSignal.content_accuracy) / 2;
-      }
-      
-      // Sync with history entry on fallback
-      const historyIdx = this.state.answerHistory.length - 1;
-      this.state.answerHistory[historyIdx].correct = isCorrect;
-      this.state.answerHistory[historyIdx].score = 0.5;
-      
-      const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
-        category: efsetItem.skill || 'general',
-        user_answer: answer,
-        correct_answer: correctText,
-        suggested_band: String(efsetItem.target_cefr || 'B1'),
-        error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
-        brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
-      }).catch(e => console.error('[Engine] Persistent Log Error (Fallback):', e));
-
-      return { correct: isCorrect, score: 0.5 };
-
-
+      console.error("[Engine] Proctor failed. Using fallback.", err);
+      const isDetCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+      return { correct: isDetCorrect, score: isDetCorrect ? 1.0 : 0.0 };
     }
-
-       // Removed redundant manual push here since it's now at the top
-
-       // Update overall state for MCQ
-       const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect, 'typed');
-       for (const evidence of evidences) {
-         const skillName = evidence.skill as EFSETSkillName;
-         this.efsetSkills[skillName] = SkillAggregator.update(this.efsetSkills[skillName], evidence);
-       }
-       this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
-
-       return { correct: isCorrect, score: isCorrect ? 1 : 0 };
-    }
-    
-    // Get userId from constructor or storage safely
-    const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
-
-    if (!isMCQ) {
-       const llmOutput = await evaluateWithGroq({
-         userId, // CRITICAL: Forward userId to server
-         skill: efsetItem.skill as any,
-         currentBand: efsetItem.target_cefr as any,
-         question: {
-           id: efsetItem.id,
-           prompt: efsetItem.prompt,
-           type: efsetItem.task_type,
-           subskills: [],
-           target_cefr: efsetItem.target_cefr as any
-         },
-         learnerAnswer: answer,
-         assessmentId: this.assessmentId, // Bind to instance session
-         descriptors: {}
-       });
-
-       if (llmOutput) signal = llmOutput;
- 
-       // 🤖 MODEL A INVOCATION for short text
-       const modelA = await GroqScoringService.scoreWithModelA(question, answer);
-       if (modelA) {
-          isCorrect = modelA.is_correct;
-          if (typeof window !== 'undefined') (window as any)._lastModelA = modelA;
-       } else {
-          isCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-       }
-    }
-
-    // 2. Score + Map to Evidence
-    // Map 'voice' -> 'audio' and 'typed_fallback' or undefined -> 'typed' for the mapper
-    const actualMode = responseMode === 'voice' ? 'audio' : 'typed';
-    const evidences = EvidenceMapper.mapSignalToEvidence(efsetItem, signal, isCorrect, actualMode);
-
-    // 3. Update Skill States
-    for (const evidence of evidences) {
-      const skillName = evidence.skill as EFSETSkillName;
-      this.efsetSkills[skillName] = SkillAggregator.update(this.efsetSkills[skillName], evidence);
-    }
-
-    // 4. Update Overall State
-    this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
-    this.state.overallConfidence = this.efsetOverall.confidence;
-    this.state.questionsAnswered = this.state.taskEvaluations.length; // Ensure sync
-    
-    // Audit Trail Update
-    if (efsetItem.skill === 'speaking') {
-       this.state.speakingAudit.speakingTasksTotal++;
-       if (responseMode === 'voice') {
-          this.state.speakingAudit.voiceRecordingsAttempted++;
-          if (speakingMeta?.hasValidAudio) {
-             this.state.speakingAudit.voiceRecordingsValid++;
-             this.state.speakingAudit.hasAnySpeakingEvidence = true;
-          }
-       } else if (responseMode === 'typed_fallback') {
-          this.state.speakingAudit.typedFallbacksUsed++;
-       }
-    }
-
-    // 4. Record Evaluation (Legacy and New)
-    const taskEval: TaskEvaluation = {
-      taskId: efsetItem.id,
-      primarySkill: efsetItem.skill as any,
-      validAttempt: true,
-      channels: {
-        comprehension: isCorrect ? 1.0 : 0.0,
-        taskCompletion: signal.task_completion,
-        grammarAccuracy: signal.grammar_control,
-        lexicalRange: signal.lexical_range,
-        coherence: signal.coherence,
-      },
-      responseMode,
-      speakingMeta,
-      skillEvidence: evidences.reduce((acc, e) => ({ ...acc, [e.skill]: e.score }), {}),
-      descriptorEvidence: evidences.map(e => ({
-        descriptorId: e.skill,
-        support: e.score,
-        sourceSkill: e.skill as any,
-        weight: e.weight
-      })),
-      notes: [],
-      difficulty: efsetItem.target_cefr as any,
-      skill: efsetItem.skill as any,
-      rawSignals: {
-        answer,
-        prompt: efsetItem.prompt,
-        skill: efsetItem.skill,
-        level: efsetItem.target_cefr,
-        answerKey: typeof efsetItem.answer_key === 'string' ? efsetItem.answer_key : JSON.stringify(efsetItem.answer_key)
-      },
-      errorTag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
-      briefExplanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
-    };
-    
-    // Generate explanation data
-    taskEval.reviewData = ReviewExplanationBuilder.buildFromAssessment(question, taskEval, answer);
-
-    this.state.taskEvaluations.push(taskEval);
-
-    // Update history entry with final Model A flags
-    const reportVal = this.efsetSkills[efsetItem.skill as EFSETSkillName];
-    const historyIdx = this.state.answerHistory.length - 1;
-    if (this.state.answerHistory[historyIdx]) {
-      this.state.answerHistory[historyIdx].correct = isCorrect;
-      this.state.answerHistory[historyIdx].score = reportVal.score;
-      this.state.answerHistory[historyIdx].errorTag = typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined;
-      this.state.answerHistory[historyIdx].briefExplanation = typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined;
-    }
-
-    // 🚀 RESTORE POINT: Save current progress to DB asynchronously
-    const currentUserId = this.userId || this.safeGetLocalStorage('auth_user_id');
-    if (currentUserId) {
-      supabase.from('learner_profiles').update({
-        current_question_index: this.state.answerHistory.length,
-        last_path: '/diagnostic'
-      }).eq('id', currentUserId).then(({ error }) => {
-        if (error) console.error('[Engine] Failed to save progress step:', error);
-      });
-    }
-
-    // 5. Calibration Reset Logic (Double Leapfrog Trigger)
-    // After 4 questions, we evaluate the "Linguistic Portfolio" to see if we should jump levels.
-    if (this.state.questionsAnswered === 4) {
-       this.performCalibrationReset();
-    }
-
-    // 🚀 RESTORE POINT: Save single log if not already saved (covers Text path)
-    AssessmentSaveService.saveSingleAssessmentLog({
-      category: efsetItem.skill || 'general',
-      user_answer: answer,
-      correct_answer: correctText,
-      suggested_band: String(efsetItem.target_cefr || 'B1'),
-      error_tag: typeof window !== 'undefined' ? (window as any)._lastModelA?.error_tag : undefined,
-      brief_explanation: typeof window !== 'undefined' ? (window as any)._lastModelA?.brief_explanation : undefined
-    }).catch(e => console.error('[Engine] Persistent Log Error (Text Path):', e));
-
-    return { correct: isCorrect, score: reportVal.score };
-
-
   }
 
   private performCalibrationReset() {
@@ -905,14 +738,42 @@ export class AdaptiveAssessmentEngine {
        stopReason: report.overall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
        speakingAudit: this.state.speakingAudit,
  
-       // Model B Analysis
-       finalLevel: (this.state.finalModelB?.final_level as any) || this.rangeToLabel(report.overall.levelRange),
-       bridgeDelta: this.state.finalModelB?.bridge_delta,
-       bridgePercentage: this.state.finalModelB?.bridge_percentage,
-       missingSkills: this.state.finalModelB?.missing_skills,
-       actionPlan: this.state.finalModelB?.action_plan,
-       errorAnalysisReport: this.state.finalModelB?.error_analysis_report
+       // 🕵️ Auditor Agent Diagnosis
+       finalLevel: (this.state.finalAuditor?.final_cefr_level as any) || this.rangeToLabel(report.overall.levelRange),
+       bridgeDelta: String(this.state.finalAuditor?.overall_score || 0),
+       errorAnalysisReport: this.state.finalAuditor?.diagnosis_report,
+       auditorReport: this.state.finalAuditor
      };
+  }
+
+  private levelUp() {
+    const bandOrder: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const currentIndex = bandOrder.indexOf(this.streakTracking.currentCalibration);
+    if (currentIndex < bandOrder.length - 1) {
+      this.streakTracking.currentCalibration = bandOrder[currentIndex + 1];
+      this.jumpToLevel(this.streakTracking.currentCalibration);
+    }
+  }
+
+  private levelDown() {
+    const bandOrder: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const currentIndex = bandOrder.indexOf(this.streakTracking.currentCalibration);
+    if (currentIndex > 0) {
+      this.streakTracking.currentCalibration = bandOrder[currentIndex - 1];
+      this.jumpToLevel(this.streakTracking.currentCalibration);
+    }
+  }
+
+  private async finishAssessment() {
+    console.log('[Engine] 🏁 Assessment Phase Complete. Generating Psychometric Audit...');
+    try {
+      const auditor = await GroqScoringService.callAuditor(this.state.taskEvaluations);
+      if (auditor) {
+        this.state.finalAuditor = auditor;
+      }
+    } catch (e) {
+      console.error('[Engine] Auditor failed:', e);
+    }
   }
 
   private rangeToLabel(range: [CEFRLevel, CEFRLevel]): BandLabel {
@@ -991,40 +852,33 @@ export class AdaptiveAssessmentEngine {
   }
 
   public async completeAssessment(): Promise<void> {
-     try {
-       const report = this.getOutcome();
-       const token = this.safeGetLocalStorage('auth_token');
-       const headers: Record<string, string> = { "Content-Type": "application/json" };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
- 
-        // 🤖 MODEL B INVOCATION: Final deep analysis
-        console.log('[Engine] 🧠 Triggering Model B (The Professor) for final analysis...');
-        try {
-          const modelB = await GroqScoringService.analyzeWithModelB(this.state.taskEvaluations);
-          if (modelB) {
-            console.log(`[Engine] Model B Analysis complete. Final Level: ${modelB.final_level}`);
-            this.state.finalModelB = modelB;
-          }
-        } catch (modelBErr) {
-          console.error('[Engine] Model B Analysis failed:', modelBErr);
-        }
- 
+      try {
         const finalOutcome = this.getOutcome();
- 
-        await fetch('/api/assessments/complete', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-             assessmentId: this.assessmentId,
-             overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
-             confidence: finalOutcome.overallConfidence,
-             modelB: this.state.finalModelB
-          })
-        });
-       console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
-     } catch (e) {
-       console.error(`[Engine] Failed to commit session:`, e);
-     }
+        const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
+        
+        if (userId) {
+          // 🚀 Vibe Persistence: Ensure skill states are synced one last time
+          await AssessmentSaveService.saveAssessmentResults(finalOutcome);
+          
+          const token = this.safeGetLocalStorage('auth_token');
+          const headers: Record<string, string> = { "Content-Type": "application/json" };
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          await fetch('/api/assessments/complete', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+               assessmentId: this.assessmentId,
+               overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
+               confidence: finalOutcome.overallConfidence,
+               auditorReport: finalOutcome.auditorReport
+            })
+          });
+        }
+        console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
+      } catch (e) {
+        console.error(`[Engine] Failed to commit session:`, e);
+      }
   }
 
   public getState(): AdaptiveAssessmentState {

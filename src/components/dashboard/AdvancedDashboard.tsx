@@ -587,13 +587,13 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                           <p className="text-xs text-slate-400">Visual breakdown of mastery across language domains.</p>
                         </div>
                       </div>
-                      <SkillRadarChart data={assessmentOutcome ? Object.values(assessmentOutcome.skillBreakdown).map(s => ({ skillId: s.skill, masteryScore: s.score })) : supabaseData.skills} />
+                      <SkillRadarChart data={assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown).map(([skill, s]) => ({ skillId: skill, masteryScore: (s as any).score })) : supabaseData.skills} />
                     </div>
                   </motion.section>
 
                   {/* Per-Skill Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
-                    {(assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown) : supabaseData.skills.map(s => [s.skill, { band: s.currentLevel, score: s.masteryScore, confidence: s.confidence, evidenceCount: s.evidenceCount, status: 'stable' }])).map(([skillName, skillData]: [any, any]) => {
+                    {(assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown) : supabaseData.skills.map(s => [s.skillId, { band: s.currentLevel, score: s.masteryScore, confidence: s.confidence, evidenceCount: s.evidenceCount, status: 'stable' }])).map(([skillName, skillData]: [any, any]) => {
                       const bandColorClass = (() => {
                         const b = String(skillData.band);
                         if (b.startsWith('A')) return 'from-emerald-50 to-emerald-100/50 border-emerald-100';

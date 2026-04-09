@@ -4,20 +4,28 @@ const API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
 const MODEL_A = "llama-3.1-8b-instant"; 
 const MODEL_B = "llama-3.3-70b-versatile";
 
-export interface ModelAOutput {
+export interface ProctorOutput {
+  score: number; // 0.0 to 1.0 logic
   is_correct: boolean;
-  error_tag: string;
-  brief_explanation: string;
+  feedback: string;
+  error_tag?: string;
+  detected_level: string;
+  next_question: string;
+  expected_skill: "Grammar" | "Speaking" | "Vocabulary";
+  current_difficulty_calibration: string;
+  reasoning: string;
 }
 
-export interface ModelBOutput {
-  final_level: string;
-  summary: string;
-  bridge_delta: string;
-  bridge_percentage: number; // Approximate mastery (0-100)
-  missing_skills: string[];
-  action_plan: string[]; // Numbered checklist for the student
-  error_analysis_report: string;
+export interface AuditorOutput {
+  final_cefr_level: string;
+  overall_score: number;
+  skills_breakdown: {
+    Grammar: { score: number; observation: string };
+    Technical_Speaking: { score: number; observation: string };
+    Vocabulary: { score: number; observation: string };
+  };
+  diagnosis_report: string; // Bilingual Arabic/English
+  is_consistent: boolean;
 }
 
 export class GroqScoringService {
@@ -64,71 +72,84 @@ export class GroqScoringService {
   }
 
   /**
-   * Model A: Fast scoring and error tagging
+   * Proctor Agent: Real-time difficulty adjustment and question generation.
    */
-  public static async scoreWithModelA(question: AssessmentQuestion, answer: string): Promise<ModelAOutput | null> {
-    const systemPrompt = `You are an expert English linguist. 
-IMPORTANT: You must respond ONLY in JSON format.
+  public static async callProctor(
+    question: AssessmentQuestion, 
+    answer: string, 
+    currentLevel: string,
+    historyJson: string
+  ): Promise<ProctorOutput | null> {
+    const systemPrompt = `Act as a Senior CEFR Language Examiner and ML Engineer.
+Your goal is to find the user's "Breaking Point."
 
-**Role:** Assistant Language Scorer (Instant Feedback)
-**Task:** Diagnostic tagging of the user's answer.
-**Input:** {question, user_answer, correct_answer, category}
-**Output (JSON):**
+DYNAMIC DIFFICULTY RULES:
+- Start at the user's current level: ${currentLevel}.
+- STREAK UP: If the user answers 2 consecutive questions perfectly (Score > 0.85), INCREASE difficulty by one sub-level (e.g., B1 -> B2).
+- STREAK DOWN: If the user fails 1 question significantly (Score < 0.4), DROP difficulty immediately to probe for foundational gaps.
+- SKILL PROBING: Rotate questions between Speaking, Grammar, and Technical Vocab.
+
+SCORING RULES:
+- score: 0.0 to 1.0 based on linguistic accuracy and domain relevance.
+- feedback: Short, actionable advice in English.
+- next_question: Generate a high-quality assessment question for the recommended next level/skill.
+
+OUTPUT SCHEMA:
 {
+  "score": number,
   "is_correct": boolean,
+  "feedback": "string",
   "error_tag": "string",
-  "brief_explanation": "string"
+  "detected_level": "string (A1-C2)",
+  "next_question": "string",
+  "expected_skill": "Grammar | Speaking | Vocabulary",
+  "current_difficulty_calibration": "A1-C2",
+  "reasoning": "string"
 }`;
 
-    // Extract correct answer from various possible locations in the object
-    const correctAns = question.correctAnswer || (question as any)._efset?.answer_key || "Contact Administrator";
-    const correctText = typeof correctAns === 'string' ? correctAns : JSON.stringify(correctAns);
-
     const userMessage = JSON.stringify({
-      question: question.prompt,
+      last_question: question.prompt,
       user_answer: answer,
-      correct_answer: correctText,
-      category: question.skill
+      correct_answer: question.correctAnswer,
+      session_history: historyJson
     });
 
     return await this.callGroq(MODEL_A, systemPrompt, userMessage);
   }
 
   /**
-   * Model B: Deep history analysis and Bridge Level determination
+   * Auditor Agent: Final diagnostic and consistency audit.
    */
-  public static async analyzeWithModelB(evaluations: TaskEvaluation[]): Promise<ModelBOutput | null> {
-    const systemPrompt = `You are an expert English tutor. Respond ONLY in JSON format.
-**Role:** Senior CEFR Linguistic Professor
-**Task:** Deep analysis of the student's 20-question assessment session.
+  public static async callAuditor(evaluations: TaskEvaluation[]): Promise<AuditorOutput | null> {
+    const systemPrompt = `Act as a Senior Psychometrician and Linguistic Auditor. 
+You are given a full transcript of an adaptive language assessment.
 
-**Rules for Analysis:**
-1. **Bridge Level:** Determine if they are between levels (e.g., B1+).
-2. **Bridge Percentage:** Provide approximate mastery of the current level (0-100%).
-3. **Style & Fluency:** For open-ended answers, look at vocabulary variety and sentence structure logic.
-4. **Action Plan:** A numbered list of 3-5 concrete steps the student should take to reach the next level.
+YOUR TASK:
+1. PER-SKILL ANALYSIS: Evaluate Grammar, Technical Speaking, and Vocabulary individually based on the entire session.
+2. CONSISTENCY CHECK: Did the user struggle when the level jumped? If yes, anchor their level lower for stability.
+3. ADAPTIVE FEEDBACK: Explain WHY they are at this level.
+4. BILINGUAL REPORT: The "diagnosis_report" MUST be provided in both Arabic and English (Professional register).
 
-**Output (JSON):**
+FINAL EVALUATION SCHEMA:
 {
-  "final_level": "string (e.g., B1+)",
-  "summary": "1-sentence summary of overall performance.",
-  "bridge_delta": "Encouraging description of how close they are to the next milestone.",
-  "bridge_percentage": number,
-  "missing_skills": ["List of core grammar/vocab items to fix"],
-  "action_plan": ["Numbered", "Actionable", "Steps"],
-  "error_analysis_report": "Deep linguistic pattern analysis."
+  "final_cefr_level": "string",
+  "overall_score": 0.0-1.0,
+  "skills_breakdown": {
+    "Grammar": {"score": number, "observation": "string"},
+    "Technical_Speaking": {"score": number, "observation": "string"},
+    "Vocabulary": {"score": number, "observation": "string"}
+  },
+  "diagnosis_report": "Deep dive analysis in Arabic followed by English.",
+  "is_consistent": boolean
 }`;
 
-    // Prepare context using Model A's previous evaluations
     const historyContext = evaluations.map(ev => ({
-      skill: ev.primarySkill || ev.skill,
+      skill: ev.primarySkill,
       level: ev.difficulty,
-      prompt: ev.rawSignals?.prompt || "N/A",
-      user_answer: ev.rawSignals?.answer || "N/A",
-      correct_answer: ev.rawSignals?.answerKey || "N/A",
-      is_correct: ev.channels?.comprehension === 1,
-      error_tag: ev.errorTag || "None",
-      model_a_reason: ev.briefExplanation || "N/A"
+      prompt: ev.rawSignals?.prompt,
+      answer: ev.rawSignals?.answer,
+      score: ev.channels?.comprehension,
+      error_tag: ev.errorTag
     }));
 
     return await this.callGroq(MODEL_B, systemPrompt, JSON.stringify(historyContext));

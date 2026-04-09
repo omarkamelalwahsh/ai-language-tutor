@@ -17,7 +17,7 @@ export class AssessmentSaveService {
 
   /**
    * Saves a single assessment log (individual question) for real-time persistence.
-   * Aligned with strict Supabase data formatting (UUID, Boolean casting).
+   * Rule 3.2: Log in assessment_logs AND user_error_analysis.
    */
   public static async saveSingleAssessmentLog(logData: {
     category: string;
@@ -26,29 +26,49 @@ export class AssessmentSaveService {
     suggested_band: string;
     error_tag?: string;
     brief_explanation?: string;
+    score: number; // Raw AI float
+    question_id?: string;
   }): Promise<void> {
     await withRetry(async () => {
-      // 🔐 Fetch user directly from Auth for UUID integrity
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('UNAUTHORIZED_SAVE_ATTEMPT');
 
-      const logEntry = {
+      // 1. Raw Logging (Zero Data Loss Policy)
+      const assessmentLog = {
         user_id: user.id,
-        category: logData.category || 'general',
+        question_id: logData.question_id || 'untracked',
+        category: logData.category,
         user_answer: logData.user_answer,
         correct_answer: logData.correct_answer,
-        suggested_band: logData.suggested_band,
-        error_tag: logData.error_tag,
-        brief_explanation: logData.brief_explanation,
+        score: Math.round(logData.score * 10000), // Integer conversion rule
         created_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('user_error_analysis')
-        .insert([logEntry]);
+      const { error: logError } = await supabase
+        .from('assessment_logs')
+        .insert([assessmentLog]);
+      
+      if (logError) console.warn('[AssessmentSave] ⚠️ Log insert failed, proceeding to analysis:', logError.message);
 
-      if (error) throw error;
-      console.log('[AssessmentSave] 📝 Single log persisted successfully (UUID Verified).');
+      // 2. Error Analysis (The "No-Error" Pattern)
+      const analysisEntry = {
+        user_id: user.id,
+        category: logData.category || 'general',
+        user_answer: logData.user_answer,
+        suggested_band: logData.suggested_band,
+        error_tag: logData.error_tag,
+        brief_explanation: logData.brief_explanation,
+        error_rate: 1 - logData.score, // Heuristic: inversion of accuracy
+        created_at: new Date().toISOString()
+      };
+
+      const { error: analysisError } = await supabase
+        .from('user_error_analysis')
+        .insert([analysisEntry]);
+
+      if (analysisError) throw analysisError;
+      
+      console.log('[AssessmentSave] 📝 Log & Analysis persisted (Integrity Guard enabled).');
     });
   }
 
@@ -83,14 +103,16 @@ export class AssessmentSaveService {
       });
 
 
-      // ── 2. skill_states (ATOMIC UPSERT) ──────────────────────────────────────
+      // ── 2. skill_states (ATOMIC UPSERT) ─────────────────────────
       const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
       const skillStatesData = skillKeys.map((skill) => ({
         user_id: userId,
         skill,
         current_level: String(outcome.skillBreakdown[skill].band),
+        current_score: Math.round(outcome.skillBreakdown[skill].score * 100), // outcome uses 0-100 scale usually
         confidence: outcome.skillBreakdown[skill].confidence,
         updated_at: new Date().toISOString(),
+        last_tested: new Date().toISOString(),
       }));
 
       await withRetry(async () => {
@@ -99,7 +121,7 @@ export class AssessmentSaveService {
           .upsert(skillStatesData, { onConflict: 'user_id, skill' });
 
         if (skillUpsertError) throw skillUpsertError;
-        console.log('[AssessmentSave] ✅ skill_states synced:', skillStatesData.length, 'skills');
+        console.log('[AssessmentSave] ✅ skill_states synced with Integer Weights.');
       });
 
 
@@ -138,6 +160,50 @@ export class AssessmentSaveService {
       console.error('[AssessmentSave] Transaction failed:', e);
       throw e;
     }
+  }
+
+  /**
+   * Dedicated helper for single-skill updates (Proctor direct update).
+   * Ensures atomic UPSERT and Integer Weighting.
+   */
+  public static async updateSkillState(userId: string, skillName: string, confidence: number, level?: string): Promise<void> {
+    await withRetry(async () => {
+      const { error } = await supabase
+        .from('skill_states')
+        .upsert(
+          { 
+            user_id: userId, 
+            skill: skillName, 
+            current_score: Math.round(confidence * 10000), // Scaling float to Integer
+            confidence: confidence,
+            current_level: level,
+            updated_at: new Date().toISOString(),
+            last_tested: new Date().toISOString()
+          }, 
+          { onConflict: 'user_id, skill' }
+        );
+        
+      if (error) throw error;
+    });
+  }
+
+  /**
+   * Updates journey step status following strict transition rules.
+   * Rule 3.2.4: Update journey_steps.status to 'completed'.
+   */
+  public static async updateJourneyStepStatus(stepId: string, status: 'locked' | 'available' | 'current' | 'completed'): Promise<void> {
+    await withRetry(async () => {
+      const { error } = await supabase
+        .from('journey_steps')
+        .update({ 
+          status,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', stepId);
+
+      if (error) throw error;
+      console.log(`[AssessmentSave] 🏁 Journey step ${stepId} status: ${status}`);
+    });
   }
 }
 

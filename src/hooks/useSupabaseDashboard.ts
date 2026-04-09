@@ -84,17 +84,26 @@ export const useSupabaseDashboard = () => {
           return;
         }
 
-        // Fetch learner data in parallel (9-table alignment)
-        const [profileRes, skillsRes, historyRes, errorsRes, achievementRes, journeyRes] = await Promise.all([
+        // Fetch learner data in parallel (Joined Fetch for Profiles & Skills)
+        const [joinedRes, historyRes, errorsRes, achievementRes, journeyRes, stepsRes] = await Promise.all([
           supabase
             .from('learner_profiles')
-            .select('id, overall_level, onboarding_complete, points, streak')
+            .select(`
+              id, 
+              overall_level, 
+              onboarding_complete, 
+              points, 
+              streak,
+              skill_states (
+                skill, 
+                current_level, 
+                current_score,
+                confidence, 
+                updated_at
+              )
+            `)
             .eq('id', user.id)
             .single(),
-          supabase
-            .from('skill_states')
-            .select('skill, current_level, confidence, updated_at')
-            .eq('user_id', user.id),
           supabase
             .from('user_error_analysis')
             .select('id, created_at, category, error_rate')
@@ -113,38 +122,45 @@ export const useSupabaseDashboard = () => {
             .limit(10),
           supabase
             .from('learning_journeys')
-            .select('nodes, current_node_id, updated_at')
+            .select('id, current_node_id, updated_at')
             .eq('user_id', user.id)
             .maybeSingle(),
+          supabase
+            .from('journey_steps')
+            .select('id, journey_id, title, description, status, order_index, icon_type')
+            .order('order_index', { ascending: true })
         ]);
 
         // Circuit Breaker: If any critical fetch fails, signal sync state
-        const isSyncing = profileRes.error || skillsRes.error;
+        const isSyncing = joinedRes.error;
 
         if (isMounted) {
+          const profileData = joinedRes.data;
+          const skillsData = profileData?.skill_states || [];
+          const journeyData = journeyRes.data;
+          const journeySteps = stepsRes.data?.filter(s => s.journey_id === journeyData?.id) || [];
+
           setData({
             user: {
               fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Learner',
               email: user.email || '',
             },
-            profile: profileRes.data
+            profile: profileData
               ? {
-                  currentLevel: profileRes.data.overall_level || 'A1',
-                  onboardingComplete: profileRes.data.onboarding_complete || false,
-                  points: profileRes.data.points || 0,
-                  streak: profileRes.data.streak || 0,
+                  currentLevel: profileData.overall_level || 'A1',
+                  onboardingComplete: profileData.onboarding_complete || false,
+                  points: profileData.points || 0,
+                  streak: profileData.streak || 0,
                 }
               : null,
-            skills: skillsRes.data
-              ? skillsRes.data.map((s: any) => ({
-                  skill: s.skill,
-                  currentLevel: s.current_level || 'A1',
-                  confidence: typeof s.confidence === 'number' ? s.confidence : 0,
-                  skillId: s.skill,
-                  masteryScore: (typeof s.confidence === 'number' ? s.confidence : 0) * 100,
-                  evidenceCount: 5, // Simulated heuristic
-                }))
-              : [],
+            skills: skillsData.map((s: any) => ({
+              skill: s.skill,
+              currentLevel: s.current_level || 'A1',
+              confidence: typeof s.confidence === 'number' ? s.confidence : ((s.current_score || 0) / 10000),
+              skillId: s.skill,
+              masteryScore: s.current_score ? (s.current_score / 100) : ((s.confidence || 0) * 100),
+              evidenceCount: 5, 
+            })),
             history: historyRes.data
               ? historyRes.data.map((h: any) => ({
                   id: h.id,
@@ -182,13 +198,18 @@ export const useSupabaseDashboard = () => {
                   earnedAt: a.earned_at,
                 }))
               : [],
-            persistedJourney: journeyRes.data
-              ? {
-                  nodes: journeyRes.data.nodes || [],
-                  currentNodeId: journeyRes.data.current_node_id,
-                  updatedAt: journeyRes.data.updated_at,
-                }
-              : null,
+            persistedJourney: journeyData ? {
+              nodes: journeySteps.map(s => ({
+                id: s.id,
+                title: s.title,
+                description: s.description,
+                status: s.status,
+                orderIndex: s.order_index,
+                iconType: s.icon_type
+              })),
+              currentNodeId: journeyData.current_node_id,
+              updatedAt: journeyData.updated_at,
+            } : null,
             isSyncing: !!isSyncing,
             isLoading: false,
             error: null,
