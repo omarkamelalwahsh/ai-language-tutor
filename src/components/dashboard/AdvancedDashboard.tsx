@@ -6,7 +6,7 @@ import {
   Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
   Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
-  Brain, XCircle, Lightbulb, Zap
+  Brain, XCircle, Lightbulb, Zap, Loader2
 } from 'lucide-react';
 
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
@@ -83,12 +83,17 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
   const supabaseData = useSupabaseDashboard();
 
-  if (supabaseData.isLoading) {
+  if (supabaseData.isLoading || !dashboardData) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6">
-         <div className="flex flex-col items-center gap-4">
-           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-           <p className="text-slate-500 font-bold animate-pulse">Syncing Learner Profile...</p>
+      <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6 text-center">
+         <div className="flex flex-col items-center gap-6">
+           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse">
+             <Loader2 className="w-8 h-8 text-white animate-spin" />
+           </div>
+           <div className="text-center space-y-2">
+             <h2 className="text-xl font-bold text-slate-900">Syncing Learner Profile</h2>
+             <p className="text-slate-500 text-sm font-medium">Please wait while we prepare your workspace...</p>
+           </div>
          </div>
       </div>
     );
@@ -198,7 +203,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                     Welcome back, {supabaseData.user?.fullName || 'Learner'}
                   </h1>
                   <p className="text-slate-500 font-medium">
-                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData?.primaryGoalText}
+                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData?.primaryGoalText || 'Loading your goals...'}
                   </p>
                 </div>
                 <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">

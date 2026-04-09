@@ -47,6 +47,10 @@ export class RuntimeService {
    * Returns structured session tasks based on the deterministic assessment result.
    */
   public static generateSessionTasks(result: AssessmentSessionResult): SessionTask[] {
+    if (!result || !result.overall) {
+      console.warn('[RuntimeService] Attempted to generate tasks without a valid result object.');
+      return [];
+    }
     const overallLevel = result.overall.estimatedLevel;
     const confidence = result.overall.confidence;
     

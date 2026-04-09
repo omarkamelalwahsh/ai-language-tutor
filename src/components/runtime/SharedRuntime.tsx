@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SessionTask, TaskFeedbackPayload, TaskEvaluationResult } from '../../types/runtime';
 import { AssessmentSessionResult } from '../../types/assessment';
 import { RuntimeService } from '../../services/RuntimeService';
-import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw, XCircle, AlertCircle, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw, XCircle, AlertCircle, Lightbulb, Loader2 } from 'lucide-react';
 
 // Import modules
 import { SpeakingModule } from './modules/SpeakingModule';
@@ -65,6 +65,18 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
 };
 
 export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse mb-6">
+          <Loader2 className="w-8 h-8 text-white animate-spin" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Syncing Session...</h2>
+        <p className="text-slate-500 font-medium">Preparing your personalized learning environment.</p>
+      </div>
+    );
+  }
+
   const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(result));
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   
