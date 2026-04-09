@@ -110,7 +110,7 @@ export const useSupabaseDashboard = () => {
             .eq('user_id', user.id),
           supabase
             .from('user_error_analysis')
-            .select('id, created_at, category, is_correct')
+            .select('id, created_at, category, error_rate')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(50),
@@ -158,7 +158,7 @@ export const useSupabaseDashboard = () => {
                   id: h.id,
                   createdAt: h.created_at,
                   overallLevel: h.category || 'General', 
-                  confidence: h.is_correct ? 1 : 0,      
+                  confidence: h.error_rate !== undefined ? (1 - h.error_rate) : 1,      
                 }))
               : [],
             errors: (errorsRes.data as any)?.weakness_areas

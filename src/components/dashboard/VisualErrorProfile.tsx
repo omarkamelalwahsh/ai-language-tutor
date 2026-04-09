@@ -27,7 +27,7 @@ export const VisualErrorProfile = () => {
         // Fetch using the json structure: id, created_at, category, is_correct
         const { data: analysis, error: fetchError } = await supabase
           .from('user_error_analysis')
-          .select('id, created_at, category, is_correct')
+          .select('id, created_at, category, error_rate')
           .eq('user_id', user.id);
 
         if (fetchError) throw fetchError;
@@ -44,12 +44,13 @@ export const VisualErrorProfile = () => {
             const cat = row.category?.toLowerCase() || 'speaking';
             if (stats[cat]) {
                stats[cat].total += 1;
-               if (row.is_correct === false || String(row.is_correct) === 'false') {
+               // Heuristic: If error_rate exists and is > 0, count as a mistake
+               if (row.error_rate && row.error_rate > 0) {
                  stats[cat].mistakes += 1;
                }
             } else {
                // dynamically add new categories if present
-               stats[cat] = { total: 1, mistakes: row.is_correct === false ? 1 : 0 };
+               stats[cat] = { total: 1, mistakes: (row.error_rate && row.error_rate > 0) ? 1 : 0 };
             }
           });
 

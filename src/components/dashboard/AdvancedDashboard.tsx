@@ -198,7 +198,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                     Welcome back, {supabaseData.user?.fullName || 'Learner'}
                   </h1>
                   <p className="text-slate-500 font-medium">
-                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData.primaryGoalText}
+                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData?.primaryGoalText}
                   </p>
                 </div>
                 <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
@@ -384,7 +384,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><MapIcon className="w-5 h-5"/></div>
-                  <h2 className="text-xl font-bold text-slate-900">{dashboardData.journey.journeyTitle}</h2>
+                  <h2 className="text-xl font-bold text-slate-900">{dashboardData?.journey?.journeyTitle || 'Learning Journey'}</h2>
                 </div>
                 <div className="relative z-10 flex flex-col md:flex-row gap-8">
                   <div className="flex-1 space-y-3">
@@ -766,7 +766,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                   </div>
                 ) : (
                   <ul className="space-y-3">
-                    {dashboardData.reviewQueue.map(item => (
+                    {(dashboardData?.reviewQueue || []).map(item => (
                       <li key={item.itemId} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <div>
                           <p className="font-bold text-slate-800">{item.label}</p>
