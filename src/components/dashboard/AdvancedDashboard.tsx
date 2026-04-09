@@ -884,11 +884,16 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500/20 via-indigo-500 to-indigo-500/10 -translate-x-1/2 rounded-full pointer-events-none" />
                 
                 <div className="space-y-12 relative">
-                  {(activeDashboardData?.journey?.nodes || []).map((node, index) => {
-                    const isLeft = index % 2 === 0;
-                    const isCompleted = node.status === 'completed';
-                    const isCurrent = node.status === 'current';
-                    const isLocked = node.status === 'locked';
+                  {(() => {
+                    const nodes = supabaseData.persistedJourney?.nodes || activeDashboardData?.journey?.nodes || [];
+                    const currentNodeId = supabaseData.persistedJourney?.currentNodeId;
+                    
+                    return nodes.map((node, index) => {
+                      const isLeft = index % 2 === 0;
+                      // Use database status if available, fallback to currentNodeId match or first element
+                      const isCurrent = currentNodeId ? (node.id === currentNodeId) : (node.status === 'current');
+                      const isCompleted = node.status === 'completed';
+                      const isLocked = !isCurrent && !isCompleted;
 
                     return (
                       <motion.div 
@@ -927,7 +932,8 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                         <div className="hidden md:block w-[45%]" />
                       </motion.div>
                     );
-                  })}
+                  });
+                })()}
                 </div>
               </div>
 

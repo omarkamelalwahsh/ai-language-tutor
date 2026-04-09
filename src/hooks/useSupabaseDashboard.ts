@@ -43,6 +43,11 @@ export interface DashboardSupabaseData {
     type: string;
     earnedAt: string;
   }[];
+  persistedJourney: {
+    nodes: any[];
+    currentNodeId: string | null;
+    updatedAt: string;
+  } | null;
   isSyncing: boolean;
   isLoading: boolean;
   error: string | null;
@@ -59,6 +64,7 @@ export const useSupabaseDashboard = () => {
     errors: [],
     errorProfile: null,
     achievements: [],
+    persistedJourney: null,
     isSyncing: false,
     isLoading: true,
     error: null,
@@ -78,8 +84,8 @@ export const useSupabaseDashboard = () => {
           return;
         }
 
-        // Fetch learner data in parallel (8-table alignment)
-        const [profileRes, skillsRes, historyRes, errorsRes, achievementRes] = await Promise.all([
+        // Fetch learner data in parallel (9-table alignment)
+        const [profileRes, skillsRes, historyRes, errorsRes, achievementRes, journeyRes] = await Promise.all([
           supabase
             .from('learner_profiles')
             .select('id, overall_level, onboarding_complete, points, streak')
@@ -105,6 +111,11 @@ export const useSupabaseDashboard = () => {
             .select('id, badge_name, earned_at')
             .eq('user_id', user.id)
             .limit(10),
+          supabase
+            .from('learning_journeys')
+            .select('nodes, current_node_id, updated_at')
+            .eq('user_id', user.id)
+            .maybeSingle(),
         ]);
 
         // Circuit Breaker: If any critical fetch fails, signal sync state
@@ -171,6 +182,13 @@ export const useSupabaseDashboard = () => {
                   earnedAt: a.earned_at,
                 }))
               : [],
+            persistedJourney: journeyRes.data
+              ? {
+                  nodes: journeyRes.data.nodes || [],
+                  currentNodeId: journeyRes.data.current_node_id,
+                  updatedAt: journeyRes.data.updated_at,
+                }
+              : null,
             isSyncing: !!isSyncing,
             isLoading: false,
             error: null,
