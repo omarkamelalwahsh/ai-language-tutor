@@ -12,8 +12,8 @@ import {
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
-import { VisualErrorProfile } from './VisualErrorProfile';
 import { cefrToNumeric } from '../../lib/cefrMapper';
+import { DashboardService } from '../../services/DashboardService';
 
 
 
@@ -83,7 +83,13 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
   const supabaseData = useSupabaseDashboard();
 
-  if (supabaseData.isLoading || !dashboardData) {
+  // Decoupling: Calculate dashboard data locally if not provided via props
+  const internalDashboardData = useMemo(() => {
+    return dashboardData || DashboardService.buildPayload(result || null);
+  }, [dashboardData, result]);
+
+  // Resilient Loading: Only show full-screen sync if we have absolutely NO data to show yet
+  if (supabaseData.isLoading && !internalDashboardData.isNewLearner && !result) {
     return (
       <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6 text-center">
          <div className="flex flex-col items-center gap-6">
@@ -99,9 +105,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
     );
   }
 
+  // Use the local payload
+  const activeDashboardData = internalDashboardData;
+
   // Derive active values (favoring Database over temporary session memory)
   const isNewLearner = (supabaseData?.history?.length || 0) === 0;
-  const currentStreak = supabaseData?.profile?.streak || dashboardData?.weeklyRhythm?.streakDays || 0;
+  const currentStreak = supabaseData?.profile?.streak || activeDashboardData?.weeklyRhythm?.streakDays || 0;
   const totalPoints = supabaseData?.profile?.points || 0;
   const currentLevel = assessmentOutcome?.finalLevel || supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
@@ -203,7 +212,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                     Welcome back, {supabaseData.user?.fullName || 'Learner'}
                   </h1>
                   <p className="text-slate-500 font-medium">
-                    {isNewLearner ? "Ready to map your language proficiency?" : dashboardData?.primaryGoalText || 'Loading your goals...'}
+                    {isNewLearner ? "Ready to map your language proficiency?" : activeDashboardData?.primaryGoalText || 'Loading your goals...'}
                   </p>
                 </div>
                 <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
@@ -389,7 +398,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><MapIcon className="w-5 h-5"/></div>
-                  <h2 className="text-xl font-bold text-slate-900">{dashboardData?.journey?.journeyTitle || 'Learning Journey'}</h2>
+                  <h2 className="text-xl font-bold text-slate-900">{activeDashboardData?.journey?.journeyTitle || 'Learning Journey'}</h2>
                 </div>
                 <div className="relative z-10 flex flex-col md:flex-row gap-8">
                   <div className="flex-1 space-y-3">
@@ -771,7 +780,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                   </div>
                 ) : (
                   <ul className="space-y-3">
-                    {(dashboardData?.reviewQueue || []).map(item => (
+                    {(activeDashboardData?.reviewQueue || []).map(item => (
                       <li key={item.itemId} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <div>
                           <p className="font-bold text-slate-800">{item.label}</p>
@@ -796,20 +805,21 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-slate-800 text-indigo-400 rounded-lg"><Flame className="w-5 h-5"/></div>
                   <h3 className="font-bold text-lg">Weekly Rhythm</h3>
-                             <div className="grid grid-cols-3 gap-4 mb-6">
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
                     <p className="text-xs text-slate-400 font-bold uppercase mb-1">Streak</p>
-                    <p className="text-2xl font-extrabold text-orange-400">{dashboardData?.weeklyRhythm?.streakDays || 0}</p>
+                    <p className="text-2xl font-extrabold text-orange-400">{activeDashboardData?.weeklyRhythm?.streakDays || 0}</p>
                   </div>
                   <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
                     <p className="text-xs text-slate-400 font-bold uppercase mb-1">Sessions</p>
-                    <p className="text-2xl font-extrabold">{dashboardData?.weeklyRhythm?.sessionsThisWeek || 0}</p>
+                    <p className="text-2xl font-extrabold">{activeDashboardData?.weeklyRhythm?.sessionsThisWeek || 0}</p>
                   </div>
                   <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
                     <p className="text-xs text-slate-400 font-bold uppercase mb-1">Momentum</p>
-                    <p className="text-lg font-bold text-emerald-400 capitalize">{dashboardData?.weeklyRhythm?.momentumState || 'Stable'}</p>
+                    <p className="text-lg font-bold text-emerald-400 capitalize">{activeDashboardData?.weeklyRhythm?.momentumState || 'Stable'}</p>
                   </div>
-                </div>     </div>
+                </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden w-full">
                   <div className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500" style={{ width: '60%' }} />
                 </div>
@@ -833,20 +843,20 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                          </span>
                        ) : 'Linguistic Roadmap'}
                     </div>
-                    <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{isArchitecting ? 'Visualizing your path...' : dashboardData?.journey?.journeyTitle || 'Your Learning Path'}</h2>
-                    <p className="text-slate-500 font-medium max-w-xl">{isArchitecting ? 'Our AI engine is currently analyzing your technical gaps to build a high-impact roadmap. This will take a few seconds.' : dashboardData?.journey?.targetCapabilitiesSummary || 'Follow your personalized roadmap to reach your next proficiency milestone.'}</p>
+                    <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{isArchitecting ? 'Visualizing your path...' : activeDashboardData?.journey?.journeyTitle || 'Your Learning Path'}</h2>
+                    <p className="text-slate-500 font-medium max-w-xl">{isArchitecting ? 'Our AI engine is currently analyzing your technical gaps to build a high-impact roadmap. This will take a few seconds.' : activeDashboardData?.journey?.targetCapabilitiesSummary || 'Follow your personalized roadmap to reach your next proficiency milestone.'}</p>
                   </div>
                   <div className="flex items-center gap-4 bg-slate-900 p-6 rounded-2xl text-white shadow-xl">
                     <div className="text-center">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Current</p>
-                      <p className="text-2xl font-black text-indigo-400">{dashboardData?.journey?.currentStage || 'A1'}</p>
+                      <p className="text-2xl font-black text-indigo-400">{activeDashboardData?.journey?.currentStage || 'A1'}</p>
                     </div>
                     <div className="h-10 w-px bg-slate-700" />
                     <ArrowRight className="w-5 h-5 text-slate-500" />
                     <div className="h-10 w-px bg-slate-700" />
                     <div className="text-center">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Target</p>
-                      <p className="text-2xl font-black text-emerald-400">{dashboardData?.journey?.targetStage || 'A2'}</p>
+                      <p className="text-2xl font-black text-emerald-400">{activeDashboardData?.journey?.targetStage || 'A2'}</p>
                     </div>
                   </div>
                 </div>
@@ -858,7 +868,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500/20 via-indigo-500 to-indigo-500/10 -translate-x-1/2 rounded-full pointer-events-none" />
                 
                 <div className="space-y-12 relative">
-                  {(dashboardData?.journey?.nodes || []).map((node, index) => {
+                  {(activeDashboardData?.journey?.nodes || []).map((node, index) => {
                     const isLeft = index % 2 === 0;
                     const isCompleted = node.status === 'completed';
                     const isCurrent = node.status === 'current';
@@ -909,7 +919,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
               <motion.div variants={staggerItem} className="bg-emerald-900 rounded-3xl p-10 text-white text-center relative overflow-hidden">
                  <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-3xl -mr-32 -mt-32" />
                  <Crown className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-                 <h3 className="text-2xl font-black mb-2">Final Objective: {dashboardData.journey.targetStage}</h3>
+                 <h3 className="text-2xl font-black mb-2">Final Objective: {activeDashboardData.journey.targetStage}</h3>
                  <p className="text-emerald-200 max-w-lg mx-auto mb-8 font-medium">Complete all bridge tasks and checkpoints to unlock the official assessment for your next level.</p>
                  <div className="flex justify-center gap-4">
                     <button onClick={onStartSession} className="bg-white text-emerald-900 px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition-colors">Start Current Path</button>

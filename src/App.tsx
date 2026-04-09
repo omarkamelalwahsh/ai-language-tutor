@@ -12,6 +12,8 @@ import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
 import { DiagnosticView } from './views/DiagnosticView';
 import { LandingView } from './views/LandingView';
 import { FadeTransition } from './lib/animations';
+import { DashboardService } from './services/DashboardService';
+import { useMemo } from 'react';
 
 import { AdminDashboardView } from './views/AdminDashboardView';
 import { AdminLeaderboardView } from './views/AdminLeaderboardView';
@@ -100,6 +102,8 @@ function AppRoutes() {
     isArchitecting, logout, refreshData, devModeActive 
   } = useData() as any;
 
+  const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
+
   const handleAssessmentSave = async (result: any, outcome: any, evals: any) => {
     setSessionResult(result, outcome, evals);
     await refreshData();
@@ -151,6 +155,7 @@ function AppRoutes() {
             <ProtectedRoute>
               <AdvancedDashboard
                 result={assessmentResult}
+                dashboardData={dashboardData}
                 assessmentOutcome={assessmentOutcome}
                 onStartSession={() => navigate('/runtime')}
                 onNavigateLeaderboard={() => navigate('/leaderboard')}
