@@ -85,8 +85,23 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
 
   // Decoupling: Calculate dashboard data locally if not provided via props
   const internalDashboardData = useMemo(() => {
-    return dashboardData || DashboardService.buildPayload(result || null);
-  }, [dashboardData, result]);
+    // If we have a live DB level, prioritize it for the journey logic
+    const dbLevel = supabaseData?.profile?.overall_level;
+    let workingResult = result || null;
+    
+    if (dbLevel && dbLevel !== 'Pending') {
+      workingResult = {
+        ...(workingResult || {}),
+        skills: workingResult?.skills || {},
+        overall: {
+          ...(workingResult?.overall || {}),
+          estimatedLevel: dbLevel || 'A1'
+        }
+      } as any;
+    }
+    
+    return dashboardData || DashboardService.buildPayload(workingResult);
+  }, [dashboardData, result, supabaseData?.profile?.overall_level]);
 
   // Resilient Loading: Only show full-screen sync if we have absolutely NO data to show yet
   if (supabaseData.isLoading && !internalDashboardData.isNewLearner && !result) {
