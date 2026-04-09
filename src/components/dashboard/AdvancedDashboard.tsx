@@ -264,10 +264,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </motion.div>
               )}
 
-              {/* ===== Visual Error Profile ===== */}
+              {/* ===== Visual Error Profile (Commented out temporarily to avoid crash) =====
               <motion.section variants={staggerItem} className="mt-8 mb-6">
                 <VisualErrorProfile />
               </motion.section>
+              */}
 
               {/* ===== Diagnostic Insights Section ===== */}
               {((supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) || 

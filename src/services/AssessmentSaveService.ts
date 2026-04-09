@@ -21,7 +21,6 @@ export class AssessmentSaveService {
    */
   public static async saveSingleAssessmentLog(logData: {
     category: string;
-    is_correct: boolean;
     user_answer: string;
     correct_answer: string;
     suggested_band: string;
@@ -36,7 +35,6 @@ export class AssessmentSaveService {
       const logEntry = {
         user_id: user.id,
         category: logData.category || 'general',
-        is_correct: Boolean(logData.is_correct),
         user_answer: logData.user_answer,
         correct_answer: logData.correct_answer,
         suggested_band: logData.suggested_band,

@@ -527,7 +527,6 @@ export class AdaptiveAssessmentEngine {
 
       const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
         category: efsetItem.skill || 'general',
-        is_correct: result.isCorrect ?? isCorrect,
         user_answer: answer,
         correct_answer: correctText,
         suggested_band: String(efsetItem.target_cefr || 'B1'),
@@ -574,7 +573,6 @@ export class AdaptiveAssessmentEngine {
       
       const savePromise = AssessmentSaveService.saveSingleAssessmentLog({
         category: efsetItem.skill || 'general',
-        is_correct: isCorrect,
         user_answer: answer,
         correct_answer: correctText,
         suggested_band: String(efsetItem.target_cefr || 'B1'),
@@ -732,7 +730,6 @@ export class AdaptiveAssessmentEngine {
     // 🚀 RESTORE POINT: Save single log if not already saved (covers Text path)
     AssessmentSaveService.saveSingleAssessmentLog({
       category: efsetItem.skill || 'general',
-      is_correct: isCorrect,
       user_answer: answer,
       correct_answer: correctText,
       suggested_band: String(efsetItem.target_cefr || 'B1'),
