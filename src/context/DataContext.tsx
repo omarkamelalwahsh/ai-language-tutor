@@ -46,7 +46,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadSafe('onboarding_state', setOnboardingState);
   }, []);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const refreshData = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) {
@@ -65,11 +69,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       setProfile(profileData);
+      // Trigger global refresh for dashboard components
       setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       console.error('[DataContext] Error refreshing data:', err);
+    } finally {
+      setIsRefreshing(false);
     }
-  }, []);
+  }, [isRefreshing]);
 
   const initialize = useCallback(async () => {
     setIsInitializing(true);

@@ -67,25 +67,6 @@ export const useSupabaseDashboard = () => {
   useEffect(() => {
     let isMounted = true;
 
-    // ── Auth Listener ────────────────────────────────────────────────────────
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log(`[useSupabaseDashboard] Auth Event: ${event}`);
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        setRefreshTrigger(prev => prev + 1);
-      } else if (event === 'SIGNED_OUT') {
-        if (isMounted) {
-          setData(prev => ({ 
-            ...prev, 
-            user: null, 
-            profile: null, 
-            skills: [], 
-            history: [], 
-            isLoading: false 
-          }));
-        }
-      }
-    });
-
     const fetchDashboardData = async () => {
       if (isMounted) setData(prev => ({ ...prev, isLoading: true }));
       
@@ -205,7 +186,6 @@ export const useSupabaseDashboard = () => {
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
     };
   }, [refreshTrigger]);
 
