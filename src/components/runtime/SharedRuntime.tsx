@@ -16,6 +16,54 @@ interface SharedRuntimeProps {
   result: AssessmentSessionResult;
 }
 
+const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExit: () => void }) => {
+  // Simple logic to find next level
+  const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const currentIndex = levels.indexOf(currentLevel);
+  const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : 'the next level';
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-slate-50 p-6 text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-8 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-60" />
+        
+        {/* Icon Animation */}
+        <div className="relative mx-auto w-24 h-24">
+          <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl animate-bounce">🚀</span>
+          </div>
+        </div>
+
+        {/* Text Content */}
+        <div className="space-y-3 relative z-10">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Coming Soon</h2>
+          <p className="text-slate-500 font-medium leading-relaxed">
+            We're fine-tuning your personalized tasks based on your <span className="text-indigo-600 font-bold">{currentLevel} to {nextLevel} roadmap</span>.
+          </p>
+        </div>
+
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 tracking-widest uppercase">
+          <Brain className="w-3 h-3" /> AI Journey Engine: Building...
+        </div>
+
+        <button 
+          onClick={onExit}
+          className="w-full bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-slate-200"
+        >
+          Back to Journey
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
 export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(result));
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
@@ -261,8 +309,13 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     );
   }
 
-  if (!currentTask) {
-    return null;
+  if (!currentTask || tasks.length === 0) {
+    return (
+      <ComingSoonTasks 
+        currentLevel={result.overall.estimatedLevel} 
+        onExit={onExit} 
+      />
+    );
   }
 
   return (

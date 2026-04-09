@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useData } from '../context/DataContext';
 
 export interface DashboardSupabaseData {
   user: {
@@ -49,6 +50,7 @@ export interface DashboardSupabaseData {
 }
 
 export const useSupabaseDashboard = () => {
+  const { refreshTrigger } = useData();
   const [data, setData] = useState<DashboardSupabaseData>({
     user: null,
     profile: null,
@@ -61,8 +63,6 @@ export const useSupabaseDashboard = () => {
     isLoading: true,
     error: null,
   });
-
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,10 +109,10 @@ export const useSupabaseDashboard = () => {
             .select('skill, current_level, confidence, updated_at')
             .eq('user_id', user.id),
           supabase
-            .from('assessment_logs')
-            .select('id, last_updated, category, is_correct')
+            .from('user_error_analysis')
+            .select('id, created_at, category, is_correct')
             .eq('user_id', user.id)
-            .order('last_updated', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(50),
           supabase
             .from('user_error_profiles')
@@ -156,7 +156,7 @@ export const useSupabaseDashboard = () => {
             history: historyRes.data
               ? historyRes.data.map((h: any) => ({
                   id: h.id,
-                  createdAt: h.last_updated,
+                  createdAt: h.created_at,
                   overallLevel: h.category || 'General', 
                   confidence: h.is_correct ? 1 : 0,      
                 }))
@@ -209,8 +209,6 @@ export const useSupabaseDashboard = () => {
     };
   }, [refreshTrigger]);
 
-  const refresh = () => setRefreshTrigger(prev => prev + 1);
-
-  return { ...data, refresh };
+  return { ...data };
 };
 

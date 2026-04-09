@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, CheckCircle2, XCircle, BrainCircuit, Mic, PenTool, Headphones, BookOpen, AlertCircle, AlertTriangle, MessageSquare
 } from 'lucide-react';
@@ -40,6 +41,7 @@ const getBadgeColor = (level?: string) => {
 };
 
 export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ evaluations, assessmentId, onBack }) => {
+  const navigate = useNavigate();
   const [dbResponses, setDbResponses] = useState<ExternalResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [useLocal, setUseLocal] = useState(true);
@@ -104,7 +106,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
         {/* Header */}
         <div className="flex items-center justify-between">
           <button 
-            onClick={onBack}
+            onClick={() => onBack ? onBack() : navigate(-1)}
             className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold transition-colors group"
           >
             <div className="p-2 bg-white rounded-lg border border-slate-200 group-hover:bg-slate-100">

@@ -46,7 +46,7 @@ export class AssessmentSaveService {
       };
 
       const { error } = await supabase
-        .from('assessment_logs')
+        .from('user_error_analysis')
         .insert([logEntry]);
 
       if (error) throw error;

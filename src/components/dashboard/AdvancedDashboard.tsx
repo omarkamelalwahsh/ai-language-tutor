@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Mic, PenTool, Headphones, BookOpen,
@@ -59,7 +60,26 @@ const sidebarItems = [
 ];
 
 export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, onViewHistoryReport, onLogout, isArchitecting }) => {
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Determine active tab from URL path
+  const activeTab = useMemo(() => {
+    const segments = location.pathname.split('/');
+    const last = segments[segments.length - 1];
+    // If we're at /dashboard, last is 'dashboard' -> overview
+    // If we're at /dashboard/journey, last is 'journey'
+    return (last === 'dashboard' || !last) ? 'overview' : last;
+  }, [location.pathname]);
+
+  const handleTabChange = (tabId: string) => {
+    if (tabId === 'overview') {
+      navigate('/dashboard');
+    } else {
+      navigate(`/dashboard/${tabId}`);
+    }
+  };
+
   const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
   const supabaseData = useSupabaseDashboard();
 
@@ -111,7 +131,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           {sidebarItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabChange(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                 activeTab === item.id
                   ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
@@ -157,7 +177,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           {sidebarItems.slice(0, 4).map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabChange(item.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap ${
                 activeTab === item.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200'
               }`}

@@ -3,6 +3,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tool
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, Target, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { useData } from '../../context/DataContext';
 
 interface ErrorAnalysisRow {
   subject: string;
@@ -12,6 +13,7 @@ interface ErrorAnalysisRow {
 }
 
 export const VisualErrorProfile = () => {
+  const { refreshTrigger } = useData();
   const [data, setData] = useState<ErrorAnalysisRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,22 +24,44 @@ export const VisualErrorProfile = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        // Fetch using the json structure: id, created_at, category, is_correct
         const { data: analysis, error: fetchError } = await supabase
           .from('user_error_analysis')
-          .select('category, error_rate, last_updated')
+          .select('id, created_at, category, is_correct')
           .eq('user_id', user.id);
 
         if (fetchError) throw fetchError;
 
         if (analysis && analysis.length > 0) {
-          const formatted = analysis.map(row => ({
-            subject: row.category?.charAt(0).toUpperCase() + row.category?.slice(1) || 'Unknown',
-            A: Math.round((row.error_rate || 0) * 100),
+          const stats: Record<string, { total: number, mistakes: number }> = {
+            listening: { total: 0, mistakes: 0 },
+            reading: { total: 0, mistakes: 0 },
+            speaking: { total: 0, mistakes: 0 },
+            writing: { total: 0, mistakes: 0 },
+          };
+
+          analysis.forEach(row => {
+            const cat = row.category?.toLowerCase() || 'speaking';
+            if (stats[cat]) {
+               stats[cat].total += 1;
+               if (row.is_correct === false || String(row.is_correct) === 'false') {
+                 stats[cat].mistakes += 1;
+               }
+            } else {
+               // dynamically add new categories if present
+               stats[cat] = { total: 1, mistakes: row.is_correct === false ? 1 : 0 };
+            }
+          });
+
+          const formatted = Object.entries(stats).map(([cat, counts]) => ({
+            subject: cat.charAt(0).toUpperCase() + cat.slice(1),
+            A: counts.total > 0 ? Math.round((counts.mistakes / counts.total) * 100) : 0,
             fullMark: 100,
-            mistakesCount: 0 // Placeholder as we now read error_rate directly
+            mistakesCount: counts.mistakes,
+            totalCount: counts.total
           }));
           
-          setData(formatted);
+          setData(formatted.filter(item => item.totalCount > 0));
         } else {
           setData([]);
         }
@@ -50,7 +74,7 @@ export const VisualErrorProfile = () => {
     };
 
     fetchErrorAnalysis();
-  }, []);
+  }, [refreshTrigger]);
 
   if (loading) {
     return (
@@ -100,6 +124,9 @@ export const VisualErrorProfile = () => {
               </span>
               Visual Error Profile
             </h3>
+            <p className="text-slate-400 text-xs mt-1">
+              Based on {data.reduce((acc, curr) => acc + curr.totalCount, 0)} assessments
+            </p>
             <p className="text-sm text-slate-500 font-medium mt-1">Diagnostic view of error density across skills.</p>
           </div>
           
