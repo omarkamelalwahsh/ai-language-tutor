@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { AssessmentSessionResult, AssessmentOutcome, TaskEvaluation } from '../types/assessment';
 import { OnboardingState } from '../types/app';
@@ -32,6 +32,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isInitializing, setIsInitializing] = useState(true);
   const [isArchitecting, setIsArchitecting] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const dataLoadedRef = useRef(false);
 
   const loadLocalState = useCallback(() => {
     const loadSafe = (key: string, setter: (val: any) => void) => {
@@ -107,9 +108,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [loadLocalState, refreshData]);
 
+    return () => {
+       if (subscription) subscription.unsubscribe();
+    };
+  }, [loadLocalState, refreshData]);
+
+  // Restored strict useEffect with dataLoadedRef safeguard
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    if (dataLoadedRef.current) return;
+    
+    const runInit = async () => {
+      try {
+        await initialize();
+        dataLoadedRef.current = true;
+      } catch (err) {
+        console.error('[DataContext] Initialization failed:', err);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    runInit();
+    // Only re-run if the user identity changes
+  }, [user?.id, initialize]);
 
   const setSessionResult = (result: AssessmentSessionResult, outcome: AssessmentOutcome, evals: TaskEvaluation[]) => {
     setAssessmentResult(result);
