@@ -161,7 +161,11 @@ function AppRoutes() {
                 onNavigateLeaderboard={() => navigate('/leaderboard')}
                 onViewReview={() => navigate(`/review/latest`)}
                 onViewHistoryReport={(id: string) => navigate(`/review/${id}`)}
-                onLogout={async () => { await logout(); navigate('/'); }}
+                onLogout={async () => { 
+                  await logout(); 
+                  // Brief delay to ensure state and localStorage are fully cleared 
+                  setTimeout(() => navigate('/'), 10);
+                }}
                 isArchitecting={isArchitecting}
               />
             </ProtectedRoute>

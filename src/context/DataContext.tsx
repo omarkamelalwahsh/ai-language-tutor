@@ -156,14 +156,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    localStorage.clear();
-    setUser(null);
-    setProfile(null);
-    setAssessmentResult(null);
-    setAssessmentOutcome(null);
-    setTaskResults([]);
-    setOnboardingState(null);
+    try {
+      console.log('[DataContext] Initiating logout...');
+      await supabase.auth.signOut();
+      localStorage.clear();
+      
+      // Reset all states
+      setUser(null);
+      setProfile(null);
+      setAssessmentResult(null);
+      setAssessmentOutcome(null);
+      setTaskResults([]);
+      setOnboardingState(null);
+      
+      console.log('[DataContext] Logout successful and state cleared.');
+    } catch (err) {
+      console.error('[DataContext] Logout failed:', err);
+      // Fallback: clear local state anyway
+      localStorage.clear();
+      window.location.href = '/auth'; // Force hard redirect as fallback
+    }
   };
 
   // Dynamic Journey Generation Trigger (moved from App.tsx)

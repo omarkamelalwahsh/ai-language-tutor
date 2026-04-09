@@ -235,18 +235,26 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
       {/* Main Content */}
       <main className="flex-1 py-8 px-6 md:px-10 overflow-y-auto max-w-5xl">
         {/* Mobile Tab Bar */}
-        <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-4 mb-6">
-          {sidebarItems.slice(0, 4).map(item => (
+        <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+          {sidebarItems.slice(0, 5).map(item => (
             <button
               key={item.id}
               onClick={() => handleTabChange(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap ${
-                activeTab === item.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200'
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
+                activeTab === item.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
               }`}
             >
               {item.icon} {item.label}
             </button>
           ))}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-white text-rose-500 border border-rose-100 whitespace-nowrap shadow-sm active:scale-95 transition-transform"
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
