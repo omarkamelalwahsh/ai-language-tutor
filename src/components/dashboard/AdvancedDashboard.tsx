@@ -230,78 +230,73 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </motion.div>
               )}
 
-              {/* AI Learning Insights (Personalized Roadmap based on DB Errors) */}
-              {(supabaseData.errors?.length || 0) > 0 && (
-                <motion.section variants={staggerItem} className="bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20 my-6 border border-indigo-800">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                  <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                         <div className="p-1.5 bg-indigo-500/30 rounded-lg"><Brain className="w-4 h-4 text-indigo-300" /></div>
-                         <h2 className="text-sm font-bold text-indigo-300 uppercase tracking-widest">Personalized Roadmap Insights</h2>
-                      </div>
-                      <h3 className="text-2xl font-black mb-4">Targeted Practice: {supabaseData.errors?.[0]?.category.replace(/_/g, ' ')}</h3>
-                      <div className="bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-sm relative">
-                         <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-amber-400 rotate-45" />
-                         <p className="text-indigo-50 leading-relaxed font-medium ml-2">
-                           <strong className="text-amber-400">💡 Smart Tip:</strong> {supabaseData.errors?.[0]?.description}
-                         </p>
-                      </div>
-                    </div>
-                    <div className="w-full md:w-1/3 flex flex-col gap-3">
-                       <button onClick={onStartSession} className="w-full bg-white text-indigo-900 hover:bg-slate-50 px-5 py-3.5 rounded-xl font-bold shadow-lg shadow-white/10 transition-all flex items-center justify-center gap-2">
-                         <Dumbbell className="w-4 h-4" /> Practice This Topic
-                       </button>
-                       <button onClick={() => setActiveTab('review')} className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-indigo-100 hover:text-white border border-indigo-700 px-5 py-3.5 rounded-xl font-bold transition-all">
-                         View All Insights
-                       </button>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
+              {/* ===== Visual Error Profile ===== */}
+              <motion.section variants={staggerItem} className="mt-8 mb-6">
+                <VisualErrorProfile />
+              </motion.section>
 
-              {/* ===== Expert Recommendations (Model B Analysis) ===== */}
-              {(supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) && (
-                <motion.section variants={staggerItem} className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl my-6 border border-indigo-800">
+              {/* ===== Diagnostic Insights Section ===== */}
+              {((supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) || 
+                (supabaseData.errorProfile?.weakness_areas && supabaseData.errorProfile.weakness_areas.length > 0)) && (
+                <motion.section variants={staggerItem} className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl border border-indigo-800 mb-8">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                  
                   <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
-                       <div>
-                         <div className="flex items-center gap-2 mb-3">
-                           <div className="p-2 bg-amber-500/20 rounded-xl border border-amber-500/30">
-                             <Lightbulb className="w-5 h-5 text-amber-400" />
-                           </div>
-                           <h2 className="text-xl font-black tracking-tight text-white">The Professor's Action Plan</h2>
-                         </div>
-                         <p className="text-indigo-200 font-medium max-w-xl">
-                            {supabaseData.errorProfile.bridge_delta || "Here are the key steps to elevate your linguistic precision."}
-                         </p>
+                    <div className="flex items-center gap-3 mb-8">
+                       <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
+                         <Brain className="w-6 h-6 text-indigo-400" />
                        </div>
-                       
-                       {supabaseData.errorProfile.bridge_percentage !== undefined && (
-                         <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-center min-w-[160px]">
-                            <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1">Current Mastery</p>
-                            <div className="flex items-end justify-center gap-1">
-                               <span className="text-4xl font-black text-emerald-400">{supabaseData.errorProfile.bridge_percentage}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-black/40 rounded-full mt-3 overflow-hidden">
-                               <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${supabaseData.errorProfile.bridge_percentage}%` }} />
-                            </div>
-                         </div>
-                       )}
+                       <div>
+                         <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                           Diagnostic Insights 
+                           {supabaseData.errorProfile.bridge_percentage !== undefined && (
+                              <span className="text-emerald-400 text-sm font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 ml-2">
+                                {supabaseData.errorProfile.bridge_percentage}% Bridge
+                              </span>
+                           )}
+                         </h2>
+                         <p className="text-indigo-200/80 font-medium text-sm mt-1">Your AI-generated action plan and identified weakness areas.</p>
+                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {supabaseData.errorProfile.action_plan.map((step, idx) => (
-                        <div key={idx} className="flex gap-4 bg-white/5 hover:bg-white/10 p-5 rounded-2xl border border-white/5 transition-colors group cursor-pointer">
-                           <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0 self-start group-hover:bg-indigo-500/40 transition-colors">
-                              <span className="text-sm font-black text-indigo-300">{idx + 1}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Weakness Areas */}
+                      {supabaseData.errorProfile.weakness_areas && supabaseData.errorProfile.weakness_areas.length > 0 && (
+                        <div className="space-y-4">
+                           <h3 className="text-sm font-bold text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                             <AlertCircle className="w-4 h-4" /> Priority Weaknesses
+                           </h3>
+                           <div className="grid grid-cols-1 gap-3">
+                             {supabaseData.errorProfile.weakness_areas.map((weakness: string, idx: number) => (
+                               <div key={`weak-${idx}`} className="flex items-start gap-3 bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-rose-500/20 transition-colors">
+                                 <div className="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                                 <p className="text-sm text-rose-50/90 leading-relaxed font-medium">{weakness}</p>
+                               </div>
+                             ))}
                            </div>
-                           <p className="text-sm text-indigo-50 font-medium leading-relaxed">
-                              {step}
-                           </p>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Action Plan */}
+                      {supabaseData.errorProfile.action_plan && supabaseData.errorProfile.action_plan.length > 0 && (
+                        <div className="space-y-4">
+                           <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                             <Lightbulb className="w-4 h-4" /> Recommended Action Plan
+                           </h3>
+                           <div className="grid grid-cols-1 gap-3">
+                             {supabaseData.errorProfile.action_plan.map((step: string, idx: number) => (
+                               <div key={`act-${idx}`} className="flex gap-4 bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-emerald-500/20 transition-colors group cursor-pointer">
+                                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 self-start group-hover:bg-emerald-500/40 transition-colors">
+                                     <span className="text-xs font-black text-emerald-300">{idx + 1}</span>
+                                  </div>
+                                  <p className="text-sm text-emerald-50/90 font-medium leading-relaxed">
+                                     {step}
+                                  </p>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.section>
@@ -389,10 +384,6 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                       </div>
                     ))}
                   </div>
-                  <div className="w-full md:w-1/3">
-                    <VisualErrorProfile />
-                  </div>
-
                 </div>
               </motion.section>
 
