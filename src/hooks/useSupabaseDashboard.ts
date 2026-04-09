@@ -110,9 +110,9 @@ export const useSupabaseDashboard = () => {
             .eq('user_id', user.id),
           supabase
             .from('assessment_logs')
-            .select('id, created_at, category, is_correct')
+            .select('id, last_updated, category, is_correct')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
+            .order('last_updated', { ascending: false })
             .limit(50),
           supabase
             .from('user_error_profiles')
@@ -156,7 +156,7 @@ export const useSupabaseDashboard = () => {
             history: historyRes.data
               ? historyRes.data.map((h: any) => ({
                   id: h.id,
-                  createdAt: h.created_at,
+                  createdAt: h.last_updated,
                   overallLevel: h.category || 'General', 
                   confidence: h.is_correct ? 1 : 0,      
                 }))

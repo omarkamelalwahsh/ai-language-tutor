@@ -22,44 +22,22 @@ export const VisualErrorProfile = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch using the json structure: id, created_at, category, is_correct
         const { data: analysis, error: fetchError } = await supabase
           .from('user_error_analysis')
-          .select('id, created_at, category, is_correct')
+          .select('category, error_rate, last_updated')
           .eq('user_id', user.id);
 
         if (fetchError) throw fetchError;
 
         if (analysis && analysis.length > 0) {
-          const stats: Record<string, { total: number, mistakes: number }> = {
-            listening: { total: 0, mistakes: 0 },
-            reading: { total: 0, mistakes: 0 },
-            speaking: { total: 0, mistakes: 0 },
-            writing: { total: 0, mistakes: 0 },
-          };
-
-          analysis.forEach(row => {
-            const cat = row.category?.toLowerCase() || 'speaking';
-            if (stats[cat]) {
-               stats[cat].total += 1;
-               if (row.is_correct === false || String(row.is_correct) === 'false') {
-                 stats[cat].mistakes += 1;
-               }
-            } else {
-               // dynamically add new categories if present
-               stats[cat] = { total: 1, mistakes: row.is_correct === false ? 1 : 0 };
-            }
-          });
-
-          const formatted = Object.entries(stats).map(([cat, counts]) => ({
-            subject: cat.charAt(0).toUpperCase() + cat.slice(1),
-            A: counts.total > 0 ? Math.round((counts.mistakes / counts.total) * 100) : 0,
+          const formatted = analysis.map(row => ({
+            subject: row.category?.charAt(0).toUpperCase() + row.category?.slice(1) || 'Unknown',
+            A: Math.round((row.error_rate || 0) * 100),
             fullMark: 100,
-            mistakesCount: counts.mistakes,
-            totalCount: counts.total
+            mistakesCount: 0 // Placeholder as we now read error_rate directly
           }));
           
-          setData(formatted.filter(item => item.totalCount > 0));
+          setData(formatted);
         } else {
           setData([]);
         }

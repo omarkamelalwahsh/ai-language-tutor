@@ -248,7 +248,7 @@ export default function App() {
             const reconstructed: AssessmentSessionResult = {
               learnerId: userId,
               sessionId: latest.assessment_id || 'restored-session',
-              generatedAt: latest.created_at,
+              generatedAt: latest.last_updated,
               overall: {
                 estimatedLevel: (latest.answer_level || 'B1') as any,
                 confidence: 0.8,
