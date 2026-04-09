@@ -62,6 +62,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(authUser);
 
+      // ONBOARDING GUARD: Don't sync internal data if we're in the middle of onboarding
+      const isOnboarding = window.location.pathname.includes('/onboarding');
+      if (isOnboarding) {
+        setProfile(null);
+        return;
+      }
+
       // Fetch Profile
       const { data: profileData } = await supabase
         .from('learner_profiles')
@@ -69,13 +76,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', authUser.id)
         .single();
       
-      setProfile(profileData);
-      // Trigger global refresh for dashboard components
-      setRefreshTrigger(prev => prev + 1);
+      if (profileData) {
+        setProfile(profileData);
+        // Trigger global refresh for dashboard components
+        setRefreshTrigger(prev => prev + 1);
+      } else {
+        setProfile(null);
+      }
     } catch (err) {
       console.error('[DataContext] Error refreshing data:', err);
     } finally {
       setIsRefreshing(false);
+      // Ensure we unblock the UI if finished checking
+      setIsInitializing(false);
     }
   }, [isRefreshing]);
 
