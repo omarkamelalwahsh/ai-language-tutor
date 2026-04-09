@@ -108,11 +108,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [loadLocalState, refreshData]);
 
-    return () => {
-       if (subscription) subscription.unsubscribe();
-    };
-  }, [loadLocalState, refreshData]);
-
   // Restored strict useEffect with dataLoadedRef safeguard
   useEffect(() => {
     if (dataLoadedRef.current) return;
