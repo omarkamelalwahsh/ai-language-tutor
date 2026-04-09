@@ -9,11 +9,13 @@ import {
   Brain, XCircle, Lightbulb, Zap, Loader2
 } from 'lucide-react';
 
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { cefrToNumeric } from '../../lib/cefrMapper';
 import { DashboardService } from '../../services/DashboardService';
+import { VisualErrorProfile } from './VisualErrorProfile';
 
 
 
@@ -58,6 +60,37 @@ const sidebarItems = [
   { id: 'history', label: 'History', icon: <History className="w-5 h-5" /> },
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
 ];
+
+const SkillRadarChart: React.FC<{ data: any[] }> = ({ data }) => {
+  const chartData = data.map(s => ({
+    subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1),
+    A: s.masteryScore,
+    fullMark: 100,
+  }));
+
+  return (
+    <div className="h-[320px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
+          <PolarGrid stroke="#e2e8f0" />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
+          <Tooltip 
+             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+             formatter={(value: any) => [`${value}% Mastery`, 'Skills']}
+          />
+          <Radar
+            name="Skill Mastery"
+            dataKey="A"
+            stroke="#4f46e5"
+            strokeWidth={3}
+            fill="#6366f1"
+            fillOpacity={0.25}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, onViewHistoryReport, onLogout, isArchitecting }) => {
   const location = useLocation();
@@ -279,11 +312,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </motion.div>
               )}
 
-              {/* ===== Visual Error Profile (Commented out temporarily to avoid crash) =====
+              {/* ===== Visual Error Profile (Now defined correctly) ===== */}
               <motion.section variants={staggerItem} className="mt-8 mb-6">
                 <VisualErrorProfile />
               </motion.section>
-              */}
 
               {/* ===== Diagnostic Insights Section ===== */}
               {((supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) || 
@@ -484,59 +516,76 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 <p className="text-slate-500 text-sm">Detailed breakdowns of your learning signals and patterns.</p>
               </motion.div>
 
-              {/* ===== Assessment Outcome Section ===== */}
-              {assessmentOutcome ? (
+              {/* ===== Analytics Outcome or Skill Radar ===== */}
+              {(assessmentOutcome || supabaseData.skills.length > 0) ? (
                 <>
-                  {/* Overall Summary Card */}
-                  <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><BarChart2 className="w-5 h-5" /></div>
-                        <h3 className="text-xl font-bold text-slate-900">Assessment Result</h3>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center relative overflow-hidden">
-                          <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Numerical Level</p>
-                          <p className="text-4xl font-extrabold text-indigo-700">{cefrToNumeric(assessmentOutcome.overallBand)}</p>
-                          <div className="absolute top-0 right-0 p-1">
-                             <div className="bg-white/50 text-[8px] px-1 font-bold text-indigo-400 rounded border border-indigo-50">Score</div>
+                  {/* Overall Summary Card (Only if session result exists) */}
+                  {assessmentOutcome && (
+                    <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden mb-8">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><BarChart2 className="w-5 h-5" /></div>
+                          <h3 className="text-xl font-bold text-slate-900">Assessment Result</h3>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center relative overflow-hidden">
+                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Numerical Level</p>
+                            <p className="text-4xl font-extrabold text-indigo-700">{cefrToNumeric(assessmentOutcome.overallBand)}</p>
+                            <div className="absolute top-0 right-0 p-1">
+                               <div className="bg-white/50 text-[8px] px-1 font-bold text-indigo-400 rounded border border-indigo-50">Score</div>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confidence</p>
+                            <p className="text-3xl font-extrabold text-slate-900">{Math.round(assessmentOutcome.overallConfidence * 100)}%</p>
+                          </div>
+                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Questions</p>
+                            <p className="text-3xl font-extrabold text-slate-900">{assessmentOutcome.totalQuestions}</p>
+                          </div>
+                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Stop Reason</p>
+                            <p className="text-lg font-bold text-slate-700 capitalize">{assessmentOutcome.stopReason?.replace(/_/g, ' ') || '—'}</p>
                           </div>
                         </div>
+                        
+                        {/* Detailed Review Action */}
+                        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                           <div>
+                              <h4 className="font-bold text-slate-800">Detailed Answer Analysis</h4>
+                              <p className="text-xs text-slate-500">View individual task scores, grammar feedback, and explainers.</p>
+                           </div>
+                           <button 
+                              onClick={onViewReview}
+                              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-indigo-100"
+                           >
+                              View Full Review Sheet <ArrowRight className="w-4 h-4" />
+                           </button>
+                        </div>
+                      </div>
+                    </motion.section>
+                  )}
 
-                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confidence</p>
-                          <p className="text-3xl font-extrabold text-slate-900">{Math.round(assessmentOutcome.overallConfidence * 100)}%</p>
-                        </div>
-                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Questions</p>
-                          <p className="text-3xl font-extrabold text-slate-900">{assessmentOutcome.totalQuestions}</p>
-                        </div>
-                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Stop Reason</p>
-                          <p className="text-lg font-bold text-slate-700 capitalize">{assessmentOutcome.stopReason?.replace(/_/g, ' ') || '—'}</p>
+                  {/* Skills Radar (Universal) */}
+                  <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden mb-8">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-8">
+                        <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><Target className="w-5 h-5" /></div>
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900">Skill Proficiency Matrix</h3>
+                          <p className="text-xs text-slate-400">Visual breakdown of mastery across language domains.</p>
                         </div>
                       </div>
-                      
-                      {/* Detailed Review Action */}
-                      <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                         <div>
-                            <h4 className="font-bold text-slate-800">Detailed Answer Analysis</h4>
-                            <p className="text-xs text-slate-500">View individual task scores, grammar feedback, and explainers.</p>
-                         </div>
-                         <button 
-                            onClick={onViewReview}
-                            className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-indigo-100"
-                         >
-                            View Full Review Sheet <ArrowRight className="w-4 h-4" />
-                         </button>
-                      </div>
+                      <SkillRadarChart data={assessmentOutcome ? Object.values(assessmentOutcome.skillBreakdown).map(s => ({ skillId: s.skill, masteryScore: s.score })) : supabaseData.skills} />
                     </div>
                   </motion.section>
 
-                  {/* Per-Skill Outcome Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {(Object.entries(assessmentOutcome.skillBreakdown) as [AssessmentSkill, typeof assessmentOutcome.skillBreakdown[AssessmentSkill]][]).map(([skillName, skillData]) => {
+                  {/* Per-Skill Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
+                    {(assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown) : supabaseData.skills.map(s => [s.skill, { band: s.currentLevel, score: s.masteryScore, confidence: s.confidence, evidenceCount: s.evidenceCount, status: 'stable' }])).map(([skillName, skillData]: [any, any]) => {
                       const bandColorClass = (() => {
                         const b = String(skillData.band);
                         if (b.startsWith('A')) return 'from-emerald-50 to-emerald-100/50 border-emerald-100';
@@ -550,8 +599,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                         return 'text-purple-700';
                       })();
                       const statusColor = skillData.status === 'stable' ? 'bg-emerald-100 text-emerald-700' : skillData.status === 'emerging' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500';
+                      
                       return (
-                        <motion.section key={skillName} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                        <motion.section key={skillName} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:border-slate-200">
                           <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-3">
                               <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600">
@@ -563,12 +613,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                                <span className={`text-xl font-extrabold ${bandTextClass}`}>{skillData.band}</span>
                                <span className="text-[8px] font-bold opacity-60">({cefrToNumeric(String(skillData.band))})</span>
                              </div>
-
                           </div>
                           <div className="grid grid-cols-3 gap-3 mb-4">
                             <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
-                              <p className="text-2xl font-extrabold text-slate-900">{skillData.score}</p>
+                              <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillData.score)}</p>
                             </div>
                             <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
@@ -579,7 +628,6 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                               <p className="text-2xl font-extrabold text-slate-900">{skillData.evidenceCount}</p>
                             </div>
                           </div>
-                          {/* Score bar */}
                           <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
                             <motion.div
                               className="h-full bg-indigo-500 rounded-full"
@@ -590,16 +638,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                           </div>
                           <div className="flex items-center justify-between">
                             <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${statusColor}`}>
-                              {skillData.status?.replace(/_/g, ' ') || 'unknown'}
+                              {skillData.status?.replace(/_/g, ' ') || 'stable'}
                             </span>
                             {skillData.speakingFallbackApplied && (
                               <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" /> Fallback
-                              </span>
-                            )}
-                            {skillData.isCapped && (
-                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> Capped
                               </span>
                             )}
                           </div>
@@ -622,20 +665,20 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                 </motion.section>
               )}
 
-              {/* Per-Skill Deep Cards from Session Result (always shown if skills exist) */}
-              {skills.length > 0 && (
+              {/* Per-Skill Deep Cards from Session Result (only shown if a live result just arrived) */}
+              {result && (
                 <>
                   <motion.div variants={staggerItem}>
-                    <h3 className="text-lg font-bold text-slate-900 mt-4 mb-1">Session-Level Skill Analysis</h3>
-                    <p className="text-slate-400 text-xs">Detailed per-skill breakdown from the processed session result.</p>
+                    <h3 className="text-lg font-bold text-slate-900 mt-10 mb-1">Session-Level Skill Analysis</h3>
+                    <p className="text-slate-400 text-xs text-center">Detailed per-skill breakdown from the processed session result.</p>
                   </motion.div>
                   {skills.map((skillRes: SkillAssessmentResult) => (
-                    <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                    <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all border-l-4 border-l-indigo-500">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3 font-bold capitalize text-slate-800">
-                          {skillIcons[skillRes.skill] || <Activity className="w-5 h-5" />} {skillRes.skill}
+                        <div className="flex items-center gap-3 font-bold capitalize text-slate-800 text-xl">
+                          <div className="p-1.5 bg-indigo-50 rounded-lg">{skillIcons[skillRes.skill]}</div> {skillRes.skill}
                         </div>
-                        <span className="text-xl font-extrabold text-indigo-600">{skillRes.estimatedLevel}</span>
+                        <span className="text-xl font-extrabold text-indigo-600 px-3 py-1 bg-indigo-50 rounded-lg">{skillRes.estimatedLevel}</span>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
@@ -656,12 +699,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
                         </div>
                       </div>
                       {/* Subskill Bars */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 mt-4">
                         {(skillRes.subscores || []).map(sub => (
                           <div key={sub.name} className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-slate-500 w-32 text-right">{sub.name}</span>
-                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
+                            <span className="text-xs font-bold text-slate-500 w-36 text-right truncate">{sub.name}</span>
+                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-indigo-400/70 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
                             </div>
                             <span className="text-xs font-bold text-slate-600 w-8">{Math.round(sub.value * 100)}</span>
                           </div>
