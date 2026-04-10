@@ -1,3 +1,6 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 
