@@ -352,7 +352,9 @@ export class AdaptiveAssessmentEngine {
     });
     
     if (!nextItem) {
-      console.warn('[Engine] Question Bank Exhausted. Finalizing assessment.');
+      console.warn('[Engine] Question Bank Exhausted. Finalizing assessment...');
+      // Signal to UI that we are transitioning
+      (window as any)._assessmentExhausted = true; 
       this.state.completed = true;
       return null;
     }
@@ -524,15 +526,14 @@ export class AdaptiveAssessmentEngine {
           this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
         }
 
-        // 5. 🚩 Background Persistence (The Safe Move): No await here.
-        // UI moves to next step immediately while DB saves in background.
-        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
-          .then(() => {
-            console.log(`✅ [Background Sync] Perfect data saturation for: ${efsetItem.external_id || efsetItem.id}`);
-          })
-          .catch(err => {
-            console.error("❌ [Background Save Failed] but UI kept moving:", err);
-          });
+        // 5. 🚩 MANDATORY ATOMIC SAVE (Atomic Await Protocol)
+        // High-priority awaited save to ensure data is committed before UI moves.
+        try {
+          await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer);
+          console.log(`✅ [Mission Success] Atomic Save confirmed for: ${efsetItem.external_id || efsetItem.id}`);
+        } catch (saveErr) {
+          console.error("❌ [Atomic Save FAILED] Data may be missing from logs:", saveErr);
+        }
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {

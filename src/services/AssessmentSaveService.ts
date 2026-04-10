@@ -29,15 +29,23 @@ export class AssessmentSaveService {
 
       // 🛠️ Smart Expected Answer Extraction: Fixes [object Object] issue
       const ak = question.answer_key;
-      const expectedAnswer = typeof ak === 'string' 
-        ? ak 
-        : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
+      let expectedAnswer = 'No expected answer';
+      
+      if (typeof ak === 'string') {
+        expectedAnswer = ak;
+      } else if (ak && typeof ak === 'object') {
+        expectedAnswer = ak.value?.text || ak.value || ak.text || JSON.stringify(ak);
+      }
+      
+      // 🛡️ CRITICAL RULE 3: Fix "m.trim" TypeError (Zero-Crash Protocol)
+      const safeAnswer = String(answer || "").trim();
+      const safeExpected = String(expectedAnswer || "").trim();
 
       // ⚡ HYBRID SCORING LOGIC (The "Smart Move"): Absolute accuracy for MCQs
       const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
-      if (isMCQ && answer && expectedAnswer !== 'No expected answer') {
-        const u = answer.trim().toLowerCase();
-        const e = expectedAnswer.trim().toLowerCase();
+      if (isMCQ && safeAnswer && safeExpected !== 'No expected answer') {
+        const u = safeAnswer.toLowerCase();
+        const e = safeExpected.toLowerCase();
         
         // 🎯 Robust Match: Direct match OR Prefix Match (e.g. user types "A" and key is "A) Option")
         const isMatch = (u === e) || 
@@ -51,18 +59,18 @@ export class AssessmentSaveService {
       }
 
       const assessmentLog = {
-        // 🆕 NEW COLUMNS
+        // 🆕 NEW COLUMNS (Strict External ID Mapping)
         user_id: user.id,
-        question_id: String(question.external_id || question.id || 'unknown'),
-        user_answer: String(answer || ''),
+        question_id: String(question.external_id || question.id || 'N/A'),
+        user_answer: String(answer || 'N/A'),
         score: finalScore ?? 0,
         confidence: evaluation?.confidence ?? 0.9, 
         
         // 🏛️ LEGACY COLUMNS (Full Saturation - No NULLs)
         category: String(question.skill || question.category || 'general'),
         question: String(question.prompt || (question as any).text || 'Missing Prompt'),
-        answer: String(expectedAnswer || 'No expected answer'), 
-        correct_answer: String(expectedAnswer || 'No expected answer'), // 👈 Added for 100% Saturation
+        answer: String(expectedAnswer || 'N/A'), 
+        correct_answer: String(expectedAnswer || 'N/A'), 
         is_correct: Boolean(finalScore >= 0.5), 
         
         created_at: new Date().toISOString()
@@ -85,9 +93,9 @@ export class AssessmentSaveService {
           user_id: user.id,
           category: assessmentLog.category,
           user_answer: assessmentLog.user_answer,
-          suggested_band: evaluation.detected_level || evaluation.suggested_band,
-          error_tag: evaluation.error_tag,
-          brief_explanation: evaluation.feedback || evaluation.brief_explanation,
+          suggested_band: String(evaluation.detected_level || evaluation.suggested_band || 'A1'),
+          error_tag: String(evaluation.error_tag || 'general'),
+          brief_explanation: String(evaluation.feedback || evaluation.brief_explanation || 'Assessment evaluation entry'),
           error_rate: 1 - safeScore,
           created_at: new Date().toISOString()
         };
