@@ -76,29 +76,40 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    // 1. تجهيز الداتا بالظبط زي ما الـ SQL Function مستنياها
+    // 1. Robust Data Mapping (Fallback sequences for maximum integrity)
+    const questionText = task.prompt || task.question || task.text || (task as any).originalText || 'Missing question text';
+    
+    // 2. Prepare CLEAN RPC PARAMS (Secured by Database Session)
     const rpcParams = {
-      p_question_id: task.id || 'unknown',
-      p_category: task.skill || 'general',
-      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-      p_score: parseFloat(evaluation.score) || 0,
+      p_question_id: String(task.id || task.external_id || 'unknown'),
+      p_category: String(task.skill || task.category || 'general'),
+      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'No answer provided'),
+      p_score: Number(evaluation.score) || (evaluation.is_correct ? 1 : 0) || 0,
       p_evaluation_metadata: {
         ...evaluation,
-        question_text: task.question || '' // بنبعته هنا عشان الـ SQL يرفعه لعمود question
+        question_text: questionText,
+        captured_at: new Date().toISOString()
       }
     };
 
-    console.log("🚀 [RPC Attempt] Logging task:", rpcParams.p_question_id);
+    console.log("📤 [RPC Attempt] Preparing to log task:", rpcParams.p_question_id);
+    console.debug("📊 [Payload Debug]:", rpcParams);
 
-    // 2. استدعاء الـ RPC (لاحظ: مش بنبعت user_id ولا id خالص)
-    const { error } = await supabase.rpc('log_assessment', rpcParams);
+    try {
+      // 3. Fire-and-Forget RPC Call (Non-blocking but traced)
+      const { error } = await supabase.rpc('log_assessment', rpcParams);
 
-    if (error) {
-      console.error("❌ RPC Database Error:", error.message);
-      // تأمين الداتا في حالة الفشل
+      if (error) {
+        console.error("❌ [RPC Database Error]:", error.message, "| Code:", error.code);
+        // CRITICAL FALLBACK: Secure in local buffer if DB rejected
+        this.saveToLocalBuffer(rpcParams);
+        console.log(`💾 [Buffer] Failure recovery: Data secured local for ${rpcParams.p_question_id}`);
+      } else {
+        console.log(`✅ [Success] Question ${rpcParams.p_question_id} recorded in DB!`);
+      }
+    } catch (fatalErr: any) {
+      console.error("❌ [Fatal Network/RPC Error]:", fatalErr.message);
       this.saveToLocalBuffer(rpcParams);
-    } else {
-      console.log("✅ [Success] Question recorded in DB successfully!");
     }
   }
 
