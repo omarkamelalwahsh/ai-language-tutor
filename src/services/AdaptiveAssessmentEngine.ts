@@ -543,7 +543,7 @@ export class AdaptiveAssessmentEngine {
         }
 
         // 5. Atomic Persistence (Multi-Table Logging & Integer Scaling enabled)
-        await AssessmentSaveService.saveSingleAssessmentLog({
+        AssessmentSaveService.saveSingleAssessmentLog({
           category: efsetItem.skill || 'general',
           user_answer: answer,
           correct_answer: correctText,
@@ -552,7 +552,7 @@ export class AdaptiveAssessmentEngine {
           brief_explanation: proctor.feedback,
           score: score, // Added for integer scaling and assessment_logs
           question_id: efsetItem.id // Aligned with zero-data-loss policy
-        });
+        }).catch(err => console.warn('[Engine] Background Save delayed/failed (Optimistic):', err));
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {

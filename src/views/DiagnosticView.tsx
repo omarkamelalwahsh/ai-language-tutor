@@ -444,13 +444,17 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         clearTimeout(timeoutId);
         
+        // 🚀 Optimistic Switch: Clear loading immediately
+        setIsEvaluating(false);
         setProgress(engine.getProgress());
         setFeedbackState({ show: true, correct });
 
+        // Start pre-fetching next question immediately
+        const nextQPromise = engine.getNextQuestion();
+
         setTimeout(async () => {
           setFeedbackState({ show: false, correct: false });
-          setIsEvaluating(false);
-          const nextQ = await engine.getNextQuestion();
+          const nextQ = await nextQPromise;
           if (nextQ) {
             setCurrentTask(nextQ);
             const nextProgress = engine.getProgress();
