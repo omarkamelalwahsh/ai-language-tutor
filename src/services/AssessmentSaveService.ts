@@ -178,7 +178,6 @@ export class AssessmentSaveService {
       console.error("❌ [Fatal Error]:", fatalErr.message);
       this.saveToLocalBuffer(dbPayload);
     }
-    }
   }
 
 
