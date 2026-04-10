@@ -26,7 +26,7 @@ async function setupDatabase() {
         id UUID PRIMARY KEY, -- Maps directly to auth.users.id
         full_name TEXT,
         overall_level TEXT DEFAULT 'B1',
-        onboarding_complete BOOLEAN DEFAULT TRUE,
+        onboarding_complete BOOLEAN DEFAULT FALSE,
         points INTEGER DEFAULT 0,
         streak INTEGER DEFAULT 0,
         pacing_score INTEGER DEFAULT 75,
