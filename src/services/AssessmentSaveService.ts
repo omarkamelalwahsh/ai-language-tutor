@@ -78,16 +78,16 @@ export class AssessmentSaveService {
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
     // 1. Prepare CLEAN RPC PARAMS (No IDs - Secured by Database Session)
     const params = {
-      p_question_id: String(task.id || 'N/A'),
-      p_category: String(task.skill || task.category || 'General'),
-      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
-      p_score: evaluation.score ?? 0,
-      p_evaluation_metadata: evaluation || {}
+      p_question_id: task.id,
+      p_category: task.skill || 'General',
+      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : answer,
+      p_score: evaluation.score,
+      p_evaluation_metadata: evaluation
     };
 
     console.log("🚀 [RPC Call] Logging question:", params.p_question_id);
 
-    // 2. Fire-and-Forget RPC Call (Background execution)
+    // 3. Fire-and-Forget RPC Call (Background execution for speed)
     supabase.rpc('log_assessment', params).then(({ error }) => {
       if (error) {
         console.error("❌ RPC Error:", error.message);
