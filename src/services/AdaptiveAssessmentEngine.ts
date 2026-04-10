@@ -471,9 +471,8 @@ export class AdaptiveAssessmentEngine {
       if (proctor) {
         this.streakTracking.proctorAdvice = proctor;
         const score = proctor.score;
+        const isCorrectResult = proctor.is_correct;
         console.log(`[Engine] Proctor confirmed: ${proctor.detected_level} | Score: ${score}`);
-debug("Payload debug:", efsetItem.id, typeof answer);
-          });
 
         // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)
         if (score > 0.85) {
