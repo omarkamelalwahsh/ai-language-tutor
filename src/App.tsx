@@ -63,17 +63,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   const location = window.location.pathname;
 
-  // 1. Loading Guard (Wait for both Auth AND Profile before deciding)
-  if (isInitializing || (user && !profile)) return <LoadingScreen />;
+  // 1. Loading Guard (Wait ONLY for initialization completion)
+  if (isInitializing) return <LoadingScreen />;
   
   // 2. Auth Guard
   if (!user) return <Navigate to="/auth" />;
 
-  // 3. Onboarding Guard (Persistence & Resume Logic)
-  if (profile && !profile.onboarding_complete) {
+  // 3. Onboarding Guard (If no profile exists yet, or it's incomplete, they MUST go to onboarding)
+  const isOnboardingComplete = profile?.onboarding_complete === true;
+  
+  if (!isOnboardingComplete) {
     // If not onboarded, only allow assessment-related routes
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding');
     if (!isAtAssessment) {
+      console.log('[Routing] User incomplete/missing profile. Redirecting to onboarding...');
       return <Navigate to="/onboarding" />;
     }
   }
@@ -85,11 +88,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   
-  // 🛡️ RACE CONDITION KILLER: Wait for both Auth AND Profile
-  if (isInitializing || (user && !profile)) return <LoadingScreen />;
+  // 🛡️ Loading Guard
+  if (isInitializing) return <LoadingScreen />;
   
-  if (user && profile) {
-    if (profile.onboarding_complete) return <Navigate to="/dashboard" />;
+  if (user) {
+    // If logged in, redirect based on profile status (treat missing profile as incomplete)
+    if (profile?.onboarding_complete) return <Navigate to="/dashboard" />;
     return <Navigate to="/onboarding" />;
   }
   
