@@ -443,22 +443,19 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const handleNextTask = useCallback(
     async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
       if (!currentTask || isEvaluating) return;
-      setIsEvaluating(true);
 
+      setIsEvaluating(true);
       try {
         // SAFETY: If the server takes > 15s, we force unblock the UI 
         const timeoutId = setTimeout(() => {
-          if (isEvaluating) {
-            console.warn('[Diagnostic] Submission timed out. Forcing UI unblock.');
-            setIsEvaluating(false);
-          }
+          setIsEvaluating(false);
+          console.warn('[Diagnostic] Submission timed out. Forcing UI unblock.');
         }, 15000);
 
         const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         clearTimeout(timeoutId);
         
-        // 🚀 Optimistic Switch: Clear loading immediately
-        setIsEvaluating(false);
+        // Update local progress and show feedback
         setProgress(engine.getProgress());
         setFeedbackState({ show: true, correct });
 
@@ -466,24 +463,34 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         const nextQPromise = engine.getNextQuestion();
 
         setTimeout(async () => {
-          setFeedbackState({ show: false, correct: false });
-          const nextQ = await nextQPromise;
-          if (nextQ) {
-            setCurrentTask(nextQ);
-            const nextProgress = engine.getProgress();
-            setProgress(nextProgress);
-            (window as any)._lastBenchmark = nextProgress.currentBand;
-          } else {
+          try {
+            setFeedbackState({ show: false, correct: false });
+            const nextQ = await nextQPromise;
+            if (nextQ) {
+              setCurrentTask(nextQ);
+              const nextProgress = engine.getProgress();
+              setProgress(nextProgress);
+              (window as any)._lastBenchmark = nextProgress.currentBand;
+            } else {
+              await handleAssessmentComplete();
+            }
+          } catch (innerErr) {
+            console.error("Transition error:", innerErr);
+            // Emergency fallback if next question fails
             await handleAssessmentComplete();
           }
         }, 300);
       } catch (err) {
         console.error("Evaluation error:", err);
         alert("Server Connectivity Issue. Proceeding with local evaluation...");
-        setIsEvaluating(false);
+        
         // Fallback: Proceed to next question anyway to avoid getting stuck
         const nextQ = await engine.getNextQuestion();
         if (nextQ) setCurrentTask(nextQ);
+        else await handleAssessmentComplete();
+      } finally {
+        // 🛡️ RED-LINE GUARD: Ensure evaluation state is cleared regardless of outcome
+        setIsEvaluating(false);
       }
     },
     [currentTask, engine, isEvaluating, handleAssessmentComplete]
