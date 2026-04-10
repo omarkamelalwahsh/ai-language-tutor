@@ -60,9 +60,20 @@ const DevModeOverlay = ({ result, show, onClose }: { result: any; show: boolean;
 
 // Helper for protected routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isInitializing } = useData();
+  const { user, isInitializing, profile } = useData();
+  const location = window.location.pathname;
+
   if (isInitializing) return <LoadingScreen />;
-  return user ? <>{children}</> : <Navigate to="/auth" />;
+  
+  // if not logged in -> Auth page
+  if (!user) return <Navigate to="/auth" />;
+
+  // Deep-Link Protection: If in protected area (like dashboard) but not onboarded -> Diagnostic
+  if (!profile?.onboarding_complete && !location.includes('diagnostic') && !location.includes('onboarding')) {
+    return <Navigate to="/onboarding" />;
+  }
+
+  return <>{children}</>;
 };
 
 // Helper for public/auth routes
@@ -122,7 +133,14 @@ function AppRoutes() {
           {/* Auth */}
           <Route path="/auth" element={
             <PublicRoute>
-              <AuthView role="user" onBack={() => navigate('/')} onLogin={() => navigate('/dashboard')} />
+              <AuthView 
+                role="user" 
+                onBack={() => navigate('/')} 
+                onLogin={(role: string, onboardingComplete: boolean) => {
+                  if (onboardingComplete) navigate('/dashboard');
+                  else navigate('/onboarding');
+                }} 
+              />
             </PublicRoute>
           } />
 
