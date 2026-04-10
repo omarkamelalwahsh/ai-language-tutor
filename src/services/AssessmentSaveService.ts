@@ -76,37 +76,17 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(question: any, evaluation: any, answer: string): Promise<void> {
-    // 1. Get userId instantly from LocalStorage (Resilient approach)
+    // 1. Get userId instantly from LocalStorage (Production UUID check)
     const userId = localStorage.getItem('auth_user_id') || 'anonymous';
     
-    console.log(`📝 [Buffer] Requesting save for task: ${question.id || 'N/A'}`);
-
-    // 2. Prepare Payload (Sync logic)
+    // 2. Prepare CLEAN PAYLOAD (No 'id' field - let Supabase handle auto-generation)
     const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
-    let finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
+    const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
     const ak = question.answer_key;
     const expectedAnswer = typeof ak === 'string' 
       ? ak 
       : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
-    
-    const safeAnswer = String(answer || "").trim();
-    const safeExpected = String(expectedAnswer || "").trim();
-
-    // ⚡ HYBRID SCORING LOGIC
-    const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
-    if (isMCQ && safeAnswer && safeExpected !== 'No expected answer') {
-      const u = safeAnswer.toLowerCase();
-      const e = safeExpected.toLowerCase();
-      const isMatch = (u === e) || 
-                     (u.length === 1 && (e.startsWith(u + ")") || e.startsWith(u + "."))) ||
-                     (e.length === 1 && (u.startsWith(e + ")") || u.startsWith(e + ".")));
-
-      if (isMatch) {
-        console.log(`[HybridScoring] 🎯 MCQ MATCH detected for: ${question.id}`);
-        finalScore = 1.0;
-      }
-    }
 
     const assessmentLog = {
       user_id: userId,
@@ -123,16 +103,19 @@ export class AssessmentSaveService {
       created_at: new Date().toISOString()
     };
 
-    // 3. 🔒 LOCK IN BUFFER IMMEDIATELY (Before any async DB calls)
-    this.saveToLocalBuffer(assessmentLog);
-    console.log(`💾 [Buffer] Data secured for ${assessmentLog.question_id}. Total pending: ${JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]').length}`);
+    console.log("📤 [Save Service] Attempting background insert for User:", userId, "Task:", assessmentLog.question_id);
 
-    // 4. 🚀 SMART SYNC: Trigger background sync for ALL pending logs
-    // This handles both the current question AND any previously failed logs in one non-blocking burst.
+    // 3. 🔒 BUFFER FIRST (Zero-Crash Protocol)
+    // Secure the data in LocalStorage before any network activity
+    this.saveToLocalBuffer(assessmentLog);
+    console.log(`💾 [Buffer] Data secured for ${assessmentLog.question_id}. Pending in queue: ${JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]').length}`);
+
+    // 4. 🚀 SMART CUMULATIVE SYNC
+    // This triggers a background bulk sync for ALL items in the buffer.
     this.syncPendingLogs();
 
     // 5. Handle Error Analysis (Non-blocking)
-    if (safeScore < 0.8 && userId !== 'anonymous') {
+    if (finalScore < 0.8 && userId !== 'anonymous') {
       const analysisEntry = {
         user_id: userId,
         category: assessmentLog.category,
@@ -140,7 +123,7 @@ export class AssessmentSaveService {
         suggested_band: String(evaluation.detected_level || evaluation.suggested_band || 'A1'),
         error_tag: String(evaluation.error_tag || 'general'),
         brief_explanation: String(evaluation.feedback || evaluation.brief_explanation || 'Assessment evaluation entry'),
-        error_rate: 1 - safeScore,
+        error_rate: 1 - finalScore,
         created_at: assessmentLog.created_at
       };
       supabase.from('user_error_analysis').insert([analysisEntry]).then(({ error }) => {

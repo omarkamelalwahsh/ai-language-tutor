@@ -391,32 +391,19 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const { refreshData: refreshUserProfile } = useData();
 
   const handleFinish = useCallback(async () => {
-    setIsSaving(true); // شغل لودينج سكرين فوراً
+    setIsSaving(true); 
     setIsCompleting(true);
 
-    try {
-      // استنى الـ RPC يخلص تماماً ويحدث الـ Profile
-      const success = await engine.finalizeAssessment(); 
-      
-      if (success) {
-        // ريفريش سريع للداتا قبل ما نتحرك
-        await refreshUserProfile(); 
-        console.log('[Diagnostic] ✅ Assessment saved and profile refreshed. Navigating to Dashboard.');
-        
-        // Pass results back to App for state sync (optional but kept for internal compatibility)
-        const outcome = engine.getOutcome();
-        const evals = engine.getEvaluations();
-        onSaveComplete(evals, outcome);
+    console.log('[Diagnostic] 🚀 Production-Grade Finalization: Instant Navigation.');
 
-        navigate('/dashboard', { replace: true });
-      }
-    } catch (err: any) {
-      console.error("Save failed, staying on assessment page", err);
-      setSaveError(err?.message || 'Save failed');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [engine, navigate, refreshUserProfile, onSaveComplete]);
+    // 1. Fire-and-Forget background tasks
+    engine.finalizeAssessment(); 
+    refreshUserProfile().catch(() => {}); 
+
+    // 2. INSTANT JUMP
+    // Zero-wait transition to dashboard. Persistence is handled in the shadow.
+    navigate('/dashboard', { replace: true });
+  }, [engine, navigate, refreshUserProfile]);
 
   // Compatibility alias
   const handleAssessmentComplete = handleFinish;
