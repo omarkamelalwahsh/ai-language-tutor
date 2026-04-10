@@ -552,7 +552,7 @@ export class AdaptiveAssessmentEngine {
           brief_explanation: proctor.feedback,
           score: score, // Added for integer scaling and assessment_logs
           question_id: efsetItem.id // Aligned with zero-data-loss policy
-        }).catch(err => console.warn('[Engine] Background Save delayed/failed (Optimistic):', err));
+        }).catch(err => console.warn("Silent failure in background sync:", err));
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
