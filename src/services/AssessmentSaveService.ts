@@ -27,23 +27,30 @@ export class AssessmentSaveService {
       const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
       const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
+      // 🛠️ Smart Expected Answer Extraction: Fixes [object Object] issue
+      const ak = question.answer_key;
+      const expectedAnswer = typeof ak === 'string' 
+        ? ak 
+        : (ak?.value?.text || ak?.value || ak?.text || JSON.stringify(ak) || 'No expected answer');
+
       const assessmentLog = {
         // 🆕 NEW COLUMNS
         user_id: user.id,
         question_id: String(question.external_id || question.id || 'unknown'),
         user_answer: String(answer || ''),
         score: finalScore,
+        confidence: evaluation.confidence || 0.9, // Ensuring no NULLs in confidence
         
-        // 🏛️ LEGACY COLUMNS (Saturation Support)
+        // 🏛️ LEGACY COLUMNS (Full Saturation)
         category: String(question.skill || question.category || 'general'),
         question: String(question.prompt || 'Missing Prompt'),
-        answer: String(question.correct_answer || (question.answer_key?.value) || 'No expected answer'),
+        answer: String(expectedAnswer), 
         is_correct: Boolean(finalScore >= 0.7),
         
         created_at: new Date().toISOString()
       };
 
-      // 🚀 FULL SATURATION EXECUTION
+      // 🚀 FINAL SATURATION EXECUTION
       const { error: logError } = await supabase
         .from('assessment_logs')
         .insert([assessmentLog]);
@@ -51,7 +58,7 @@ export class AssessmentSaveService {
       if (logError) {
         console.error("❌ [Database Error] Failed to save saturated assessment log:", logError.message);
       } else {
-        console.log(`✅ [Saturation Success] All columns filled for: ${assessmentLog.question_id}`);
+        console.log(`✅ [Mission Success] Perfect data saturation for: ${assessmentLog.question_id}`);
       }
 
       // Bonus: Error Analysis (The "No-Error" Pattern)
