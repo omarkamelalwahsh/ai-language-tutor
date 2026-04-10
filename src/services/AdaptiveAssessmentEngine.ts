@@ -202,8 +202,9 @@ export class AdaptiveAssessmentEngine {
         const rawMode = (item.response_mode as string || 'typed').trim().toLowerCase();
         const responseMode = rawMode === 'multiple_choice' ? 'mcq' : rawMode;
 
-        // 🔡 Prompt Saturation: Priority 1. prompt, 2. text, 3. question
-        const promptText = item.prompt || (item as any).text || (item as any).question || 'Untitled Question';
+        // 🔡 Prompt Saturation & Cleaning: Strip IDs like "B1_S_01: " from the display text
+        let promptText = item.prompt || (item as any).text || (item as any).question || 'Untitled Question';
+        promptText = promptText.replace(/^[A-Z][0-9]_[A-Z]_[0-9]+[:\-\s]*/i, '').trim();
 
         return {
           ...item,
@@ -344,39 +345,15 @@ export class AdaptiveAssessmentEngine {
     }
 
     // 4. Select Next Item from Bank
-    let nextItem = this.selector.selectNext({
+    const nextItem = this.selector.selectNext({
       skills: this.efsetSkills,
       askedQuestionIds: this.askedQuestionIds,
-      currentOverallLevel: this.efsetOverall.levelRange[0]
+      currentOverallLevel: (this.efsetOverall.levelRange[0] as CEFRLevel) || 'A1'
     });
-
+    
     if (!nextItem) {
-      // SMART FALLBACK: If the logic returns null, find the NEAREST question level 
-      // instead of a completely random one to avoid the C2 shock.
-      console.warn('[Engine] Target level empty. Finding nearest available level...');
-      
-      const currentLevel = this.efsetOverall.levelRange[0] as DifficultyBand;
-      const bandOrder: DifficultyBand[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-      const currentIndex = bandOrder.indexOf(currentLevel);
-
-      const allAvailable = Object.values(this.banks).flat().filter(q => !this.askedQuestionIds.has(q.id));
-      
-      if (allAvailable.length > 0) {
-        // Sort by distance from current level
-        allAvailable.sort((a, b) => {
-          const cefrA = (a.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as DifficultyBand;
-          const cefrB = (b.target_cefr || 'A1').toString().trim().toUpperCase().replace(/\s+/g, '') as DifficultyBand;
-          const distA = Math.abs(bandOrder.indexOf(cefrA) - currentIndex);
-          const distB = Math.abs(bandOrder.indexOf(cefrB) - currentIndex);
-          return distA - distB;
-        });
-        nextItem = allAvailable[0];
-      }
-    }
-
-    if (!nextItem) {
+      console.warn('[Engine] Question Bank Exhausted. Finalizing assessment.');
       this.state.completed = true;
-      console.warn('[Engine] TOTAL EXHAUSTION: No questions left in database.');
       return null;
     }
 
@@ -685,6 +662,15 @@ export class AdaptiveAssessmentEngine {
   }
 
   /**
+   * Cleans a prompt string by removing ID prefixes like "B1_S_01: ".
+   */
+  private cleanPrompt(text: string): string {
+    if (!text) return 'Untitled Question';
+    // Matches patterns like A1_G_01, B2_Reading_05, etc. followed by separator
+    return text.replace(/^[A-Z][0-9]_[A-Z0-9]+_[0-9]+[:\-\s]*/i, '').trim();
+  }
+
+  /**
    * Universal builder for the question interface used by the UI.
    */
   private buildQuestionObject(nextItem: QuestionBankItem): AssessmentQuestion {
@@ -696,10 +682,12 @@ export class AdaptiveAssessmentEngine {
       originalOptions = nextItem.options;
     }
 
+    const rawPrompt = nextItem.prompt || (nextItem as any).text || (nextItem as any).question || '';
+
     return {
       id: nextItem.id,
       external_id: nextItem.external_id || nextItem.id,
-      prompt: nextItem.prompt || (nextItem as any).text || (nextItem as any).question || 'Untitled Question',
+      prompt: this.cleanPrompt(rawPrompt),
       skill: nextItem.skill as any,
       primarySkill: nextItem.skill as any,
       difficulty: nextItem.target_cefr as DifficultyBand,
