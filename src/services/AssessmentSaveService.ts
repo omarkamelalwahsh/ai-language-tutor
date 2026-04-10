@@ -28,9 +28,9 @@ export class AssessmentSaveService {
         user_id: user.id,
         question_id: question.id,
         category: question.skill || question.category || 'general',
-        user_answer: answer,
+        user_answer: answer || '',
         correct_answer: question.correct_answer || (question.answer_key?.value) || '',
-        score: Math.round((evaluation.score || 0) * 10000), // Integer conversion scale
+        score: evaluation.score !== undefined ? evaluation.score : 0, // Sending float directly for REAL column compatibility
         created_at: new Date().toISOString()
       };
 

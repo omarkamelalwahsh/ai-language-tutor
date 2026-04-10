@@ -251,7 +251,6 @@ async function setupDatabase() {
         SET 
           overall_level = p_final_level,
           points = COALESCE(points, 0) + p_points,
-          onboarding_complete = TRUE,
           updated_at = NOW()
         WHERE id = p_user_id;
 
@@ -304,6 +303,12 @@ async function setupDatabase() {
           bridge_delta = EXCLUDED.bridge_delta,
           bridge_percentage = EXCLUDED.bridge_percentage,
           updated_at = EXCLUDED.updated_at;
+
+        -- 4. Final Unlock (The sequence ensures charts are ready before dashboard loads)
+        UPDATE public.learner_profiles 
+        SET onboarding_complete = TRUE 
+        WHERE id = p_user_id;
+
       END;
       $$ LANGUAGE plpgsql SECURITY DEFINER;
 

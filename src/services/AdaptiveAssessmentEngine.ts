@@ -840,38 +840,55 @@ export class AdaptiveAssessmentEngine {
     return shuffled;
   }
 
-  public forceComplete(): void {
-    this.state.completed = true;
+  /**
+   * Finalizes the assessment session. Saves results to Supabase and marks session complete.
+   * Returns true on success, false on failure.
+   */
+  public async finalizeAssessment(): Promise<boolean> {
+    try {
+      console.log(`[Engine] Finalizing Assessment session ${this.assessmentId}...`);
+      const finalOutcome = this.getOutcome();
+      const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
+      
+      if (!userId) {
+        console.warn("[Engine] No userId found, skipping cloud persistence.");
+        return true; // Consider local-only sessions as success for navigation purposes
+      }
+
+      // 1. Save results to Supabase via RPC (Atomic Transaction)
+      await AssessmentSaveService.saveAssessmentResults(finalOutcome);
+      
+      // 2. Notify internal API of completion (Syncing metadata)
+      const token = this.safeGetLocalStorage('auth_token');
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/assessments/complete', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+           assessmentId: this.assessmentId,
+           overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
+           confidence: finalOutcome.overallConfidence,
+           auditorReport: finalOutcome.auditorReport
+        })
+      });
+
+      if (!res.ok) {
+        console.warn(`[Engine] /api/assessments/complete returned status ${res.status}`);
+      }
+
+      console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
+      this.state.completed = true;
+      return true;
+    } catch (e) {
+      console.error(`[Engine] Failed to finalize session:`, e);
+      return false;
+    }
   }
 
   public async completeAssessment(): Promise<void> {
-      try {
-        const finalOutcome = this.getOutcome();
-        const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
-        
-        if (userId) {
-          // 🚀 Vibe Persistence: Ensure skill states are synced one last time
-          await AssessmentSaveService.saveAssessmentResults(finalOutcome);
-          
-          const token = this.safeGetLocalStorage('auth_token');
-          const headers: Record<string, string> = { "Content-Type": "application/json" };
-          if (token) headers['Authorization'] = `Bearer ${token}`;
-
-          await fetch('/api/assessments/complete', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-               assessmentId: this.assessmentId,
-               overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
-               confidence: finalOutcome.overallConfidence,
-               auditorReport: finalOutcome.auditorReport
-            })
-          });
-        }
-        console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
-      } catch (e) {
-        console.error(`[Engine] Failed to commit session:`, e);
-      }
+    await this.finalizeAssessment();
   }
 
   public getState(): AdaptiveAssessmentState {

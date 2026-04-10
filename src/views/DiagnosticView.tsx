@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Mic, MessageSquare, Focus, TrendingUp, Shield, CheckCircle2, XCircle, RefreshCcw, SkipForward, Brain, Save } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 
 import { FadeTransition } from '../lib/animations';
 import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile, TaskEvaluation } from '../types/assessment';
 import { AdaptiveAssessmentEngine } from '../services/AdaptiveAssessmentEngine';
 import { AssessmentSaveService } from '../services/AssessmentSaveService';
 import { TaskResult, OnboardingState } from '../types/app';
-import { SessionTask } from '../types/runtime';
+import { SessionSessionMeta, SessionTask } from '../types/runtime';
 import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
 import { SpeakingModule } from '../components/runtime/modules/SpeakingModule';
 
@@ -382,28 +381,39 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const handleAssessmentComplete = useCallback(async () => {
-    setIsCompleting(true);
-    await engine.completeAssessment();
-    const outcome = engine.getOutcome();
-    const evals = engine.getEvaluations();
+  const navigate = useNavigate();
+  const { refreshData: refreshUserProfile } = useData();
 
-    // Save to Supabase first
-    setIsSaving(true);
-    setSaveError(null);
+  const handleFinish = useCallback(async () => {
+    setIsSaving(true); // شغل لودينج سكرين فوراً
+    setIsCompleting(true);
+
     try {
-      await AssessmentSaveService.saveAssessmentResults(outcome);
-      console.log('[Diagnostic] ✅ Assessment saved to Supabase successfully.');
+      // استنى الـ RPC يخلص تماماً ويحدث الـ Profile
+      const success = await engine.finalizeAssessment(); 
+      
+      if (success) {
+        // ريفريش سريع للداتا قبل ما نتحرك
+        await refreshUserProfile(); 
+        console.log('[Diagnostic] ✅ Assessment saved and profile refreshed. Navigating to Dashboard.');
+        
+        // Pass results back to App for state sync (optional but kept for internal compatibility)
+        const outcome = engine.getOutcome();
+        const evals = engine.getEvaluations();
+        onSaveComplete(evals, outcome);
+
+        navigate('/dashboard', { replace: true });
+      }
     } catch (err: any) {
-      console.error('[Diagnostic] ❌ Failed to save to Supabase:', err);
+      console.error("Save failed, staying on assessment page", err);
       setSaveError(err?.message || 'Save failed');
     } finally {
       setIsSaving(false);
     }
+  }, [engine, navigate, refreshUserProfile, onSaveComplete]);
 
-    // Pass results + outcome back to App for state sync, then navigate to Dashboard
-    onSaveComplete(evals, outcome);
-  }, [engine, onSaveComplete]);
+  // Compatibility alias
+  const handleAssessmentComplete = handleFinish;
 
   useEffect(() => {
     let isSubscribed = true;
