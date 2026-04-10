@@ -124,15 +124,19 @@ export class AssessmentSaveService {
     const rpcParams = {
       p_question_id: String(task.id || task.external_id || 'unknown'),
       p_category: task.skill || 'General',
-      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
       p_score: parseFloat(evaluation.score) || 0,
-      p_evaluation_metadata: evaluation
+      p_metadata: {
+        ...evaluation,
+        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+        captured_at: new Date().toISOString()
+      }
     };
 
-    console.log("🔥 Calling RPC for question:", rpcParams.p_question_id);
+    console.log("🔥 Calling RPC (Clean 4-Param):", rpcParams.p_question_id);
 
     try {
       const { data, error } = await supabase.rpc('log_assessment', rpcParams);
+
 
       if (error) {
         console.error("❌ RPC Failed:", error.message);
