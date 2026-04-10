@@ -61,16 +61,19 @@ export class AssessmentSaveService {
         // 🆕 NEW COLUMNS (Strict External ID Mapping)
         user_id: user.id,
         question_id: String(question.external_id || question.id || 'N/A'),
-        user_answer: String(answer || 'N/A'),
+        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
         score: finalScore ?? 0,
         confidence: evaluation?.confidence ?? 0.9, 
         
         // 🏛️ LEGACY COLUMNS (Full Saturation - No NULLs)
         category: String(question.skill || question.category || 'general'),
         question: String(question.prompt || (question as any).text || 'Missing Prompt'),
-        answer: String(expectedAnswer || 'N/A'), 
-        correct_answer: String(expectedAnswer || 'N/A'), 
+        answer: typeof expectedAnswer === 'object' ? JSON.stringify(expectedAnswer) : String(expectedAnswer || 'N/A'), 
+        correct_answer: typeof question.answer_key === 'object' ? JSON.stringify(question.answer_key) : String(expectedAnswer || 'N/A'), 
         is_correct: Boolean(finalScore >= 0.5), 
+        
+        // 📦 Full evaluation metadata for debugging (JSON-safe)
+        evaluation_metadata: typeof evaluation === 'object' ? JSON.stringify(evaluation) : String(evaluation || '{}'),
         
         created_at: new Date().toISOString()
       };

@@ -527,12 +527,16 @@ export class AdaptiveAssessmentEngine {
         }
 
         // 5. 🚩 MANDATORY ATOMIC SAVE (Atomic Await Protocol)
-        // High-priority awaited save to ensure data is committed before UI moves.
+        // High-priority awaited save - errors propagate so caller knows exact failure point.
         try {
           await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer);
-          console.log(`✅ [Mission Success] Atomic Save confirmed for: ${efsetItem.external_id || efsetItem.id}`);
-        } catch (saveErr) {
-          console.error("❌ [Atomic Save FAILED] Data may be missing from logs:", saveErr);
+          console.log(`✅ [Data Secured] Atomic Save confirmed for: ${efsetItem.external_id || efsetItem.id}`);
+        } catch (saveErr: any) {
+          // 🚨 Critical: Surface the exact error (RLS? Data Type? Network?)
+          console.error("🚨 [Critical Failure] Atomic Save REJECTED:", saveErr?.message || saveErr);
+          console.error("🔍 Payload debug — question:", efsetItem.id, "| answer type:", typeof answer, "| proctor type:", typeof proctor);
+          // Don't swallow — let upper catch handle gracefully
+          throw saveErr;
         }
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
