@@ -125,23 +125,11 @@ export class AssessmentSaveService {
 
     // 3. 🔒 LOCK IN BUFFER IMMEDIATELY (Before any async DB calls)
     this.saveToLocalBuffer(assessmentLog);
-    console.log("💾 [Buffer] Data secured in LocalStorage.");
+    console.log(`💾 [Buffer] Data secured for ${assessmentLog.question_id}. Total pending: ${JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]').length}`);
 
-    // 4. Fire-and-Forget database insert
-    supabase
-      .from('assessment_logs')
-      .insert([assessmentLog])
-      .then(({ error }) => {
-        if (!error) {
-          this.removeFromLocalBuffer(assessmentLog.question_id, assessmentLog.created_at);
-          console.log(`✅ [Secured] Row inserted for: ${assessmentLog.question_id}`);
-        } else {
-          console.warn("⚠️ [Sync] DB insert failed, keeping in buffer:", error.message);
-        }
-      })
-      .catch(err => {
-        console.warn("⚠️ [Sync] Network failure, keeping in buffer:", err);
-      });
+    // 4. 🚀 SMART SYNC: Trigger background sync for ALL pending logs
+    // This handles both the current question AND any previously failed logs in one non-blocking burst.
+    this.syncPendingLogs();
 
     // 5. Handle Error Analysis (Non-blocking)
     if (safeScore < 0.8 && userId !== 'anonymous') {
