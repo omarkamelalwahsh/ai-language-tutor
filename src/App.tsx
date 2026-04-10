@@ -58,7 +58,10 @@ const DevModeOverlay = ({ result, show, onClose }: { result: any; show: boolean;
   </AnimatePresence>
 );
 
-// Helper for protected routes
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isInitializing, profile } = useData();
+  const location = window.location.pathname;
+
   // 1. Loading Guard: Absolute priority. While initializing, show NOTHING but the loading screen.
   if (isInitializing) {
     return <LoadingScreen />;
