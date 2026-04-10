@@ -543,10 +543,15 @@ export class AdaptiveAssessmentEngine {
           this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
         }
 
-        // 5. Atomic Persistence (Capture Question, Evaluation, and Answer snapshot)
-        // Await re-enabled to prevent race conditions/aborted requests during navigation
-        await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
-          .catch(err => console.warn("Silent failure in background sync:", err));
+        // 5. 🚩 Background Persistence (The Safe Move): No await here.
+        // UI moves to next step immediately while DB saves in background.
+        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
+          .then(() => {
+            console.log(`✅ [Background Sync] Perfect data saturation for: ${efsetItem.external_id || efsetItem.id}`);
+          })
+          .catch(err => {
+            console.error("❌ [Background Save Failed] but UI kept moving:", err);
+          });
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
