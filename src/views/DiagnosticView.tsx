@@ -436,7 +436,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
       setIsEvaluating(true);
       try {
-        const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
+        // 🎯 [FORCE TRIGGER] Perform evaluation and save manually in the UI layer
+        const { correct, evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
+        
+        console.log("%c🚀 Manual Trigger: Saving Question", "color: #ff00ff; font-weight: bold;", currentTask.id);
+        
+        // Explicitly fire the save service and trace it
+        AssessmentSaveService.saveSingleAssessmentLog(currentTask, evaluation, answer);
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());

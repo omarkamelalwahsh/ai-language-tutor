@@ -399,7 +399,7 @@ export class AdaptiveAssessmentEngine {
     responseTimeMs: number,
     responseMode?: ResponseMode,
     speakingMeta?: SpeakingSubmissionMeta
-  ): Promise<{ correct: boolean; score: number }> {
+  ): Promise<{ correct: boolean; score: number; evaluation: any }> {
     // 1. Ensure ID is tracked (should already be in askedQuestionIds from getNextQuestion)
     if (!this.askedQuestionIds.has(question.id)) {
       this.askedQuestionIds.add(question.id);
@@ -461,18 +461,19 @@ export class AdaptiveAssessmentEngine {
         return null;
       });
       
-      // 🚀 CRITICAL LINK: Immediate Async-First Save (Row will exist regardless of AI success)
-      const evaluationToSave = proctor || { score: 0, is_correct: false, feedback: 'AI Evaluation Failed/Timeout', detected_level: this.streakTracking.currentCalibration };
-      
-      AssessmentSaveService.saveSingleAssessmentLog(efsetItem, evaluationToSave, answer)
-        .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.id}`))
-        .catch(err => console.error("🚨 [Save Service] Final rejection:", err));
+      const evaluation = proctor || { 
+        score: 0, 
+        is_correct: false, 
+        feedback: 'AI Evaluation Failed/Timeout', 
+        detected_level: this.streakTracking.currentCalibration 
+      };
 
       if (proctor) {
         this.streakTracking.proctorAdvice = proctor;
         const score = proctor.score;
         const isCorrectResult = proctor.is_correct;
         console.log(`[Engine] Proctor confirmed: ${proctor.detected_level} | Score: ${score}`);
+
 
         // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)
         if (score > 0.85) {
@@ -558,17 +559,17 @@ export class AdaptiveAssessmentEngine {
           console.log('[Engine] 🎯 Success criteria met for potential journey step advancement.');
         }
 
-        return { correct: isCorrectResult, score };
+        return { correct: isCorrectResult, score, evaluation };
       }
 
-      // 🛡️ Fallback Logic
-      const deterministicCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-      return { correct: deterministicCorrect, score: deterministicCorrect ? 1.0 : 0.0 };
-
+      const isDetCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+      const fallbackEval = { score: isDetCorrect ? 1.0 : 0.0, is_correct: isDetCorrect, feedback: 'Deterministic Fallback', detected_level: this.streakTracking.currentCalibration };
+      return { correct: isDetCorrect, score: fallbackEval.score, evaluation: fallbackEval };
     } catch (err) {
       console.error("[Engine] Proctor failed. Using fallback.", err);
       const isDetCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-      return { correct: isDetCorrect, score: isDetCorrect ? 1.0 : 0.0 };
+      const catchEval = { score: isDetCorrect ? 1.0 : 0.0, is_correct: isDetCorrect, feedback: 'Error Fallback', detected_level: this.streakTracking.currentCalibration };
+      return { correct: isDetCorrect, score: catchEval.score, evaluation: catchEval };
     }
   }
 
