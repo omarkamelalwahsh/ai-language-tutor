@@ -123,7 +123,10 @@ const TaskQuestion: React.FC<{
         </div>
       )}
 
-      <p className="text-slate-600 mb-8 text-lg leading-relaxed font-medium">{task.prompt}</p>
+      <h2 className="text-slate-900 mb-2 text-2xl font-bold tracking-tight">
+        {task.prompt || (task as any).text || task.external_id}
+      </h2>
+      <p className="text-slate-500 mb-8 text-lg leading-relaxed font-medium">Please follow the instructions above.</p>
 
       {isVisual && (
         <div className="w-full aspect-video bg-slate-100 rounded-2xl border border-slate-200 mb-8 flex items-center justify-center overflow-hidden relative shadow-inner">

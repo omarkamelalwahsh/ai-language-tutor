@@ -326,14 +326,14 @@ app.post('/api/evaluate', async (req, res) => {
           // 1. Assessment Response (Audit Trail)
           supabase.from('assessment_responses').insert({
             user_id: targetUserId,
-            assessment_id: payload.assessmentId,
-            skill: payload.skill,
-            question_id: internalQId,
-            user_answer: payload.learnerAnswer,
+            assessment_id: payload.assessmentId || '00000000-0000-0000-0000-000000000000',
+            skill: String(payload.skill || 'general'),
+            question_id: String(internalQId || 'unknown'),
+            user_answer: String(payload.learnerAnswer || ''),
             is_correct: (parsed.summary?.overall_score || 0) >= 0.5,
-            answer_level: parsed.summary?.predicted_level || payload.currentBand,
-            score: parsed.summary?.overall_score || 0,
-            explanation: parsed.skills || {}
+            answer_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1'),
+            score: Number(parsed.summary?.overall_score || 0),
+            explanation: parsed.skills || { note: 'No skills breakdown' }
           })
         ];
 
@@ -341,22 +341,22 @@ app.post('/api/evaluate', async (req, res) => {
           // 2. ATOMIC BUNDLE: Points + Skill Confidence + Global Level
           tasks.push(supabase.rpc('process_evaluation_bundle', {
             p_user_id: targetUserId,
-            p_points: parsed.summary?.points_awarded || 10,
-            p_skill: payload.skill?.toLowerCase() || 'grammar',
-            p_delta: (parsed.skills?.[payload.skill?.toLowerCase()] || parsed.summary?.overall_score || 0.5) * 0.05,
-            p_predicted_level: parsed.summary?.predicted_level || payload.currentBand
+            p_points: Number(parsed.summary?.points_awarded || 10),
+            p_skill: String(payload.skill || 'grammar').toLowerCase(),
+            p_delta: Number((parsed.skills?.[payload.skill?.toLowerCase()] || parsed.summary?.overall_score || 0.5) * 0.05),
+            p_predicted_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1')
           }));
 
           // 3. Multi-Error Analysis (Array Insert)
           if (Array.isArray(parsed.analysis) && parsed.analysis.length > 0) {
             const errorRows = parsed.analysis.map(err => ({
               user_id: targetUserId,
-              category: err.skill || 'General',
-              error_tag: err.issue || 'Unspecified',
-              user_answer: payload.learnerAnswer,
-              correct_answer: err.correction || '',
-              brief_explanation: err.explanation || '',
-              suggested_band: parsed.summary?.predicted_level,
+              category: String(err.skill || payload.skill || 'General'),
+              error_tag: String(err.issue || 'Unspecified'),
+              user_answer: String(payload.learnerAnswer || ''),
+              correct_answer: String(err.correction || ''),
+              brief_explanation: String(err.explanation || ''),
+              suggested_band: String(parsed.summary?.predicted_level || 'A1'),
               is_correct: false
             }));
             tasks.push(supabase.from('user_error_analysis').insert(errorRows));

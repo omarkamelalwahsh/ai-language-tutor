@@ -36,10 +36,15 @@ export class AssessmentSaveService {
       // ⚡ HYBRID SCORING LOGIC (The "Smart Move"): Absolute accuracy for MCQs
       const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
       if (isMCQ && answer && expectedAnswer !== 'No expected answer') {
-        const normalizedUser = answer.trim().toLowerCase();
-        const normalizedExpected = expectedAnswer.trim().toLowerCase();
+        const u = answer.trim().toLowerCase();
+        const e = expectedAnswer.trim().toLowerCase();
         
-        if (normalizedUser === normalizedExpected) {
+        // 🎯 Robust Match: Direct match OR Prefix Match (e.g. user types "A" and key is "A) Option")
+        const isMatch = (u === e) || 
+                       (u.length === 1 && (e.startsWith(u + ")") || e.startsWith(u + "."))) ||
+                       (e.length === 1 && (u.startsWith(e + ")") || u.startsWith(e + ".")));
+
+        if (isMatch) {
           console.log(`[HybridScoring] 🎯 MCQ MATCH detected. Overriding score to 1.0 for: ${question.id}`);
           finalScore = 1.0;
         }
@@ -50,14 +55,15 @@ export class AssessmentSaveService {
         user_id: user.id,
         question_id: String(question.external_id || question.id || 'unknown'),
         user_answer: String(answer || ''),
-        score: finalScore,
-        confidence: evaluation.confidence || 0.9, 
+        score: finalScore ?? 0,
+        confidence: evaluation?.confidence ?? 0.9, 
         
         // 🏛️ LEGACY COLUMNS (Full Saturation - No NULLs)
         category: String(question.skill || question.category || 'general'),
-        question: String(question.prompt || 'Missing Prompt'),
-        answer: String(expectedAnswer), 
-        is_correct: Boolean(finalScore >= 0.5), // Threshold adjusted per user directive
+        question: String(question.prompt || (question as any).text || 'Missing Prompt'),
+        answer: String(expectedAnswer || 'No expected answer'), 
+        correct_answer: String(expectedAnswer || 'No expected answer'), // 👈 Added for 100% Saturation
+        is_correct: Boolean(finalScore >= 0.5), 
         
         created_at: new Date().toISOString()
       };
@@ -141,10 +147,10 @@ export class AssessmentSaveService {
         .upsert(
           { 
             user_id: userId, 
-            skill: skillName, 
-            current_score: Math.round(confidence * 10000), // Scaling float to Integer
-            confidence: confidence,
-            current_level: level,
+            skill: skillName || 'unknown', 
+            current_score: Math.round((confidence || 0.5) * 10000), 
+            confidence: confidence ?? 0.5,
+            current_level: level || 'A1',
             updated_at: new Date().toISOString(),
             last_tested: new Date().toISOString()
           }, 
