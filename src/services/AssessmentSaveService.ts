@@ -45,27 +45,30 @@ export class AssessmentSaveService {
 
   /**
    * Sweeper function to sync all pending logs in bulk.
+   * REFACTORED: Non-blocking execution to prevent UI hangs during finalization.
    */
   public static async syncPendingLogs() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return true;
+    
     const buffer = JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]');
-    if (buffer.length === 0) return;
+    if (buffer.length === 0) return true;
 
-    console.log(`[Buffer] 🔄 Attempting to sync ${buffer.length} pending logs...`);
-    try {
-      const { error } = await supabase
-        .from('assessment_logs')
-        .insert(buffer);
-      
+    console.log(`[Buffer] 🔄 Background Sync: Attempting to secure ${buffer.length} logs...`);
+
+    // 🚀 NON-BLOCKING: Fire and forget (let the then/catch handle the result)
+    supabase.from('assessment_logs').insert(buffer).then(({ error }) => {
       if (!error) {
         localStorage.removeItem('pending_assessment_logs');
-        console.log(`[Buffer] ✅ Sync complete. ${buffer.length} logs secured.`);
+        console.log(`[Buffer] ✅ Background Sync complete. ${buffer.length} logs secured.`);
       } else {
-        console.warn(`[Buffer] ⚠️ Sync partial failure:`, error.message);
+        console.warn(`[Buffer] ⚠️ Background Sync partial failure:`, error.message);
       }
-    } catch (e) {
-      console.error(`[Buffer] ❌ Bulk Sync failed:`, e);
-    }
+    }).catch(err => {
+      console.error(`[Buffer] ❌ Background Sync failed:`, err);
+    });
+
+    // Return immediately to unblock the Engine
+    return true;
   }
 
   /**
