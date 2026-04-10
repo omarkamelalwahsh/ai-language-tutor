@@ -432,7 +432,10 @@ export class AdaptiveAssessmentEngine {
       answer,
       correctAnswer: correctText,
       responseTimeMs,
-     console.log("%c🚀 [ENGINE] submitAnswer triggered!", "color: #00ff00; font-weight: bold; font-size: 14px;");
+      taskType: efsetItem.task_type as any
+    });
+
+    console.log("%c🚀 [ENGINE] submitAnswer triggered!", "color: #00ff00; font-weight: bold; font-size: 14px;");
     
     try {
       // 🎯 SHIELD-FIRST: Save attempt BEFORE AI evaluation to prevent data loss on timeout
