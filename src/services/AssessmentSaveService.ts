@@ -70,85 +70,93 @@ export class AssessmentSaveService {
 
   /**
    * Saves a single assessment log (individual question) for real-time persistence.
-   * Signature updated to (question, evaluation, answer) for absolute data integrity.
+   * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(question: any, evaluation: any, answer: string): Promise<void> {
-    await withRetry(async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    // 1. Get userId instantly from LocalStorage (Resilient approach)
+    const userId = localStorage.getItem('auth_user_id') || 'anonymous';
+    
+    console.log(`📝 [Buffer] Requesting save for task: ${question.id || 'N/A'}`);
 
-      const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
-      let finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
+    // 2. Prepare Payload (Sync logic)
+    const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
+    let finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
-      // 🛠️ Smart Expected Answer Extraction: Fixes [object Object] issue
-      const ak = question.answer_key;
-      // تأكد إن String() محوطة كل حاجة قبل الـ trim
-      const expectedAnswer = typeof ak === 'string' 
-        ? ak 
-        : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
-      
-      // 🛡️ CRITICAL RULE 3: Fix "m.trim" TypeError (Zero-Crash Protocol)
-      const safeAnswer = String(answer || "").trim();
-      const safeExpected = String(expectedAnswer || "").trim();
-      const normalizedUser = String(answer || "").trim().toLowerCase();
-      const normalizedExpected = String(expectedAnswer || "").trim().toLowerCase();
+    const ak = question.answer_key;
+    const expectedAnswer = typeof ak === 'string' 
+      ? ak 
+      : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
+    
+    const safeAnswer = String(answer || "").trim();
+    const safeExpected = String(expectedAnswer || "").trim();
 
-      // ⚡ HYBRID SCORING LOGIC (The "Smart Move"): Absolute accuracy for MCQs
-      const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
-      if (isMCQ && safeAnswer && safeExpected !== 'No expected answer') {
-        const u = safeAnswer.toLowerCase();
-        const e = safeExpected.toLowerCase();
-        
-        // 🎯 Robust Match: Direct match OR Prefix Match (e.g. user types "A" and key is "A) Option")
-        const isMatch = (u === e) || 
-                       (u.length === 1 && (e.startsWith(u + ")") || e.startsWith(u + "."))) ||
-                       (e.length === 1 && (u.startsWith(e + ")") || u.startsWith(e + ".")));
+    // ⚡ HYBRID SCORING LOGIC
+    const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
+    if (isMCQ && safeAnswer && safeExpected !== 'No expected answer') {
+      const u = safeAnswer.toLowerCase();
+      const e = safeExpected.toLowerCase();
+      const isMatch = (u === e) || 
+                     (u.length === 1 && (e.startsWith(u + ")") || e.startsWith(u + "."))) ||
+                     (e.length === 1 && (u.startsWith(e + ")") || u.startsWith(e + ".")));
 
-        if (isMatch) {
-          console.log(`[HybridScoring] 🎯 MCQ MATCH detected. Overriding score to 1.0 for: ${question.id}`);
-          finalScore = 1.0;
+      if (isMatch) {
+        console.log(`[HybridScoring] 🎯 MCQ MATCH detected for: ${question.id}`);
+        finalScore = 1.0;
+      }
+    }
+
+    const assessmentLog = {
+      user_id: userId,
+      question_id: String(question.external_id || question.id || 'N/A'),
+      user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
+      score: finalScore ?? 0,
+      confidence: evaluation?.confidence ?? 0.9, 
+      category: String(question.skill || question.category || 'general'),
+      question: String(question.prompt || (question as any).text || 'Missing Prompt'),
+      answer: typeof expectedAnswer === 'object' ? JSON.stringify(expectedAnswer) : String(expectedAnswer || 'N/A'), 
+      correct_answer: typeof question.answer_key === 'object' ? JSON.stringify(question.answer_key) : String(expectedAnswer || 'N/A'), 
+      is_correct: Boolean(finalScore >= 0.5), 
+      evaluation_metadata: typeof evaluation === 'object' ? JSON.stringify(evaluation) : String(evaluation || '{}'),
+      created_at: new Date().toISOString()
+    };
+
+    // 3. 🔒 LOCK IN BUFFER IMMEDIATELY (Before any async DB calls)
+    this.saveToLocalBuffer(assessmentLog);
+    console.log("💾 [Buffer] Data secured in LocalStorage.");
+
+    // 4. Fire-and-Forget database insert
+    supabase
+      .from('assessment_logs')
+      .insert([assessmentLog])
+      .then(({ error }) => {
+        if (!error) {
+          this.removeFromLocalBuffer(assessmentLog.question_id, assessmentLog.created_at);
+          console.log(`✅ [Secured] Row inserted for: ${assessmentLog.question_id}`);
+        } else {
+          console.warn("⚠️ [Sync] DB insert failed, keeping in buffer:", error.message);
         }
-      }
+      })
+      .catch(err => {
+        console.warn("⚠️ [Sync] Network failure, keeping in buffer:", err);
+      });
 
-      const assessmentLog = {
-        // 🆕 NEW COLUMNS (Strict External ID Mapping)
-        user_id: user.id,
-        question_id: String(question.external_id || question.id || 'N/A'),
-        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
-        score: finalScore ?? 0,
-        confidence: evaluation?.confidence ?? 0.9, 
-        
-        // 🏛️ LEGACY COLUMNS (Full Saturation - No NULLs)
-        category: String(question.skill || question.category || 'general'),
-        question: String(question.prompt || (question as any).text || 'Missing Prompt'),
-        answer: typeof expectedAnswer === 'object' ? JSON.stringify(expectedAnswer) : String(expectedAnswer || 'N/A'), 
-        correct_answer: typeof question.answer_key === 'object' ? JSON.stringify(question.answer_key) : String(expectedAnswer || 'N/A'), 
-        is_correct: Boolean(finalScore >= 0.5), 
-        
-        // 📦 Full evaluation metadata for debugging (JSON-safe)
-        evaluation_metadata: typeof evaluation === 'object' ? JSON.stringify(evaluation) : String(evaluation || '{}'),
-        
-        created_at: new Date().toISOString()
+    // 5. Handle Error Analysis (Non-blocking)
+    if (safeScore < 0.8 && userId !== 'anonymous') {
+      const analysisEntry = {
+        user_id: userId,
+        category: assessmentLog.category,
+        user_answer: assessmentLog.user_answer,
+        suggested_band: String(evaluation.detected_level || evaluation.suggested_band || 'A1'),
+        error_tag: String(evaluation.error_tag || 'general'),
+        brief_explanation: String(evaluation.feedback || evaluation.brief_explanation || 'Assessment evaluation entry'),
+        error_rate: 1 - safeScore,
+        created_at: assessmentLog.created_at
       };
-
-      // 🔒 PROACTIVE BUFFERING: Save to LocalStorage immediately
-      this.saveToLocalBuffer(assessmentLog);
-
-      // 🚀 FINAL SATURATION EXECUTION
-      const { error: logError } = await supabase
-        .from('assessment_logs')
-        .insert([assessmentLog]);
-      
-      if (logError) {
-        console.error("❌ [Database Error] Failed to save saturated assessment log:", logError.message);
-      } else {
-        // 🔓 SYNC SUCCESS: Clear from buffer
-        this.removeFromLocalBuffer(assessmentLog.question_id, assessmentLog.created_at);
-        console.log(`✅ [Mission Success] Perfect data saturation for: ${assessmentLog.question_id} (Score: ${finalScore})`);
-      }
-
-      // Bonus: Error Analysis (The "No-Error" Pattern)
-      if (safeScore < 0.8) {
+      supabase.from('user_error_analysis').insert([analysisEntry]).then(({ error }) => {
+        if (error) console.warn('[AssessmentSave] Analysis insert failed:', error.message);
+      });
+    }
+  }      if (safeScore < 0.8) {
         const analysisEntry = {
           user_id: user.id,
           category: assessmentLog.category,
