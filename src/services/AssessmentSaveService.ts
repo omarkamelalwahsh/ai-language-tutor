@@ -156,25 +156,6 @@ export class AssessmentSaveService {
         if (error) console.warn('[AssessmentSave] Analysis insert failed:', error.message);
       });
     }
-  }      if (safeScore < 0.8) {
-        const analysisEntry = {
-          user_id: user.id,
-          category: assessmentLog.category,
-          user_answer: assessmentLog.user_answer,
-          suggested_band: String(evaluation.detected_level || evaluation.suggested_band || 'A1'),
-          error_tag: String(evaluation.error_tag || 'general'),
-          brief_explanation: String(evaluation.feedback || evaluation.brief_explanation || 'Assessment evaluation entry'),
-          error_rate: 1 - safeScore,
-          created_at: new Date().toISOString()
-        };
-
-        const { error: analysisError } = await supabase
-          .from('user_error_analysis')
-          .insert([analysisEntry]);
-
-        if (analysisError) console.warn('[AssessmentSave] Analysis insert failed:', analysisError.message);
-      }
-    });
   }
 
 
