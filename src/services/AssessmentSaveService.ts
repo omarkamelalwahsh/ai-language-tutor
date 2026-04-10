@@ -25,13 +25,25 @@ export class AssessmentSaveService {
       if (!user) return;
 
       const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
-      const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
+      let finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
       // 🛠️ Smart Expected Answer Extraction: Fixes [object Object] issue
       const ak = question.answer_key;
       const expectedAnswer = typeof ak === 'string' 
         ? ak 
-        : (ak?.value?.text || ak?.value || ak?.text || JSON.stringify(ak) || 'No expected answer');
+        : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
+
+      // ⚡ HYBRID SCORING LOGIC (The "Smart Move"): Absolute accuracy for MCQs
+      const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
+      if (isMCQ && answer && expectedAnswer !== 'No expected answer') {
+        const normalizedUser = answer.trim().toLowerCase();
+        const normalizedExpected = expectedAnswer.trim().toLowerCase();
+        
+        if (normalizedUser === normalizedExpected) {
+          console.log(`[HybridScoring] 🎯 MCQ MATCH detected. Overriding score to 1.0 for: ${question.id}`);
+          finalScore = 1.0;
+        }
+      }
 
       const assessmentLog = {
         // 🆕 NEW COLUMNS
@@ -39,13 +51,13 @@ export class AssessmentSaveService {
         question_id: String(question.external_id || question.id || 'unknown'),
         user_answer: String(answer || ''),
         score: finalScore,
-        confidence: evaluation.confidence || 0.9, // Ensuring no NULLs in confidence
+        confidence: evaluation.confidence || 0.9, 
         
-        // 🏛️ LEGACY COLUMNS (Full Saturation)
+        // 🏛️ LEGACY COLUMNS (Full Saturation - No NULLs)
         category: String(question.skill || question.category || 'general'),
         question: String(question.prompt || 'Missing Prompt'),
         answer: String(expectedAnswer), 
-        is_correct: Boolean(finalScore >= 0.7),
+        is_correct: Boolean(finalScore >= 0.5), // Threshold adjusted per user directive
         
         created_at: new Date().toISOString()
       };
@@ -58,7 +70,7 @@ export class AssessmentSaveService {
       if (logError) {
         console.error("❌ [Database Error] Failed to save saturated assessment log:", logError.message);
       } else {
-        console.log(`✅ [Mission Success] Perfect data saturation for: ${assessmentLog.question_id}`);
+        console.log(`✅ [Mission Success] Perfect data saturation for: ${assessmentLog.question_id} (Score: ${finalScore})`);
       }
 
       // Bonus: Error Analysis (The "No-Error" Pattern)

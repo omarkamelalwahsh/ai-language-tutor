@@ -498,20 +498,30 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   const handleSkip = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
-    const nextQ = await engine.skipQuestion(currentTask.id);
-    if (nextQ) {
-      setCurrentTask(nextQ);
-      setProgress(engine.getProgress());
-    } else {
-      await handleAssessmentComplete();
+    setIsEvaluating(true);
+    try {
+      const nextQ = await engine.skipQuestion(currentTask.id);
+      if (nextQ) {
+        setCurrentTask(nextQ);
+        setProgress(engine.getProgress());
+      } else {
+        await handleAssessmentComplete();
+      }
+    } finally {
+      setIsEvaluating(false);
     }
   }, [currentTask, isEvaluating, engine, handleAssessmentComplete]);
 
   const handleSwap = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
-    const swappedQ = await engine.swapQuestion(currentTask.id);
-    if (swappedQ) {
-      setCurrentTask(swappedQ);
+    setIsEvaluating(true);
+    try {
+      const swappedQ = await engine.swapQuestion(currentTask.id);
+      if (swappedQ) {
+        setCurrentTask(swappedQ);
+      }
+    } finally {
+      setIsEvaluating(false);
     }
   }, [currentTask, isEvaluating, engine]);
 

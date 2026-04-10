@@ -202,8 +202,12 @@ export class AdaptiveAssessmentEngine {
         const rawMode = (item.response_mode as string || 'typed').trim().toLowerCase();
         const responseMode = rawMode === 'multiple_choice' ? 'mcq' : rawMode;
 
+        // 🔡 Prompt Saturation: Priority 1. prompt, 2. text, 3. question
+        const promptText = item.prompt || (item as any).text || (item as any).question || 'Untitled Question';
+
         return {
           ...item,
+          prompt: promptText,
           target_cefr: cefr,
           level: cefr, // 🎯 Synchronized Alias Fix
           skill: rawSkill as any,
@@ -616,12 +620,15 @@ export class AdaptiveAssessmentEngine {
   }
 
   public async swapQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {
+    console.log(`[Engine] 🔄 SWAP REQUESTED for: ${currentQuestionId}`);
+    
     // 1. Locate the current item to identify its level and skill
     let currentItem: QuestionBankItem | undefined;
     let currentLevel: CEFRLevel | undefined;
 
     for (const [level, items] of Object.entries(this.banks) as [CEFRLevel, QuestionBankItem[]][]) {
-      const match = items.find(i => i.id === currentQuestionId);
+      // 🛡️ Robust Match: Check both ID and external_id just in case
+      const match = items.find(i => i.id === currentQuestionId || i.external_id === currentQuestionId);
       if (match) {
         currentItem = match;
         currentLevel = level;
@@ -629,9 +636,12 @@ export class AdaptiveAssessmentEngine {
       }
     }
 
-    if (!currentItem || !currentLevel) return null;
+    if (!currentItem || !currentLevel) {
+      console.warn(`[Engine] ⚠️ Swap failed: Could not find question ${currentQuestionId} in banks.`);
+      return null;
+    }
 
-    // 2. Ensure bank is loaded (should be already, but just in case)
+    // 2. Ensure bank is loaded
     await this.ensureLevelLoaded(currentLevel);
 
     // 3. Request a swap from selector (while blocking current ID)
@@ -641,18 +651,43 @@ export class AdaptiveAssessmentEngine {
       this.askedQuestionIds
     );
 
-    if (!nextItem) return null;
+    if (!nextItem) {
+      console.warn(`[Engine] ⚠️ Swap failed: Bank exhausted for level ${currentLevel} skill ${currentItem.skill}`);
+      return null;
+    }
 
-    // 3. Update tracking: Remove old ID, add new one
+    console.log(`[Engine] ✅ Swap matched: ${currentItem.id} -> ${nextItem.id}`);
+
+    // 4. Update tracking: Remove old ID, add new one
     this.askedQuestionIds.delete(currentQuestionId);
     this.askedQuestionIds.add(nextItem.id);
     
-    // Update legacy state tracking if relevant
+    // Update legacy state tracking
     const idx = this.state.askedQuestionIds.indexOf(currentQuestionId);
     if (idx !== -1) {
       this.state.askedQuestionIds[idx] = nextItem.id;
     }
 
+    // 5. Build and return formatted question
+    return this.buildQuestionObject(nextItem);
+  }
+
+  public async skipQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {
+    console.log(`[Engine] ⏭️ SKIP REQUESTED for: ${currentQuestionId}`);
+    
+    // Treat as "asked" but not "evaluated" (neutral signal)
+    // We don't remove it from askedQuestionIds so it doesn't reappear immediately
+    const nextQ = await this.getNextQuestion();
+    if (!nextQ) {
+       console.log("[Engine] 🏁 Skip reached end of bank.");
+    }
+    return nextQ;
+  }
+
+  /**
+   * Universal builder for the question interface used by the UI.
+   */
+  private buildQuestionObject(nextItem: QuestionBankItem): AssessmentQuestion {
     let originalOptions: string[] | undefined;
     const ak = nextItem.answer_key;
     if (typeof ak === 'object' && ak !== null && typeof ak.value === 'object' && ak.value !== null && 'options' in ak.value) {
@@ -661,11 +696,10 @@ export class AdaptiveAssessmentEngine {
       originalOptions = nextItem.options;
     }
 
-    // 4. Return formatted question
     return {
       id: nextItem.id,
       external_id: nextItem.external_id || nextItem.id,
-      prompt: nextItem.prompt,
+      prompt: nextItem.prompt || (nextItem as any).text || (nextItem as any).question || 'Untitled Question',
       skill: nextItem.skill as any,
       primarySkill: nextItem.skill as any,
       difficulty: nextItem.target_cefr as DifficultyBand,
@@ -676,12 +710,6 @@ export class AdaptiveAssessmentEngine {
       options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;
-  }
-
-  public async skipQuestion(currentQuestionId: string): Promise<AssessmentQuestion | null> {
-    // Treat as "asked" but not "evaluated" (neutral signal)
-    // We don't remove it from askedQuestionIds so it doesn't reappear immediately
-    return await this.getNextQuestion();
   }
 
   public getOutcome(): AssessmentOutcome {
