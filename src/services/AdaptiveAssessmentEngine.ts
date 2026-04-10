@@ -457,6 +457,15 @@ export class AdaptiveAssessmentEngine {
         
         console.log(`[Engine] Proctor: ${proctor.detected_level} | ${proctor.expected_skill} | Score: ${score}`);
 
+        // 🚀 CRITICAL LINK: Immediate Async-First Save (Zero-Crash Protocol)
+        console.log("🚀 Calling Save Service for:", efsetItem.id);
+        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
+          .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.external_id || efsetItem.id}`))
+          .catch(saveErr => {
+             console.error("🚨 [Save Error] DB rejected (Buffered):", saveErr?.message);
+             console.debug("Payload debug:", efsetItem.id, typeof answer);
+          });
+
         // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)
         if (score > 0.85) {
           this.streakTracking.consecutivePerfect++;
@@ -533,16 +542,6 @@ export class AdaptiveAssessmentEngine {
           this.state.answerHistory[historyIdx].errorTag = proctor.error_tag;
           this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
         }
-
-        // 5. 🚩 ASYNC-FIRST SAVE (Buffer Secured)
-        // Since we have the LocalStorage Buffer, we no longer await Supabase.
-        // The UI moves forward immediately, and the buffer handles network lag.
-        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
-          .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.external_id || efsetItem.id}`))
-          .catch(saveErr => {
-             console.error("🚨 [Save Error] DB rejected (Buffered):", saveErr?.message);
-             console.debug("Payload debug:", efsetItem.id, typeof answer);
-          });
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
