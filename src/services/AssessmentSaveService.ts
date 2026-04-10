@@ -135,7 +135,7 @@ export class AssessmentSaveService {
     console.log("🔥 Calling RPC (Clean 4-Param):", rpcParams.p_question_id);
 
     try {
-      const { data, error } = await supabase.rpc('log_assessment', rpcParams);
+      const { data, error } = await supabase.rpc('log_and_update_assessment', rpcParams);
 
 
       if (error) {

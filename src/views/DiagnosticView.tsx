@@ -439,13 +439,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         // 🎯 [FORCE TRIGGER] Perform evaluation and save manually in the UI layer
         const { correct, evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        // ⚡️ Atomic Combined Update: Log attempt + Update skill state
-        await AssessmentSaveService.log_and_update_assessment(
+        // ⚡️ Fire-and-Forget: Save to DB without blocking the UI transition
+        AssessmentSaveService.log_and_update_assessment(
           engine.getUserId(),
           currentTask,
           evaluation,
           answer
-        );
+        ).catch(err => console.error("⚠️ [DiagnosticView] Background save failed (non-blocking):", err));
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());
@@ -473,8 +473,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           }
         }, 300);
       } catch (err) {
-        console.error("Evaluation error:", err);
-        alert("Server Connectivity Issue. Proceeding with local evaluation...");
+        console.error("⚠️ [DiagnosticView] Evaluation error (proceeding with fallback):", err);
         
         // Fallback: Proceed to next question anyway to avoid getting stuck
         const nextQ = await engine.getNextQuestion();
