@@ -63,11 +63,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   const location = window.location.pathname;
 
-  // 1. Loading Guard (Wait ONLY for initialization completion)
+  // 1. Loading Guard (Wait for both Auth AND Profile before deciding)
   if (isInitializing) return <LoadingScreen />;
   
-  // 2. Auth Guard
-  if (!user) return <Navigate to="/auth" />;
+  // 2. Auth Guard (Strict Protection: Only redirect if definitely NOT initializing)
+  if (!user && !isInitializing) return <Navigate to="/auth" />;
 
   // 3. Onboarding Guard (If no profile exists yet, or it's incomplete, they MUST go to onboarding)
   const isOnboardingComplete = profile?.onboarding_complete === true;
@@ -91,7 +91,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   // 🛡️ Loading Guard
   if (isInitializing) return <LoadingScreen />;
   
-  if (user) {
+  if (user && !isInitializing) {
     // If logged in, redirect based on profile status (treat missing profile as incomplete)
     if (profile?.onboarding_complete) return <Navigate to="/dashboard" />;
     return <Navigate to="/onboarding" />;

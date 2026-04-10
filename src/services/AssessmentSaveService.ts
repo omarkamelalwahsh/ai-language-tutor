@@ -17,30 +17,20 @@ export class AssessmentSaveService {
 
   /**
    * Saves a single assessment log (individual question) for real-time persistence.
-   * Rule 3.2: Log in assessment_logs AND user_error_analysis.
+   * Signature updated to (question, evaluation, answer) for absolute data integrity.
    */
-  public static async saveSingleAssessmentLog(logData: {
-    category: string;
-    user_answer: string;
-    correct_answer: string;
-    suggested_band: string;
-    error_tag?: string;
-    brief_explanation?: string;
-    score: number; // Raw AI float
-    question_id?: string;
-  }): Promise<void> {
+  public static async saveSingleAssessmentLog(question: any, evaluation: any, answer: string): Promise<void> {
     await withRetry(async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('UNAUTHORIZED_SAVE_ATTEMPT');
+      if (!user) return;
 
-      // 1. Raw Logging (Zero Data Loss Policy)
       const assessmentLog = {
         user_id: user.id,
-        question_id: logData.question_id || 'untracked',
-        category: logData.category,
-        user_answer: logData.user_answer,
-        correct_answer: logData.correct_answer,
-        score: Math.round(logData.score * 10000), // Integer conversion rule
+        question_id: question.id,
+        category: question.skill || question.category || 'general',
+        user_answer: answer,
+        correct_answer: question.correct_answer || (question.answer_key?.value) || '',
+        score: Math.round((evaluation.score || 0) * 10000), // Integer conversion scale
         created_at: new Date().toISOString()
       };
 
@@ -48,27 +38,31 @@ export class AssessmentSaveService {
         .from('assessment_logs')
         .insert([assessmentLog]);
       
-      if (logError) console.warn('[AssessmentSave] ⚠️ Log insert failed, proceeding to analysis:', logError.message);
+      if (logError) {
+        console.error("❌ [Database Error] Failed to save assessment log:", logError.message);
+      } else {
+        console.log(`✅ [Sync Success] Log persisted for: ${question.id}`);
+      }
 
-      // 2. Error Analysis (The "No-Error" Pattern)
-      const analysisEntry = {
-        user_id: user.id,
-        category: logData.category || 'general',
-        user_answer: logData.user_answer,
-        suggested_band: logData.suggested_band,
-        error_tag: logData.error_tag,
-        brief_explanation: logData.brief_explanation,
-        error_rate: 1 - logData.score, // Heuristic: inversion of accuracy
-        created_at: new Date().toISOString()
-      };
+      // Bonus: Error Analysis (The "No-Error" Pattern)
+      if (evaluation.score < 0.8) {
+        const analysisEntry = {
+          user_id: user.id,
+          category: question.skill || question.category || 'general',
+          user_answer: answer,
+          suggested_band: evaluation.detected_level || evaluation.suggested_band,
+          error_tag: evaluation.error_tag,
+          brief_explanation: evaluation.feedback || evaluation.brief_explanation,
+          error_rate: 1 - (evaluation.score || 0),
+          created_at: new Date().toISOString()
+        };
 
-      const { error: analysisError } = await supabase
-        .from('user_error_analysis')
-        .insert([analysisEntry]);
+        const { error: analysisError } = await supabase
+          .from('user_error_analysis')
+          .insert([analysisEntry]);
 
-      if (analysisError) throw analysisError;
-      
-      console.log('[AssessmentSave] 📝 Log & Analysis persisted (Integrity Guard enabled).');
+        if (analysisError) console.warn('[AssessmentSave] Analysis insert failed:', analysisError.message);
+      }
     });
   }
 

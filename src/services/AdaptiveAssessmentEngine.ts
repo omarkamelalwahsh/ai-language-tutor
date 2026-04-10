@@ -542,17 +542,10 @@ export class AdaptiveAssessmentEngine {
           this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
         }
 
-        // 5. Atomic Persistence (Multi-Table Logging & Integer Scaling enabled)
-        AssessmentSaveService.saveSingleAssessmentLog({
-          category: efsetItem.skill || 'general',
-          user_answer: answer,
-          correct_answer: correctText,
-          suggested_band: proctor.detected_level,
-          error_tag: proctor.error_tag,
-          brief_explanation: proctor.feedback,
-          score: score, // Added for integer scaling and assessment_logs
-          question_id: efsetItem.id // Aligned with zero-data-loss policy
-        }).catch(err => console.warn("Silent failure in background sync:", err));
+        // 5. Atomic Persistence (Capture Question, Evaluation, and Answer snapshot)
+        // Await re-enabled to prevent race conditions/aborted requests during navigation
+        await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
+          .catch(err => console.warn("Silent failure in background sync:", err));
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
