@@ -113,8 +113,7 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    // 1. عداد في الـ Console عشان نعرف احنا في السؤال رقم كام
-    console.count("🚀 RPC Call Number"); 
+    console.log("%c🚀 [SaveService] Starting saveSingleAssessmentLog...", "color: #4CAF50; font-weight: bold;");
 
     const userAnswer = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
     const questionText = task.prompt || task.text || task.question || task.id || 'Unknown';
@@ -122,18 +121,11 @@ export class AssessmentSaveService {
     const isCorrect = !!(evaluation.is_correct ?? (parseFloat(evaluation.score) >= 0.7));
     const score = parseFloat(evaluation.score) || 0;
     const category = task.skill || 'General';
-    const confidence = score; // DB column is numeric, send as number
+    const confidence = score; 
     const questionId = String(task.id || task.external_id || 'unknown');
 
-    console.log("🔥 Full Payload Check:", { 
-      question_id: questionId, 
-      score,
-      category,
-      is_correct: isCorrect
-    });
-
     const dbPayload = {
-      user_id: localStorage.getItem('auth_user_id'), // Ensure we have the ID for buffering
+      user_id: localStorage.getItem('auth_user_id'),
       question_id: questionId,
       question: questionText,
       user_answer: userAnswer,
@@ -162,20 +154,20 @@ export class AssessmentSaveService {
       p_metadata: dbPayload.evaluation_metadata
     };
 
-    console.log("🔥 Calling RPC (Full Schema):", rpcParams.p_question_id);
+    console.log("📦 [SaveService] Payload built:", rpcParams);
 
     try {
+      console.log("📡 [SaveService] Firing RPC: log_and_update_assessment...");
       const { data, error } = await supabase.rpc('log_and_update_assessment', rpcParams);
 
       if (error) {
-        console.error("❌ RPC Failed:", error.message);
-        // تأمين الداتا في حالة الفشل باستخدام أسماء الأعمدة الحقيقية
+        console.error("❌ [SaveService] RPC Error:", error.message);
         this.saveToLocalBuffer(dbPayload);
       } else {
-        console.log("✅ Saved successfully to DB");
+        console.log("%c✅ [SaveService] Save Success!", "color: #4CAF50; font-weight: bold;");
       }
     } catch (fatalErr: any) {
-      console.error("❌ [Fatal Error]:", fatalErr.message);
+      console.error("❌ [SaveService] Fatal Crash:", fatalErr.message);
       this.saveToLocalBuffer(dbPayload);
     }
   }
