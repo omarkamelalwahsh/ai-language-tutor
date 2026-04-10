@@ -109,6 +109,40 @@ async function setupDatabase() {
       );
     `);
 
+    // 6. User Error Analysis (The "Why" Layer)
+    console.log('Creating [user_error_analysis] table...');
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_error_analysis (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES learner_profiles(id) ON DELETE CASCADE,
+        category TEXT NOT NULL,
+        total_questions INTEGER DEFAULT 0,
+        mistakes_count INTEGER DEFAULT 0,
+        error_rate NUMERIC DEFAULT 0,
+        brief_explanation TEXT,
+        error_tag TEXT,
+        suggested_band TEXT,
+        correct_answer TEXT,
+        is_correct BOOLEAN,
+        user_answer TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+
+    // 7. User Error Profiles (The Dashboard Insights)
+    console.log('Creating [user_error_profiles] table...');
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_error_profiles (
+        user_id UUID PRIMARY KEY REFERENCES learner_profiles(id) ON DELETE CASCADE,
+        weakness_areas TEXT[], -- PostgreSQL ARRAY type
+        common_mistakes TEXT[],
+        action_plan TEXT,
+        bridge_delta DOUBLE PRECISION,
+        bridge_percentage DOUBLE PRECISION,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+
     // 6. Automation Triggers (The "Savior" Logic)
     console.log('Creating [handle_new_user] trigger...');
     await client.query(`
@@ -142,7 +176,7 @@ async function setupDatabase() {
         END IF;
       END $$;
 
-      -- 7. Points & Streak RPC (Incremental Stability)
+      -- 8. Points & Streak RPC (Incremental Stability)
       CREATE OR REPLACE FUNCTION public.increment_learner_points(target_user uuid, points_to_add int)
       RETURNS void AS $$
       BEGIN
@@ -151,6 +185,47 @@ async function setupDatabase() {
           points = COALESCE(points, 0) + points_to_add,
           updated_at = NOW()
         WHERE id = target_user;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+      -- 9. Skill Confidence Incremental RPC
+      CREATE OR REPLACE FUNCTION public.increment_skill_confidence(target_user uuid, target_skill text, delta float8)
+      RETURNS void AS $$
+      BEGIN
+        UPDATE public.skill_states
+        SET 
+          confidence = GREATEST(0.0, LEAST(1.0, COALESCE(confidence, 0.5) + delta)),
+          last_tested = NOW(),
+          updated_at = NOW()
+        WHERE user_id = target_user AND (skill = target_skill OR skill = LOWER(target_skill));
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+      -- 10. Atomic Evaluation Bundle (The Senior Standard)
+      CREATE OR REPLACE FUNCTION public.process_evaluation_bundle(
+        p_user_id uuid,
+        p_points int,
+        p_skill text,
+        p_delta float8,
+        p_predicted_level text
+      )
+      RETURNS void AS $$
+      BEGIN
+        -- 1. Update Points & Global Level
+        UPDATE public.learner_profiles
+        SET 
+          points = COALESCE(points, 0) + p_points,
+          overall_level = COALESCE(p_predicted_level, overall_level),
+          updated_at = NOW()
+        WHERE id = p_user_id;
+
+        -- 2. Update Skill State
+        UPDATE public.skill_states
+        SET 
+          confidence = GREATEST(0.0, LEAST(1.0, COALESCE(confidence, 0.5) + p_delta)),
+          last_tested = NOW(),
+          updated_at = NOW()
+        WHERE user_id = p_user_id AND (skill = p_skill OR skill = LOWER(p_skill));
       END;
       $$ LANGUAGE plpgsql SECURITY DEFINER;
     `);

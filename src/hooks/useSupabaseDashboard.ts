@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useData } from '../context/DataContext';
+import { DB_SCHEMA } from '../constants/dbSchema';
 
 export interface DashboardSupabaseData {
   user: {
@@ -95,21 +96,21 @@ export const useSupabaseDashboard = () => {
             .from('learner_profiles')
             .select(`
               id, 
-              overall_level, 
-              onboarding_complete, 
-              points, 
+              ${DB_SCHEMA.COLUMNS.LEVEL}, 
+              ${DB_SCHEMA.COLUMNS.ONBOARDING}, 
+              ${DB_SCHEMA.COLUMNS.POINTS}, 
               streak,
               pacing_score,
               accuracy_rate,
               self_correction_rate,
-              skill_states (
+              ${DB_SCHEMA.TABLES.SKILLS} (
                 skill, 
                 current_level, 
-                current_score,
+                ${DB_SCHEMA.COLUMNS.SKILL_SCORE},
                 confidence, 
                 updated_at
               )
-            `)
+            \`)
             .eq('id', user.id)
             .single(),
           supabase
@@ -155,9 +156,9 @@ export const useSupabaseDashboard = () => {
             },
             profile: profileData
               ? {
-                  currentLevel: profileData.overall_level || 'A1',
-                  onboardingComplete: profileData.onboarding_complete || false,
-                  points: profileData.points || 0,
+                  currentLevel: profileData[DB_SCHEMA.COLUMNS.LEVEL] || 'A1',
+                  onboardingComplete: profileData[DB_SCHEMA.COLUMNS.ONBOARDING] || false,
+                  points: profileData[DB_SCHEMA.COLUMNS.POINTS] || 0,
                   streak: profileData.streak || 0,
                   pacingScore: profileData.pacing_score || 0,
                   accuracyRate: profileData.accuracy_rate || 0,
@@ -167,9 +168,9 @@ export const useSupabaseDashboard = () => {
             skills: skillsData.map((s: any) => ({
               skill: s.skill,
               currentLevel: s.current_level || 'A1',
-              confidence: typeof s.confidence === 'number' ? s.confidence : ((s.current_score || 0) / 10000),
+              confidence: typeof s.confidence === 'number' ? s.confidence : ((s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || 0) / 10000),
               skillId: s.skill,
-              masteryScore: s.current_score ? (s.current_score / 100) : ((s.confidence || 0) * 100),
+              masteryScore: s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ? (s[DB_SCHEMA.COLUMNS.SKILL_SCORE] / 100) : ((s.confidence || 0) * 100),
               evidenceCount: 5, 
             })),
             history: historyRes.data

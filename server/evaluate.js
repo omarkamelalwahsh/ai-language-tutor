@@ -85,20 +85,53 @@ if (process.env.GROQ_API_KEY) {
 }
 
 const SYSTEM_PROMPT = `
-You are a CEFR-aligned linguistic signal extractor. 
-Your goal is to extract deep linguistic features from learner responses.
-For SPEAKING/WRITING, score 0-1 for: content_accuracy, grammar_control, lexical_range, syntactic_complexity, coherence.
-If the response is a transcription of a voice recording, be lenient with minor fillers but strict with pronunciation-derived errors.
-Return ONLY valid JSON:
+### ROLE
+You are an expert CEFR Linguistic Analyst and Data Engineer for an Adaptive AI Language Tutor. Your task is to analyze a learner's response and provide a multi-dimensional evaluation in a STRICT JSON format.
+
+### SYSTEM CONTEXT
+The data you provide will directly populate a PostgreSQL database with the following logic:
+1. 'overall_level': The current CEFR level (A1-C2).
+2. 'skill_states': Proficiency across (listening, reading, writing, speaking, grammar, vocabulary).
+3. 'error_analysis': Categorization of linguistic gaps.
+
+### EVALUATION CRITERIA
+- **Content Accuracy**: Did they answer the prompt? (0-1)
+- **Grammar Control**: Accuracy of structures used. (0-1)
+- **Lexical Range**: Sophistication of vocabulary. (0-1)
+- **Coherence**: Logical flow and connectors. (0-1)
+
+### OUTPUT FORMAT (STRICT JSON ONLY)
 {
-  "suggestedBand": "A1"|"A2"|"B1"|"B2"|"C1"|"C2",
-  "isCorrect": true|false,
-  "confidence": 0..1,
-  "reasoning": "Brief rationale",
-  "lexical_sophistication": 0..1,
-  "syntactic_complexity": 0..1,
-  "grammar_control": 0..1
+  "evaluation": {
+    "isCorrect": boolean,
+    "suggested_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+    "confidence_score": 0.0 to 1.0,
+    "feedback_text": "Brief pedagogical explanation in Arabic/English",
+    "points_awarded": number (10-50 based on complexity)
+  },
+  "linguistic_metrics": {
+    "grammar_score": 0.0 to 1.0,
+    "vocabulary_score": 0.0 to 1.0,
+    "coherence_score": 0.0 to 1.0,
+    "fluency_score": 0.0 to 1.0
+  },
+  "error_analysis": {
+    "category": "Grammar" | "Vocabulary" | "Syntax" | "Punctuation",
+    "error_tag": "Subject-Verb Agreement" | "Tense Mismatch" | "Word Choice",
+    "user_mistake": "The exact snippet of error",
+    "correction": "The corrected version",
+    "explanation": "Why it was wrong"
+  },
+  "skill_update": {
+    "skill": "writing" | "speaking" | "grammar" | "vocabulary",
+    "delta_score": 0.0 to 0.1
+  }
 }
+
+### CONSTRAINTS
+- Return ONLY the JSON object. No prose, no conversational fillers.
+- Be encouraging but strict with CEFR standards.
+- If it's a "speaking" task (transcription), be lenient with fillers (um, ah) but focus on syntax.
 `.trim();
 
 function clamp01(value) {
@@ -111,22 +144,21 @@ function clamp01(value) {
 
 function fallbackResult(currentBand, reason) {
   return {
-    relevance: 1.0,
-    task_completion: 0.5,
-    is_off_topic: false,
-    missing_content_points: [],
-    semantic_accuracy: 0.5,
-    lexical_sophistication: 0.35,
-    syntactic_complexity: 0.35,
-    coherence: 0.4,
-    grammar_control: 0.4,
-    typo_severity: 0.1,
-    idiomatic_usage: 0.1,
-    register_control: 0.3,
-    estimated_band: currentBand || "A1",
-    confidence: 0.2,
-    rationale: reason,
-    _fallback: true,
+    evaluation: {
+      isCorrect: true,
+      suggested_level: currentBand || "A1",
+      confidence_score: 0.2,
+      feedback_text: reason,
+      points_awarded: 10
+    },
+    linguistic_metrics: {
+      grammar_score: 0.5,
+      vocabulary_score: 0.5,
+      coherence_score: 0.5,
+      fluency_score: 0.5
+    },
+    error_analysis: null,
+    skill_update: null
   };
 }
 
@@ -307,48 +339,39 @@ app.post('/api/evaluate', async (req, res) => {
         const tasks = [
           supabase.from('assessment_responses').insert({
             user_id: targetUserId,
-            assessment_id: payload.assessmentId, // Bind it to the global session!
+            assessment_id: payload.assessmentId,
             skill: payload.skill,
-            current_band: payload.currentBand,
             question_id: internalQId,
-            user_answer: payload.learnerAnswer, // explicit prompt requirement
-            is_correct: parsed.isCorrect ?? true, // explicit prompt requirement
-            cefr_level: parsed.suggestedBand || payload.currentBand, // explicit prompt requirement
-            ai_feedback_text: parsed.reasoning || "Automated System Check: Validated.", // explicit prompt requirement
-            answer: payload.learnerAnswer, // Legacy fallback
-            answer_level: parsed.suggestedBand || payload.currentBand, // Legacy fallback
-            explanation: { rationale: parsed.reasoning || "Automated", confidence: parsed.confidence || 0.8 } // Legacy Fallback
+            user_answer: payload.learnerAnswer,
+            is_correct: parsed.evaluation?.isCorrect ?? true,
+            cefr_level: parsed.evaluation?.suggested_level || payload.currentBand,
+            ai_feedback_text: parsed.evaluation?.feedback_text || "Automated check.",
+            explanation: parsed.linguistic_metrics || {} 
           })
         ];
 
-        // Ensure we strictly update learner profiles & skill states using Atomic logic
         if (targetUserId) {
-          // 1. Atomic RPC update for Points & Streak
-          tasks.push(supabase.rpc('increment_learner_points', { 
-            target_user: targetUserId, 
-            points_to_add: 10 
+          // 🚀 ATOMIC BUNDLE: Points, Skills, and Global Level in ONE call
+          tasks.push(supabase.rpc('process_evaluation_bundle', {
+            p_user_id: targetUserId,
+            p_points: parsed.evaluation?.points_awarded || 10,
+            p_skill: parsed.skill_update?.skill || payload.skill,
+            p_delta: parsed.skill_update?.delta_score || 0.01,
+            p_predicted_level: parsed.evaluation?.suggested_level || payload.currentBand
           }));
 
-          // 2. Upsert Skill Mastery (Overwrite the overall levelRange based on new score mapping)
-          tasks.push(supabase.from('skill_states').update({ 
-            current_score: Math.round((parsed.confidence || 0.8) * 100),
-            "levelRange": [parsed.suggestedBand || payload.currentBand, parsed.suggestedBand || payload.currentBand]
-          }).eq('user_id', targetUserId).eq('skill', payload.skill.toLowerCase()));
-
-          // 3. Update Overall Level in Learner Profile
-          tasks.push(supabase.from('learner_profiles').update({ 
-            overall_level: parsed.suggestedBand || payload.currentBand,
-            updated_at: new Date().toISOString()
-          }).eq('id', targetUserId));
-
-          // 4. Log into error_profiles if the UI reported heavily penalized responses or grammar failures
-          if (parsed.isCorrect === false) {
-             tasks.push(supabase.from('error_profiles').insert({
-                user_id: targetUserId,
-                skill: payload.skill,
-                error_type: 'Evaluated Context Error',
-                context: parsed.reasoning || payload.learnerAnswer
-             }));
+          // 4. Detailed Error Analysis (Audit Insert)
+          if (parsed.error_analysis) {
+            tasks.push(supabase.from('user_error_analysis').insert({
+              user_id: targetUserId,
+              category: parsed.error_analysis.category,
+              error_tag: parsed.error_analysis.error_tag,
+              user_answer: parsed.error_analysis.user_mistake,
+              correct_answer: parsed.error_analysis.correction,
+              brief_explanation: parsed.error_analysis.explanation,
+              suggested_band: parsed.evaluation?.suggested_level,
+              is_correct: parsed.evaluation?.isCorrect
+            }));
           }
         }
 
