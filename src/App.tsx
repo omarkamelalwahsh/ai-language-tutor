@@ -59,15 +59,17 @@ const DevModeOverlay = ({ result, show, onClose }: { result: any; show: boolean;
 );
 
 // Helper for protected routes
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isInitializing, profile } = useData();
-  const location = window.location.pathname;
-
-  // 1. Loading Guard (Wait for both Auth AND Profile before deciding)
-  if (isInitializing) return <LoadingScreen />;
+  // 1. Loading Guard: Absolute priority. While initializing, show NOTHING but the loading screen.
+  if (isInitializing) {
+    return <LoadingScreen />;
+  }
   
-  // 2. Auth Guard (Strict Protection: Only redirect if definitely NOT initializing)
-  if (!user && !isInitializing) return <Navigate to="/auth" />;
+  // 2. Auth Guard: Only redirect if we are CERTAIN there is no user session.
+  // We check isInitializing again here for total defensive safety.
+  if (!user && !isInitializing) {
+    console.warn('[Routing] Unauthenticated access to protected route. Redirecting to /auth');
+    return <Navigate to="/auth" replace />;
+  }
 
   // 3. Onboarding Guard (If no profile exists yet, or it's incomplete, they MUST go to onboarding)
   const isOnboardingComplete = profile?.onboarding_complete === true;

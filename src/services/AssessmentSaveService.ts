@@ -24,16 +24,29 @@ export class AssessmentSaveService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // 🛡️ SCORE VALIDATION: Ensure it's a valid number between 0 and 1
+      let rawScore = 0;
+      if (evaluation && typeof evaluation.score === 'number') {
+        rawScore = evaluation.score;
+      } else if (evaluation && typeof evaluation.score === 'string') {
+        const parsed = parseFloat(evaluation.score);
+        rawScore = isNaN(parsed) ? 0 : parsed;
+      }
+      
+      // Prevent NaN or Infinite values from reaching the DB
+      const safeScore = isFinite(rawScore) ? Math.max(0, Math.min(1, rawScore)) : 0;
+
       const assessmentLog = {
         user_id: user.id,
-        question_id: question.id,
+        question_id: question.id || question.external_id || 'unknown',
         category: question.skill || question.category || 'general',
-        user_answer: answer || '',
+        user_answer: String(answer || ''),
         correct_answer: question.correct_answer || (question.answer_key?.value) || '',
-        score: evaluation.score !== undefined ? evaluation.score : 0, // Sending float directly for REAL column compatibility
+        score: safeScore, // Strictly Double Precision Float
         created_at: new Date().toISOString()
       };
 
+      // 🚀 EXECUTION: Only use columns present in the new schema
       const { error: logError } = await supabase
         .from('assessment_logs')
         .insert([assessmentLog]);
@@ -41,19 +54,19 @@ export class AssessmentSaveService {
       if (logError) {
         console.error("❌ [Database Error] Failed to save assessment log:", logError.message);
       } else {
-        console.log(`✅ [Sync Success] Log persisted for: ${question.id}`);
+        console.log(`✅ [Sync Success] Log persisted for: ${assessmentLog.question_id}`);
       }
 
       // Bonus: Error Analysis (The "No-Error" Pattern)
-      if (evaluation.score < 0.8) {
+      if (safeScore < 0.8) {
         const analysisEntry = {
           user_id: user.id,
-          category: question.skill || question.category || 'general',
-          user_answer: answer,
+          category: assessmentLog.category,
+          user_answer: assessmentLog.user_answer,
           suggested_band: evaluation.detected_level || evaluation.suggested_band,
           error_tag: evaluation.error_tag,
           brief_explanation: evaluation.feedback || evaluation.brief_explanation,
-          error_rate: 1 - (evaluation.score || 0),
+          error_rate: 1 - safeScore,
           created_at: new Date().toISOString()
         };
 

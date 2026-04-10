@@ -395,7 +395,7 @@ export class AdaptiveAssessmentEngine {
     }
 
     return {
-      id: nextItem.id,
+      id: nextItem.id || nextItem.external_id || `gen-${Math.random().toString(36).substr(2, 5)}`,
       prompt: nextItem.prompt,
       skill: nextItem.skill as any,
       primarySkill: nextItem.skill as any,
@@ -657,7 +657,7 @@ export class AdaptiveAssessmentEngine {
 
     // 4. Return formatted question
     return {
-      id: nextItem.id,
+      id: nextItem.id || nextItem.external_id || `gen-${Math.random().toString(36).substr(2, 5)}`,
       prompt: nextItem.prompt,
       skill: nextItem.skill as any,
       primarySkill: nextItem.skill as any,
