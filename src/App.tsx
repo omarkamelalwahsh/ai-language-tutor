@@ -63,15 +63,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   const location = window.location.pathname;
 
-  // 🛡️ RACE CONDITION KILLER: Wait for both Auth AND Profile before deciding
+  // 1. Loading Guard (Wait for both Auth AND Profile before deciding)
   if (isInitializing || (user && !profile)) return <LoadingScreen />;
   
-  // if not logged in -> Auth page
+  // 2. Auth Guard
   if (!user) return <Navigate to="/auth" />;
 
-  // Deep-Link Protection: If in protected area (like dashboard) but not onboarded -> Diagnostic
-  if (profile && !profile.onboarding_complete && !location.includes('diagnostic') && !location.includes('onboarding')) {
-    return <Navigate to="/onboarding" />;
+  // 3. Onboarding Guard (Persistence & Resume Logic)
+  if (profile && !profile.onboarding_complete) {
+    // If not onboarded, only allow assessment-related routes
+    const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding');
+    if (!isAtAssessment) {
+      return <Navigate to="/onboarding" />;
+    }
   }
 
   return <>{children}</>;
