@@ -76,41 +76,36 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    // 1. Robust Data Mapping (Fallback sequences for maximum integrity)
-    const questionText = task.prompt || task.question || task.text || (task as any).originalText || 'Missing question text';
-    
-    // 2. Prepare CLEAN RPC PARAMS (Secured by Database Session)
+    // 1. بصمة زمنية فريدة لكل نداء لكسر أي كاش أو قيود فريدة
+    const uniqueRequestTime = new Date().toISOString();
+    const timestamp = Date.now();
+
     const rpcParams = {
-      p_question_id: String(task.id || task.external_id || 'unknown'),
-      p_category: String(task.skill || task.category || 'general'),
-      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'No answer provided'),
-      p_score: Number(evaluation.score) || (evaluation.is_correct ? 1 : 0) || 0,
+      p_question_id: (task.id || 'unknown') + "_" + timestamp, // كسر الـ Unique Constraint
+      p_category: task.skill || 'General',
+      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+      p_score: parseFloat(evaluation.score) || 0,
       p_evaluation_metadata: {
         ...evaluation,
-        question_text: questionText,
-        captured_at: new Date().toISOString()
+        request_time: uniqueRequestTime, // بصمة فريدة للنداء
+        orig_question_id: task.id // حفظ الـ ID الأصلي للرجوع إليه
       }
     };
 
-    console.log("%c**************** ASSESSMENT SAVE ATTEMPT ****************", "color: #ff9900; font-weight: bold;");
-    console.log("📤 [RPC Attempt] Task:", rpcParams.p_question_id);
-    console.debug("📊 [Payload Debug]:", rpcParams);
+    console.log("%c📡 [RPC Outbound] Sending Unique Question: " + rpcParams.p_question_id, "color: #00ffff; font-weight: bold;");
 
     try {
-      // 3. Fire-and-Forget RPC Call (Non-blocking but traced)
-      const { error } = await supabase.rpc('log_assessment', rpcParams);
-
+      const { data, error } = await supabase.rpc('log_assessment', rpcParams);
 
       if (error) {
-        console.error("❌ [RPC Database Error]:", error.message, "| Code:", error.code);
-        // CRITICAL FALLBACK: Secure in local buffer if DB rejected
+        console.error("❌ DB Error:", error.message);
+        // تأمين الداتا في حالة الفشل
         this.saveToLocalBuffer(rpcParams);
-        console.log(`💾 [Buffer] Failure recovery: Data secured local for ${rpcParams.p_question_id}`);
       } else {
-        console.log(`✅ [Success] Question ${rpcParams.p_question_id} recorded in DB!`);
+        console.log("✅ [DB Success] Count should increase now for:", task.id);
       }
     } catch (fatalErr: any) {
-      console.error("❌ [Fatal Network/RPC Error]:", fatalErr.message);
+      console.error("❌ [Fatal Outbound Error]:", fatalErr.message);
       this.saveToLocalBuffer(rpcParams);
     }
   }
