@@ -449,14 +449,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
       setIsEvaluating(true);
       try {
-        // SAFETY: If the server takes > 15s, we force unblock the UI 
-        const timeoutId = setTimeout(() => {
-          setIsEvaluating(false);
-          console.warn('[Diagnostic] Submission timed out. Forcing UI unblock.');
-        }, 15000);
-
         const { correct } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
-        clearTimeout(timeoutId);
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());

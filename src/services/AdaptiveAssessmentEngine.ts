@@ -534,17 +534,15 @@ export class AdaptiveAssessmentEngine {
           this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
         }
 
-        // 5. 🚩 MANDATORY ATOMIC SAVE (Atomic Await Protocol)
-        // Save is awaited but failures must NOT break the question lifecycle.
-        try {
-          await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer);
-          console.log(`✅ [Data Secured] Row inserted for: ${efsetItem.external_id || efsetItem.id}`);
-        } catch (saveErr: any) {
-          // 🚨 Log full diagnostics but do NOT throw — the assessment must continue
-          console.error("🚨 [Save Failed] Supabase rejected:", saveErr?.message || saveErr);
-          console.error("🔍 Debug — qID:", efsetItem.id, "| answer type:", typeof answer, "| proctor score:", proctor?.score);
-          // Assessment continues — data loss is logged, not fatal
-        }
+        // 5. 🚩 ASYNC-FIRST SAVE (Buffer Secured)
+        // Since we have the LocalStorage Buffer, we no longer await Supabase.
+        // The UI moves forward immediately, and the buffer handles network lag.
+        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
+          .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.external_id || efsetItem.id}`))
+          .catch(saveErr => {
+             console.error("🚨 [Save Error] DB rejected (Buffered):", saveErr?.message);
+             console.debug("Payload debug:", efsetItem.id, typeof answer);
+          });
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
