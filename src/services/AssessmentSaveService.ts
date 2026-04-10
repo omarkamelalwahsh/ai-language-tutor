@@ -24,29 +24,19 @@ export class AssessmentSaveService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 🛡️ SCORE VALIDATION: Ensure it's a valid number between 0 and 1
-      let rawScore = 0;
-      if (evaluation && typeof evaluation.score === 'number') {
-        rawScore = evaluation.score;
-      } else if (evaluation && typeof evaluation.score === 'string') {
-        const parsed = parseFloat(evaluation.score);
-        rawScore = isNaN(parsed) ? 0 : parsed;
-      }
-      
-      // Prevent NaN or Infinite values from reaching the DB
-      const safeScore = isFinite(rawScore) ? Math.max(0, Math.min(1, rawScore)) : 0;
+      const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
+      const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
       const assessmentLog = {
         user_id: user.id,
-        question_id: question.id || question.external_id || 'unknown',
+        question_id: question.external_id || question.id || 'unknown',
         category: question.skill || question.category || 'general',
         user_answer: String(answer || ''),
-        correct_answer: question.correct_answer || (question.answer_key?.value) || '',
-        score: safeScore, // Strictly Double Precision Float
+        score: finalScore, // Directly mapped to double precision
         created_at: new Date().toISOString()
       };
 
-      // 🚀 EXECUTION: Only use columns present in the new schema
+      // 🚀 EXECUTION: Use existing SQL columns (No legacy keys)
       const { error: logError } = await supabase
         .from('assessment_logs')
         .insert([assessmentLog]);
