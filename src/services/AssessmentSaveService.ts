@@ -28,23 +28,30 @@ export class AssessmentSaveService {
       const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
 
       const assessmentLog = {
+        // 🆕 NEW COLUMNS
         user_id: user.id,
-        question_id: question.external_id || question.id || 'unknown',
-        category: question.skill || question.category || 'general',
+        question_id: String(question.external_id || question.id || 'unknown'),
         user_answer: String(answer || ''),
-        score: finalScore, // Directly mapped to double precision
+        score: finalScore,
+        
+        // 🏛️ LEGACY COLUMNS (Saturation Support)
+        category: String(question.skill || question.category || 'general'),
+        question: String(question.prompt || 'Missing Prompt'),
+        answer: String(question.correct_answer || (question.answer_key?.value) || 'No expected answer'),
+        is_correct: Boolean(finalScore >= 0.7),
+        
         created_at: new Date().toISOString()
       };
 
-      // 🚀 EXECUTION: Use existing SQL columns (No legacy keys)
+      // 🚀 FULL SATURATION EXECUTION
       const { error: logError } = await supabase
         .from('assessment_logs')
         .insert([assessmentLog]);
       
       if (logError) {
-        console.error("❌ [Database Error] Failed to save assessment log:", logError.message);
+        console.error("❌ [Database Error] Failed to save saturated assessment log:", logError.message);
       } else {
-        console.log(`✅ [Sync Success] Log persisted for: ${assessmentLog.question_id}`);
+        console.log(`✅ [Saturation Success] All columns filled for: ${assessmentLog.question_id}`);
       }
 
       // Bonus: Error Analysis (The "No-Error" Pattern)
