@@ -115,28 +115,43 @@ export class AssessmentSaveService {
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
     // 1. عداد في الـ Console عشان نعرف احنا في السؤال رقم كام
     console.count("🚀 RPC Call Number"); 
+
+    const userAnswer = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+    const questionText = task.prompt || task.text || task.question || task.id || 'Unknown';
+    const correctAnswer = evaluation.correct_answer || evaluation.expected || '';
+    const isCorrect = !!(evaluation.is_correct ?? (parseFloat(evaluation.score) >= 0.7));
+    const score = parseFloat(evaluation.score) || 0;
+    const category = task.skill || 'General';
+    const confidence = score; // DB column is numeric, send as number
+    const questionId = String(task.id || task.external_id || 'unknown');
+
     console.log("🔥 Full Payload Check:", { 
-      id: task.id || task.external_id, 
-      score: evaluation.score,
-      category: task.skill || 'General'
+      question_id: questionId, 
+      score,
+      category,
+      is_correct: isCorrect
     });
 
     const rpcParams = {
-      p_question_id: String(task.id || task.external_id || 'unknown'),
-      p_category: task.skill || 'General',
-      p_score: parseFloat(evaluation.score) || 0,
+      p_question_id: questionId,
+      p_question_text: questionText,
+      p_user_answer: userAnswer,
+      p_correct_answer: correctAnswer,
+      p_is_correct: isCorrect,
+      p_category: category,
+      p_confidence: confidence,
+      p_score: score,
       p_metadata: {
         ...evaluation,
-        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+        user_answer: userAnswer,
         captured_at: new Date().toISOString()
       }
     };
 
-    console.log("🔥 Calling RPC (Clean 4-Param):", rpcParams.p_question_id);
+    console.log("🔥 Calling RPC (Full Schema):", rpcParams.p_question_id);
 
     try {
       const { data, error } = await supabase.rpc('log_and_update_assessment', rpcParams);
-
 
       if (error) {
         console.error("❌ RPC Failed:", error.message);
@@ -192,6 +207,7 @@ export class AssessmentSaveService {
    */
   public static async updateSkillState(userId: string, skillName: string, confidence: number, level?: string): Promise<void> {
     await withRetry(async () => {
+      const resolvedLevel = level || 'A1';
       const { error } = await supabase
         .from('skill_states')
         .upsert(
@@ -200,7 +216,8 @@ export class AssessmentSaveService {
             skill: skillName || 'unknown', 
             current_score: Math.round((confidence || 0.5) * 10000), 
             confidence: confidence ?? 0.5,
-            current_level: level || 'A1',
+            current_level: resolvedLevel,
+            level: resolvedLevel,
             updated_at: new Date().toISOString(),
             last_tested: new Date().toISOString()
           }, 
