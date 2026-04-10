@@ -72,6 +72,43 @@ export class AssessmentSaveService {
   }
 
   /**
+   * ⚡️ Consolidated Atomic Update: Logs the question and updates the skill state in one flow.
+   * Called manually from the UI to ensure 100% reactive persistence.
+   */
+  public static async log_and_update_assessment(
+    userId: string | null,
+    task: any,
+    evaluation: any,
+    answer: any
+  ): Promise<void> {
+    console.log("%c⚡️ [Consolidated Update] Firing Logging & Skill Sync...", "color: #00ffff; font-bold;");
+    
+    // 1. Log the individual attempt (RPC)
+    const logPromise = this.saveSingleAssessmentLog(task, evaluation, answer);
+    
+    // 2. Update the skill level (UPSERT)
+    let skillPromise = Promise.resolve();
+    if (userId) {
+      skillPromise = this.updateSkillState(
+        userId, 
+        task.skill || 'General', 
+        evaluation.score, 
+        evaluation.detected_level
+      );
+    }
+
+    // Fire both and catch errors independently
+    await Promise.allSettled([logPromise, skillPromise]).then((results) => {
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length === 0) {
+        console.log("✅ [Sync Complete] All layers updated for:", task.id);
+      } else {
+        console.warn(`⚠️ [Sync Partial] ${failed.length} layer(s) failed.`);
+      }
+    });
+  }
+
+  /**
    * Saves a single assessment log (individual question) for real-time persistence.
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */

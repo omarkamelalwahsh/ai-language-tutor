@@ -439,22 +439,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         // 🎯 [FORCE TRIGGER] Perform evaluation and save manually in the UI layer
         const { correct, evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        console.log("%c🚀 Manual Trigger: Saving Question", "color: #ff00ff; font-weight: bold;", currentTask.id);
-        
-        // Explicitly fire the save service and trace it
-        AssessmentSaveService.saveSingleAssessmentLog(currentTask, evaluation, answer);
-
-        // 🚀 [REACTIVE UPDATE] Update skill states in real-time
-        const userId = engine.getUserId();
-        if (userId) {
-          console.log(`%c🚀 Reactive Skill Update: ${currentTask.skill} -> ${evaluation.detected_level}`, "color: #00ff00; font-weight: bold;");
-          AssessmentSaveService.updateSkillState(
-            userId, 
-            currentTask.skill, 
-            evaluation.score, 
-            evaluation.detected_level
-          ).catch(err => console.error("🚨 Skill update failed:", err));
-        }
+        // ⚡️ Atomic Combined Update: Log attempt + Update skill state
+        await AssessmentSaveService.log_and_update_assessment(
+          engine.getUserId(),
+          currentTask,
+          evaluation,
+          answer
+        );
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());
