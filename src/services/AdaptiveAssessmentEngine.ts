@@ -877,29 +877,38 @@ export class AdaptiveAssessmentEngine {
    * Returns true on success, false on failure.
    */
   public async finalizeAssessment(): Promise<boolean> {
+    console.log(`[Engine] 🏁 Starting Fire-and-Forget finalization for session ${this.assessmentId}...`);
+    
     try {
-      console.log(`[Engine] Finalizing Assessment session ${this.assessmentId}...`);
-      
-      // 🔄 SYNC BUFFER: Ensure all individual questions are in the DB before final report
-      await AssessmentSaveService.syncPendingLogs();
-
+      // 1. Calculate Results IMMEDIATELY from Memory
       const finalOutcome = this.getOutcome();
       const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
       
+      this.state.completed = true;
+
       if (!userId) {
         console.warn("[Engine] No userId found, skipping cloud persistence.");
-        return true; // Consider local-only sessions as success for navigation purposes
+        return true; 
       }
 
-      // 1. Save results to Supabase via RPC (Atomic Transaction)
-      await AssessmentSaveService.saveAssessmentResults(finalOutcome);
+      // 2. BACKGROUND TASKS (No await here - let them run in the shadow)
       
-      // 2. Notify internal API of completion (Syncing metadata)
+      // A. Sync any remaining buffered questions
+      AssessmentSaveService.syncPendingLogs().catch(e => console.error("[Sync] Background sweep failed:", e));
+
+      // B. Save results to Supabase via RPC
+      AssessmentSaveService.saveAssessmentResults(finalOutcome).then(() => {
+        console.log("[Engine] ✅ Cloud Results secured via RPC.");
+      }).catch(err => {
+        console.error("🚨 [Engine] Background RPC Save failed:", err);
+      });
+
+      // C. Notify internal API (Syncing metadata)
       const token = this.safeGetLocalStorage('auth_token');
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch('/api/assessments/complete', {
+      fetch('/api/assessments/complete', {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -908,20 +917,20 @@ export class AdaptiveAssessmentEngine {
            confidence: finalOutcome.overallConfidence,
            auditorReport: finalOutcome.auditorReport
         })
-      });
+      }).then(res => {
+        if (!res.ok) console.warn(`[Engine] API Sync background returned ${res.status}`);
+        else console.log("[Engine] ✅ Internal API notified of completion.");
+      }).catch(err => console.error("🚨 [Engine] API Sync background failed:", err));
 
-      if (!res.ok) {
-        console.warn(`[Engine] /api/assessments/complete returned status ${res.status}`);
-      }
-
-      console.log(`[Engine] Successfully committed session ${this.assessmentId} to Database.`);
-      this.state.completed = true;
+      // 3. IMMEDIATE RELEASE: Unblock the UI so the user sees results NOW
       return true;
-    } catch (e) {
-      console.error(`[Engine] Failed to finalize session:`, e);
-      return false;
+
+    } catch (criticalError) {
+      console.error("❌ [Engine] Critical Finalization Crash:", criticalError);
+      return true; // Still return true to avoid getting the user stuck
     }
   }
+
 
   public async completeAssessment(): Promise<void> {
     await this.finalizeAssessment();
