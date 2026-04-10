@@ -457,7 +457,7 @@ export class AdaptiveAssessmentEngine {
         
         console.log(`[Engine] Proctor: ${proctor.detected_level} | ${proctor.expected_skill} | Score: ${score}`);
 
-        // 1. Streak-based Difficulty Adjustment
+        // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)
         if (score > 0.85) {
           this.streakTracking.consecutivePerfect++;
           this.streakTracking.consecutiveFailed = 0;
@@ -468,7 +468,15 @@ export class AdaptiveAssessmentEngine {
         } else if (score < 0.4) {
           this.streakTracking.consecutiveFailed++;
           this.streakTracking.consecutivePerfect = 0;
-          this.levelDown();
+          // 🛡️ FIX: Require 2 consecutive failures before dropping level (was instant before)
+          if (this.streakTracking.consecutiveFailed >= 2) {
+            this.levelDown();
+            this.streakTracking.consecutiveFailed = 0;
+          }
+        } else {
+          // Mid-range score: reset both streaks (no momentum)
+          this.streakTracking.consecutivePerfect = 0;
+          this.streakTracking.consecutiveFailed = 0;
         }
 
         // 2. EFSET Evidence Mapping
@@ -527,16 +535,15 @@ export class AdaptiveAssessmentEngine {
         }
 
         // 5. 🚩 MANDATORY ATOMIC SAVE (Atomic Await Protocol)
-        // High-priority awaited save - errors propagate so caller knows exact failure point.
+        // Save is awaited but failures must NOT break the question lifecycle.
         try {
           await AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer);
-          console.log(`✅ [Data Secured] Atomic Save confirmed for: ${efsetItem.external_id || efsetItem.id}`);
+          console.log(`✅ [Data Secured] Row inserted for: ${efsetItem.external_id || efsetItem.id}`);
         } catch (saveErr: any) {
-          // 🚨 Critical: Surface the exact error (RLS? Data Type? Network?)
-          console.error("🚨 [Critical Failure] Atomic Save REJECTED:", saveErr?.message || saveErr);
-          console.error("🔍 Payload debug — question:", efsetItem.id, "| answer type:", typeof answer, "| proctor type:", typeof proctor);
-          // Don't swallow — let upper catch handle gracefully
-          throw saveErr;
+          // 🚨 Log full diagnostics but do NOT throw — the assessment must continue
+          console.error("🚨 [Save Failed] Supabase rejected:", saveErr?.message || saveErr);
+          console.error("🔍 Debug — qID:", efsetItem.id, "| answer type:", typeof answer, "| proctor score:", proctor?.score);
+          // Assessment continues — data loss is logged, not fatal
         }
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)

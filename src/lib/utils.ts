@@ -10,8 +10,8 @@ export function cn(...inputs: ClassValue[]) {
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
-  initialDelay: number = 1000
+  maxRetries: number = 2,
+  initialDelay: number = 500
 ): Promise<T> {
   let lastError: any;
   
