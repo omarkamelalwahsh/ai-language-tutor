@@ -76,31 +76,30 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    // 1. Prepare CLEAN RPC PARAMS (No IDs - Secured by Database Session)
-    const params = {
-      p_question_id: task.id,
-      p_category: task.skill || 'General',
-      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : answer,
-      p_score: evaluation.score,
-      p_evaluation_metadata: evaluation
+    // 1. تجهيز الداتا بالظبط زي ما الـ SQL Function مستنياها
+    const rpcParams = {
+      p_question_id: task.id || 'unknown',
+      p_category: task.skill || 'general',
+      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+      p_score: parseFloat(evaluation.score) || 0,
+      p_evaluation_metadata: {
+        ...evaluation,
+        question_text: task.question || '' // بنبعته هنا عشان الـ SQL يرفعه لعمود question
+      }
     };
 
-    console.log("🚀 [RPC Call] Logging question:", params.p_question_id);
+    console.log("🚀 [RPC Attempt] Logging task:", rpcParams.p_question_id);
 
-    // 3. Fire-and-Forget RPC Call (Background execution for speed)
-    supabase.rpc('log_assessment', params).then(({ error }) => {
-      if (error) {
-        console.error("❌ RPC Error:", error.message);
-        // Fallback: Secure in local buffer if DB rejected or network failed
-        this.saveToLocalBuffer(params);
-        console.log(`💾 [Buffer] Failure recovery: Params secured locally for ${params.p_question_id}`);
-      } else {
-        console.log("✅ [Success] Question logged via RPC safely!");
-      }
-    }).catch(err => {
-      console.error("❌ [Fatal] RPC execution failed:", err);
-      this.saveToLocalBuffer(params);
-    });
+    // 2. استدعاء الـ RPC (لاحظ: مش بنبعت user_id ولا id خالص)
+    const { error } = await supabase.rpc('log_assessment', rpcParams);
+
+    if (error) {
+      console.error("❌ RPC Database Error:", error.message);
+      // تأمين الداتا في حالة الفشل
+      this.saveToLocalBuffer(rpcParams);
+    } else {
+      console.log("✅ [Success] Question recorded in DB successfully!");
+    }
   }
 
 
