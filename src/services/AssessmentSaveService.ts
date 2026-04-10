@@ -132,6 +132,24 @@ export class AssessmentSaveService {
       is_correct: isCorrect
     });
 
+    const dbPayload = {
+      user_id: localStorage.getItem('auth_user_id'), // Ensure we have the ID for buffering
+      question_id: questionId,
+      question: questionText,
+      user_answer: userAnswer,
+      answer: userAnswer,
+      correct_answer: correctAnswer,
+      is_correct: isCorrect,
+      category: category,
+      confidence: confidence,
+      score: score,
+      evaluation_metadata: {
+        ...evaluation,
+        user_answer: userAnswer,
+        captured_at: new Date().toISOString()
+      }
+    };
+
     const rpcParams = {
       p_question_id: questionId,
       p_question_text: questionText,
@@ -141,11 +159,7 @@ export class AssessmentSaveService {
       p_category: category,
       p_confidence: confidence,
       p_score: score,
-      p_metadata: {
-        ...evaluation,
-        user_answer: userAnswer,
-        captured_at: new Date().toISOString()
-      }
+      p_metadata: dbPayload.evaluation_metadata
     };
 
     console.log("🔥 Calling RPC (Full Schema):", rpcParams.p_question_id);
@@ -155,14 +169,15 @@ export class AssessmentSaveService {
 
       if (error) {
         console.error("❌ RPC Failed:", error.message);
-        // تأمين الداتا في حالة الفشل
-        this.saveToLocalBuffer(rpcParams);
+        // تأمين الداتا في حالة الفشل باستخدام أسماء الأعمدة الحقيقية
+        this.saveToLocalBuffer(dbPayload);
       } else {
         console.log("✅ Saved successfully to DB");
       }
     } catch (fatalErr: any) {
       console.error("❌ [Fatal Error]:", fatalErr.message);
-      this.saveToLocalBuffer(rpcParams);
+      this.saveToLocalBuffer(dbPayload);
+    }
     }
   }
 
