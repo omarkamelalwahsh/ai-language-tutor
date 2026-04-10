@@ -110,7 +110,7 @@ export const useSupabaseDashboard = () => {
                 confidence, 
                 updated_at
               )
-            \`)
+            `)
             .eq('id', user.id)
             .single(),
           supabase
