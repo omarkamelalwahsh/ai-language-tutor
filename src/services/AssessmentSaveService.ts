@@ -79,85 +79,30 @@ export class AssessmentSaveService {
    */
   public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
     try {
-
-      // ── Ensure Auth First ──────────────────────────────────────────────────
       const userId = await this.getAuthenticatedUserId();
-      console.log('[AssessmentSave] 🔑 Auth verified for:', userId);
-
-      // ── 1. learner_profiles ──────────────────────────────────────────────────
-      await withRetry(async () => {
-        const { error: profileError } = await supabase
-          .from('learner_profiles')
-          .upsert(
-            {
-              id: userId,
-              overall_level: String(outcome.finalLevel || outcome.overallBand),
-              onboarding_complete: true,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'id' }
-          );
-
-        if (profileError) throw profileError;
-        console.log('[AssessmentSave] ✅ learner_profiles saved.');
-      });
-
-
-      // ── 2. skill_states (ATOMIC UPSERT) ─────────────────────────
-      const skillKeys = Object.keys(outcome.skillBreakdown) as (keyof typeof outcome.skillBreakdown)[];
-      const skillStatesData = skillKeys.map((skill) => ({
-        user_id: userId,
-        skill,
-        current_level: String(outcome.skillBreakdown[skill].band),
-        current_score: Math.round(outcome.skillBreakdown[skill].score * 100), // outcome uses 0-100 scale usually
-        confidence: outcome.skillBreakdown[skill].confidence,
-        updated_at: new Date().toISOString(),
-        last_tested: new Date().toISOString(),
-      }));
+      console.log('[AssessmentSave] 🔑 Launching Atomic Finalization for:', userId);
 
       await withRetry(async () => {
-        const { error: skillUpsertError } = await supabase
-          .from('skill_states')
-          .upsert(skillStatesData, { onConflict: 'user_id, skill' });
+        const { error } = await supabase.rpc('finalize_diagnostic_v2', {
+          p_user_id: userId,
+          p_final_level: String(outcome.finalLevel || outcome.overallBand),
+          p_points: outcome.pointsAwarded || 50,
+          p_skill_breakdown: outcome.skillBreakdown,
+          p_weaknesses: outcome.weaknesses || [],
+          p_action_plan: typeof outcome.actionPlan === 'string' 
+            ? outcome.actionPlan 
+            : JSON.stringify(outcome.actionPlan),
+          p_common_mistakes: outcome.common_mistakes || [],
+          p_bridge_delta: outcome.bridgeDelta || null,
+          p_bridge_percentage: outcome.bridgePercentage || null
+        });
 
-        if (skillUpsertError) throw skillUpsertError;
-        console.log('[AssessmentSave] ✅ skill_states synced with Integer Weights.');
+        if (error) throw error;
+        console.log('[AssessmentSave] 🚀 Atomic Finalization SUCCESS.');
       });
-
-
-      // ── 3. assessment_logs (SKIPPED) ──────────────────────────────────────────
-      // Individual logs are now saved in real-time during question submission.
-      // ────────────────────────────────────────────────────────────────────────
-
-
-
-      // ── 4. user_error_profiles (Full Analysis Payload) ───────────────────────
-      const errorProfilePayload = {
-        user_id: userId,
-        common_mistakes: outcome.weaknesses || [],
-        recommendations: outcome.recommendations || [],
-        bridge_delta: outcome.bridgeDelta,
-        bridge_percentage: outcome.bridgePercentage,
-        missing_skills: outcome.missingSkills,
-        action_plan: outcome.actionPlan,
-        final_level: outcome.finalLevel,
-        error_analysis_report: outcome.errorAnalysisReport,
-        last_analyzed: new Date().toISOString()
-      };
-
-      await withRetry(async () => {
-        const { error: errorProfileError } = await supabase
-          .from('user_error_profiles')
-          .upsert(errorProfilePayload, { onConflict: 'user_id' });
-
-        if (errorProfileError) throw errorProfileError;
-        console.log('[AssessmentSave] ✅ user_error_profiles updated.');
-      });
-
-      console.log('[AssessmentSave] 🚀 Full persistence transaction successful with retry guards.');
 
     } catch (e) {
-      console.error('[AssessmentSave] Transaction failed:', e);
+      console.error('[AssessmentSave] Atomic Transaction failed:', e);
       throw e;
     }
   }

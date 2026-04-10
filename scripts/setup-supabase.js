@@ -33,7 +33,7 @@ async function setupDatabase() {
         confidence_style TEXT DEFAULT 'Calculated',
         self_correction_rate INTEGER DEFAULT 82,
         accuracy_rate INTEGER DEFAULT 82,
-        has_completed_assessment BOOLEAN DEFAULT FALSE,
+        onboarding_complete BOOLEAN DEFAULT FALSE,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -52,7 +52,7 @@ async function setupDatabase() {
       ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS confidence_style TEXT DEFAULT 'Calculated';
       ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS self_correction_rate INTEGER DEFAULT 82;
       ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS accuracy_rate INTEGER DEFAULT 82;
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS has_completed_assessment BOOLEAN DEFAULT FALSE;
+      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT FALSE;
       ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
     `);
 
@@ -228,6 +228,85 @@ async function setupDatabase() {
         WHERE user_id = p_user_id AND (skill = p_skill OR skill = LOWER(p_skill));
       END;
       $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+      -- 11. Full Diagnostic Finalizer (Atomic Guarantee)
+      CREATE OR REPLACE FUNCTION public.finalize_diagnostic_v2(
+        p_user_id uuid,
+        p_final_level text,
+        p_points int,
+        p_skill_breakdown jsonb,
+        p_weaknesses text[],
+        p_action_plan text,
+        p_common_mistakes text[],
+        p_bridge_delta text DEFAULT NULL,
+        p_bridge_percentage float8 DEFAULT NULL
+      )
+      RETURNS void AS $$
+      DECLARE
+        skill_key text;
+        skill_val jsonb;
+      BEGIN
+        -- 1. Update Profile (The Core Unlock)
+        UPDATE public.learner_profiles
+        SET 
+          overall_level = p_final_level,
+          points = COALESCE(points, 0) + p_points,
+          onboarding_complete = TRUE,
+          updated_at = NOW()
+        WHERE id = p_user_id;
+
+        -- 2. Upsert Skill States
+        FOR skill_key, skill_val IN SELECT * FROM jsonb_each(p_skill_breakdown)
+        LOOP
+          INSERT INTO public.skill_states (user_id, skill, current_level, current_score, confidence, last_tested, updated_at)
+          VALUES (
+            p_user_id, 
+            skill_key, 
+            skill_val->>'band', 
+            (skill_val->>'score')::int, 
+            (skill_val->>'confidence')::float8,
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (user_id, skill) DO UPDATE
+          SET
+            current_level = EXCLUDED.current_level,
+            current_score = EXCLUDED.current_score,
+            confidence = EXCLUDED.confidence,
+            last_tested = EXCLUDED.last_tested,
+            updated_at = EXCLUDED.updated_at;
+        END LOOP;
+
+        -- 3. Upsert Error Profile (Dashboard Insights)
+        INSERT INTO public.user_error_profiles (
+          user_id, 
+          weakness_areas, 
+          common_mistakes, 
+          action_plan, 
+          bridge_delta, 
+          bridge_percentage, 
+          updated_at
+        )
+        VALUES (
+          p_user_id, 
+          p_weaknesses, 
+          p_common_mistakes, 
+          p_action_plan, 
+          p_bridge_delta, 
+          p_bridge_percentage, 
+          NOW()
+        )
+        ON CONFLICT (user_id) DO UPDATE
+        SET
+          weakness_areas = EXCLUDED.weakness_areas,
+          common_mistakes = EXCLUDED.common_mistakes,
+          action_plan = EXCLUDED.action_plan,
+          bridge_delta = EXCLUDED.bridge_delta,
+          bridge_percentage = EXCLUDED.bridge_percentage,
+          updated_at = EXCLUDED.updated_at;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+
     `);
 
     await client.query('COMMIT');

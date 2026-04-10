@@ -125,9 +125,21 @@ function AppRoutes() {
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
   const handleAssessmentSave = async (result: any, outcome: any, evals: any) => {
-    setSessionResult(result, outcome, evals);
-    await refreshData();
-    navigate('/dashboard');
+    try {
+      // 1. Persist session data locally + trigger DB save (Now Atomic RPC)
+      await setSessionResult(result, outcome, evals);
+      
+      // 2. Re-fetch profile from DB to ensure onboarding_complete is TRUE
+      await refreshData();
+      
+      // 3. Frontend Guarantee: Force full browser redirect to kill stale state
+      console.log('[AppRoutes] 🚀 Finalizing with Frontend Guarantee redirect...');
+      window.location.assign('/dashboard');
+    } catch (error) {
+      console.error('[AppRoutes] Assessment save failed:', error);
+      // Fallback redirect
+      window.location.assign('/dashboard');
+    }
   };
 
   return (
