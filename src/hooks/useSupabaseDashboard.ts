@@ -10,6 +10,11 @@ export interface DashboardSupabaseData {
   profile: {
     currentLevel: string;
     onboardingComplete: boolean;
+    points: number;
+    streak: number;
+    pacingScore: number;
+    accuracyRate: number;
+    selfCorrectionRate: number;
   } | null;
   skills: {
     skill: string;
@@ -94,6 +99,9 @@ export const useSupabaseDashboard = () => {
               onboarding_complete, 
               points, 
               streak,
+              pacing_score,
+              accuracy_rate,
+              self_correction_rate,
               skill_states (
                 skill, 
                 current_level, 
@@ -151,6 +159,9 @@ export const useSupabaseDashboard = () => {
                   onboardingComplete: profileData.onboarding_complete || false,
                   points: profileData.points || 0,
                   streak: profileData.streak || 0,
+                  pacingScore: profileData.pacing_score || 0,
+                  accuracyRate: profileData.accuracy_rate || 0,
+                  selfCorrectionRate: profileData.self_correction_rate || 0,
                 }
               : null,
             skills: skillsData.map((s: any) => ({

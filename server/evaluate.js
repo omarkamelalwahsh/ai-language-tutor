@@ -200,11 +200,9 @@ app.get("/api/questions", async (req, res) => {
 app.get('/api/leaderboard', async (req, res) => {
   try {
     // Fetch users sorted by their most recent assessment performance
-    // For a real production app, we'd join with a 'points' column, 
-    // but here we derive it from activity.
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, display_name, last_assessed_level, target_cefr, onboarding_complete')
+      .from('learner_profiles')
+      .select('id, full_name, overall_level, onboarding_complete')
       .eq('onboarding_complete', true)
       .limit(50);
 
@@ -213,12 +211,12 @@ app.get('/api/leaderboard', async (req, res) => {
     // Map to the expected LeaderboardEntry type
     const leaderboard = data.map((user, index) => ({
       userId: user.id,
-      displayName: user.display_name || "Aspiring Learner",
+      displayName: user.full_name || "Aspiring Learner",
       rank: index + 1,
       score: 1000 + (data.length - index) * 100, // Score logic can be refined later
       streak: 5,
       completedModules: 12,
-      level: user.last_assessed_level || user.target_cefr || "B1",
+      level: user.overall_level || "B1",
       lastActivityAt: "Active",
       teamName: "Global"
     }));
@@ -232,7 +230,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
 app.get('/api/admin/stats', async (req, res) => {
   try {
-    const { count: totalLearners } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+    const { count: totalLearners } = await supabase.from('learner_profiles').select('*', { count: 'exact', head: true });
     const { count: completedAssessments } = await supabase.from('assessment_responses').select('*', { count: 'exact', head: true });
 
     return res.status(200).json({
@@ -333,11 +331,17 @@ app.post('/api/evaluate', async (req, res) => {
 
           // 2. Upsert Skill Mastery (Overwrite the overall levelRange based on new score mapping)
           tasks.push(supabase.from('skill_states').update({ 
-            score: parsed.confidence || 0.8,
+            current_score: Math.round((parsed.confidence || 0.8) * 100),
             "levelRange": [parsed.suggestedBand || payload.currentBand, parsed.suggestedBand || payload.currentBand]
           }).eq('user_id', targetUserId).eq('skill', payload.skill.toLowerCase()));
 
-          // 3. Log into error_profiles if the UI reported heavily penalized responses or grammar failures
+          // 3. Update Overall Level in Learner Profile
+          tasks.push(supabase.from('learner_profiles').update({ 
+            overall_level: parsed.suggestedBand || payload.currentBand,
+            updated_at: new Date().toISOString()
+          }).eq('id', targetUserId));
+
+          // 4. Log into error_profiles if the UI reported heavily penalized responses or grammar failures
           if (parsed.isCorrect === false) {
              tasks.push(supabase.from('error_profiles').insert({
                 user_id: targetUserId,
@@ -504,7 +508,7 @@ app.get("/api/user/history/:userId", async (req, res) => {
   try {
     // 1. Get latest profile (for current level etc.)
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('learner_profiles')
       .select('*')
       .eq('id', userId)
       .single();

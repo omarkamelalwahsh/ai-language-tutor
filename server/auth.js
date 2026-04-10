@@ -30,7 +30,8 @@ authRouter.post('/trainee/signup', async (req, res) => {
     // Hash password
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Create User
+    // Create User (Manual insert for public.users if still using that, 
+    // but the trigger on auth.users is the main one now)
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert([{ name, email, password_hash, role: 'user' }])
@@ -39,22 +40,8 @@ authRouter.post('/trainee/signup', async (req, res) => {
 
     if (userError) throw userError;
 
-    // Create Learner Profile
-    const { error: profileError } = await supabase
-      .from('learner_profiles')
-      .insert([{ user_id: user.id }]);
-
-    if (profileError) throw profileError;
-
-    // Create Skill States
-    const skills = ['listening', 'reading', 'writing', 'speaking', 'grammar', 'vocabulary'];
-    const skillData = skills.map(skill => ({ user_id: user.id, skill }));
-
-    const { error: skillsError } = await supabase
-      .from('skill_states')
-      .insert(skillData);
-
-    if (skillsError) throw skillsError;
+    // Note: learner_profile and skill_states are now created automatically
+    // via PostgreSQL trigger [on_auth_user_created] in the database.
 
     // Generate token
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -94,7 +81,7 @@ authRouter.post('/trainee/login', async (req, res) => {
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('learner_profiles')
       .select('onboarding_complete')
       .eq('id', user.id)
       .single();
@@ -127,9 +114,9 @@ authRouter.post('/onboarding/complete', async (req, res) => {
       .from('learner_profiles')
       .update({
         onboarding_complete: true,
-        overall_band: cefrLevel
+        overall_level: cefrLevel
       })
-      .eq('user_id', userId);
+      .eq('id', userId);
 
     if (error) throw error;
 
