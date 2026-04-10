@@ -63,13 +63,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   const location = window.location.pathname;
 
-  if (isInitializing) return <LoadingScreen />;
+  // 🛡️ RACE CONDITION KILLER: Wait for both Auth AND Profile before deciding
+  if (isInitializing || (user && !profile)) return <LoadingScreen />;
   
   // if not logged in -> Auth page
   if (!user) return <Navigate to="/auth" />;
 
   // Deep-Link Protection: If in protected area (like dashboard) but not onboarded -> Diagnostic
-  if (!profile?.onboarding_complete && !location.includes('diagnostic') && !location.includes('onboarding')) {
+  if (profile && !profile.onboarding_complete && !location.includes('diagnostic') && !location.includes('onboarding')) {
     return <Navigate to="/onboarding" />;
   }
 
@@ -79,11 +80,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Helper for public/auth routes
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
-  if (isInitializing) return <LoadingScreen />;
-  if (user) {
-    if (profile?.onboarding_complete) return <Navigate to="/dashboard" />;
+  
+  // 🛡️ RACE CONDITION KILLER: Wait for both Auth AND Profile
+  if (isInitializing || (user && !profile)) return <LoadingScreen />;
+  
+  if (user && profile) {
+    if (profile.onboarding_complete) return <Navigate to="/dashboard" />;
     return <Navigate to="/onboarding" />;
   }
+  
   return <>{children}</>;
 };
 

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
+import { DB_SCHEMA } from '../constants/dbSchema';
 import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
 
 const goalContextConfigs: Record<string, {
@@ -69,10 +70,10 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
         import('../lib/supabaseClient').then(async ({ supabase }) => {
           try {
             const { error } = await supabase
-              .from('learner_profiles')
+              .from(DB_SCHEMA.TABLES.PROFILES)
               .update({ 
-                 overall_level: 'Pending', 
-                 onboarding_complete: true,
+                 [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
+                 [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
                  updated_at: new Date().toISOString()
               })
               .eq('id', userId);

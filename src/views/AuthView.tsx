@@ -4,6 +4,7 @@ import { Mail, Lock, User as UserIcon, Loader2, ArrowLeft, Shield } from 'lucide
 import { FadeTransition } from '../lib/animations';
 import { UserRole } from '../types/app';
 import { supabase } from '../lib/supabaseClient';
+import { DB_SCHEMA } from '../constants/dbSchema';
 
 export interface AuthViewProps {
   onLogin: (role: UserRole, onboardingComplete: boolean) => void;
@@ -60,12 +61,12 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
 
           // Check if onboarding is complete from learner_profiles
           const { data: profile } = await supabase
-            .from('learner_profiles')
-            .select('onboarding_complete')
+            .from(DB_SCHEMA.TABLES.PROFILES)
+            .select(DB_SCHEMA.COLUMNS.ONBOARDING)
             .eq('id', data.user.id)
             .single();
 
-          onLogin('user', profile?.onboarding_complete || false);
+          onLogin('user', (profile as any)?.[DB_SCHEMA.COLUMNS.ONBOARDING] || false);
         } else {
           // Trainee Signup
           const { data, error: signupError } = await supabase.auth.signUp({
