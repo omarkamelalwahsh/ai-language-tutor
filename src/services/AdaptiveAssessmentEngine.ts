@@ -432,10 +432,12 @@ export class AdaptiveAssessmentEngine {
       answer,
       correctAnswer: correctText,
       responseTimeMs,
-      taskType: efsetItem.task_type as any
-    });
-
+     console.log("%c🚀 [ENGINE] submitAnswer triggered!", "color: #00ff00; font-weight: bold; font-size: 14px;");
+    
     try {
+      // 🎯 SHIELD-FIRST: Save attempt BEFORE AI evaluation to prevent data loss on timeout
+      console.log("📤 [Engine] Pre-eval save attempt for:", efsetItem.id);
+      
       // 🤖 PROCTOR AGENT: The single source of truth for scoring and adaptivity
       const recentHistory = this.state.answerHistory.slice(-5).map(h => ({
         q: h.questionId,
@@ -443,27 +445,31 @@ export class AdaptiveAssessmentEngine {
         c: h.correct
       }));
       
-      const proctor = await GroqScoringService.callProctor(
+      const proctorPromise = GroqScoringService.callProctor(
         question, 
         answer, 
         this.streakTracking.currentCalibration, 
         JSON.stringify(recentHistory)
       );
+
+      // We wait for proctor but we ensure the save service is called with whatever we have
+      const proctor = await proctorPromise.catch(e => {
+        console.warn("⚠️ [Engine] Proctor failed or timed out, using fallback for save.");
+        return null;
+      });
       
+      // 🚀 CRITICAL LINK: Immediate Async-First Save (Row will exist regardless of AI success)
+      const evaluationToSave = proctor || { score: 0, is_correct: false, feedback: 'AI Evaluation Failed/Timeout', detected_level: this.streakTracking.currentCalibration };
+      
+      AssessmentSaveService.saveSingleAssessmentLog(efsetItem, evaluationToSave, answer)
+        .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.id}`))
+        .catch(err => console.error("🚨 [Save Service] Final rejection:", err));
+
       if (proctor) {
         this.streakTracking.proctorAdvice = proctor;
-        const isCorrectResult = proctor.is_correct;
         const score = proctor.score;
-        
-        console.log(`[Engine] Proctor: ${proctor.detected_level} | ${proctor.expected_skill} | Score: ${score}`);
-
-        // 🚀 CRITICAL LINK: Immediate Async-First Save (Zero-Crash Protocol)
-        console.log("🚀 Calling Save Service for:", efsetItem.id);
-        AssessmentSaveService.saveSingleAssessmentLog(efsetItem, proctor, answer)
-          .then(() => console.log(`✅ [Secured] Row confirmed for: ${efsetItem.external_id || efsetItem.id}`))
-          .catch(saveErr => {
-             console.error("🚨 [Save Error] DB rejected (Buffered):", saveErr?.message);
-             console.debug("Payload debug:", efsetItem.id, typeof answer);
+        console.log(`[Engine] Proctor confirmed: ${proctor.detected_level} | Score: ${score}`);
+debug("Payload debug:", efsetItem.id, typeof answer);
           });
 
         // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)

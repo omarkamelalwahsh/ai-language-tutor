@@ -92,12 +92,14 @@ export class AssessmentSaveService {
       }
     };
 
-    console.log("📤 [RPC Attempt] Preparing to log task:", rpcParams.p_question_id);
+    console.log("%c**************** ASSESSMENT SAVE ATTEMPT ****************", "color: #ff9900; font-weight: bold;");
+    console.log("📤 [RPC Attempt] Task:", rpcParams.p_question_id);
     console.debug("📊 [Payload Debug]:", rpcParams);
 
     try {
       // 3. Fire-and-Forget RPC Call (Non-blocking but traced)
       const { error } = await supabase.rpc('log_assessment', rpcParams);
+
 
       if (error) {
         console.error("❌ [RPC Database Error]:", error.message, "| Code:", error.code);
