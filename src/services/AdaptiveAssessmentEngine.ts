@@ -327,22 +327,22 @@ export class AdaptiveAssessmentEngine {
     const skillsToProbe: EFSETSkillName[] = ['speaking', 'grammar', 'vocabulary']; // Rotated by Proctor
     const nextSkill = skillsToProbe[uniqueAnsweredCount % skillsToProbe.length];
     
-    // 3. Hybrid Generation Support: Check if Proctor has a specific next_question
-    if (this.streakTracking.proctorAdvice?.next_question) {
-      console.log('[Engine] 🤖 Using Proctor Generated Question.');
-      const advice = this.streakTracking.proctorAdvice;
-      
-      return {
-        id: `gen-${Math.random().toString(36).substr(2, 5)}`,
-        prompt: advice.next_question,
-        skill: advice.expected_skill.toLowerCase() as any,
-        primarySkill: advice.expected_skill.toLowerCase() as any,
-        difficulty: advice.current_difficulty_calibration as DifficultyBand,
-        type: 'short_text', // Default for generated questions
-        response_mode: advice.expected_skill === 'Speaking' ? 'voice' : 'typed',
-        _proctorGenerated: true
-      } as any;
-    }
+    // ❌ AI GENERATION DISABLED: All questions must come from the Selector (Bank only)
+    // if (this.streakTracking.proctorAdvice?.next_question) {
+    //   console.log('[Engine] 🤖 Using Proctor Generated Question.');
+    //   const advice = this.streakTracking.proctorAdvice;
+    //   
+    //   return {
+    //     id: `gen-${Math.random().toString(36).substr(2, 5)}`,
+    //     prompt: advice.next_question,
+    //     skill: advice.expected_skill.toLowerCase() as any,
+    //     primarySkill: advice.expected_skill.toLowerCase() as any,
+    //     difficulty: advice.current_difficulty_calibration as DifficultyBand,
+    //     type: 'short_text',
+    //     response_mode: advice.expected_skill === 'Speaking' ? 'voice' : 'typed',
+    //     _proctorGenerated: true
+    //   } as any;
+    // }
 
     // 4. Select Next Item from Bank
     const nextItem = this.selector.selectNext({

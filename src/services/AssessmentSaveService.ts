@@ -29,17 +29,16 @@ export class AssessmentSaveService {
 
       // 🛠️ Smart Expected Answer Extraction: Fixes [object Object] issue
       const ak = question.answer_key;
-      let expectedAnswer = 'No expected answer';
-      
-      if (typeof ak === 'string') {
-        expectedAnswer = ak;
-      } else if (ak && typeof ak === 'object') {
-        expectedAnswer = ak.value?.text || ak.value || ak.text || JSON.stringify(ak);
-      }
+      // تأكد إن String() محوطة كل حاجة قبل الـ trim
+      const expectedAnswer = typeof ak === 'string' 
+        ? ak 
+        : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
       
       // 🛡️ CRITICAL RULE 3: Fix "m.trim" TypeError (Zero-Crash Protocol)
       const safeAnswer = String(answer || "").trim();
       const safeExpected = String(expectedAnswer || "").trim();
+      const normalizedUser = String(answer || "").trim().toLowerCase();
+      const normalizedExpected = String(expectedAnswer || "").trim().toLowerCase();
 
       // ⚡ HYBRID SCORING LOGIC (The "Smart Move"): Absolute accuracy for MCQs
       const isMCQ = (question.type === 'mcq' || question.response_mode === 'mcq' || (question.options && question.options.length > 0));
