@@ -76,36 +76,36 @@ export class AssessmentSaveService {
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
   public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    // 1. بصمة زمنية فريدة لكل نداء لكسر أي كاش أو قيود فريدة
-    const uniqueRequestTime = new Date().toISOString();
-    const timestamp = Date.now();
+    // 1. عداد في الـ Console عشان نعرف احنا في السؤال رقم كام
+    console.count("🚀 RPC Call Number"); 
+    console.log("🔥 Full Payload Check:", { 
+      id: task.id || task.external_id, 
+      score: evaluation.score,
+      category: task.skill || 'General'
+    });
 
     const rpcParams = {
-      p_question_id: (task.id || 'unknown') + "_" + timestamp, // كسر الـ Unique Constraint
+      p_question_id: String(task.id || task.external_id || 'unknown'),
       p_category: task.skill || 'General',
       p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
       p_score: parseFloat(evaluation.score) || 0,
-      p_evaluation_metadata: {
-        ...evaluation,
-        request_time: uniqueRequestTime, // بصمة فريدة للنداء
-        orig_question_id: task.id // حفظ الـ ID الأصلي للرجوع إليه
-      }
+      p_evaluation_metadata: evaluation
     };
 
-    console.log("%c📡 [RPC Outbound] Sending Unique Question: " + rpcParams.p_question_id, "color: #00ffff; font-weight: bold;");
+    console.log("🔥 Calling RPC for question:", rpcParams.p_question_id);
 
     try {
       const { data, error } = await supabase.rpc('log_assessment', rpcParams);
 
       if (error) {
-        console.error("❌ DB Error:", error.message);
+        console.error("❌ RPC Failed:", error.message);
         // تأمين الداتا في حالة الفشل
         this.saveToLocalBuffer(rpcParams);
       } else {
-        console.log("✅ [DB Success] Count should increase now for:", task.id);
+        console.log("✅ Saved successfully to DB");
       }
     } catch (fatalErr: any) {
-      console.error("❌ [Fatal Outbound Error]:", fatalErr.message);
+      console.error("❌ [Fatal Error]:", fatalErr.message);
       this.saveToLocalBuffer(rpcParams);
     }
   }
