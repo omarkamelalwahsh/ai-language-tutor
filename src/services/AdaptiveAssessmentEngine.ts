@@ -107,6 +107,10 @@ export class AdaptiveAssessmentEngine {
     return null;
   }
 
+  public getUserId(): string | null {
+    return this.userId;
+  }
+
   constructor(startingBand: DifficultyBand = 'B1', contextProfile?: LearnerContextProfile, userId: string | null = null) {
     this.userId = userId || this.safeGetLocalStorage('auth_user_id');
     this.assessmentId = "session-" + Math.random().toString(36).substr(2, 9);

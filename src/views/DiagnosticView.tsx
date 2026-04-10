@@ -443,6 +443,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         
         // Explicitly fire the save service and trace it
         AssessmentSaveService.saveSingleAssessmentLog(currentTask, evaluation, answer);
+
+        // 🚀 [REACTIVE UPDATE] Update skill states in real-time
+        const userId = engine.getUserId();
+        if (userId) {
+          console.log(`%c🚀 Reactive Skill Update: ${currentTask.skill} -> ${evaluation.detected_level}`, "color: #00ff00; font-weight: bold;");
+          AssessmentSaveService.updateSkillState(
+            userId, 
+            currentTask.skill, 
+            evaluation.score, 
+            evaluation.detected_level
+          ).catch(err => console.error("🚨 Skill update failed:", err));
+        }
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());
