@@ -882,6 +882,10 @@ export class AdaptiveAssessmentEngine {
   public async finalizeAssessment(): Promise<boolean> {
     try {
       console.log(`[Engine] Finalizing Assessment session ${this.assessmentId}...`);
+      
+      // 🔄 SYNC BUFFER: Ensure all individual questions are in the DB before final report
+      await AssessmentSaveService.syncPendingLogs();
+
       const finalOutcome = this.getOutcome();
       const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
       

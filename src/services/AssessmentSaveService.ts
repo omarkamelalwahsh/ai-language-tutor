@@ -16,6 +16,59 @@ export class AssessmentSaveService {
   }
 
   /**
+   * Helper to append a log to the local buffer (localStorage) for reliability.
+   */
+  private static saveToLocalBuffer(payload: any) {
+    if (typeof window === 'undefined') return;
+    try {
+      const buffer = JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]');
+      buffer.push(payload);
+      localStorage.setItem('pending_assessment_logs', JSON.stringify(buffer));
+    } catch (e) {
+      console.warn('[Buffer] Failed to save to local buffer:', e);
+    }
+  }
+
+  /**
+   * Helper to remove a successfully synced log from the local buffer.
+   */
+  private static removeFromLocalBuffer(questionId: string, timestamp: string) {
+    if (typeof window === 'undefined') return;
+    try {
+      const buffer = JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]');
+      const filtered = buffer.filter((log: any) => !(log.question_id === questionId && log.created_at === timestamp));
+      localStorage.setItem('pending_assessment_logs', JSON.stringify(filtered));
+    } catch (e) {
+      console.warn('[Buffer] Failed to remove from local buffer:', e);
+    }
+  }
+
+  /**
+   * Sweeper function to sync all pending logs in bulk.
+   */
+  public static async syncPendingLogs() {
+    if (typeof window === 'undefined') return;
+    const buffer = JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]');
+    if (buffer.length === 0) return;
+
+    console.log(`[Buffer] 🔄 Attempting to sync ${buffer.length} pending logs...`);
+    try {
+      const { error } = await supabase
+        .from('assessment_logs')
+        .insert(buffer);
+      
+      if (!error) {
+        localStorage.removeItem('pending_assessment_logs');
+        console.log(`[Buffer] ✅ Sync complete. ${buffer.length} logs secured.`);
+      } else {
+        console.warn(`[Buffer] ⚠️ Sync partial failure:`, error.message);
+      }
+    } catch (e) {
+      console.error(`[Buffer] ❌ Bulk Sync failed:`, e);
+    }
+  }
+
+  /**
    * Saves a single assessment log (individual question) for real-time persistence.
    * Signature updated to (question, evaluation, answer) for absolute data integrity.
    */
@@ -78,6 +131,9 @@ export class AssessmentSaveService {
         created_at: new Date().toISOString()
       };
 
+      // 🔒 PROACTIVE BUFFERING: Save to LocalStorage immediately
+      this.saveToLocalBuffer(assessmentLog);
+
       // 🚀 FINAL SATURATION EXECUTION
       const { error: logError } = await supabase
         .from('assessment_logs')
@@ -86,6 +142,8 @@ export class AssessmentSaveService {
       if (logError) {
         console.error("❌ [Database Error] Failed to save saturated assessment log:", logError.message);
       } else {
+        // 🔓 SYNC SUCCESS: Clear from buffer
+        this.removeFromLocalBuffer(assessmentLog.question_id, assessmentLog.created_at);
         console.log(`✅ [Mission Success] Perfect data saturation for: ${assessmentLog.question_id} (Score: ${finalScore})`);
       }
 
