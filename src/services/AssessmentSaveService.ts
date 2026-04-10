@@ -75,61 +75,32 @@ export class AssessmentSaveService {
    * Saves a single assessment log (individual question) for real-time persistence.
    * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
    */
-  public static async saveSingleAssessmentLog(question: any, evaluation: any, answer: string): Promise<void> {
-    // 1. Get userId instantly from LocalStorage (Production UUID check)
-    const userId = localStorage.getItem('auth_user_id') || 'anonymous';
-    
-    // 2. Prepare CLEAN PAYLOAD (No 'id' field - let Supabase handle auto-generation)
-    const safeScore = evaluation && evaluation.score !== undefined ? parseFloat(evaluation.score) : 0;
-    const finalScore = isFinite(safeScore) ? Math.max(0, Math.min(1, safeScore)) : 0;
-
-    const ak = question.answer_key;
-    const expectedAnswer = typeof ak === 'string' 
-      ? ak 
-      : (ak?.value?.text || ak?.value || ak?.text || (typeof ak === 'object' && JSON.stringify(ak)) || 'No expected answer');
-
-    const assessmentLog = {
-      user_id: userId,
-      question_id: String(question.external_id || question.id || 'N/A'),
-      user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
-      score: finalScore ?? 0,
-      confidence: evaluation?.confidence ?? 0.9, 
-      category: String(question.skill || question.category || 'general'),
-      question: String(question.prompt || (question as any).text || 'Missing Prompt'),
-      answer: typeof expectedAnswer === 'object' ? JSON.stringify(expectedAnswer) : String(expectedAnswer || 'N/A'), 
-      correct_answer: typeof question.answer_key === 'object' ? JSON.stringify(question.answer_key) : String(expectedAnswer || 'N/A'), 
-      is_correct: Boolean(finalScore >= 0.5), 
-      evaluation_metadata: typeof evaluation === 'object' ? JSON.stringify(evaluation) : String(evaluation || '{}'),
-      created_at: new Date().toISOString()
+  public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
+    // 1. Prepare CLEAN RPC PARAMS (No IDs - Secured by Database Session)
+    const params = {
+      p_question_id: String(task.id || 'N/A'),
+      p_category: String(task.skill || task.category || 'General'),
+      p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer || 'N/A'),
+      p_score: evaluation.score ?? 0,
+      p_evaluation_metadata: evaluation || {}
     };
 
-    console.log("📤 [Save Service] Attempting background insert for User:", userId, "Task:", assessmentLog.question_id);
+    console.log("🚀 [RPC Call] Logging question:", params.p_question_id);
 
-    // 3. 🔒 BUFFER FIRST (Zero-Crash Protocol)
-    // Secure the data in LocalStorage before any network activity
-    this.saveToLocalBuffer(assessmentLog);
-    console.log(`💾 [Buffer] Data secured for ${assessmentLog.question_id}. Pending in queue: ${JSON.parse(localStorage.getItem('pending_assessment_logs') || '[]').length}`);
-
-    // 4. 🚀 SMART CUMULATIVE SYNC
-    // This triggers a background bulk sync for ALL items in the buffer.
-    this.syncPendingLogs();
-
-    // 5. Handle Error Analysis (Non-blocking)
-    if (finalScore < 0.8 && userId !== 'anonymous') {
-      const analysisEntry = {
-        user_id: userId,
-        category: assessmentLog.category,
-        user_answer: assessmentLog.user_answer,
-        suggested_band: String(evaluation.detected_level || evaluation.suggested_band || 'A1'),
-        error_tag: String(evaluation.error_tag || 'general'),
-        brief_explanation: String(evaluation.feedback || evaluation.brief_explanation || 'Assessment evaluation entry'),
-        error_rate: 1 - finalScore,
-        created_at: assessmentLog.created_at
-      };
-      supabase.from('user_error_analysis').insert([analysisEntry]).then(({ error }) => {
-        if (error) console.warn('[AssessmentSave] Analysis insert failed:', error.message);
-      });
-    }
+    // 2. Fire-and-Forget RPC Call (Background execution)
+    supabase.rpc('log_assessment', params).then(({ error }) => {
+      if (error) {
+        console.error("❌ RPC Error:", error.message);
+        // Fallback: Secure in local buffer if DB rejected or network failed
+        this.saveToLocalBuffer(params);
+        console.log(`💾 [Buffer] Failure recovery: Params secured locally for ${params.p_question_id}`);
+      } else {
+        console.log("✅ [Success] Question logged via RPC safely!");
+      }
+    }).catch(err => {
+      console.error("❌ [Fatal] RPC execution failed:", err);
+      this.saveToLocalBuffer(params);
+    });
   }
 
 
