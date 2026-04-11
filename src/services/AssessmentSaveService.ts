@@ -80,17 +80,19 @@ export class AssessmentSaveService {
       console.log("🟡 Constructing RPC Payload for question ID:", task.id);
       
       const rpcPayload = {
-        p_question_id: task.id || task.external_id || 'unknown',
-        p_question_text: task.prompt || task.text || task.question || 'Unknown',
-        p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-        p_correct_answer: task.correct_answer || evaluation?.expected || '',
-        p_is_correct: !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7)),
-        p_category: task.skill || 'general',
-        p_confidence: evaluation?.confidence || evaluation?.score || 0,
-        p_score: Number(evaluation?.score) || 0,
-        p_metadata: {
-          ...evaluation,
-          user_answer: answer
+        p_data: {
+          p_question_id: task.id || task.external_id || 'unknown',
+          p_question_text: task.prompt || task.text || task.question || 'Unknown',
+          p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+          p_correct_answer: task.correct_answer || evaluation?.expected || '',
+          p_is_correct: !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7)),
+          p_category: task.skill || 'general',
+          p_confidence: evaluation?.confidence || evaluation?.score || 0,
+          p_score: Number(evaluation?.score) || 0,
+          p_metadata: {
+            ...evaluation,
+            user_answer: answer
+          }
         }
       };
 
