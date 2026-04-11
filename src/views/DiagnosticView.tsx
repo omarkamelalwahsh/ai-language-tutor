@@ -442,12 +442,12 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         // 🎯 [FORCE TRIGGER] Perform evaluation and save manually in the UI layer
         const { correct, evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        // ⚡️ Fire-and-Forget: Save to DB without blocking the UI transition
-        AssessmentSaveService.log_and_update_assessment(
+        // 🛑 Forced Wait: Save to DB and wait for confirmation before moving on
+        await AssessmentSaveService.log_and_update_assessment(
           currentTask,
           evaluation,
           answer
-        ).catch(err => console.error("⚠️ [DiagnosticView] Background save failed (non-blocking):", err));
+        );
         
         // Update local progress and show feedback
         setProgress(engine.getProgress());

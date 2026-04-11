@@ -71,53 +71,37 @@ export class AssessmentSaveService {
     return true;
   }
 
-  /**
-   * ⚡️ Consolidated Atomic Update: Logs the question and updates the skill state in one flow.
-   * Called manually from the UI to ensure 100% reactive persistence.
-   */
   static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
     try {
-      const userAnswer = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
-      const questionText = task.prompt || task.text || task.question || task.external_id || task.id || 'Unknown';
-      const correctAnswer = evaluation?.correct_answer || evaluation?.expected || '';
-      const isCorrect = !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7));
-      const score = Number(evaluation?.score) || 0;
-      const category = task.skill || 'general';
-      const confidence = score;
-      const questionId = String(task.id || task.external_id || 'unknown');
+      console.log("🟡 Sending Payload to DB...");
 
-      const payload = {
-        p_question_id: questionId,
-        p_question_text: questionText,
-        p_user_answer: userAnswer,
-        p_correct_answer: correctAnswer,
-        p_is_correct: isCorrect,
-        p_category: category,
-        p_confidence: confidence,
-        p_score: score,
-        p_metadata: { 
+      // تأكد من تمرير الـ 9 بارامترات بالترتيب الصح
+      const { data, error } = await supabase.rpc('log_and_update_assessment', {
+        p_question_id: task.id || task.external_id || 'unknown',
+        p_question_text: task.prompt || task.text || task.question || 'Unknown',
+        p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+        p_correct_answer: task.correct_answer || evaluation?.expected || '',
+        p_is_correct: !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7)),
+        p_category: task.skill || 'general',
+        p_confidence: evaluation?.confidence || evaluation?.score || 0,
+        p_score: Number(evaluation?.score) || 0,
+        p_metadata: {
           ...evaluation,
-          user_answer: userAnswer 
+          user_answer: answer
         }
-      };
-
-      console.log("🟡 Sending Payload to DB:", payload);
-
-      const logPromise = supabase.rpc('log_and_update_assessment', payload).then(({ data, error }) => {
-        if (error) {
-          console.error("❌ RPC Error:", error);
-          throw error;
-        }
-        return data;
       });
 
-      let skillPromise = Promise.resolve();
+      if (error) {
+        console.error("❌ RPC Error:", error);
+        throw error;
+      }
+
       const userId = localStorage.getItem('auth_user_id');
       if (userId && evaluation) {
-        skillPromise = this.updateSkillState(
+        await this.updateSkillState(
           userId, 
-          category, 
-          score,
+          task.skill || 'general', 
+          Number(evaluation?.score) || 0,
           evaluation.detected_level || 'A1'
         ).catch(err => {
           console.error("❌ Skill Update Error:", err);
@@ -125,9 +109,8 @@ export class AssessmentSaveService {
         });
       }
 
-      await Promise.all([logPromise, skillPromise]);
       console.log("✅ Save Success!");
-      return true;
+      return data;
     } catch (err) {
       console.error("🔥 Critical Save Error:", err);
       throw err;
