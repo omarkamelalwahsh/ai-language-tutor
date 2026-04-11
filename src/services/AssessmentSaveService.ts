@@ -77,29 +77,57 @@ export class AssessmentSaveService {
    */
   static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
     try {
+      const userAnswer = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+      const questionText = task.prompt || task.text || task.question || task.external_id || task.id || 'Unknown';
+      const correctAnswer = evaluation?.correct_answer || evaluation?.expected || '';
+      const isCorrect = !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7));
+      const score = Number(evaluation?.score) || 0;
+      const category = task.skill || 'general';
+      const confidence = score;
+      const questionId = String(task.id || task.external_id || 'unknown');
+
       const payload = {
-        p_question_id: task.id,
-        p_category: task.skill || 'general',
-        // إجبار الدرجة إنها تكون رقم، لو جات null تبقى 0
-        p_score: Number(evaluation.score) || 0, 
-        // تجميع كل الميتاداتا في مكان واحد
+        p_question_id: questionId,
+        p_question_text: questionText,
+        p_user_answer: userAnswer,
+        p_correct_answer: correctAnswer,
+        p_is_correct: isCorrect,
+        p_category: category,
+        p_confidence: confidence,
+        p_score: score,
         p_metadata: { 
           ...evaluation,
-          user_answer: answer 
+          user_answer: userAnswer 
         }
       };
 
       console.log("🟡 Sending Payload to DB:", payload);
 
-      const { data, error } = await supabase.rpc('log_and_update_assessment', payload);
+      const logPromise = supabase.rpc('log_and_update_assessment', payload).then(({ data, error }) => {
+        if (error) {
+          console.error("❌ RPC Error:", error);
+          throw error;
+        }
+        return data;
+      });
 
-      if (error) {
-        console.error("❌ RPC Error:", error);
-        throw error;
+      let skillPromise = Promise.resolve();
+      const userId = localStorage.getItem('auth_user_id');
+      if (userId && evaluation) {
+        skillPromise = this.updateSkillState(
+          userId, 
+          category, 
+          score,
+          evaluation.detected_level || 'A1'
+        ).catch(err => {
+          console.error("❌ Skill Update Error:", err);
+          throw err;
+        });
       }
 
+      await Promise.all([logPromise, skillPromise]);
       console.log("✅ Save Success!");
-      return data;
+      return true;
     } catch (err) {
       console.error("🔥 Critical Save Error:", err);
       throw err;
