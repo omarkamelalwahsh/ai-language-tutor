@@ -75,100 +75,34 @@ export class AssessmentSaveService {
    * ⚡️ Consolidated Atomic Update: Logs the question and updates the skill state in one flow.
    * Called manually from the UI to ensure 100% reactive persistence.
    */
-  public static async log_and_update_assessment(
-    userId: string | null,
-    task: any,
-    evaluation: any,
-    answer: any
-  ): Promise<void> {
-    console.log("%c⚡️ [Consolidated Update] Firing Logging & Skill Sync...", "color: #00ffff; font-bold;");
-    
-    // 1. Log the individual attempt (RPC)
-    const logPromise = this.saveSingleAssessmentLog(task, evaluation, answer);
-    
-    // 2. Update the skill level (UPSERT)
-    let skillPromise = Promise.resolve();
-    if (userId) {
-      skillPromise = this.updateSkillState(
-        userId, 
-        task.skill || 'General', 
-        evaluation.score, 
-        evaluation.detected_level
-      );
-    }
-
-    // Fire both and catch errors independently
-    await Promise.allSettled([logPromise, skillPromise]).then((results) => {
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length === 0) {
-        console.log("✅ [Sync Complete] All layers updated for:", task.id);
-      } else {
-        console.warn(`⚠️ [Sync Partial] ${failed.length} layer(s) failed.`);
-      }
-    });
-  }
-
-  /**
-   * Saves a single assessment log (individual question) for real-time persistence.
-   * REFACTORED: Buffer-First approach. No awaits to ensure instant LocalStorage persistence.
-   */
-  public static async saveSingleAssessmentLog(task: any, evaluation: any, answer: any): Promise<void> {
-    console.log("%c🚀 [SaveService] Starting saveSingleAssessmentLog...", "color: #4CAF50; font-weight: bold;");
-
-    const userAnswer = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
-    const questionText = task.prompt || task.text || task.question || task.id || 'Unknown';
-    const correctAnswer = evaluation.correct_answer || evaluation.expected || '';
-    const isCorrect = !!(evaluation.is_correct ?? (parseFloat(evaluation.score) >= 0.7));
-    const score = parseFloat(evaluation.score) || 0;
-    const category = task.skill || 'General';
-    const confidence = score; 
-    const questionId = String(task.id || task.external_id || 'unknown');
-
-    const dbPayload = {
-      user_id: localStorage.getItem('auth_user_id'),
-      question_id: questionId,
-      question: questionText,
-      user_answer: userAnswer,
-      answer: userAnswer,
-      correct_answer: correctAnswer,
-      is_correct: isCorrect,
-      category: category,
-      confidence: confidence,
-      score: score,
-      evaluation_metadata: {
-        ...evaluation,
-        user_answer: userAnswer,
-        captured_at: new Date().toISOString()
-      }
-    };
-
-    const rpcParams = {
-      p_question_id: questionId,
-      p_question_text: questionText,
-      p_user_answer: userAnswer,
-      p_correct_answer: correctAnswer,
-      p_is_correct: isCorrect,
-      p_category: category,
-      p_confidence: confidence,
-      p_score: score,
-      p_metadata: dbPayload.evaluation_metadata
-    };
-
-    console.log("📦 [SaveService] Payload built:", rpcParams);
-
+  static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
     try {
-      console.log("📡 [SaveService] Firing RPC: log_and_update_assessment...");
-      const { data, error } = await supabase.rpc('log_and_update_assessment', rpcParams);
+      const payload = {
+        p_question_id: task.id,
+        p_category: task.skill || 'general',
+        // إجبار الدرجة إنها تكون رقم، لو جات null تبقى 0
+        p_score: Number(evaluation.score) || 0, 
+        // تجميع كل الميتاداتا في مكان واحد
+        p_metadata: { 
+          ...evaluation,
+          user_answer: answer 
+        }
+      };
+
+      console.log("🟡 Sending Payload to DB:", payload);
+
+      const { data, error } = await supabase.rpc('log_and_update_assessment', payload);
 
       if (error) {
-        console.error("❌ [SaveService] RPC Error:", error.message);
-        this.saveToLocalBuffer(dbPayload);
-      } else {
-        console.log("%c✅ [SaveService] Save Success!", "color: #4CAF50; font-weight: bold;");
+        console.error("❌ RPC Error:", error);
+        throw error;
       }
-    } catch (fatalErr: any) {
-      console.error("❌ [SaveService] Fatal Crash:", fatalErr.message);
-      this.saveToLocalBuffer(dbPayload);
+
+      console.log("✅ Save Success!");
+      return data;
+    } catch (err) {
+      console.error("🔥 Critical Save Error:", err);
+      throw err;
     }
   }
 

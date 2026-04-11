@@ -23,7 +23,8 @@ const TaskQuestion: React.FC<{
   onCompleteTask: (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => void;
   onSkip: () => void;
   onSwap: () => void;
-}> = ({ task, questionNumber, onCompleteTask, onSkip, onSwap }) => {
+  isEvaluating?: boolean;
+}> = ({ task, questionNumber, onCompleteTask, onSkip, onSwap, isEvaluating }) => {
 
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -185,7 +186,7 @@ const TaskQuestion: React.FC<{
                const responseTime = Date.now() - startTime.current;
                onCompleteTask(payload.answer, responseTime, payload.responseMode, payload.speakingMeta);
              }}
-             isEvaluating={false}
+             isEvaluating={isEvaluating}
              feedback={null}
              retryCount={0}
            />
@@ -200,12 +201,13 @@ const TaskQuestion: React.FC<{
               <button
                 key={i}
                 onClick={() => handleOptionSelect(opt)}
-                className="w-full py-4 px-6 text-left bg-white border border-slate-200 hover:border-indigo-400 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-all shadow-sm flex items-center gap-4"
+                disabled={isEvaluating}
+                className={`w-full py-4 px-6 text-left bg-white border border-slate-200 hover:border-indigo-400 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-all shadow-sm flex items-center gap-4 ${isEvaluating ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold border border-slate-200">
                   {String.fromCharCode(65 + i)}
                 </span>
-                {opt}
+                {isEvaluating ? 'جاري التقييم...' : opt}
               </button>
             ))}
           </div>
@@ -230,10 +232,10 @@ const TaskQuestion: React.FC<{
               )}
               <button
                 type="submit"
-                disabled={!inputText.trim()}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none shadow-[0_8px_20px_rgba(79,70,229,0.25)] border-transparent text-white font-semibold py-3.5 rounded-xl transition-all"
+                disabled={!inputText.trim() || isEvaluating}
+                className={`flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none shadow-[0_8px_20px_rgba(79,70,229,0.25)] border-transparent text-white font-semibold py-3.5 rounded-xl transition-all ${isEvaluating ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                Submit Answer
+                {isEvaluating ? 'جاري التقييم...' : 'Submit Answer'}
               </button>
             </div>
           </form>
@@ -251,7 +253,7 @@ const TaskQuestion: React.FC<{
 
             <button
               onClick={() => {
-                if (!isRecording) {
+                if (!isRecording && !isEvaluating) {
                   setIsRecording(true);
                   setTimeout(() => {
                     setIsRecording(false);
@@ -260,7 +262,8 @@ const TaskQuestion: React.FC<{
                   }, 2500);
                 }
               }}
-              className="flex flex-col items-center justify-center p-8 bg-slate-50 border border-slate-200 hover:border-indigo-400 hover:bg-white rounded-2xl transition-all group relative overflow-hidden shadow-sm"
+              disabled={isEvaluating}
+              className={`flex flex-col items-center justify-center p-8 bg-slate-50 border border-slate-200 hover:border-indigo-400 hover:bg-white rounded-2xl transition-all group relative overflow-hidden shadow-sm ${isEvaluating ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isRecording && <div className="absolute inset-0 bg-indigo-50 animate-pulse" />}
               <div
@@ -441,7 +444,6 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         
         // ⚡️ Fire-and-Forget: Save to DB without blocking the UI transition
         AssessmentSaveService.log_and_update_assessment(
-          engine.getUserId(),
           currentTask,
           evaluation,
           answer
@@ -615,6 +617,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               onCompleteTask={handleNextTask}
               onSkip={handleSkip}
               onSwap={handleSwap}
+              isEvaluating={isEvaluating}
             />
           </AnimatePresence>
         </div>
