@@ -14,147 +14,99 @@ export class AdaptiveSelector {
     'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
   };
 
-  // 🎯 New Academic Thresholds (More Rewarding)
-  private readonly STEP_UP_THRESHOLD = 0.75; 
-  private readonly LEAP_UP_THRESHOLD = 0.85;
+  private readonly SKILL_CAPS: Record<SkillName, number> = {
+    listening: 4,
+    reading: 4,
+    writing: 4,
+    speaking: 5
+  };
+
+  private readonly shuffledRR: SkillName[];
 
   constructor(banks: Record<CEFRLevel, QuestionBankItem[]>) {
     this.banks = banks;
-  }
-
-  public selectSwap(currentLevel: CEFRLevel, currentSkill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
-    console.log(`[Selector] SWAP | Hunting for alternate in: ${currentLevel} ${currentSkill}`);
-    const item = this.pickFromLevel(currentLevel, currentSkill, askedIds);
-    if (item) return item;
-
-    // 🚩 Fallback: Adjacent levels for same skill
-    const targetIndex = LEVEL_ORDER.indexOf(currentLevel);
-    const neighbors = [...LEVEL_ORDER].sort((a, b) => 
-      Math.abs(LEVEL_ORDER.indexOf(a) - targetIndex) - Math.abs(LEVEL_ORDER.indexOf(b) - targetIndex)
-    );
-    
-    for (const level of neighbors) {
-      const fallback = this.pickFromLevel(level, currentSkill, askedIds);
-      if (fallback) return fallback;
-    }
-
-    return null;
+    // 🎲 Initialize Randomized Round Robin sequence for this session
+    const coreSkills: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
+    this.shuffledRR = [...coreSkills].sort(() => Math.random() - 0.5);
   }
 
   public selectNext(state: SelectorState): QuestionBankItem | null {
     const { skills, askedQuestionIds, currentOverallLevel } = state;
-    const questionCount = askedQuestionIds.size;
-    
-    // 🔍 Diagnostic Logging for Bank Visibility
-    const totalBankSize = Object.values(this.banks).reduce((acc, b) => acc + b.length, 0);
-    console.log(`[Selector] 🎯 Current Bank Visibility: ${totalBankSize} questions.`);
-
-    // --------------------------------------------------------------------------
-    // PHASE 1: CALIBRATION (First 4 questions)
-    // --------------------------------------------------------------------------
-    if (questionCount < 4) {
-      const calibrationOrder: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
-      const targetSkill = calibrationOrder[questionCount];
-      console.log(`[Selector] Phase 1: CALIBRATION | target: ${targetSkill} | level: ${currentOverallLevel}`);
-      
-      const item = this.pickFromLevel(currentOverallLevel, targetSkill, askedQuestionIds);
-      if (item) return item;
-
-      // 🛡️ Proximity Radiating Search (Same skill, neighbor levels)
-      const neighbors = this.getNeighborLevels(currentOverallLevel);
-      for (const level of neighbors) {
-        const fallback = this.pickFromLevel(level, targetSkill, askedQuestionIds);
-        if (fallback) return fallback;
-      }
-    }
-
-    // --------------------------------------------------------------------------
-    // PHASE 2: ADAPTIVE ROUTING
-    // --------------------------------------------------------------------------
+    const count = askedQuestionIds.size;
     const coreSkills: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
+
+    // --------------------------------------------------------------------------
+    // PHASE 1: RANDOMIZED ROUND ROBIN (1-4)
+    // --------------------------------------------------------------------------
+    if (count < 4) {
+      const targetSkill = this.shuffledRR[count];
+      console.log(`[Selector] Phase 1: SHUFFLED RR | target: ${targetSkill} | level: ${currentOverallLevel}`);
+      return this.findBestItem(currentOverallLevel, targetSkill, askedQuestionIds);
+    }
+
+    // --------------------------------------------------------------------------
+    // PHASE 2 & 3: ADAPTIVE & WILDCARDS (5-20)
+    // --------------------------------------------------------------------------
+    const isAdvocatePhase = count >= 17; // Questions 18, 19, 20
     
-    // Pick target skill (lowest confidence or repair coverage)
+    // 1. Determine target skill
     let targetSkill: SkillName;
-    const underEvidenced = coreSkills.filter(s => skills[s].directEvidenceCount < 2);
-    
-    if (questionCount >= 12 && underEvidenced.length > 0) {
-      targetSkill = underEvidenced[0];
-      console.log(`[Selector] Phase 3: REPAIR | target: ${targetSkill}`);
+
+    if (isAdvocatePhase) {
+      // PHASE 3: Wildcard Advocate - Prioritize weakest link
+      targetSkill = coreSkills.sort((a, b) => skills[a].score - skills[b].score)[0];
+      console.log(`[Selector] Phase 3: WILDCARD ADVOCATE | Lifting weakest link: ${targetSkill}`);
     } else {
-      const missingAny = coreSkills.filter(s => skills[s].directEvidenceCount === 0);
+      // PHASE 2: Adaptive with Slot Management
+      const availableSkills = coreSkills.filter(s => {
+        const used = skills[s].directEvidenceCount;
+        const capped = used >= this.SKILL_CAPS[s];
+        if (capped) console.log(`[Selector] 🚫 Slot for ${s} capped (${used}/${this.SKILL_CAPS[s]})`);
+        return !capped;
+      });
+
+      const missingAny = availableSkills.filter(s => skills[s].directEvidenceCount === 0);
       if (missingAny.length > 0) {
-         targetSkill = missingAny[Math.floor(Math.random() * missingAny.length)];
+        targetSkill = missingAny[Math.floor(Math.random() * missingAny.length)];
       } else {
-         targetSkill = coreSkills.sort((a, b) => skills[a].confidence - skills[b].confidence)[0];
+        // Normal Adaptive: Pick lowest confidence from available pool
+        const pool = availableSkills.length > 0 ? availableSkills : coreSkills;
+        targetSkill = pool.sort((a, b) => skills[a].confidence - skills[b].confidence)[0];
       }
     }
 
+    // 2. Determine target level
     const skillState = skills[targetSkill];
-    const skillLevel = CEFREngine.mapScoreToLevel(skillState.score);
-    const currentIndex = LEVEL_ORDER.indexOf(skillLevel);
+    const currentScore = skillState.score;
+    const momentum = skillState.history.slice(-2).reduce((acc, h) => acc + h.score, 0) / 2 || 0.5;
 
-    // 🧠 Momentum Calculation (Weighted history)
-    const history = skillState.history.slice(-3);
-    const s0 = history.length >= 1 ? history[history.length - 1].score : 0.5;
-    const s1 = history.length >= 2 ? history[history.length - 2].score : s0;
-    const s2 = history.length >= 3 ? history[history.length - 3].score : s1;
-    const momentum = (s0 * 0.5) + (s1 * 0.3) + (s2 * 0.2);
-
-    // 🧗 Adaptive Logic using new Academic Thresholds
-    let probeLevel = currentOverallLevel;
-    const isLeapUp = history.length >= 2 && history.slice(-2).every(h => h.score >= this.LEAP_UP_THRESHOLD);
-    const isStepUp = momentum >= this.STEP_UP_THRESHOLD;
-    const isStepDown = momentum < 0.40;
-
-    if (isLeapUp && currentIndex < LEVEL_ORDER.length - 1) {
-      const jumpSize = (questionCount < 10) ? 2 : 1;
-      probeLevel = LEVEL_ORDER[Math.min(LEVEL_ORDER.length - 1, currentIndex + jumpSize)];
-      console.log(`[Selector] 🚀 LEAP UP! +${jumpSize} to ${probeLevel}`);
-    } else if (isStepUp && currentIndex < LEVEL_ORDER.length - 1) {
-      probeLevel = LEVEL_ORDER[currentIndex + 1];
-      console.log(`[Selector] 🧗 Step Up to ${probeLevel} (Momentum: ${momentum.toFixed(2)})`);
-    } else if (isStepDown && currentIndex > 0) {
-      probeLevel = LEVEL_ORDER[currentIndex - 1];
-      console.log(`[Selector] 📉 Step Down to ${probeLevel}`);
+    let targetLevel = currentOverallLevel;
+    if (momentum > 0.8 && LEVEL_ORDER.indexOf(currentOverallLevel) < 5) {
+      targetLevel = LEVEL_ORDER[LEVEL_ORDER.indexOf(currentOverallLevel) + 1];
+    } else if (momentum < 0.4 && LEVEL_ORDER.indexOf(currentOverallLevel) > 0) {
+      targetLevel = LEVEL_ORDER[LEVEL_ORDER.indexOf(currentOverallLevel) - 1];
     }
 
-    // 1. Attempt Exact Match
-    console.log(`[Selector] Phase 2: ADAPTIVE | Hunting: ${probeLevel} ${targetSkill}`);
-    let nextItem = this.pickFromLevel(probeLevel, targetSkill, askedQuestionIds);
-    if (nextItem) return nextItem;
-
-    // 2. 🚩 Relaxation 1: Neighbor Levels (Same Skill)
-    console.log(`[Selector] Relaxing Level constraints for ${targetSkill}...`);
-    const neighbors = this.getNeighborLevels(probeLevel);
-    for (const level of neighbors) {
-      nextItem = this.pickFromLevel(level, targetSkill, askedQuestionIds);
-      if (nextItem) return nextItem;
-    }
-
-    // 3. 🚩 Relaxation 2: Neighbor Skills (Same Level)
-    console.log(`[Selector] Relaxing Skill constraints for ${probeLevel}...`);
-    for (const skill of coreSkills) {
-      nextItem = this.pickFromLevel(probeLevel, skill, askedQuestionIds);
-      if (nextItem) return nextItem;
-    }
-
-    // 4. 🚩 ABSOLUTE FALLBACK: Any unused question (Total Exhaustion Prevention)
-    console.warn(`[Selector] CRITICAL: Running Absolute Fallback...`);
-    for (const level of LEVEL_ORDER) {
-      for (const skill of coreSkills) {
-        nextItem = this.pickFromLevel(level, skill, askedQuestionIds);
-        if (nextItem) {
-          console.log(`[Selector] ✅ Absolute Fallback SUCCESS: ${nextItem.id}`);
-          return nextItem;
-        }
-      }
-    }
-
-    console.error("[Selector] 💀 BANK TOTALLY EXHAUSTED.");
-    return null;
+    return this.findBestItem(targetLevel, targetSkill, askedQuestionIds);
   }
 
-  private getNeighborLevels(level: CEFRLevel): CEFRLevel[] {
+  private findBestItem(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
+    // Exact match
+    let item = this.pickFromLevel(level, skill, askedIds);
+    if (item) return item;
+
+    // Neighbor fallback
+    const neighbors = this.getNeighbors(level);
+    for (const l of neighbors) {
+      item = this.pickFromLevel(l, skill, askedIds);
+      if (item) return item;
+    }
+
+    // Absolute fallback (Any unused in same level)
+    return this.pickFromLevel(level, 'any' as any, askedIds) || null;
+  }
+
+  private getNeighbors(level: CEFRLevel): CEFRLevel[] {
     const idx = LEVEL_ORDER.indexOf(level);
     return [...LEVEL_ORDER].sort((a, b) => 
       Math.abs(LEVEL_ORDER.indexOf(a) - idx) - Math.abs(LEVEL_ORDER.indexOf(b) - idx)
@@ -163,21 +115,13 @@ export class AdaptiveSelector {
 
   private pickFromLevel(level: CEFRLevel, skill: SkillName, askedIds: Set<string>): QuestionBankItem | null {
     const bank = this.banks[level] || [];
-    const available = bank.filter(
-      q => {
-        if (askedIds.has(q.id)) return false;
-        
-        // 🎯 Alias-First Matching: The engine now ensures 'level' is present and normalized.
-        if (q.level !== level && q.target_cefr !== level) return false;
-
-        // 🧠 Skill Matching: The engine ensures 'skill' is lowercase and trimmed.
-        return q.skill === skill || (q.evidence_policy && skill in q.evidence_policy);
-      }
-    );
+    const available = bank.filter(q => {
+      if (askedIds.has(q.id)) return false;
+      if (q.level !== level && q.target_cefr !== level) return false;
+      return skill === 'any' || q.skill === skill;
+    });
     
     if (available.length === 0) return null;
-    
-    // Pick the most distinct task type if possible (TBD: could add task type tracking here)
     return available[Math.floor(Math.random() * available.length)];
   }
 }

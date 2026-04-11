@@ -85,13 +85,41 @@ export class JourneyService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('learning_journeys').upsert({
-          user_id: user.id,
-          nodes: resultPayload.nodes,
-          current_node_id: resultPayload.nodes[0]?.id || null,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' }); // Assuming user_id is unique for journeys
-        console.log('[JourneyService] ✅ Journey persisted to database (Mapped to nodes/current_node_id).');
+        // A. Upsert the main journey metadata
+        const { data: journeyRow, error: jError } = await supabase
+          .from('learning_journeys')
+          .upsert({
+            user_id: user.id,
+            journey_title: resultPayload.journeyTitle,
+            current_stage: resultPayload.currentStage,
+            target_stage: resultPayload.targetStage,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
+          .select()
+          .single();
+
+        if (jError) throw jError;
+        const journeyId = journeyRow.id;
+
+        // B. Atomic Step Update: Clear and Rebuild
+        // 1. Delete old steps
+        await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
+
+        // 2. Insert new granular steps
+        const stepsToInsert = resultPayload.nodes.map((node, i) => ({
+          journey_id: journeyId,
+          title: node.title,
+          description: node.description,
+          order_index: i,
+          status: node.status,
+          icon_type: node.iconType,
+          skill_focus: node.id.includes('gap') ? 'remediation' : 'progression'
+        }));
+
+        const { error: sError } = await supabase.from('journey_steps').insert(stepsToInsert);
+        if (sError) throw sError;
+
+        console.log(`[JourneyService] ✅ Journey and ${stepsToInsert.length} steps persisted.`);
       }
     } catch (e) {
       console.warn('[JourneyService] Database persistence failed, returning in-memory result:', e);

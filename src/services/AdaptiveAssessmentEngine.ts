@@ -47,6 +47,7 @@ import { AssessmentSaveService } from './AssessmentSaveService';
 
 
 // Old static JSON bank loaders were removed in favor of dynamic API fetching
+const LEVEL_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 // ============================================================================
 // Constants
@@ -79,6 +80,7 @@ export class AdaptiveAssessmentEngine {
   private efsetOverall: OverallState;
   private selector: AdaptiveSelector;
   private askedQuestionIds: Set<string> = new Set();
+  private auditorPromise: Promise<void> | null = null;
   
   private banks: Record<CEFRLevel, QuestionBankItem[]> = {
     'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
@@ -323,7 +325,7 @@ export class AdaptiveAssessmentEngine {
       console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${uniqueAnsweredCount}`);
       
       // 🕵️ Final Audit Trigger (Auditor Agent)
-      this.finishAssessment();
+      this.auditorPromise = this.finishAssessment();
       return null;
     }
 
@@ -723,9 +725,7 @@ export class AdaptiveAssessmentEngine {
   }
 
   public getOutcome(): AssessmentOutcome {
-
-    const report = FinalReportBuilder.build(this.efsetSkills, this.efsetOverall);
-    
+    const academicResult = this.calculateAcademicResult();
     const skillResults = {} as AssessmentOutcome['skillBreakdown'];
     for (const s of ALL_SKILLS) {
        const state = this.efsetSkills[s as EFSETSkillName];
@@ -766,22 +766,51 @@ export class AdaptiveAssessmentEngine {
     }
 
     return {
-      overallBand: this.rangeToLabel(report.overall.levelRange),
-      overallConfidence: report.overall.confidence,
+      overallBand: academicResult.label,
+      overallConfidence: academicResult.confidence,
       skillBreakdown: skillResults,
       strengths: [],
       weaknesses: [],
       answerHistory: [...this.state.answerHistory],
        totalQuestions: this.state.questionsAnswered,
-       stopReason: report.overall.confidence >= ASSESSMENT_CONFIG.CONFIDENCE_STOP_THRESHOLD ? 'stable' : 'max_reached',
+       stopReason: academicResult.isStable ? 'stable' : 'max_reached',
        speakingAudit: this.state.speakingAudit,
  
        // 🕵️ Auditor Agent Diagnosis
-       finalLevel: (this.state.finalAuditor?.final_cefr_level as any) || this.rangeToLabel(report.overall.levelRange),
+       finalLevel: (this.state.finalAuditor?.final_cefr_level as any) || academicResult.label,
        bridgeDelta: String(this.state.finalAuditor?.overall_score || 0),
        errorAnalysisReport: this.state.finalAuditor?.diagnosis_report,
        auditorReport: this.state.finalAuditor
-     };
+    };
+  }
+
+  private calculateAcademicResult() {
+    const coreSkills: EFSETSkillName[] = ['listening', 'reading', 'writing', 'speaking'];
+    const skillStates = coreSkills.map(s => {
+      const state = this.efsetSkills[s];
+      const levelIdx = LEVEL_ORDER.indexOf(CEFREngine.mapScoreToLevel(state.score));
+      return { skill: s, score: state.score, levelIdx, confidence: state.confidence };
+    });
+
+    const sorted = [...skillStates].sort((a, b) => a.levelIdx - b.levelIdx);
+    const weakest = sorted[0];
+    const strongest = sorted[sorted.length - 1];
+    
+    const avgConfidence = skillStates.reduce((acc, s) => acc + s.confidence, 0) / 4;
+    const gap = strongest.levelIdx - weakest.levelIdx;
+
+    let finalBand: BandLabel;
+    if (gap > 1) {
+      const bottleneckVal = weakest.levelIdx + 0.5;
+      const floors = Math.floor(bottleneckVal);
+      const ceils = Math.ceil(bottleneckVal);
+      finalBand = `${LEVEL_ORDER[floors]}_${LEVEL_ORDER[ceils]}` as BandLabel;
+    } else {
+      const standardOverall = CEFREngine.computeOverall(this.efsetSkills);
+      finalBand = this.rangeToLabel(standardOverall.levelRange);
+    }
+
+    return { label: finalBand, confidence: avgConfidence, isStable: avgConfidence >= 0.75 };
   }
 
   private levelUp() {
@@ -893,6 +922,12 @@ export class AdaptiveAssessmentEngine {
     console.log(`[Engine] 🏁 Starting Fire-and-Forget finalization for session ${this.assessmentId}...`);
     
     try {
+      // 0. Wait for the Auditor (AI Diagnosis) to finish if it's still running
+      if (this.auditorPromise) {
+        console.log("[Engine] ⏳ Waiting for AI Auditor to finalize CEFR level...");
+        await this.auditorPromise.catch(err => console.error("[Engine] Auditor failed in background:", err));
+      }
+
       // 1. Calculate Results IMMEDIATELY from Memory
       const finalOutcome = this.getOutcome();
       // Fetch authenticated user ID securely (No localStorage async locks)

@@ -206,6 +206,7 @@ function AppRoutes() {
                 <ResultAnalysisView 
                   result={assessmentResult}
                   assessmentOutcome={assessmentOutcome}
+                  isArchitecting={isArchitecting}
                   onContinue={() => window.location.assign('/dashboard')}
                 />
               ) : (

@@ -85,7 +85,7 @@ export class AssessmentSaveService {
         p_data: {
           p_question_id: task.id,
           p_question_text: task.prompt,
-          p_user_answer: answer,
+          p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
           p_correct_answer: task.correctAnswer || '',
           p_is_correct: evaluation.is_correct,
           p_category: task.skill || "vocabulary",
@@ -148,19 +148,33 @@ export class AssessmentSaveService {
       if (!token) throw new Error("No token for finalization");
 
       await withRetry(async () => {
-         const payload = {
-           p_user_id: userId,
-           p_final_level: String(outcome.finalLevel || outcome.overallBand || 'B1'),
-           p_points: Number(outcome.pointsAwarded) || 50,
-           p_skill_breakdown: outcome.skillBreakdown || {},
-           p_weaknesses: outcome.weaknesses || [],
-           p_action_plan: outcome.actionPlan 
-              ? (typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan)) 
-              : null,
-           p_common_mistakes: outcome.common_mistakes || [],
-           p_bridge_delta: outcome.bridgeDelta ?? null,
-           p_bridge_percentage: outcome.bridgePercentage ?? null
-         };
+          const finalLevel = String(outcome.finalLevel || outcome.overallBand || 'B1');
+          
+          console.log(`[AssessmentSave] 🎯 Finalizing Assessment with Level: ${finalLevel}`);
+          if (finalLevel === 'Pending') {
+            console.warn("[AssessmentSave] ⚠️ Caution: Sending 'Pending' as final level. This shouldn't happen after completion.");
+          }
+
+          const payload = {
+            p_user_id: userId,
+            p_final_level: finalLevel,
+            p_points: Number(outcome.pointsAwarded) || 50,
+            p_skill_breakdown: outcome.skillBreakdown || {},
+            p_weaknesses: outcome.weaknesses || [],
+            p_action_plan: outcome.actionPlan 
+               ? (typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan)) 
+               : null,
+            p_common_mistakes: outcome.common_mistakes || [],
+            p_bridge_delta: outcome.bridgeDelta ?? null,
+            p_bridge_percentage: outcome.bridgePercentage ?? null
+          };
+
+          console.table({
+            userId: payload.p_user_id,
+            level: payload.p_final_level,
+            points: payload.p_points,
+            skills: Object.keys(payload.p_skill_breakdown).length
+          });
 
          const response = await fetch(`${supabaseUrl}/rest/v1/rpc/finalize_diagnostic_v2`, {
             method: 'POST',
