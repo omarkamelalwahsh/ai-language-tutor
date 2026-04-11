@@ -8,18 +8,13 @@ export class AssessmentSaveService {
    * Helper to ensure valid user session before DB interaction.
    */
   private static async getAuthenticatedUserId(): Promise<string> {
-    console.log("🟡 Fetching authenticated user session safely...");
-    const { data: { session }, error } = await supabase.auth.getSession();
-    let userId = session?.user?.id;
+    const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+    const userJson = authStorage ? JSON.parse(authStorage)?.user : null;
+    let userId = userJson?.id || localStorage.getItem('auth_user_id');
     
-    if (error || !userId) {
-      console.warn("⚠️ Validating fallback local storage since getSession failed...");
-      userId = localStorage.getItem('auth_user_id') || undefined;
-      if (!userId) {
-        throw new Error(`Auth context missing: No user session found locally or remotely`);
-      }
+    if (!userId) {
+      throw new Error(`Auth context missing: No user session found locally or remotely`);
     }
-    console.log("🟡 Auth user resolved:", userId);
     return userId;
   }
 
@@ -54,14 +49,28 @@ export class AssessmentSaveService {
 
     console.log(`[Buffer] 🔄 Background Sync: Attempting to secure ${buffer.length} logs...`);
 
-    // 🛑 BLOCKING: Await the response completely
     try {
-      const { error } = await supabase.from('assessment_logs').insert(buffer);
-      if (!error) {
+      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
+
+      if (!token) throw new Error("No token for sync");
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/assessment_logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': supabaseAnonKey!,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(buffer)
+      });
+
+      if (response.ok) {
         localStorage.removeItem('pending_assessment_logs');
         console.log(`[Buffer] ✅ Background Sync complete. ${buffer.length} logs secured.`);
       } else {
-        console.warn(`[Buffer] ⚠️ Background Sync partial failure:`, error.message);
+        console.warn(`[Buffer] ⚠️ Background Sync partial failure:`, await response.text());
       }
     } catch (err) {
       console.error(`[Buffer] ❌ Background Sync failed:`, err);
@@ -72,22 +81,17 @@ export class AssessmentSaveService {
 
   static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
     try {
-      console.log("🟡 Constructing RPC Payload for question ID:", task.id);
-      
-      const rpcPayload = {
+      const rpcPayload: Record<string, any> = {
         p_data: {
-          p_question_id: task.id || task.external_id || 'unknown',
-          p_question_text: task.prompt || task.text || task.question || 'Unknown',
-          p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-          p_correct_answer: task.correct_answer || evaluation?.expected || '',
-          p_is_correct: !!(evaluation?.is_correct ?? (Number(evaluation?.score || 0) >= 0.7)),
-          p_category: task.skill || 'general',
-          p_confidence: evaluation?.confidence || evaluation?.score || 0,
-          p_score: Number(evaluation?.score) || 0,
-          p_metadata: {
-            ...evaluation,
-            user_answer: answer
-          }
+          p_question_id: task.id,
+          p_question_text: task.prompt,
+          p_user_answer: answer,
+          p_correct_answer: task.correctAnswer || '',
+          p_is_correct: evaluation.is_correct,
+          p_category: task.skill || "vocabulary",
+          p_confidence: evaluation.confidence || 0,
+          p_score: evaluation.score || 0,
+          p_metadata: evaluation // entire object from LLM
         }
       };
 
@@ -137,24 +141,36 @@ export class AssessmentSaveService {
   public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
     try {
       const userId = await this.getAuthenticatedUserId();
-      console.log('[AssessmentSave] 🔑 Launching Atomic Finalization for:', userId);
+      console.log('[AssessmentSave] 🔑 Launching Atomic Finalization via Native Fetch...');
+
+      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
+      if (!token) throw new Error("No token for finalization");
 
       await withRetry(async () => {
-        const { error } = await supabase.rpc('finalize_diagnostic_v2', {
-          p_user_id: userId,
-          p_final_level: String(outcome.finalLevel || outcome.overallBand),
-          p_points: outcome.pointsAwarded || 50,
-          p_skill_breakdown: outcome.skillBreakdown,
-          p_weaknesses: outcome.weaknesses || [],
-          p_action_plan: typeof outcome.actionPlan === 'string' 
-            ? outcome.actionPlan 
-            : JSON.stringify(outcome.actionPlan),
-          p_common_mistakes: outcome.common_mistakes || [],
-          p_bridge_delta: outcome.bridgeDelta || null,
-          p_bridge_percentage: outcome.bridgePercentage || null
-        });
+         const payload = {
+           p_user_id: userId,
+           p_final_level: String(outcome.finalLevel || outcome.overallBand),
+           p_points: outcome.pointsAwarded || 50,
+           p_skill_breakdown: outcome.skillBreakdown,
+           p_weaknesses: outcome.weaknesses || [],
+           p_action_plan: typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan),
+           p_common_mistakes: outcome.common_mistakes || [],
+           p_bridge_delta: outcome.bridgeDelta || null,
+           p_bridge_percentage: outcome.bridgePercentage || null
+         };
 
-        if (error) throw error;
+         const response = await fetch(`${supabaseUrl}/rest/v1/rpc/finalize_diagnostic_v2`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'apikey': supabaseAnonKey!
+            },
+            body: JSON.stringify(payload)
+         });
+
+         if (!response.ok) throw new Error(await response.text());
         console.log('[AssessmentSave] 🚀 Atomic Finalization SUCCESS.');
       });
 

@@ -81,20 +81,21 @@ export class GroqScoringService {
     historyJson: string
   ): Promise<ProctorOutput | null> {
     const systemPrompt = `Act as a Senior CEFR Language Examiner and ML Engineer.
-Your goal is to find the user's "Breaking Point."
+Your goal is to evaluate the user's answer dynamically and deeply, finding their "Breaking Point" or "Proficiency Level."
 
 DYNAMIC DIFFICULTY RULES:
 - Start at the user's current level: ${currentLevel}.
 - STREAK UP: If the user answers 2 consecutive questions perfectly (Score > 0.85), INCREASE difficulty by one sub-level (e.g., B1 -> B2).
 - STREAK DOWN: If the user fails 1 question significantly (Score < 0.4), DROP difficulty immediately to probe for foundational gaps.
-- SKILL PROBING: Rotate questions between Speaking, Grammar, and Technical Vocab.
 
-SCORING RULES:
-- score: 0.0 to 1.0 based on linguistic accuracy and domain relevance.
+CRITICAL SCORING LOGIC (SEMANTIC TOLERANCE):
+- Focus on the SEMANTIC MEANING and Linguistic Accuracy. Do NOT enforce a strict 1:1 word match with the "Expected Answer."
+- If the "Expected Correct Answer" is empty or null, treat the question as OPEN-ENDED. Score based purely on language quality (Grammar, Lexical Range, Relevance).
+- If the user's answer is logically correct or synonymous with the expected answer, SCORE it HIGH (e.g., 1.0) and set is_correct = true. Do NOT penalize for using different words for the same idea.
+- score: 0.0 to 1.0 based on accuracy and domain relevance.
 - feedback: Short, actionable advice in English.
-- next_question: Generate a high-quality assessment question for the recommended next level/skill.
 
-OUTPUT SCHEMA:
+OUTPUT SCHEMA (Must be strictly JSON):
 {
   "score": number,
   "is_correct": boolean,
@@ -107,10 +108,11 @@ OUTPUT SCHEMA:
   "reasoning": "string"
 }`;
 
+    // Gracefully handle undefined/null options and correct answers to prevent LLM hallucinations
     const userMessage = JSON.stringify({
-      last_question: question.prompt,
-      user_answer: answer,
-      correct_answer: question.correctAnswer,
+      last_question: question.prompt || "Unknown Question",
+      user_answer: answer || "[No Answer]",
+      expected_answer: question.correctAnswer || "OPEN ENDED - JUDGE LINGUISTIC QUALITY",
       session_history: historyJson
     });
 

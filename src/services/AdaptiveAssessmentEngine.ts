@@ -895,11 +895,12 @@ export class AdaptiveAssessmentEngine {
     try {
       // 1. Calculate Results IMMEDIATELY from Memory
       const finalOutcome = this.getOutcome();
-      // Fetch authenticated user ID securely (No localStorage)
+      // Fetch authenticated user ID securely (No localStorage async locks)
       let currentAuthSession = null;
       try {
-         const { data: { user } } = await supabase.auth.getUser();
-         currentAuthSession = user?.id;
+         const authStorage = localStorage.getItem('sb-' + (new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0]) + '-auth-token');
+         const userJson = authStorage ? JSON.parse(authStorage)?.user : null;
+         currentAuthSession = userJson?.id || localStorage.getItem('auth_user_id');
       } catch (authError) {
          console.warn("[Engine] Auth retrieval error, user might be offline", authError);
       }
