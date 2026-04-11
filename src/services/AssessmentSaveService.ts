@@ -150,14 +150,16 @@ export class AssessmentSaveService {
       await withRetry(async () => {
          const payload = {
            p_user_id: userId,
-           p_final_level: String(outcome.finalLevel || outcome.overallBand),
-           p_points: outcome.pointsAwarded || 50,
-           p_skill_breakdown: outcome.skillBreakdown,
+           p_final_level: String(outcome.finalLevel || outcome.overallBand || 'B1'),
+           p_points: Number(outcome.pointsAwarded) || 50,
+           p_skill_breakdown: outcome.skillBreakdown || {},
            p_weaknesses: outcome.weaknesses || [],
-           p_action_plan: typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan),
+           p_action_plan: outcome.actionPlan 
+              ? (typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan)) 
+              : null,
            p_common_mistakes: outcome.common_mistakes || [],
-           p_bridge_delta: outcome.bridgeDelta || null,
-           p_bridge_percentage: outcome.bridgePercentage || null
+           p_bridge_delta: outcome.bridgeDelta ?? null,
+           p_bridge_percentage: outcome.bridgePercentage ?? null
          };
 
          const response = await fetch(`${supabaseUrl}/rest/v1/rpc/finalize_diagnostic_v2`, {
