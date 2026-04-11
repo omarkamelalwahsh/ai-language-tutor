@@ -8,6 +8,7 @@ import {
   BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
   Brain, XCircle, Lightbulb, Zap, Loader2
 } from 'lucide-react';
+import { ThemeToggle } from '../shared/ThemeToggle';
 
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
@@ -139,14 +140,14 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   // Resilient Loading: Only show full-screen sync if we have absolutely NO data to show yet
   if (supabaseData.isLoading && !internalDashboardData.isNewLearner && !result) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6 text-center">
+      <div className="flex min-h-screen bg-background items-center justify-center p-6 text-center">
          <div className="flex flex-col items-center gap-6">
-           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse">
+           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100/50 dark:shadow-indigo-500/20 animate-pulse">
              <Loader2 className="w-8 h-8 text-white animate-spin" />
            </div>
            <div className="text-center space-y-2">
-             <h2 className="text-xl font-bold text-slate-900">Syncing Learner Profile</h2>
-             <p className="text-slate-500 text-sm font-medium">Please wait while we prepare your workspace...</p>
+             <h2 className="text-xl font-bold text-foreground">Syncing Learner Profile</h2>
+             <p className="text-muted-foreground text-sm font-medium">Please wait while we prepare your workspace...</p>
            </div>
          </div>
       </div>
@@ -163,7 +164,8 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const currentLevel = assessmentOutcome?.finalLevel || supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
   return (
-    <div className="flex min-h-screen bg-slate-50 relative">
+  return (
+    <div className="flex min-h-screen bg-background relative transition-colors duration-300">
       {/* Circuit Breaker Overlay or Banner */}
       <AnimatePresence>
         {supabaseData.isSyncing && (
@@ -178,7 +180,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
         )}
       </AnimatePresence>
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col py-6 px-4 hidden md:flex">
+      <aside className="w-64 bg-card border-r border-border flex flex-col py-6 px-4 hidden md:flex transition-colors duration-300">
         <div className="flex items-center gap-3 px-3 mb-8">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
             <BrainCircuit className="w-5 h-5 text-white" />
@@ -262,18 +264,28 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
           {activeTab === 'overview' && (
             <motion.div key="overview" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
               {/* Header */}
-              <motion.div variants={staggerItem} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <div>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">
-                    Welcome back, {supabaseData.user?.fullName || 'Learner'}
-                  </h1>
-                  <p className="text-slate-500 font-medium">
+              <motion.div variants={staggerItem} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-1">
+                      Welcome back, {supabaseData.user?.fullName || 'Learner'}
+                    </h1>
+                    <div className="md:hidden">
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground font-medium">
                     {isNewLearner ? "Ready to map your language proficiency?" : activeDashboardData?.primaryGoalText || 'Loading your goals...'}
                   </p>
                 </div>
-                <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
-                  <Play className="w-5 h-5 fill-white" /> {isNewLearner ? "Start Assessment" : "Continue Journey"}
-                </button>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="hidden md:block">
+                    <ThemeToggle />
+                  </div>
+                  <button onClick={onStartSession} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-primary hover:opacity-90 text-primary-foreground px-8 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-[0.98]">
+                    <Play className="w-5 h-5 fill-current" /> {isNewLearner ? "Start Assessment" : "Continue Journey"}
+                  </button>
+                </div>
               </motion.div>
 
               {/* Smart Goal Progress Banner */}
