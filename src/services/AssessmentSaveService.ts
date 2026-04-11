@@ -55,19 +55,19 @@ export class AssessmentSaveService {
 
     console.log(`[Buffer] 🔄 Background Sync: Attempting to secure ${buffer.length} logs...`);
 
-    // 🚀 NON-BLOCKING: Fire and forget (let the then/catch handle the result)
-    supabase.from('assessment_logs').insert(buffer).then(({ error }) => {
+    // 🛑 BLOCKING: Await the response completely
+    try {
+      const { error } = await supabase.from('assessment_logs').insert(buffer);
       if (!error) {
         localStorage.removeItem('pending_assessment_logs');
         console.log(`[Buffer] ✅ Background Sync complete. ${buffer.length} logs secured.`);
       } else {
         console.warn(`[Buffer] ⚠️ Background Sync partial failure:`, error.message);
       }
-    }).catch(err => {
+    } catch (err) {
       console.error(`[Buffer] ❌ Background Sync failed:`, err);
-    });
+    }
 
-    // Return immediately to unblock the Engine
     return true;
   }
 
@@ -75,7 +75,10 @@ export class AssessmentSaveService {
     try {
       console.log("🟡 Sending Payload to DB...");
 
-      // تأكد من تمرير الـ 9 بارامترات بالترتيب الصح
+      // Validate Auth explicitly via backend context before proceeding
+      await this.getAuthenticatedUserId();
+
+      // تأكد من تمرير الـ 9 بارامترات بالترتيب الصح وتنتظر الرد
       const { data, error } = await supabase.rpc('log_and_update_assessment', {
         p_question_id: task.id || task.external_id || 'unknown',
         p_question_text: task.prompt || task.text || task.question || 'Unknown',
@@ -96,20 +99,7 @@ export class AssessmentSaveService {
         throw error;
       }
 
-      const userId = localStorage.getItem('auth_user_id');
-      if (userId && evaluation) {
-        await this.updateSkillState(
-          userId, 
-          task.skill || 'general', 
-          Number(evaluation?.score) || 0,
-          evaluation.detected_level || 'A1'
-        ).catch(err => {
-          console.error("❌ Skill Update Error:", err);
-          throw err;
-        });
-      }
-
-      console.log("✅ Save Success!");
+      console.log("✅ Save Success! (Atomic RPC handles skill update)");
       return data;
     } catch (err) {
       console.error("🔥 Critical Save Error:", err);

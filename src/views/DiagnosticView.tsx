@@ -368,8 +368,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       preferredTopics: (onboardingState.topics || []) as string[],
     } : undefined;
 
-    const userId = localStorage.getItem('auth_user_id');
-    const engine = new AdaptiveAssessmentEngine(startBand, contextProfile, userId);
+    // The Engine securely fetches the user session itself asynchronously when saving to avoid race conditions.
+    const engine = new AdaptiveAssessmentEngine(startBand, contextProfile, null);
     
     // 🚀 RESUME LOGIC: If we have partial results from App state, inject them into the engine
     if (taskResults && taskResults.length > 0) {
@@ -397,15 +397,24 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsSaving(true); 
     setIsCompleting(true);
 
-    console.log('[Diagnostic] 🚀 Production-Grade Finalization: Instant Navigation.');
+    console.log('[Diagnostic] 🚀 Secure Finalization: Awaiting Cloud Confirmation.');
 
-    // 1. Fire-and-Forget background tasks
-    engine.finalizeAssessment(); 
-    refreshUserProfile().catch(() => {}); 
-
-    // 2. INSTANT JUMP
-    // Zero-wait transition to dashboard. Persistence is handled in the shadow.
-    navigate('/dashboard', { replace: true });
+    try {
+      // 1. Synchronously block UI until all DB saves are confirmed
+      await engine.finalizeAssessment(); 
+      await refreshUserProfile().catch(err => console.warn('User profile refresh failed:', err)); 
+      
+      console.log('[Diagnostic] ✅ Cloud confirmed. Jumping to Dashboard.');
+      
+      // 2. SAFE JUMP
+      // Transition only happens once persistence explicitly resolves
+      navigate('/dashboard', { replace: true });
+    } catch (e) {
+      console.error('[Diagnostic] ❌ Finalization aborted due to persistence error.', e);
+      setSaveError('A critical failure occurred while saving your results.');
+      // Fallback transition in worst case scenario
+      setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
+    }
   }, [engine, navigate, refreshUserProfile]);
 
   // Compatibility alias

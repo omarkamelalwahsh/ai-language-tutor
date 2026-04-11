@@ -895,25 +895,33 @@ export class AdaptiveAssessmentEngine {
     try {
       // 1. Calculate Results IMMEDIATELY from Memory
       const finalOutcome = this.getOutcome();
-      const userId = this.userId || this.safeGetLocalStorage('auth_user_id');
+      // Fetch authenticated user ID securely (No localStorage)
+      let currentAuthSession = null;
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         currentAuthSession = user?.id;
+      } catch (authError) {
+         console.warn("[Engine] Auth retrieval error, user might be offline", authError);
+      }
       
       this.state.completed = true;
 
-      if (!userId) {
-        console.warn("[Engine] No userId found, skipping cloud persistence.");
+      // Ensure persistence only executes if properly authenticated
+      if (!currentAuthSession) {
+        console.warn("[Engine] No valid user session found, skipping cloud persistence.");
         return true; 
       }
 
-      // 2. BACKGROUND TASKS (No await here - let them run in the shadow)
+      // 2. SYNCHRONOUS BACKEND TASKS: Enforce await before routing
       
       // A. Sync any remaining buffered questions
-      AssessmentSaveService.syncPendingLogs().catch(e => console.error("[Sync] Background sweep failed:", e));
+      await AssessmentSaveService.syncPendingLogs().catch(e => console.warn("[Sync] Initial buffer sync warn:", e));
 
-      // B. Save results to Supabase via RPC
-      AssessmentSaveService.saveAssessmentResults(finalOutcome).then(() => {
-        console.log("[Engine] ✅ Cloud Results secured via RPC.");
+      // B. Save final profile metrics to Supabase
+      await AssessmentSaveService.saveAssessmentResults(finalOutcome).then(() => {
+        console.log("[Engine] ✅ Cloud Results natively secured.");
       }).catch(err => {
-        console.error("🚨 [Engine] Background RPC Save failed:", err);
+        console.error("🚨 [Engine] Final Result RPC Save failed:", err);
       });
 
       // C. Notify internal API (Syncing metadata)
