@@ -21,6 +21,7 @@ import { UserLeaderboardView } from './views/UserLeaderboardView';
 
 // Components
 import { AssessmentReviewView } from './views/AssessmentReviewView';
+import { ResultAnalysisView } from './views/ResultAnalysisView';
 import { AdvancedDashboard } from './components/dashboard/AdvancedDashboard';
 import { SharedRuntime } from './components/runtime/SharedRuntime';
 
@@ -141,13 +142,13 @@ function AppRoutes() {
       // 2. Re-fetch profile from DB to ensure onboarding_complete is TRUE
       await refreshData();
       
-      // 3. Frontend Guarantee: Force full browser redirect to kill stale state
-      console.log('[AppRoutes] 🚀 Finalizing with Frontend Guarantee redirect...');
-      window.location.assign('/dashboard');
+      // 3. Frontend Guarantee: Navigate to Results View to prevent "Pending" state
+      console.log('[AppRoutes] 🚀 Finalizing with Frontend Guarantee redirect to Results...');
+      navigate('/diagnostic/results', { replace: true });
     } catch (error) {
       console.error('[AppRoutes] Assessment save failed:', error);
       // Fallback redirect
-      window.location.assign('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   };
 
@@ -195,6 +196,21 @@ function AppRoutes() {
                 taskResults={taskResults}
                 onSaveComplete={handleAssessmentSave}
               />
+            </ProtectedRoute>
+          } />
+
+          {/* Results Analysis View */}
+          <Route path="/diagnostic/results" element={
+            <ProtectedRoute>
+              {assessmentResult ? (
+                <ResultAnalysisView 
+                  result={assessmentResult}
+                  assessmentOutcome={assessmentOutcome}
+                  onContinue={() => window.location.assign('/dashboard')}
+                />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )}
             </ProtectedRoute>
           } />
 

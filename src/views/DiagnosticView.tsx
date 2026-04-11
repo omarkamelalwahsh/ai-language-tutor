@@ -404,18 +404,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       await engine.finalizeAssessment(); 
       await refreshUserProfile().catch(err => console.warn('User profile refresh failed:', err)); 
       
-      console.log('[Diagnostic] ✅ Cloud confirmed. Jumping to Dashboard.');
+      console.log('[Diagnostic] ✅ Cloud confirmed. Passing to App router.');
       
-      // 2. SAFE JUMP
-      // Transition only happens once persistence explicitly resolves
-      navigate('/dashboard', { replace: true });
+      // 2. Pass control back to App.tsx to set state and route
+      // We pass an empty array for results (or whatever getHistory is) and the outcome
+      const outcome = engine.getOutcome();
+      
+      // Safe fallback if the outcome from Engine does not match expected AssessmentOutcome type perfectly
+      onSaveComplete([], outcome);
     } catch (e) {
       console.error('[Diagnostic] ❌ Finalization aborted due to persistence error.', e);
       setSaveError('A critical failure occurred while saving your results.');
       // Fallback transition in worst case scenario
       setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
     }
-  }, [engine, navigate, refreshUserProfile]);
+  }, [engine, navigate, refreshUserProfile, onSaveComplete]);
 
   // Compatibility alias
   const handleAssessmentComplete = handleFinish;

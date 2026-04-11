@@ -91,7 +91,7 @@ export const useSupabaseDashboard = () => {
         }
 
         // Fetch learner data in parallel (Joined Fetch for Profiles & Skills)
-        const [joinedRes, historyRes, errorsRes, achievementRes, journeyRes, stepsRes] = await Promise.all([
+        const [joinedRes, historyRes, errorsRes, achievementRes, journeyRes, stepsRes, skillsRes] = await Promise.all([
           supabase
             .from('learner_profiles')
             .select(`
@@ -102,14 +102,7 @@ export const useSupabaseDashboard = () => {
               streak,
               pacing_score,
               accuracy_rate,
-              self_correction_rate,
-              ${DB_SCHEMA.TABLES.SKILLS} (
-                skill, 
-                current_level, 
-                ${DB_SCHEMA.COLUMNS.SKILL_SCORE},
-                confidence, 
-                updated_at
-              )
+              self_correction_rate
             `)
             .eq('id', user.id)
             .single(),
@@ -137,7 +130,11 @@ export const useSupabaseDashboard = () => {
           supabase
             .from('journey_steps')
             .select('id, journey_id, title, description, status, order_index, icon_type')
-            .order('order_index', { ascending: true })
+            .order('order_index', { ascending: true }),
+          supabase
+            .from(DB_SCHEMA.TABLES.SKILLS)
+            .select(`skill, current_level, ${DB_SCHEMA.COLUMNS.SKILL_SCORE}, confidence, updated_at`)
+            .eq('user_id', user.id)
         ]);
 
         // Circuit Breaker: If any critical fetch fails, signal sync state
@@ -145,7 +142,7 @@ export const useSupabaseDashboard = () => {
 
         if (isMounted) {
           const profileData = joinedRes.data;
-          const skillsData = profileData?.skill_states || [];
+          const skillsData = skillsRes.data || [];
           const journeyData = journeyRes.data;
           const journeySteps = stepsRes.data?.filter(s => s.journey_id === journeyData?.id) || [];
 
