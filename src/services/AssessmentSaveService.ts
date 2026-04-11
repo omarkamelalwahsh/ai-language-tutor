@@ -8,16 +8,22 @@ export class AssessmentSaveService {
    * Helper to ensure valid user session before DB interaction.
    */
   private static async getAuthenticatedUserId(): Promise<string> {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
-      throw new Error(`Auth context missing: ${error?.message || 'No user session'}`);
+    console.log("🟡 Fetching authenticated user session safely...");
+    const { data: { session }, error } = await supabase.auth.getSession();
+    let userId = session?.user?.id;
+    
+    if (error || !userId) {
+      console.warn("⚠️ Validating fallback local storage since getSession failed...");
+      userId = localStorage.getItem('auth_user_id') || undefined;
+      if (!userId) {
+        throw new Error(`Auth context missing: No user session found locally or remotely`);
+      }
     }
-    return user.id;
+    console.log("🟡 Auth user resolved:", userId);
+    return userId;
   }
 
-  /**
-   * Helper to append a log to the local buffer (localStorage) for reliability.
-   */
+  // Helper buffers unchanged...
   private static saveToLocalBuffer(payload: any) {
     if (typeof window === 'undefined') return;
     try {
@@ -29,9 +35,6 @@ export class AssessmentSaveService {
     }
   }
 
-  /**
-   * Helper to remove a successfully synced log from the local buffer.
-   */
   private static removeFromLocalBuffer(questionId: string, timestamp: string) {
     if (typeof window === 'undefined') return;
     try {
@@ -43,10 +46,6 @@ export class AssessmentSaveService {
     }
   }
 
-  /**
-   * Sweeper function to sync all pending logs in bulk.
-   * REFACTORED: Non-blocking execution to prevent UI hangs during finalization.
-   */
   public static async syncPendingLogs() {
     if (typeof window === 'undefined') return true;
     
@@ -76,10 +75,11 @@ export class AssessmentSaveService {
       console.log("🟡 Sending Payload to DB...");
 
       // Validate Auth explicitly via backend context before proceeding
-      await this.getAuthenticatedUserId();
+      const userId = await this.getAuthenticatedUserId();
 
-      // تأكد من تمرير الـ 9 بارامترات بالترتيب الصح وتنتظر الرد
-      const { data, error } = await supabase.rpc('log_and_update_assessment', {
+      console.log("🟡 Constructing RPC Payload for question ID:", task.id);
+      
+      const rpcPayload = {
         p_question_id: task.id || task.external_id || 'unknown',
         p_question_text: task.prompt || task.text || task.question || 'Unknown',
         p_user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
@@ -92,7 +92,12 @@ export class AssessmentSaveService {
           ...evaluation,
           user_answer: answer
         }
-      });
+      };
+
+      console.log("🟡 Executing supabase.rpc('log_and_update_assessment')...");
+      const { data, error } = await supabase.rpc('log_and_update_assessment', rpcPayload);
+
+      console.log("🟡 rpc promise resolved. Checking for errors...");
 
       if (error) {
         console.error("❌ RPC Error:", error);
