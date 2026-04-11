@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { AnimatePresence } from 'motion/react';
 
 // Context
-import { DataProvider, useData } from './context/DataProvider';
+import { DataProvider, useData } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Views
