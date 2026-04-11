@@ -766,21 +766,28 @@ export class AdaptiveAssessmentEngine {
     }
 
     return {
+      overall: {
+        estimatedLevel: academicResult.label,
+        confidence: academicResult.confidence,
+        rationale: academicResult.isStable 
+          ? ["Your profile has reached psychometric stability."] 
+          : ["Assessment complete based on maximum testing depth."]
+      },
       overallBand: academicResult.label,
       overallConfidence: academicResult.confidence,
       skillBreakdown: skillResults,
       strengths: [],
       weaknesses: [],
       answerHistory: [...this.state.answerHistory],
-       totalQuestions: this.state.questionsAnswered,
-       stopReason: academicResult.isStable ? 'stable' : 'max_reached',
-       speakingAudit: this.state.speakingAudit,
- 
-       // 🕵️ Auditor Agent Diagnosis
-       finalLevel: (this.state.finalAuditor?.final_cefr_level as any) || academicResult.label,
-       bridgeDelta: String(this.state.finalAuditor?.overall_score || 0),
-       errorAnalysisReport: this.state.finalAuditor?.diagnosis_report,
-       auditorReport: this.state.finalAuditor
+      totalQuestions: this.state.questionsAnswered,
+      stopReason: academicResult.isStable ? 'stable' : 'max_reached',
+      speakingAudit: this.state.speakingAudit,
+
+      // 🕵️ Auditor Agent Diagnosis
+      finalLevel: (this.state.finalAuditor?.final_cefr_level as any) || academicResult.label,
+      bridgeDelta: String(this.state.finalAuditor?.overall_score || 0),
+      errorAnalysisReport: this.state.finalAuditor?.diagnosis_report,
+      auditorReport: this.state.finalAuditor
     };
   }
 

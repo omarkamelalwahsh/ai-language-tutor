@@ -165,8 +165,8 @@ export class AssessmentSaveService {
                ? (typeof outcome.actionPlan === 'string' ? outcome.actionPlan : JSON.stringify(outcome.actionPlan)) 
                : null,
             p_common_mistakes: outcome.common_mistakes || [],
-            p_bridge_delta: outcome.bridgeDelta ?? null,
-            p_bridge_percentage: outcome.bridgePercentage ?? null
+            p_bridge_delta: outcome.bridgeDelta !== null && outcome.bridgeDelta !== undefined ? Number(outcome.bridgeDelta) : null,
+            p_bridge_percentage: outcome.bridgePercentage !== null && outcome.bridgePercentage !== undefined ? Number(outcome.bridgePercentage) : null
           };
 
           console.table({

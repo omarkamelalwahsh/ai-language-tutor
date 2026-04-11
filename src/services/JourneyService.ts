@@ -16,10 +16,10 @@ export class JourneyService {
    * Used as an immediate response and fallback for LLM failures.
    */
   public static buildJourney(result: AssessmentSessionResult): LearnerJourneyPayload {
-    const currentLevel = result.overall.estimatedLevel;
+    const currentLevel = result?.overall?.estimatedLevel || 'A1';
     const targetLevel = getNextBand(currentLevel);
     
-    const gaps = this.identifyGaps(result);
+    const gaps = result ? this.identifyGaps(result) : [];
     const objectives = this.identifyObjectives(targetLevel);
     const nodes = this.generateStaticNodes(gaps, objectives);
 

@@ -10,14 +10,14 @@ export class DashboardService {
 
     return {
       isNewLearner: !result,
-      primaryGoalText: result?.overall?.rationale?.[0] || `Building toward ${targetLevel}.`,
+      primaryGoalText: result?.overall?.rationale?.[0] || result?.overallBand || `Building toward ${targetLevel}.`,
       recommendedNextAction: {
         label: result?.recommendedNextTasks?.[0] || 'Start Practice',
         actionId: 'practice_1',
         reason: 'Based on your diagnostic evidence.'
       },
       journey: {
-        ...(result ? JourneyService.buildJourney(result) : {
+        ...(result?.overall ? JourneyService.buildJourney(result) : {
           currentStage: 'A1',
           targetStage: 'A2',
           journeyTitle: 'Initial Path',

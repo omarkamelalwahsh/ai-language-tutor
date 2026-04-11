@@ -424,6 +424,11 @@ export type AdaptiveAssessmentState = {
 
 /** Final structured output from the adaptive assessment */
 export type AssessmentOutcome = {
+  overall: {
+    estimatedLevel: CefrLevel;
+    confidence: number;
+    rationale: string[];
+  };
   overallBand: BandLabel;
   overallConfidence: number;
   skillBreakdown: Record<AssessmentSkill, {
