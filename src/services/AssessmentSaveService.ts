@@ -72,11 +72,6 @@ export class AssessmentSaveService {
 
   static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
     try {
-      console.log("🟡 Sending Payload to DB...");
-
-      // Validate Auth explicitly via backend context before proceeding
-      const userId = await this.getAuthenticatedUserId();
-
       console.log("🟡 Constructing RPC Payload for question ID:", task.id);
       
       const rpcPayload = {
