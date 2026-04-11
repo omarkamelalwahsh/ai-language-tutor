@@ -4,7 +4,6 @@ import { AnimatePresence } from 'motion/react';
 
 // Context
 import { DataProvider, useData } from './context/DataContext';
-import { ThemeProvider } from './context/ThemeContext';
 
 // Views
 import { AuthView } from './views/AuthView';
@@ -154,7 +153,7 @@ function AppRoutes() {
   };
 
   return (
-    <div className="font-sans antialiased text-foreground selection:bg-primary/30 selection:text-foreground bg-background min-h-screen transition-colors duration-300">
+    <div className="font-sans antialiased text-slate-900 selection:bg-indigo-500/30 selection:text-indigo-900 bg-slate-50 min-h-screen">
       <DevModeOverlay result={assessmentResult} show={devModeActive} onClose={() => {}} />
 
       <AnimatePresence mode="wait">
@@ -290,12 +289,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <DataProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </DataProvider>
-    </ThemeProvider>
+    <DataProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </DataProvider>
   );
 }
