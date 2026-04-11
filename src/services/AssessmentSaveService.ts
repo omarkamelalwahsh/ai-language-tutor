@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabaseClient';
 import { AssessmentOutcome } from '../types/assessment';
 import { withRetry } from '../lib/utils';
 
@@ -91,15 +91,35 @@ export class AssessmentSaveService {
         }
       };
 
-      console.log("🟡 Executing supabase.rpc('log_and_update_assessment')...");
-      const { data, error } = await supabase.rpc('log_and_update_assessment', rpcPayload);
+      console.log("🟡 Executing raw fetch to PostgREST RPC...");
+      
+      // Extract raw token from Supabase's local storage to completely bypass client locking
+      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
+
+      if (!token) {
+         throw new Error("No secure session token available in local storage.");
+      }
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/log_and_update_assessment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': supabaseAnonKey!
+        },
+        body: JSON.stringify(rpcPayload)
+      });
 
       console.log("🟡 rpc promise resolved. Checking for errors...");
 
-      if (error) {
-        console.error("❌ RPC Error:", error);
-        throw error;
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("❌ RPC Error:", errText);
+        throw new Error(errText);
       }
+
+      const data = await response.json().catch(() => null);
 
       console.log("✅ Save Success! (Atomic RPC handles skill update)");
       return data;
