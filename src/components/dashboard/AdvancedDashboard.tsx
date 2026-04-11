@@ -164,7 +164,6 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, da
   const currentLevel = assessmentOutcome?.finalLevel || supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
 
   return (
-  return (
     <div className="flex min-h-screen bg-background relative transition-colors duration-300">
       {/* Circuit Breaker Overlay or Banner */}
       <AnimatePresence>
