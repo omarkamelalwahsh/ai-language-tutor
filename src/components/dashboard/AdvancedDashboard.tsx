@@ -471,21 +471,85 @@ const AnalyticsTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
 
             {/* Split 2: Skill Deep Dive (5 cols) */}
             <div className="lg:col-span-5 flex flex-col h-full">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition">
-                    <h3 className="text-xl font-black text-slate-900 mb-8 tracking-tight">Skill Deep Dive</h3>
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition overflow-y-auto max-h-[600px] custom-scrollbar">
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Proficiency</h3>
+                        <div className="p-1 px-3 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100 shadow-sm">
+                            Real-time Signals
+                        </div>
+                    </div>
                     
                     <div className="space-y-6">
-                        <div className="border-b border-slate-100 pb-6">
-                            <h4 className="font-bold text-[15px] text-slate-900 mb-1 leading-snug">Reading: Inference errors in complex sentences</h4>
-                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">(A2 → B1 gap)</p>
-                            <ul className="text-[13px] text-slate-600 list-disc ml-5 space-y-1.5 font-medium marker:text-slate-300">
-                                <li>Reading: Inference errors in complex sentences (A2 → B1 gap)</li>
-                                <li>Reading: Inference errors in complex sentences (A2 → B1 gap)</li>
-                            </ul>
-                            <button className="mt-4 text-blue-600 text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:text-blue-700 transition">
-                               Show more <ChevronRight size={12} />
-                            </button>
-                        </div>
+                        {(supabaseData.skills || []).length > 0 ? (
+                           supabaseData.skills.map((skill: any) => (
+                            <div key={skill.skillId} className="border-b border-slate-100 pb-6 last:border-0 group/skill">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/skill:bg-blue-50 group-hover/skill:text-blue-500 transition-colors border border-slate-100">
+                                            {skill.skillId === 'speaking' && <Mic size={18} />}
+                                            {skill.skillId === 'listening' && <Activity size={18} />}
+                                            {skill.skillId === 'reading' && <BookOpen size={18} />}
+                                            {skill.skillId === 'writing' && <ArrowRight size={18} />}
+                                            {!['speaking', 'listening', 'reading', 'writing'].includes(skill.skillId) && <Zap size={18} />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-[15px] text-slate-900 leading-snug capitalize group-hover/skill:text-blue-600 transition-colors">
+                                                {skill.skillId}
+                                            </h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border 
+                                                    ${skill.masteryScore > 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
+                                                      skill.masteryScore > 40 ? 'bg-blue-50 text-blue-700 border-blue-100' : 
+                                                      'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                                    {skill.currentLevel || (skill.masteryScore > 80 ? 'B2' : skill.masteryScore > 50 ? 'B1' : 'A2')}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                                    {skill.masteryScore}% Mastery
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Stability</div>
+                                        <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border
+                                            ${skill.status === 'stable' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                            {skill.status || 'stable'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    {/* Progress Bar Container */}
+                                    <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${skill.masteryScore}%` }}
+                                            className={`h-full transition-all duration-1000 
+                                                ${skill.masteryScore > 70 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 
+                                                  skill.masteryScore > 40 ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 
+                                                  'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]'}`}
+                                        />
+                                    </div>
+                                    
+                                    {/* Weaknesses if any */}
+                                    {(skill.weaknesses || []).length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {skill.weaknesses.slice(0, 2).map((w: string, idx: number) => (
+                                                <span key={idx} className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md">
+                                                    {w}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                           ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                                <Activity className="w-12 h-12 mb-4 opacity-20" />
+                                <p className="text-sm font-medium">Syncing Skill Profile...</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
