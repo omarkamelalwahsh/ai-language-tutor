@@ -40,7 +40,7 @@ serve(async (req) => {
     const scoredJSONRaw = await scorerResponse.json();
     const scoredData = scoredJSONRaw.choices[0].message.content;
 
-    // --- STEP 2: Pedagogical Expert (Grok-2) ---
+    // --- STEP 2: Pedagogical Expert (Grok-Beta) ---
     console.log(`[Edge Function] Expert Model...`);
     const finalAnalysisResponse = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
@@ -50,16 +50,49 @@ serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: `You are a Senior Language Coach. Generate a final report based on scored data.
-            Output JSON sections:
-            1. placement_outcome: { final_level, recommended_next_step }
-            2. strengths: string[]
-            3. growth_areas: string[]
-            4. skill_breakdown: { [skill]: { ai_insight, meaning, next_focus } }
-            5. question_analysis: [ { id, skill_tested, user_answer, correct_answer, result, ai_interpretation, what_it_tells_us } ]
-            Strictly return JSON. English Language.` 
+            content: `Act as a Senior Linguistic Evaluator and Data Architect.
+Analyze the following user assessment raw logs and generate a structured JSON response to hydrate the user's dashboard.
+
+Your goal is to provide a "Final Diagnostic State". The output MUST strictly follow this JSON schema to match the Supabase tables:
+
+{
+  "learner_profile": {
+    "overall_level": "CEFR Level (A1-C2)",
+    "points_awarded": 150,
+    "accuracy_rate": 85
+  },
+  "skill_breakdown": [
+    {"skill": "reading", "score": 85, "level": "B1"},
+    {"skill": "listening", "score": 75, "level": "A2"},
+    {"skill": "writing", "score": 90, "level": "B2"},
+    {"skill": "speaking", "score": 60, "level": "A2"}
+  ],
+  "error_profile": {
+    "weakness_areas": ["List 3 specific linguistic weaknesses"],
+    "common_mistakes": ["List 2-3 specific patterns of error"],
+    "action_plan": "A concise, professional 2-sentence roadmap for improvement",
+    "bridge_delta": "numeric progress value to next level",
+    "bridge_percentage": 45
+  },
+  "learning_journey": {
+    "nodes": [
+      {"id": "step_1", "title": "Foundation Mastery", "status": "completed"},
+      {"id": "step_2", "title": "Next Milestone Name", "status": "current"},
+      {"id": "step_3", "title": "Future Goal", "status": "locked"}
+    ]
+  },
+  "question_analysis": [ 
+    {"id": "q1", "skill_tested": "reading", "user_answer": "...", "correct_answer": "...", "result": "Correct", "ai_interpretation": "...", "what_it_tells_us": "..."} 
+  ]
+}
+
+CRITICAL INSTRUCTIONS:
+1. Ensure 'weakness_areas' and 'common_mistakes' are formatted as clean arrays of strings.
+2. The 'action_plan' must be actionable and encouraging.
+3. If logs are insufficient for a skill, provide a logical estimate based on overall performance.
+4. RETURN ONLY RAW JSON. NO PROSE.` 
           },
-          { role: "user", content: scoredData }
+          { role: "user", content: `[USER_LOGS_START]\n${scoredData}\n[USER_LOGS_END]` }
         ],
         response_format: { type: "json_object" }
       })
@@ -67,37 +100,91 @@ serve(async (req) => {
     const analysisJSONRaw = await finalAnalysisResponse.json();
     const finalReport = JSON.parse(analysisJSONRaw.choices[0].message.content);
 
-    // --- STEP 3: Triple Persistence Logic ---
-    console.log(`[Edge Function] Triple Persistent Save...`);
+    // --- STEP 3: Full Architecture Persistence Logic ---
+    console.log(`[Edge Function] Full Architecture Persistent Save...`);
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     // 1. Profile Update
     await supabase.from('learner_profiles').update({
-       overall_level: finalReport.placement_outcome.final_level,
+       overall_level: finalReport.learner_profile.overall_level,
+       points: finalReport.learner_profile.points_awarded || 50,
+       accuracy_rate: finalReport.learner_profile.accuracy_rate || 0,
        has_completed_assessment: true,
        last_active_at: new Date()
     }).eq('id', user_id);
 
-    // 2. Summary & Hub (Error Profiles)
+    // 2. Skill States Upsert
+    if (finalReport.skill_breakdown && Array.isArray(finalReport.skill_breakdown)) {
+       for (const skill of finalReport.skill_breakdown) {
+          await supabase.from('skill_states').upsert({
+             user_id: user_id,
+             skill: skill.skill,
+             current_level: skill.level,
+             current_score: skill.score,
+             confidence: Math.min(skill.score / 100, 1),
+             updated_at: new Date()
+          }, { onConflict: 'user_id, skill' });
+       }
+    }
+
+    // 3. Error Profiles Upsert
+    const ep = finalReport.error_profile || {};
     await supabase.from('user_error_profiles').upsert({
       user_id: user_id,
-      action_plan: finalReport.placement_outcome.recommended_next_step,
-      weakness_areas: finalReport.growth_areas,
+      action_plan: ep.action_plan || "",
+      weakness_areas: ep.weakness_areas || [],
+      common_mistakes: ep.common_mistakes || [],
+      bridge_delta: ep.bridge_delta || 0,
+      bridge_percentage: ep.bridge_percentage || 0,
       full_report: finalReport
     });
 
-    // 3. Granular Analysis (Question by Question)
-    const analysisRows = finalReport.question_analysis.map((q: any, i: number) => ({
-      user_id,
-      category: q.skill_tested,
-      user_answer: q.user_answer,
-      correct_answer: q.correct_answer,
-      is_correct: q.result === 'Correct',
-      ai_interpretation: q.ai_interpretation,
-      deep_insight: q.what_it_tells_us,
-      question_number: i + 1
-    }));
-    await supabase.from('user_error_analysis').insert(analysisRows);
+    // 4. Learning Journeys (Insert/Update Journey and Steps)
+    if (finalReport.learning_journey && finalReport.learning_journey.nodes) {
+       // Check if journey exists
+       let journeyRes = await supabase.from('learning_journeys').select('id').eq('user_id', user_id).single();
+       let journeyId;
+       
+       if (journeyRes.data) {
+          journeyId = journeyRes.data.id;
+       } else {
+          const insertRes = await supabase.from('learning_journeys').insert({
+             user_id: user_id,
+             nodes: finalReport.learning_journey.nodes,
+             current_node_id: finalReport.learning_journey.nodes.find((n:any)=>n.status==='current')?.id || 'step_1'
+          }).select('id').single();
+          if(insertRes.data) journeyId = insertRes.data.id;
+       }
+
+       if (journeyId) {
+          // Clear old steps and insert new
+          await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
+          const stepsToInsert = finalReport.learning_journey.nodes.map((node: any, idx: number) => ({
+             journey_id: journeyId,
+             title: node.title,
+             description: node.title, // or any description if provided
+             order_index: idx + 1,
+             status: node.status,
+             is_locked: node.status === 'locked'
+          }));
+          await supabase.from('journey_steps').insert(stepsToInsert);
+       }
+    }
+
+    // 5. Granular Analysis (Question by Question)
+    if (finalReport.question_analysis && Array.isArray(finalReport.question_analysis)) {
+       const analysisRows = finalReport.question_analysis.map((q: any, i: number) => ({
+         user_id,
+         category: q.skill_tested,
+         user_answer: q.user_answer,
+         correct_answer: q.correct_answer,
+         is_correct: q.result === 'Correct',
+         ai_interpretation: q.ai_interpretation,
+         deep_insight: q.what_it_tells_us,
+         question_number: i + 1
+       }));
+       await supabase.from('user_error_analysis').insert(analysisRows);
+    }
 
     return new Response(JSON.stringify({ success: true, analysis: finalReport }), {
       headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }

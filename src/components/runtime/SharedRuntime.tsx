@@ -10,10 +10,11 @@ import { SpeakingModule } from './modules/SpeakingModule';
 import { WritingModule } from './modules/WritingModule';
 import { ListeningModule } from './modules/ListeningModule';
 import { VocabularyModule } from './modules/VocabularyModule';
+import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 
 interface SharedRuntimeProps {
   onExit: () => void;
-  result: AssessmentSessionResult;
+  result?: AssessmentSessionResult | null;
 }
 
 const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExit: () => void }) => {
@@ -65,7 +66,36 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
 };
 
 export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
-  if (!result) {
+  const supabaseData = useSupabaseDashboard();
+
+  // Active Adaptive Sync fallback
+  const activeResult = React.useMemo(() => {
+    if (result) return result;
+    if (supabaseData.isLoading) return null;
+    
+    // Map Supabase DB to AssessmentSessionResult for Runtime Service
+    const dbSkills: any = {};
+    const skillList = supabaseData.skills && supabaseData.skills.length > 0 
+      ? supabaseData.skills 
+      : [{ skillId: 'speaking', masteryScore: 50 }, { skillId: 'reading', masteryScore: 50 }];
+      
+    skillList.forEach(s => {
+      dbSkills[s.skillId || s.skill] = {
+         confidence: { score: (s.confidence || 0.5) },
+         descriptors: [{ descriptorId: `desc_${s.skillId}`, strength: (s.masteryScore || 50) / 100, descriptorText: `Focus on ${s.skillId} fluency.` }]
+      };
+    });
+
+    return {
+       overall: {
+          estimatedLevel: supabaseData.profile?.overall_level || 'B1',
+          confidence: 0.75
+       },
+       skills: dbSkills
+    } as AssessmentSessionResult;
+  }, [result, supabaseData]);
+
+  if (!activeResult) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse mb-6">
@@ -77,7 +107,7 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     );
   }
 
-  const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(result));
+  const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(activeResult));
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   
   const [feedback, setFeedback] = useState<TaskFeedbackPayload | null>(null);

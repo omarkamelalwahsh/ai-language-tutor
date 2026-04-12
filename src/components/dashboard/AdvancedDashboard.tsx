@@ -75,6 +75,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     }, [location.pathname]);
 
     const handleTabChange = (tabId: string) => {
+        if (tabId === 'practice') {
+            props.onStartSession();
+            return;
+        }
         if (tabId === 'home') navigate('/dashboard');
         else navigate(`/dashboard/${tabId}`);
     };
@@ -188,7 +192,6 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} />}
-                            {activeTab === 'practice' && <PracticeFallback handleReturn={() => handleTabChange('home')} />}
                         </motion.div>
                     </AnimatePresence>
                 </div>
