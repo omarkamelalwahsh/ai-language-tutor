@@ -47,7 +47,7 @@ export interface DashboardSupabaseData {
   errorProfile: {
     common_mistakes: any[];
     weakness_areas: string[];
-    action_plan?: string[];
+    action_plan: string | string[];
     bridge_delta?: string;
     bridge_percentage?: number;
   } | null;
@@ -219,13 +219,11 @@ export const useSupabaseDashboard = () => {
               weakness_areas: Array.isArray((errorsRes.data as any).weakness_areas)
                 ? (errorsRes.data as any).weakness_areas
                 : [],
-              action_plan: Array.isArray((errorsRes.data as any).action_plan)
-                ? (errorsRes.data as any).action_plan
-                : [],
+              action_plan: (errorsRes.data as any).action_plan || "",
               bridge_delta: (errorsRes.data as any).bridge_delta,
               bridge_percentage: (errorsRes.data as any).bridge_percentage,
             }
-          : null,
+          : { weakness_areas: [], common_mistakes: [], action_plan: "" },
         achievements: achievementRes.data
           ? (achievementRes.data as any[]).map((a: any) => ({
               id: a.id,

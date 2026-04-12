@@ -25,9 +25,12 @@ import {
     Activity,
     Mic,
     Heart,
+    Target,
+    Layout,
     X
 } from 'lucide-react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip } from 'recharts';
+import { VisualErrorProfile } from './VisualErrorProfile';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
@@ -175,7 +178,14 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         >
                             {activeTab === 'home' && <HomeTab {...props} displayName={displayName} supabaseData={supabaseData} />}
                             {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
-                            {activeTab === 'analytics' && <AnalyticsTab {...props} supabaseData={supabaseData} />}
+                            {activeTab === 'analytics' && (
+                                <AnalyticsTab 
+                                    supabaseData={supabaseData} 
+                                    weaknesses={supabaseData.errorProfile?.weakness_areas || []}
+                                    mistakes={supabaseData.errorProfile?.common_mistakes || []}
+                                    actionPlan={supabaseData.errorProfile?.action_plan || "Generating your path..."}
+                                />
+                            )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'practice' && <PracticeFallback handleReturn={() => handleTabChange('home')} />}
@@ -271,9 +281,20 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 h-full">
                     <h3 className="text-xl font-bold text-slate-900 mb-6">Focus Areas</h3>
                     <div className="space-y-4">
-                        <div className="p-4 rounded-2xl border border-dashed border-slate-200 text-center text-slate-400 text-sm">
-                            Real-time tasks will appear here based on your level.
-                        </div>
+                        {(supabaseData.errorProfile?.weakness_areas || []).length > 0 ? (
+                            supabaseData.errorProfile.weakness_areas.map((w: string, i: number) => (
+                                <div key={i} className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-center gap-3 group hover:bg-white hover:shadow-sm transition">
+                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-50">
+                                        <Target size={14} className="group-hover:scale-110 transition-transform" />
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-700">{w}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-4 rounded-2xl border border-dashed border-slate-200 text-center text-slate-400 text-sm">
+                                Complete your assessment to reveal focus areas.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -419,19 +440,22 @@ const JourneyTab = ({ onStartSession, supabaseData }: any) => {
     );
 };
 
-const AnalyticsTab = ({ assessmentOutcome, supabaseData }: any) => {
+const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) => {
     
+    // Check if we have actual data to show or if we should show a prompt
+    const hasData = (weaknesses || []).length > 0 || (supabaseData.skills || []).length > 0;
+
     const skillData = React.useMemo(() => {
-        const skills = supabaseData.skills?.length > 0 ? supabaseData.skills : [
+        const skills = (supabaseData.skills || []).length > 0 ? supabaseData.skills : [
             { skillId: 'Speaking', masteryScore: 78 },
             { skillId: 'Reading', masteryScore: 42 },
             { skillId: 'Writing', masteryScore: 65 },
             { skillId: 'Listening', masteryScore: 85 },
         ];
         return skills.map((s: any) => ({
-          subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1).toLowerCase(),
-          A: s.masteryScore,
-          B: Math.min(100, s.masteryScore * 1.3), 
+          subject: (s.skillId || s.skill || 'Skill').charAt(0).toUpperCase() + (s.skillId || s.skill || 'Skill').slice(1).toLowerCase(),
+          A: s.masteryScore || 0,
+          B: Math.min(100, (s.masteryScore || 0) * 1.3), 
           fullMark: 100
         }));
     }, [supabaseData.skills]);
@@ -459,14 +483,32 @@ const AnalyticsTab = ({ assessmentOutcome, supabaseData }: any) => {
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                     <h3 className="text-lg font-black text-slate-900 mb-4 tracking-tight">Action Plan</h3>
-                    <p className="text-[13px] text-slate-500 leading-relaxed font-medium">
-                        {supabaseData.errorProfile?.action_plan?.join(' ') || 
-                        "Your adaptive learning profile is being synchronized with the AI consistency engine to reveal key insights."}
-                    </p>
+                    
+                    {Array.isArray(actionPlan) ? (
+                        <div className="space-y-3">
+                            {actionPlan.map((step: string, i: number) => (
+                                <div key={i} className="flex gap-3 items-start">
+                                    <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mt-0.5 shrink-0">
+                                        <CheckCircle2 size={12} />
+                                    </div>
+                                    <p className="text-[13px] text-slate-600 font-medium leading-tight">{step}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-[13px] text-slate-500 leading-relaxed font-medium">
+                            {actionPlan || "Your personalized roadmap is being generated by AI..."}
+                        </p>
+                    )}
                 </div>
             </div>
 
-            <div className="lg:col-span-5 flex flex-col h-full">
+            <div className="lg:col-span-8 flex flex-col gap-6">
+                 {/* Premium Visual Error Profile Integration */}
+                 <VisualErrorProfile />
+            </div>
+
+            <div className="lg:col-span-5 flex flex-col h-full hidden">
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition overflow-y-auto max-h-[600px] custom-scrollbar">
                     <div className="flex justify-between items-center mb-8">
                         <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Proficiency</h3>
