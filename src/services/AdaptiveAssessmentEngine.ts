@@ -755,6 +755,7 @@ export class AdaptiveAssessmentEngine {
 
   /**
    * Universal builder for the question interface used by the UI.
+   * 🎯 Ensures a fresh object with explicit defaults to prevent property bleeding.
    */
   private buildQuestionObject(nextItem: QuestionBankItem): AssessmentQuestion {
     let originalOptions: string[] | undefined;
@@ -766,19 +767,21 @@ export class AdaptiveAssessmentEngine {
     }
 
     const rawPrompt = nextItem.prompt || (nextItem as any).text || (nextItem as any).question || '';
+    const skill = (nextItem.skill as any || 'reading');
 
     return {
       id: nextItem.id,
       external_id: nextItem.external_id || nextItem.id,
       prompt: this.cleanPrompt(rawPrompt),
-      skill: nextItem.skill as any,
-      primarySkill: nextItem.skill as any,
+      skill: skill,
+      primarySkill: skill,
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
-      response_mode: (nextItem.response_mode || (nextItem.skill === 'speaking' ? 'audio' : 'typed')) as any,
-      stimulus: nextItem.stimulus,
-      imageUrl: (nextItem as any).image_url || (nextItem as any).img, 
-      audioUrl: (nextItem as any).audio_url || (nextItem as any).audio || nextItem.audio_url,
+      // 🚀 Explicit Logic for Response Mode
+      response_mode: (nextItem.response_mode || (skill === 'speaking' ? 'audio' : (originalOptions ? 'mcq' : 'typed'))) as any,
+      stimulus: nextItem.stimulus || undefined,
+      imageUrl: (nextItem as any).image_url || (nextItem as any).img || undefined, 
+      audioUrl: (nextItem as any).audio_url || (nextItem as any).audio || nextItem.audio_url || undefined,
       options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;

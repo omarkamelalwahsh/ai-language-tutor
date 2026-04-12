@@ -82,15 +82,19 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const [useSpeakingFallback, setUseSpeakingFallback] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
 
-  // Reset on task change
-  useEffect(() => {
-    if (currentTask) {
+  // 🚀 Force explicit state reset on every task transition
+  const setTaskWithReset = useCallback((task: AssessmentQuestion | null) => {
+    if (task) {
       startTimeRef.current = Date.now();
       setTextValue("");
       setSelectedOption(null);
       setUseSpeakingFallback(false);
+      setCurrentTask(task);
+      setProgress(engine.getProgress());
+    } else {
+      setCurrentTask(null);
     }
-  }, [currentTask?.id]);
+  }, [engine]);
 
   // --- Handlers ---
   const handleFinish = useCallback(async () => {
@@ -127,8 +131,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         const firstQ = await engine.getNextQuestion();
         if (isSubscribed) {
           if (firstQ) {
-            setCurrentTask(firstQ);
-            setProgress(engine.getProgress());
+            setTaskWithReset(firstQ);
           } else {
             await handleFinish();
           }
@@ -153,8 +156,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
         if (nextQ) {
-          setCurrentTask(nextQ);
-          setProgress(engine.getProgress());
+          setTaskWithReset(nextQ);
         } else {
           await handleFinish();
         }
@@ -176,8 +178,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     try {
       const nextQ = await engine.skipQuestion(currentTask.id);
       if (nextQ) {
-        setCurrentTask(nextQ);
-        setProgress(engine.getProgress());
+        setTaskWithReset(nextQ);
       } else {
         await handleFinish();
       }
@@ -286,10 +287,15 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 </div>
               )}
 
-              {/* ── Audio Player ── */}
-              {currentTask.skill === 'listening' && currentTask.audioUrl && (
-                <div className="mb-6">
-                  <AudioPlaybackControl audioUrl={currentTask.audioUrl} className="shadow-sm border border-slate-200 rounded-2xl" />
+              {/* ── Audio Player Area (Listening / Pronunciation) ── */}
+              {currentTask.audioUrl && (
+                <div className="mb-6 flex justify-center p-6 bg-indigo-50/50 rounded-2xl border-2 border-dashed border-indigo-200/50 shadow-inner">
+                  <div className="max-w-md w-full">
+                    <AudioPlaybackControl 
+                      audioUrl={currentTask.audioUrl} 
+                      className="bg-white rounded-xl shadow-sm border border-slate-100" 
+                    />
+                  </div>
                 </div>
               )}
 
