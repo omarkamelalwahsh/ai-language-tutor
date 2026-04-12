@@ -214,7 +214,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 const HomeTab = ({ assessmentOutcome, onViewReview }: AdvancedDashboardProps) => {
     const supabaseData = useSupabaseDashboard();
     const profile = supabaseData?.profile || {};
-    const currentLevel = assessmentOutcome?.finalLevel || profile.currentLevel || profile.overall_level || 'B1+';
+    let rawLevel = assessmentOutcome?.finalLevel || profile.currentLevel || profile.overall_level || 'B1+';
+    const isCalculatingLevel = rawLevel === 'Pending' || (!profile.overall_level && profile.onboardingComplete);
+    const currentLevel = isCalculatingLevel ? 'Computing...' : (rawLevel !== 'Pending' ? rawLevel : 'A1');
     const points = profile.points || 190;
     const fullName = supabaseData?.user?.fullName || 'Omar Kamel';
 
@@ -263,7 +265,13 @@ const HomeTab = ({ assessmentOutcome, onViewReview }: AdvancedDashboardProps) =>
                             <h2 className="text-2xl font-black text-slate-900 tracking-tight">{fullName}</h2>
                             <div className="flex items-center gap-3 mt-2">
                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Level</span>
-                               <span className="text-[11px] font-black text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md shadow-sm">{currentLevel}</span>
+                               {isCalculatingLevel ? (
+                                 <span className="text-[11px] font-black text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
+                                    <RefreshCcw size={10} className="animate-spin" /> {currentLevel}
+                                 </span>
+                               ) : (
+                                 <span className="text-[11px] font-black text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md shadow-sm">{currentLevel}</span>
+                               )}
                                <span className="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100 flex items-center gap-1">
                                   Total points <AlertCircle size={10} className="text-slate-400"/>
                                </span>
@@ -544,11 +552,11 @@ const AnalyticsTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/skill:bg-blue-50 group-hover/skill:text-blue-500 transition-colors border border-slate-100">
-                                            {skill.skillId === 'speaking' && <Mic size={18} />}
-                                            {skill.skillId === 'listening' && <Activity size={18} />}
-                                            {skill.skillId === 'reading' && <BookOpen size={18} />}
-                                            {skill.skillId === 'writing' && <ArrowRight size={18} />}
-                                            {!['speaking', 'listening', 'reading', 'writing'].includes(skill.skillId) && <Zap size={18} />}
+                                            {skill.skillId?.toLowerCase() === 'speaking' && <Mic size={18} />}
+                                            {skill.skillId?.toLowerCase() === 'listening' && <Activity size={18} />}
+                                            {skill.skillId?.toLowerCase() === 'reading' && <BookOpen size={18} />}
+                                            {skill.skillId?.toLowerCase() === 'writing' && <ArrowRight size={18} />}
+                                            {!['speaking', 'listening', 'reading', 'writing'].includes(skill.skillId?.toLowerCase() || '') && <Zap size={18} />}
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-[15px] text-slate-900 leading-snug capitalize group-hover/skill:text-blue-600 transition-colors">

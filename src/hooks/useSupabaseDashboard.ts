@@ -253,11 +253,33 @@ export const useSupabaseDashboard = () => {
 
     fetchDashboardData();
 
+    // 🚀 VERCEL & AI REALTIME FIX: Listen for background Syncs / AI completing!
+    let channel: any = null;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return;
+        channel = supabase
+            .channel('dashboard-sync')
+            .on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'learner_profiles', filter: `id=eq.${user.id}` }, 
+                () => {
+                    if (isMounted) fetchDashboardData();
+                }
+            )
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'user_error_analysis', filter: `user_id=eq.${user.id}` }, 
+                () => {
+                    if (isMounted) fetchDashboardData();
+                }
+            )
+            .subscribe();
+    });
+
     return () => {
       isMounted = false;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [refreshTrigger]);
 
-  return { ...data };
+  return { ...data, refresh: () => setData(prev => ({...prev, isSyncing: true})) /* trigger refresh roughly */ };
 };
 

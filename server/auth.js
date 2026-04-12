@@ -157,18 +157,22 @@ authRouter.post('/admin/login', async (req, res) => {
   }
 });
 
-// 5. Post Login Sync (Fire and Forget)
+// 5. Post Login Sync (Vercel Strict Mode - Must Await)
 authRouter.post('/post-login-sync', async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
     return res.status(400).json({ error: 'userId is required' });
   }
 
-  // Fire and forget background sync
-  repairUserConsistency(userId).catch(err => {
+  try {
+    console.log('[Sync API] Starting background sync execution for Vercel:', userId);
+    // MUST AWAIT on Vercel to prevent process death before Supabase operations complete
+    await repairUserConsistency(userId);
+    console.log('[Sync API] Sync execution completely finished.');
+    return res.status(200).json({ status: 'sync_completed' });
+  } catch (err) {
     console.error('[Sync API] Background sync engine error:', err);
-  });
-
-  return res.status(200).json({ status: 'sync_started' });
+    return res.status(500).json({ status: 'sync_failed', error: err.message });
+  }
 });
 

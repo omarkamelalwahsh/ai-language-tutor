@@ -316,61 +316,55 @@ app.post('/api/evaluate', async (req, res) => {
       }
     }
     
-    // ⚡ NON-BLOCKING PERSISTENCE: Return result to user ASAP, don't let DB hang 
-    const internalQId = payload.question.db_id || payload.question.id;
-    const targetUserId = req.user ? req.user.id : (payload.userId !== 'anonymous-session' ? payload.userId : null);
-    
-    const persistData = async () => {
-      try {
-        const tasks = [
-          // 1. Assessment Response (Audit Trail)
-          supabase.from('assessment_responses').insert({
+    console.log('[Server] Starting Database Persistence (Vercel Strict Mode)...');
+    try {
+      // 1. Assessment Response (Audit Trail)
+      console.log('[Server] Inserting into assessment_responses...');
+      const { error: resErr } = await supabase.from('assessment_responses').insert({
+        user_id: targetUserId,
+        assessment_id: payload.assessmentId || '00000000-0000-0000-0000-000000000000',
+        skill: String(payload.skill || 'general'),
+        question_id: String(internalQId || 'unknown'),
+        user_answer: String(payload.learnerAnswer || ''),
+        is_correct: (parsed.summary?.overall_score || 0) >= 0.5,
+        answer_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1'),
+        score: Number(parsed.summary?.overall_score || 0),
+        explanation: parsed.skills || { note: 'No skills breakdown' }
+      });
+      if (resErr) throw resErr;
+
+      if (targetUserId) {
+        // 2. ATOMIC BUNDLE: Points + Skill Confidence + Global Level
+        console.log('[Server] Executing process_evaluation_bundle RPC...');
+        const { error: bundleErr } = await supabase.rpc('process_evaluation_bundle', {
+          p_user_id: targetUserId,
+          p_points: Number(parsed.summary?.points_awarded || 10),
+          p_skill: String(payload.skill || 'grammar').toLowerCase(),
+          p_delta: Number((parsed.skills?.[payload.skill?.toLowerCase()] || parsed.summary?.overall_score || 0.5) * 0.05),
+          p_predicted_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1')
+        });
+        if (bundleErr) throw bundleErr;
+
+        // 3. Multi-Error Analysis (Array Insert)
+        if (Array.isArray(parsed.analysis) && parsed.analysis.length > 0) {
+          console.log(`[Server] Inserting into user_error_analysis (${parsed.analysis.length} rows)...`);
+          const errorRows = parsed.analysis.map(err => ({
             user_id: targetUserId,
-            assessment_id: payload.assessmentId || '00000000-0000-0000-0000-000000000000',
-            skill: String(payload.skill || 'general'),
-            question_id: String(internalQId || 'unknown'),
+            category: String(err.skill || payload.skill || 'General'),
+            ai_interpretation: String(err.issue || 'Unspecified'),
             user_answer: String(payload.learnerAnswer || ''),
-            is_correct: (parsed.summary?.overall_score || 0) >= 0.5,
-            answer_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1'),
-            score: Number(parsed.summary?.overall_score || 0),
-            explanation: parsed.skills || { note: 'No skills breakdown' }
-          })
-        ];
-
-        if (targetUserId) {
-          // 2. ATOMIC BUNDLE: Points + Skill Confidence + Global Level
-          tasks.push(supabase.rpc('process_evaluation_bundle', {
-            p_user_id: targetUserId,
-            p_points: Number(parsed.summary?.points_awarded || 10),
-            p_skill: String(payload.skill || 'grammar').toLowerCase(),
-            p_delta: Number((parsed.skills?.[payload.skill?.toLowerCase()] || parsed.summary?.overall_score || 0.5) * 0.05),
-            p_predicted_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1')
+            correct_answer: String(err.correction || ''),
+            deep_insight: String(err.explanation || ''),
+            is_correct: false
           }));
-
-          // 3. Multi-Error Analysis (Array Insert)
-          if (Array.isArray(parsed.analysis) && parsed.analysis.length > 0) {
-            const errorRows = parsed.analysis.map(err => ({
-              user_id: targetUserId,
-              category: String(err.skill || payload.skill || 'General'),
-              ai_interpretation: String(err.issue || 'Unspecified'),
-              user_answer: String(payload.learnerAnswer || ''),
-              correct_answer: String(err.correction || ''),
-              deep_insight: String(err.explanation || ''),
-              is_correct: false
-            }));
-            tasks.push(supabase.from('user_error_analysis').insert(errorRows));
-          }
+          const { error: analysisErr } = await supabase.from('user_error_analysis').insert(errorRows);
+          if (analysisErr) throw analysisErr;
         }
-
-        await Promise.all(tasks);
-        console.log('[Server] Async Persistence Success.');
-      } catch (e) {
-        console.warn('[Server] Async Persistence failed (non-blocking):', e.message);
       }
-    };
-
-    // Await persistence tightly (Required for Vercel/Serverless execution)
-    await persistData(); 
+      console.log('[Server] ✅ Database Persistence Complete on Vercel!');
+    } catch (dbErr) {
+      console.error('[Server] ❌ Database Persistence Error on Vercel:', dbErr);
+    } 
 
     return res.status(200).json(parsed);
   } catch (err) {
