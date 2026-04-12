@@ -106,6 +106,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session) {
         localStorage.setItem('auth_token', session.access_token);
         localStorage.setItem('auth_user_id', session.user.id);
+        
+        if (event === 'SIGNED_IN') {
+          // Trigger the 'Server-side Consistency Engine' silently
+          fetch('/api/auth/post-login-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: session.user.id }),
+          }).catch(err => console.error("Silent sync failed", err));
+        }
+
         await refreshData();
       } else {
         localStorage.removeItem('auth_token');

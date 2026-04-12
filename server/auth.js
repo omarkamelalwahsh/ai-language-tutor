@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from './supabaseClient.js';
+import { repairUserConsistency } from './sync-engine.js';
 
 export const authRouter = express.Router();
 
@@ -155,3 +156,19 @@ authRouter.post('/admin/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// 5. Post Login Sync (Fire and Forget)
+authRouter.post('/post-login-sync', async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+
+  // Fire and forget background sync
+  repairUserConsistency(userId).catch(err => {
+    console.error('[Sync API] Background sync engine error:', err);
+  });
+
+  return res.status(200).json({ status: 'sync_started' });
+});
+
