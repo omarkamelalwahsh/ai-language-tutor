@@ -779,6 +779,7 @@ export class AdaptiveAssessmentEngine {
       audioUrl: nextItem.audio_url,
       stimulus: nextItem.stimulus,
       imageUrl: (nextItem as any).image_url || (nextItem as any).img, 
+      audioUrl: (nextItem as any).audio_url || (nextItem as any).audio,
       options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;
