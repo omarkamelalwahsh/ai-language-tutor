@@ -1,23 +1,23 @@
 import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Mic, PenTool, Headphones, BookOpen,
-  Map as MapIcon, Target, TrendingUp, AlertCircle, Play, CheckCircle2,
-  Clock, Flame, BrainCircuit, Activity, LayoutDashboard, Dumbbell, 
-  BarChart2, History, Settings, BookMarked, ArrowRight, Route, Crown, LogOut,
-  Brain, XCircle, Lightbulb, Zap, Loader2
+import { 
+  LayoutDashboard, 
+  Map as MapIcon, 
+  BarChart3, 
+  History, 
+  Settings,
+  Trophy,
+  Zap,
+  LogOut,
+  Brain,
+  AlertCircle
 } from 'lucide-react';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { AssessmentSessionResult, AssessmentOutcome, SkillName, SkillAssessmentResult, AssessmentSkill } from '../../types/assessment';
-import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
-import { cefrToNumeric } from '../../lib/cefrMapper';
-import { DashboardService } from '../../services/DashboardService';
-import { VisualErrorProfile } from './VisualErrorProfile';
-
-
+import { AdvancedDashboardPayload } from '../../types/dashboard';
+import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessment';
 
 interface AdvancedDashboardProps {
   result?: AssessmentSessionResult | null;
@@ -31,1045 +31,317 @@ interface AdvancedDashboardProps {
   isArchitecting?: boolean;
 }
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+interface SkillData {
+  subject: string;
+  A: number;
+  fullMark: number;
+}
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
-
-const skillIcons: Record<string, React.ReactNode> = {
-  speaking: <Mic className="w-5 h-5" />,
-  writing: <PenTool className="w-5 h-5" />,
-  listening: <Headphones className="w-5 h-5" />,
-  vocabulary: <BookOpen className="w-4 h-4" />, // Using smaller for consistent look
-  reading: <BookOpen className="w-5 h-5" />,
-  grammar: <BrainCircuit className="w-5 h-5" />,
-};
-
-// Sidebar nav items
-const sidebarItems = [
-  { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-  { id: 'journey', label: 'Journey', icon: <Route className="w-5 h-5" /> },
-  { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-5 h-5" /> },
-  { id: 'hub', label: 'Practice', icon: <Dumbbell className="w-5 h-5" /> },
-  { id: 'review', label: 'Review', icon: <BookMarked className="w-5 h-5" /> },
-  { id: 'history', label: 'History', icon: <History className="w-5 h-5" /> },
-  { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
-];
-
-const SkillRadarChart: React.FC<{ data: any[] }> = ({ data }) => {
-  const chartData = data.map(s => ({
-    subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1),
-    A: s.masteryScore,
-    fullMark: 100,
-  }));
-
-  return (
-    <div className="h-[320px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
-          <PolarGrid stroke="#e2e8f0" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
-          <Tooltip 
-             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-             formatter={(value: any) => [`${value}% Mastery`, 'Skills']}
-          />
-          <Radar
-            name="Skill Mastery"
-            dataKey="A"
-            stroke="#4f46e5"
-            strokeWidth={3}
-            fill="#6366f1"
-            fillOpacity={0.25}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
-
-export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({ result, dashboardData, assessmentOutcome, onStartSession, onNavigateLeaderboard, onViewReview, onViewHistoryReport, onLogout, isArchitecting }) => {
-  const location = useLocation();
+export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = ({
+  result, dashboardData, assessmentOutcome, onStartSession, onLogout 
+}) => {
+  const supabaseData = useSupabaseDashboard();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Determine active tab from URL path
+  // Handle active tab
   const activeTab = useMemo(() => {
     const segments = location.pathname.split('/');
     const last = segments[segments.length - 1];
-    // If we're at /dashboard, last is 'dashboard' -> overview
-    // If we're at /dashboard/journey, last is 'journey'
-    return (last === 'dashboard' || !last) ? 'overview' : last;
+    return (last === 'dashboard' || !last) ? 'dashboard' : last;
   }, [location.pathname]);
 
   const handleTabChange = (tabId: string) => {
-    if (tabId === 'overview') {
+    if (tabId === 'dashboard') {
       navigate('/dashboard');
     } else {
       navigate(`/dashboard/${tabId}`);
     }
   };
 
-  const skills = useMemo(() => result ? Object.values(result.skills) : [], [result]);
-  const supabaseData = useSupabaseDashboard();
+  const isLoading = supabaseData.isLoading && !result;
 
-  // Decoupling: Calculate dashboard data locally if not provided via props
-  const internalDashboardData = useMemo(() => {
-    // If we have a live DB level, prioritize it for the journey logic
-    const dbLevel = supabaseData?.profile?.overall_level;
-    let workingResult = result || null;
-    
-    if (dbLevel && dbLevel !== 'Pending') {
-      workingResult = {
-        ...(workingResult || {}),
-        skills: workingResult?.skills || {},
-        overall: {
-          ...(workingResult?.overall || {}),
-          estimatedLevel: dbLevel || 'A1'
-        }
-      } as any;
+  // Sync real data:
+  const profile = supabaseData?.profile || {};
+  const currentLevel = assessmentOutcome?.finalLevel || profile.currentLevel || profile.overall_level || 'B1';
+  const points = profile.points || 0;
+  const fullName = supabaseData?.user?.fullName || 'Learner';
+
+  const skillData: SkillData[] = useMemo(() => {
+    const skills = supabaseData.skills?.length > 0 ? supabaseData.skills : [];
+    if (skills.length === 0) {
+       // Mock fallback if empty
+       return [
+        { subject: 'Speaking', A: 95, fullMark: 100 },
+        { subject: 'Listening', A: 70, fullMark: 100 },
+        { subject: 'Reading', A: 40, fullMark: 100 },
+        { subject: 'Writing', A: 60, fullMark: 100 },
+       ];
     }
-    
-    return dashboardData || DashboardService.buildPayload(workingResult);
-  }, [dashboardData, result, supabaseData?.profile?.overall_level]);
+    return skills.map((s: any) => ({
+      subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1),
+      A: s.masteryScore,
+      fullMark: 100
+    }));
+  }, [supabaseData.skills]);
 
-  // Resilient Loading: Only show full-screen sync if we have absolutely NO data to show yet
-  if (supabaseData.isLoading && !internalDashboardData.isNewLearner && !result) {
-    return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center p-6 text-center">
-         <div className="flex flex-col items-center gap-6">
-           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse">
-             <Loader2 className="w-8 h-8 text-white animate-spin" />
-           </div>
-           <div className="text-center space-y-2">
-             <h2 className="text-xl font-bold text-slate-900">Syncing Learner Profile</h2>
-             <p className="text-slate-500 text-sm font-medium">Please wait while we prepare your workspace...</p>
-           </div>
-         </div>
-      </div>
-    );
-  }
+  const journeyNodes = useMemo(() => {
+      const nodes = dashboardData?.journey?.nodes || [];
+      if (nodes.length === 0) {
+          // Fake nodes for empty state
+          return [
+              { id: '1', title: 'Basics', status: 'completed' },
+              { id: '2', title: 'Contextual Reading', status: 'current' },
+              { id: '3', title: 'Advanced Grammar', status: 'locked' },
+              { id: '4', title: 'Fluency Lab', status: 'locked' }
+          ];
+      }
+      return nodes;
+  }, [dashboardData?.journey?.nodes]);
 
-  // Use the local payload
-  const activeDashboardData = internalDashboardData;
+  const bridgeDelta = supabaseData.errorProfile?.bridge_delta || "Bridge to next level";
+  const criticalInsight = supabaseData.errorProfile?.action_plan?.[0] || 
+        "Reading A2 detected as bottleneck. We've optimized your path to include C1-level audio with transcript-matching tasks.";
 
-  // Derive active values (favoring Database over temporary session memory)
-  const isNewLearner = (supabaseData?.history?.length || 0) === 0;
-  const currentStreak = supabaseData?.profile?.streak || activeDashboardData?.weeklyRhythm?.streakDays || 0;
-  const totalPoints = supabaseData?.profile?.points || 0;
-  const currentLevel = assessmentOutcome?.finalLevel || supabaseData?.profile?.currentLevel || result?.overall?.estimatedLevel || 'B1';
+
+  if (isLoading) return <LoadingSkeleton />;
 
   return (
-    <div className="flex min-h-screen bg-slate-50 relative">
-      {/* Circuit Breaker Overlay or Banner */}
+    <div className="flex h-screen bg-[#0a0e17] text-slate-200 font-sans overflow-hidden relative">
+      {/* Circuit Breaker Overlay */}
       <AnimatePresence>
         {supabaseData.isSyncing && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-amber-500 text-white px-6 py-2 rounded-full shadow-lg font-bold flex items-center gap-2"
-          >
-            <Clock className="w-4 h-4 animate-spin" /> Data Syncing... (Recovering)
-          </motion.div>
+           <motion.div 
+             initial={{ opacity: 0, y: -20 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: -20 }}
+             className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-orange-500 text-white px-6 py-2 rounded-full shadow-lg font-bold flex items-center gap-2"
+           >
+             <Zap className="w-4 h-4 animate-pulse" /> Data Syncing...
+           </motion.div>
         )}
       </AnimatePresence>
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col py-6 px-4 hidden md:flex">
-        <div className="flex items-center gap-3 px-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <BrainCircuit className="w-5 h-5 text-white" />
+
+      {/* 1. Sidebar */}
+      <aside className="w-64 bg-[#0f172a] border-r border-slate-800 flex flex-col p-6 shrink-0 z-10 hidden md:flex">
+        <div className="flex items-center gap-3 mb-10 px-2">
+          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+            <Zap size={20} className="text-white" fill="white" />
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">AI Tutor</h1>
-            <p className="text-xs text-slate-400 font-bold">{currentLevel} Learner</p>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent leading-tight tracking-tight">
+                AI Tutor
+              </h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{currentLevel} Program</p>
           </div>
         </div>
-
-        <nav className="space-y-1 flex-1">
-          {sidebarItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleTabChange(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                activeTab === item.id
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
-          <button
-            onClick={onNavigateLeaderboard}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent transition-all"
-          >
-            <Crown className="w-5 h-5" />
-            Leaderboard
-          </button>
+        
+        <nav className="space-y-2 flex-1">
+          <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+          <NavItem icon={<MapIcon size={20}/>} label="My Path" active={activeTab === 'journey'} onClick={() => handleTabChange('journey')}/>
+          <NavItem icon={<BarChart3 size={20}/>} label="Analytics" active={activeTab === 'analytics'} onClick={() => handleTabChange('analytics')}/>
+          <NavItem icon={<History size={20}/>} label="History" active={activeTab === 'history'} onClick={() => handleTabChange('history')}/>
         </nav>
 
-        {/* Quick Stats Grid */}
-        <div className="bg-slate-900 rounded-2xl p-4 text-white mt-4 grid grid-cols-2 gap-3 mb-2">
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Streak</p>
-            <p className="text-xl font-extrabold text-orange-400 flex items-center gap-1"><Flame className="w-4 h-4"/>{currentStreak}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Points</p>
-            <p className="text-xl font-extrabold text-indigo-400">{totalPoints}</p>
-          </div>
+        <div className="mt-auto pt-6 border-t border-slate-800 space-y-2">
+          <NavItem icon={<Settings size={20}/>} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')}/>
+          {onLogout && (
+             <NavItem icon={<LogOut size={20}/>} label="Sign Out" onClick={onLogout} isDanger />
+          )}
         </div>
-
-        {onLogout && (
-          <button onClick={onLogout} className="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-slate-100 hover:text-rose-600 transition-colors">
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-        )}
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 py-8 px-6 md:px-10 overflow-y-auto max-w-5xl">
+      {/* 2. Main Content Area */}
+      <main className="flex-1 overflow-y-auto relative p-4 md:p-8">
         {/* Mobile Tab Bar */}
-        <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
-          {sidebarItems.slice(0, 5).map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleTabChange(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                activeTab === item.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
-              }`}
-            >
-              {item.icon} {item.label}
-            </button>
-          ))}
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-white text-rose-500 border border-rose-100 whitespace-nowrap shadow-sm active:scale-95 transition-transform"
-            >
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
-          )}
+        <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-800 shrink-0">
+            <button onClick={() => handleTabChange('dashboard')} className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold ${activeTab === 'dashboard' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-400 border border-slate-800'}`}>Dashboard</button>
+            <button onClick={() => handleTabChange('journey')} className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold ${activeTab === 'journey' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-400 border border-slate-800'}`}>My Path</button>
+            <button onClick={() => handleTabChange('analytics')} className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold ${activeTab === 'analytics' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-400 border border-slate-800'}`}>Analytics</button>
+            {onLogout && <button onClick={onLogout} className="px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold border border-rose-500/30 text-rose-400 ml-auto">Sign Out</button>}
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* ========= OVERVIEW ========= */}
-          {activeTab === 'overview' && (
-            <motion.div key="overview" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              {/* Header */}
-              <motion.div variants={staggerItem} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <div>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">
-                    Welcome back, {supabaseData.user?.fullName || 'Learner'}
-                  </h1>
-                  <p className="text-slate-500 font-medium">
-                    {isNewLearner ? "Ready to map your language proficiency?" : activeDashboardData?.primaryGoalText || 'Loading your goals...'}
+        {/* Top Header */}
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Welcome back, {fullName}!</h2>
+            <p className="text-slate-400 text-sm mt-1">Your <span className="text-orange-400 font-bold">{currentLevel} Roadmap</span> is active.</p>
+          </div>
+          <div className="flex gap-4 items-center shrink-0">
+             <div className="bg-[#1e293b] px-4 py-2 rounded-full border border-orange-500/30 flex items-center gap-2 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                <Trophy size={18} className="text-orange-400" />
+                <span className="font-bold text-orange-400">{points} Points</span>
+             </div>
+             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-500 to-amber-300 p-[2px] hidden sm:block">
+                <div className="w-full h-full rounded-full bg-[#0a0e17] flex items-center justify-center overflow-hidden border-2 border-[#0a0e17]">
+                   <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}&backgroundColor=transparent`} alt="Profile" />
+                </div>
+             </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
+          {/* Left: The Hexagonal Map (My Path) */}
+          <section className="col-span-1 lg:col-span-8 bg-[#0f172a]/50 rounded-3xl border border-slate-800 p-6 md:p-8 md:min-h-[450px] relative overflow-hidden flex flex-col">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+            
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-10 relative z-10">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">Learning Journey Map</h3>
+                <p className="text-sm text-slate-400">Your tailored progression based on errors.</p>
+              </div>
+              <span className="text-[10px] bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full text-indigo-400 font-bold uppercase tracking-widest shrink-0">
+                Diagnostic Path: {bridgeDelta}
+              </span>
+            </div>
+            
+            {/* Hexagon Grid Dynamic Mapper */}
+            <div className="relative flex-1 flex justify-center items-center h-64 min-h-[300px] z-10">
+              <div className="flex flex-wrap justify-center gap-4 md:gap-8 max-w-2xl mx-auto">
+                 {journeyNodes.map((n: any, idx: number) => {
+                     const statusMap: any = {
+                         completed: 'complete',
+                         current: 'active',
+                         locked: 'locked'
+                     };
+                     const s = statusMap[n.status] || 'locked';
+                     // Alternate layout nicely
+                     const isBumped = idx % 2 !== 0;
+                     return (
+                         <div key={n.id || idx} className={`transition-all ${isBumped ? 'mt-8 md:mt-12' : ''}`}>
+                             <HexNode status={s} label={n.title} />
+                         </div>
+                     );
+                 })}
+              </div>
+            </div>
+
+            <div className="mt-auto flex justify-center pt-8 z-10">
+              <button onClick={onStartSession} className="group relative inline-flex items-center justify-center px-8 py-3.5 font-bold text-white transition-all duration-200 bg-orange-500 border border-transparent rounded-full hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] active:scale-95">
+                 Continue Journey
+                 <Zap className="ml-2 w-4 h-4 group-hover:fill-current" />
+              </button>
+            </div>
+          </section>
+
+          {/* Right: Skill Radar (Intelligence Panel) */}
+          <section className="col-span-1 lg:col-span-4 flex flex-col gap-6">
+            <div className="bg-[#0f172a]/80 backdrop-blur-sm rounded-3xl border border-slate-800 p-6 flex-1 shadow-lg shadow-black/20">
+                <div className="flex items-center gap-2 mb-6">
+                    <Brain className="w-5 h-5 text-indigo-400" />
+                    <h3 className="text-lg font-bold text-white">Skill Intelligence</h3>
+                </div>
+                <div className="h-56 -ml-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={skillData}>
+                      <PolarGrid stroke="#1e293b" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
+                      <Radar
+                        name="Skills"
+                        dataKey="A"
+                        stroke="#f97316"
+                        strokeWidth={2}
+                        fill="#f97316"
+                        fillOpacity={0.3}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-orange-500" />
+                  <p className="text-[10px] text-orange-400 font-black uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                      <AlertCircle className="w-3 h-3" /> Critical Insight
+                  </p>
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                    {criticalInsight}
                   </p>
                 </div>
-                <button onClick={onStartSession} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]">
-                  <Play className="w-5 h-5 fill-white" /> {isNewLearner ? "Start Assessment" : "Continue Journey"}
-                </button>
-              </motion.div>
+            </div>
 
-              {/* Smart Goal Progress Banner */}
-              {supabaseData.errorProfile?.bridge_delta && (
-                <motion.div 
-                  variants={staggerItem}
-                  className="bg-indigo-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-100"
-                >
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
-                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
-                        <span className="text-xs font-black uppercase tracking-widest text-indigo-100">Smart Goal Tracker</span>
-                      </div>
-                      <h2 className="text-2xl font-black mb-3 leading-tight">
-                        {supabaseData.errorProfile.bridge_delta}
-                      </h2>
-                      <p className="text-indigo-50 font-medium opacity-90 max-w-lg">
-                        Our engine has detected your momentum. You are technically very close to your next proficiency milestone!
-                      </p>
-                    </div>
-                    
-                    {supabaseData.errorProfile.bridge_percentage !== undefined && (
-                      <div className="shrink-0 text-center">
-                        <div className="relative w-24 h-24 mb-2 flex items-center justify-center">
-                          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
-                            <motion.circle 
-                              cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" 
-                              className="text-amber-400"
-                              strokeDasharray={251.2}
-                              initial={{ strokeDashoffset: 251.2 }}
-                              animate={{ strokeDashoffset: 251.2 - (251.2 * supabaseData.errorProfile.bridge_percentage) / 100 }}
-                              transition={{ duration: 1.5, ease: "easeOut" }}
-                            />
-                          </svg>
-                          <span className="absolute text-xl font-black">{supabaseData.errorProfile.bridge_percentage}%</span>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Achievement</span>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ===== Visual Error Profile (Now defined correctly) ===== */}
-              <motion.section variants={staggerItem} className="mt-8 mb-6">
-                <VisualErrorProfile />
-              </motion.section>
-
-              {/* ===== Diagnostic Insights Section ===== */}
-              {((supabaseData.errorProfile?.action_plan && supabaseData.errorProfile.action_plan.length > 0) || 
-                (supabaseData.errorProfile?.weakness_areas && supabaseData.errorProfile.weakness_areas.length > 0)) && (
-                <motion.section variants={staggerItem} className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl border border-indigo-800 mb-8">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                  
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-8">
-                       <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-                         <Brain className="w-6 h-6 text-indigo-400" />
+            {/* Quick Stats or Next Objective */}
+            <div className="bg-gradient-to-br from-indigo-900/40 to-slate-900/80 rounded-3xl border border-indigo-500/20 p-6 relative overflow-hidden shadow-lg shadow-black/20">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+               <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest mb-4">Focus Area</h3>
+               
+               <div className="space-y-3 relative z-10">
+                   {(supabaseData.focusAreas || ["Advanced Conditional Statements", "Irregular Past Participles"]).slice(0, 2).map((area: string, i: number) => (
+                       <div key={i} className="bg-[#0f172a]/80 p-3 rounded-xl border border-indigo-500/20 flex items-start gap-3">
+                           <div className="mt-1 w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] shrink-0" />
+                           <span className="text-sm text-indigo-50 font-medium">{area}</span>
                        </div>
-                       <div>
-                         <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                           Diagnostic Insights 
-                           {supabaseData.errorProfile.bridge_percentage !== undefined && (
-                              <span className="text-emerald-400 text-sm font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 ml-2">
-                                {supabaseData.errorProfile.bridge_percentage}% Bridge
-                              </span>
-                           )}
-                         </h2>
-                         <p className="text-indigo-200/80 font-medium text-sm mt-1">Your AI-generated action plan and identified weakness areas.</p>
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Weakness Areas */}
-                      {supabaseData.errorProfile.weakness_areas && supabaseData.errorProfile.weakness_areas.length > 0 && (
-                        <div className="space-y-4">
-                           <h3 className="text-sm font-bold text-rose-400 uppercase tracking-widest flex items-center gap-2">
-                             <AlertCircle className="w-4 h-4" /> Priority Weaknesses
-                           </h3>
-                           <div className="grid grid-cols-1 gap-3">
-                             {supabaseData.errorProfile.weakness_areas.map((weakness: string, idx: number) => (
-                               <div key={`weak-${idx}`} className="flex items-start gap-3 bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-rose-500/20 transition-colors">
-                                 <div className="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
-                                 <p className="text-sm text-rose-50/90 leading-relaxed font-medium">{weakness}</p>
-                               </div>
-                             ))}
-                           </div>
-                        </div>
-                      )}
-
-                      {/* Action Plan */}
-                      {supabaseData.errorProfile.action_plan && supabaseData.errorProfile.action_plan.length > 0 && (
-                        <div className="space-y-4">
-                           <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                             <Lightbulb className="w-4 h-4" /> Recommended Action Plan
-                           </h3>
-                           <div className="grid grid-cols-1 gap-3">
-                             {supabaseData.errorProfile.action_plan.map((step: string, idx: number) => (
-                               <div key={`act-${idx}`} className="flex gap-4 bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-emerald-500/20 transition-colors group cursor-pointer">
-                                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 self-start group-hover:bg-emerald-500/40 transition-colors">
-                                     <span className="text-xs font-black text-emerald-300">{idx + 1}</span>
-                                  </div>
-                                  <p className="text-sm text-emerald-50/90 font-medium leading-relaxed">
-                                     {step}
-                                  </p>
-                               </div>
-                             ))}
-                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-
-              {/* ===== Common Mistakes from Error Profile ===== */}
-              {(supabaseData.errorProfile?.common_mistakes?.length ?? 0) > 0 && (
-                <motion.section variants={staggerItem} className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-rose-50 rounded-lg border border-rose-100">
-                        <XCircle className="w-4 h-4 text-rose-500" />
-                      </div>
-                      <h2 className="text-lg font-extrabold text-slate-900">Common Mistakes to Fix</h2>
-                      <span className="bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
-                        {supabaseData.errorProfile!.common_mistakes.length} identified
-                      </span>
-                    </div>
-                    <button
-                      onClick={onStartSession}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
-                    >
-                      Practice All <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {supabaseData.errorProfile!.common_mistakes.map((mistake, i) => (
-                      <motion.div
-                        key={i}
-                        variants={staggerItem}
-                        className="bg-white rounded-2xl p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-200 transition-all group relative overflow-hidden"
-                      >
-                        {/* Subtle accent glow */}
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                        <div className="relative z-10">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5 p-1.5 bg-amber-50 rounded-lg border border-amber-100 shrink-0">
-                              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-                            </div>
-                            <p className="text-sm font-medium text-slate-700 leading-relaxed">
-                              {typeof mistake === 'string' ? mistake : (mistake.issue || mistake.type || JSON.stringify(mistake))}
-                            </p>
-                          </div>
-                          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">
-                              Mistake #{i + 1}
-                            </span>
-                            <button
-                              onClick={onStartSession}
-                              className="text-[10px] font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 px-2.5 py-1 rounded-lg border border-indigo-200 hover:border-indigo-600 transition-all flex items-center gap-1"
-                            >
-                              <Dumbbell className="w-2.5 h-2.5" /> Practice
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-
-              {/* Journey Card */}
-              <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                <div className="flex items-center gap-3 mb-6 relative z-10">
-                  <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><MapIcon className="w-5 h-5"/></div>
-                  <h2 className="text-xl font-bold text-slate-900">{activeDashboardData?.journey?.journeyTitle || 'Learning Journey'}</h2>
-                </div>
-                <div className="relative z-10 flex flex-col md:flex-row gap-8">
-                  <div className="flex-1 space-y-3">
-                    {(dashboardData?.journey?.nodes || []).map((m, i) => (
-                      <div key={m.id} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${m.status === 'completed' ? 'bg-emerald-500 border-emerald-500' : m.status === 'current' ? 'bg-white border-indigo-600' : 'bg-slate-100 border-slate-200'}`}>
-                            {m.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
-                            {m.status === 'current' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
-                          </div>
-                          {i < (dashboardData?.journey?.nodes || []).length - 1 && <div className={`w-0.5 h-full my-1 ${m.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
-                        </div>
-                        <div className={`pb-3 ${m.status === 'locked' ? 'opacity-50' : ''}`}>
-                          <h4 className={`font-bold ${m.status === 'current' ? 'text-indigo-900' : 'text-slate-700'}`}>{m.title}</h4>
-                          <p className="text-sm text-slate-500">{m.description}{m.estimatedDuration ? ` • ${m.estimatedDuration}` : ''}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.section>
-
-              {/* Real DB Skill Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {(supabaseData?.skills || []).map(skill => {
-                  const hasError = (supabaseData?.errors || []).some(e => e.category.toLowerCase().includes(skill.skillId.toLowerCase()));
-                  return (
-                    <motion.div key={skill.skillId} variants={staggerItem} className={`bg-white rounded-2xl p-5 border ${hasError ? 'border-amber-200 shadow-md shadow-amber-100/50' : skill.isCapped ? 'border-amber-100 shadow-sm' : 'border-slate-100 shadow-sm'} relative overflow-hidden`}>
-                      {hasError && <div className="absolute top-0 right-0 bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">Needs Review</div>}
-                      {skill.isCapped && !hasError && <div className="absolute top-0 right-0 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5"/> Capped</div>}
-                      <div className="flex items-center gap-2 text-slate-600 font-bold capitalize mb-3">{skillIcons[skill.skillId]} {skill.skillId}</div>
-                      <div className="flex items-end gap-2 mb-2">
-                        <span className="text-3xl font-extrabold text-slate-900">{Math.round(skill.masteryScore)}</span>
-                        {skill.masteryScore > 75 && <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
-                      </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
-                        <div className={`h-full ${hasError ? 'bg-amber-400' : 'bg-indigo-500'}`} style={{ width: `${skill.masteryScore}%` }} />
-                      </div>
-                      <div className="flex justify-between text-xs font-bold text-slate-400">
-                        <span>Evidence Collected</span>
-                        <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{skill.evidenceCount} hits</span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {/* Focus Areas */}
-              {(dashboardData?.focusAreas || []).length > 0 && (
-                <motion.section variants={staggerItem} className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
-                  <h3 className="font-bold text-indigo-900 mb-3 flex items-center gap-2"><Target className="w-4 h-4" /> Active Focus Areas</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {(dashboardData?.focusAreas || []).map((area, i) => (
-                      <span key={i} className="bg-white text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-indigo-100">{area}</span>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-            </motion.div>
-          )}
-
-          {/* ========= ANALYTICS ========= */}
-          {activeTab === 'analytics' && (
-            <motion.div key="analytics" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Deep Analytics</h2>
-                <p className="text-slate-500 text-sm">Detailed breakdowns of your learning signals and patterns.</p>
-              </motion.div>
-
-              {/* ===== Analytics Outcome or Skill Radar ===== */}
-              {(assessmentOutcome || supabaseData.skills.length > 0) ? (
-                <>
-                  {/* Overall Summary Card (Only if session result exists) */}
-                  {assessmentOutcome && (
-                    <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden mb-8">
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><BarChart2 className="w-5 h-5" /></div>
-                          <h3 className="text-xl font-bold text-slate-900">Assessment Result</h3>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-5 rounded-2xl border border-indigo-100 text-center relative overflow-hidden">
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Numerical Level</p>
-                            <p className="text-4xl font-extrabold text-indigo-700">{cefrToNumeric(assessmentOutcome.overallBand)}</p>
-                            <div className="absolute top-0 right-0 p-1">
-                               <div className="bg-white/50 text-[8px] px-1 font-bold text-indigo-400 rounded border border-indigo-50">Score</div>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Confidence</p>
-                            <p className="text-3xl font-extrabold text-slate-900">{Math.round(assessmentOutcome.overallConfidence * 100)}%</p>
-                          </div>
-                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Questions</p>
-                            <p className="text-3xl font-extrabold text-slate-900">{assessmentOutcome.totalQuestions}</p>
-                          </div>
-                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Stop Reason</p>
-                            <p className="text-lg font-bold text-slate-700 capitalize">{assessmentOutcome.stopReason?.replace(/_/g, ' ') || '—'}</p>
-                          </div>
-                        </div>
-                        
-                        {/* Detailed Review Action */}
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                           <div>
-                              <h4 className="font-bold text-slate-800">Detailed Answer Analysis</h4>
-                              <p className="text-xs text-slate-500">View individual task scores, grammar feedback, and explainers.</p>
-                           </div>
-                           <button 
-                              onClick={onViewReview}
-                              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-indigo-100"
-                           >
-                              View Full Review Sheet <ArrowRight className="w-4 h-4" />
-                           </button>
-                        </div>
-                      </div>
-                    </motion.section>
-                  )}
-
-                  {/* Skills Radar (Universal) */}
-                  <motion.section variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden mb-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-8">
-                        <div className="p-2.5 bg-indigo-100/50 rounded-xl text-indigo-600 border border-indigo-100"><Target className="w-5 h-5" /></div>
-                        <div>
-                          <h3 className="text-xl font-bold text-slate-900">Skill Proficiency Matrix</h3>
-                          <p className="text-xs text-slate-400">Visual breakdown of mastery across language domains.</p>
-                        </div>
-                      </div>
-                      <SkillRadarChart data={assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown).map(([skill, s]) => ({ skillId: skill, masteryScore: (s as any).score })) : supabaseData.skills} />
-                    </div>
-                  </motion.section>
-
-                  {/* Per-Skill Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
-                    {(assessmentOutcome ? Object.entries(assessmentOutcome.skillBreakdown) : supabaseData.skills.map(s => [s.skillId, { band: s.currentLevel, score: s.masteryScore, confidence: s.confidence, evidenceCount: s.evidenceCount, status: 'stable' }])).map(([skillName, skillData]: [any, any]) => {
-                      const bandColorClass = (() => {
-                        const b = String(skillData.band);
-                        if (b.startsWith('A')) return 'from-emerald-50 to-emerald-100/50 border-emerald-100';
-                        if (b.startsWith('B')) return 'from-blue-50 to-blue-100/50 border-blue-100';
-                        return 'from-purple-50 to-purple-100/50 border-purple-100';
-                      })();
-                      const bandTextClass = (() => {
-                        const b = String(skillData.band);
-                        if (b.startsWith('A')) return 'text-emerald-700';
-                        if (b.startsWith('B')) return 'text-blue-700';
-                        return 'text-purple-700';
-                      })();
-                      const statusColor = skillData.status === 'stable' ? 'bg-emerald-100 text-emerald-700' : skillData.status === 'emerging' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500';
-                      
-                      return (
-                        <motion.section key={skillName} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:border-slate-200">
-                          <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 text-slate-600">
-                                {skillIcons[skillName] || <Activity className="w-5 h-5" />}
-                              </div>
-                              <h4 className="font-bold text-slate-800 capitalize text-lg">{skillName}</h4>
-                            </div>
-                             <div className={`px-3 py-1.5 rounded-xl bg-gradient-to-br ${bandColorClass} border flex flex-col items-center`}>
-                               <span className={`text-xl font-extrabold ${bandTextClass}`}>{skillData.band}</span>
-                               <span className="text-[8px] font-bold opacity-60">({cefrToNumeric(String(skillData.band))})</span>
-                             </div>
-                          </div>
-                          <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
-                              <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillData.score)}</p>
-                            </div>
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                              <p className="text-2xl font-extrabold text-slate-900">{Math.round(skillData.confidence * 100)}%</p>
-                            </div>
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
-                              <p className="text-2xl font-extrabold text-slate-900">{skillData.evidenceCount}</p>
-                            </div>
-                          </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
-                            <motion.div
-                              className="h-full bg-indigo-500 rounded-full"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(100, skillData.score)}%` }}
-                              transition={{ duration: 0.8, ease: 'easeOut' }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md ${statusColor}`}>
-                              {skillData.status?.replace(/_/g, ' ') || 'stable'}
-                            </span>
-                            {skillData.speakingFallbackApplied && (
-                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> Fallback
-                              </span>
-                            )}
-                          </div>
-                        </motion.section>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                /* Empty State */
-                <motion.section variants={staggerItem} className="bg-white rounded-3xl p-12 border border-slate-100 shadow-sm text-center">
-                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <BarChart2 className="w-8 h-8 text-slate-300" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">No Assessment Result Yet</h3>
-                  <p className="text-slate-500 mb-6 max-w-md mx-auto">Complete an adaptive assessment to unlock detailed skill analytics, per-level breakdowns, and confidence metrics.</p>
-                  <button onClick={onStartSession} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)]">
-                    Start Assessment
-                  </button>
-                </motion.section>
-              )}
-
-              {/* Per-Skill Deep Cards from Session Result (only shown if a live result just arrived) */}
-              {result && (
-                <>
-                  <motion.div variants={staggerItem}>
-                    <h3 className="text-lg font-bold text-slate-900 mt-10 mb-1">Session-Level Skill Analysis</h3>
-                    <p className="text-slate-400 text-xs text-center">Detailed per-skill breakdown from the processed session result.</p>
-                  </motion.div>
-                  {skills.map((skillRes: SkillAssessmentResult) => (
-                    <motion.section key={skillRes.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all border-l-4 border-l-indigo-500">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3 font-bold capitalize text-slate-800 text-xl">
-                          <div className="p-1.5 bg-indigo-50 rounded-lg">{skillIcons[skillRes.skill]}</div> {skillRes.skill}
-                        </div>
-                        <span className="text-xl font-extrabold text-indigo-600 px-3 py-1 bg-indigo-50 rounded-lg">{skillRes.estimatedLevel}</span>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mastery</p>
-                          <p className="text-2xl font-extrabold text-slate-900">{Math.round((skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%</p>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Evidence</p>
-                          <p className="text-2xl font-extrabold text-slate-900">{skillRes.evidenceCount}</p>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Consistency</p>
-                          <p className="text-lg font-bold text-slate-800 capitalize">{skillRes.status}</p>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence</p>
-                          <p className="text-lg font-bold text-indigo-600 capitalize">{skillRes.confidence.band}</p>
-                        </div>
-                      </div>
-                      {/* Subskill Bars */}
-                      <div className="space-y-2 mt-4">
-                        {(skillRes.subscores || []).map(sub => (
-                          <div key={sub.name} className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-slate-500 w-36 text-right truncate">{sub.name}</span>
-                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-indigo-400/70 rounded-full" style={{ width: `${Math.round(sub.value * 100)}%` }} />
-                            </div>
-                            <span className="text-xs font-bold text-slate-600 w-8">{Math.round(sub.value * 100)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.section>
-                  ))}
-                </>
-              )}
-
-              {/* Descriptor Evidence */}
-              {skills.some(s => s.descriptors.length > 0) && (
-                <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Target className="w-4 h-4 text-emerald-500" /> Evidence-Based Descriptors</h3>
-                  <div className="space-y-3">
-                    {skills.flatMap(s => s.descriptors).slice(0, 5).map((desc, i) => (
-                      <div key={i} className="flex items-center justify-between bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                        <div>
-                          <p className="font-bold text-slate-800 text-sm">{desc.descriptorText}</p>
-                          <p className="text-xs text-slate-500">Level: {desc.level} • Strength: {Math.round(desc.strength * 100)}%</p>
-                        </div>
-                        {desc.supported ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <AlertCircle className="w-5 h-5 text-amber-500" />}
-                      </div>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-
-              {/* Behavioral Signals */}
-              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-indigo-500" /> Behavioral Profile</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pacing</p>
-                    <p className="text-lg font-bold text-slate-800 capitalize">{result?.behavioralProfile?.pace}</p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Confidence Style</p>
-                    <p className="text-lg font-bold text-slate-800 capitalize">{result?.behavioralProfile?.confidenceStyle}</p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Self-Correction</p>
-                    <p className="text-lg font-bold text-slate-800">{Math.round((result?.behavioralProfile?.selfCorrectionRate || 0) * 100)}%</p>
-                  </div>
-                </div>
-              </motion.section>
-            </motion.div>
-          )}
-
-          {/* ========= PRACTICE HUB ========= */}
-          {activeTab === 'hub' && (
-            <motion.div key="hub" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Practice Hub</h2>
-                <p className="text-slate-500 text-sm">Curated exercises shaped by your learner state.</p>
-              </motion.div>
-
-              {/* Curated Skill Sections */}
-              {[
-                { skill: 'Speaking', icon: <Mic className="w-5 h-5" />, color: 'indigo', exercises: [
-                  { title: 'Daily Conversation', type: 'Recommended', reason: 'Based on your current focus' },
-                  { title: 'Roleplay: Coffee Shop', type: 'Confidence Builder', reason: 'Safe real-world scenario' },
-                ]},
-                { skill: 'Writing', icon: <PenTool className="w-5 h-5" />, color: 'emerald', exercises: [
-                  { title: 'Formal Register Rewrite', type: 'Focus Area', reason: 'Addresses a growth zone' },
-                  { title: 'Short Description', type: 'Warm-up', reason: 'Good for building rhythm' },
-                ]},
-                { skill: 'Listening', icon: <Headphones className="w-5 h-5" />, color: 'blue', exercises: [
-                  { title: 'Detail Extraction', type: 'Stretch Challenge', reason: 'Push beyond your comfort zone' },
-                  { title: 'Gist Comprehension', type: 'Review', reason: 'Strengthen a fragile area' },
-                ]},
-                { skill: 'Vocabulary', icon: <BookOpen className="w-5 h-5" />, color: 'amber', exercises: [
-                  { title: 'Contextual Fill-in', type: 'Due for Review', reason: 'Items at risk of forgetting' },
-                  { title: 'Contrast Pairs', type: 'Next Step', reason: 'Builds discriminative ability' },
-                ]},
-              ].map(section => (
-                <motion.section key={section.skill} variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-2 bg-${section.color}-50 text-${section.color}-600 rounded-lg border border-${section.color}-100`}>{section.icon}</div>
-                    <h3 className="font-bold text-lg text-slate-900">{section.skill}</h3>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {section.exercises.map((ex, i) => (
-                      <button key={i} onClick={onStartSession} className="flex flex-col text-left p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">{ex.type}</span>
-                        <h4 className="font-bold text-slate-800 mb-1">{ex.title}</h4>
-                        <p className="text-xs text-slate-400">{ex.reason}</p>
-                      </button>
-                    ))}
-                  </div>
-                </motion.section>
-              ))}
-            </motion.div>
-          )}
-
-          {/* ========= REVIEW ========= */}
-          {activeTab === 'review' && (
-            <motion.div key="review" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              {/* Assessment Report Section */}
-              <motion.section variants={staggerItem} className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-200/50">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16" />
-                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-6">
-                       <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                       <h3 className="text-xl font-bold">Latest Assessment Report</h3>
-                    </div>
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                       <div>
-                          <p className="text-indigo-200 text-sm font-medium mb-1">Authenticated Proficiency</p>
-                          <p className="text-4xl font-black">{result?.overall?.estimatedLevel} <span className="text-lg font-bold text-indigo-300">Level</span></p>
-                       </div>
-                       <button 
-                          onClick={onViewReview}
-                          className="w-full md:w-auto bg-white text-indigo-900 hover:bg-indigo-50 px-6 py-3 rounded-xl font-bold transition-all shadow-lg"
-                       >
-                          View Full Response Analysis
-                       </button>
-                    </div>
-                 </div>
-              </motion.section>
-
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Review Queue</h2>
-                <p className="text-slate-500 text-sm">Items that need reinforcement before they fade.</p>
-              </motion.div>
-
-              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                {(dashboardData?.reviewQueue || []).length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-12 h-12 text-emerald-300 mx-auto mb-4" />
-                    <p className="text-slate-500 font-medium">No items due for review right now.</p>
-                  </div>
-                ) : (
-                  <ul className="space-y-3">
-                    {(activeDashboardData?.reviewQueue || []).map(item => (
-                      <li key={item.itemId} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <div>
-                          <p className="font-bold text-slate-800">{item.label}</p>
-                          <p className="text-xs text-slate-400 capitalize">{item.type}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          {item.dueStatus === 'overdue' && <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">Overdue</span>}
-                          {item.fragility === 'high' && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded">Fragile</span>}
-                          <button onClick={onStartSession} className="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
-                            Practice <ArrowRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <button onClick={onStartSession} className="w-full mt-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition-colors">Start Review Session</button>
-              </motion.section>
-
-              {/* Weekly Rhythm */}
-              <motion.section variants={staggerItem} className="bg-slate-900 rounded-2xl p-6 text-white">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-slate-800 text-indigo-400 rounded-lg"><Flame className="w-5 h-5"/></div>
-                  <h3 className="font-bold text-lg">Weekly Rhythm</h3>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
-                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Streak</p>
-                    <p className="text-2xl font-extrabold text-orange-400">{activeDashboardData?.weeklyRhythm?.streakDays || 0}</p>
-                  </div>
-                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
-                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Sessions</p>
-                    <p className="text-2xl font-extrabold">{activeDashboardData?.weeklyRhythm?.sessionsThisWeek || 0}</p>
-                  </div>
-                  <div className="bg-slate-800/50 p-3 rounded-xl text-center border border-slate-700">
-                    <p className="text-xs text-slate-400 font-bold uppercase mb-1">Momentum</p>
-                    <p className="text-lg font-bold text-emerald-400 capitalize">{activeDashboardData?.weeklyRhythm?.momentumState || 'Stable'}</p>
-                  </div>
-                </div>
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden w-full">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500" style={{ width: '60%' }} />
-                </div>
-              </motion.section>
-            </motion.div>
-          )}
-
-          {/* ========= JOURNEY ========= */}
-          {activeTab === 'journey' && (
-            <motion.div key="journey" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-10 pb-20">
-              {/* Journey Header */}
-              <motion.div variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-indigo-100/50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-3 border border-indigo-100 uppercase tracking-widest">
-                       {isArchitecting ? (
-                         <span className="flex items-center gap-2">
-                           <BrainCircuit className="w-3 h-3 animate-pulse" /> 
-                           AI Architecting Journey...
-                         </span>
-                       ) : 'Linguistic Roadmap'}
-                    </div>
-                    <h2 className="text-3xl font-extrabold text-slate-900 mb-2">{isArchitecting ? 'Visualizing your path...' : activeDashboardData?.journey?.journeyTitle || 'Your Learning Path'}</h2>
-                    <p className="text-slate-500 font-medium max-w-xl">{isArchitecting ? 'Our AI engine is currently analyzing your technical gaps to build a high-impact roadmap. This will take a few seconds.' : activeDashboardData?.journey?.targetCapabilitiesSummary || 'Follow your personalized roadmap to reach your next proficiency milestone.'}</p>
-                  </div>
-                  <div className="flex items-center gap-4 bg-slate-900 p-6 rounded-2xl text-white shadow-xl">
-                    <div className="text-center">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Current</p>
-                      <p className="text-2xl font-black text-indigo-400">{activeDashboardData?.journey?.currentStage || 'A1'}</p>
-                    </div>
-                    <div className="h-10 w-px bg-slate-700" />
-                    <ArrowRight className="w-5 h-5 text-slate-500" />
-                    <div className="h-10 w-px bg-slate-700" />
-                    <div className="text-center">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Target</p>
-                      <p className="text-2xl font-black text-emerald-400">{activeDashboardData?.journey?.targetStage || 'A2'}</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Vertical Roadmap Container */}
-              <div className="relative max-w-3xl mx-auto pl-8 md:pl-0">
-                {/* Connecting Line */}
-                <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500/20 via-indigo-500 to-indigo-500/10 -translate-x-1/2 rounded-full pointer-events-none" />
-                
-                <div className="space-y-12 relative">
-                  {(() => {
-                    const nodes = supabaseData.persistedJourney?.nodes || activeDashboardData?.journey?.nodes || [];
-                    const currentNodeId = supabaseData.persistedJourney?.currentNodeId;
-                    
-                    return nodes.map((node, index) => {
-                      const isLeft = index % 2 === 0;
-                      // Use database status if available, fallback to currentNodeId match or first element
-                      const isCurrent = currentNodeId ? (node.id === currentNodeId) : (node.status === 'current');
-                      const isCompleted = node.status === 'completed';
-                      const isLocked = !isCurrent && !isCompleted;
-
-                    return (
-                      <motion.div 
-                        key={node.id} 
-                        variants={staggerItem}
-                        className={`flex flex-col md:flex-row items-center gap-8 ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}
-                      >
-                        {/* Content Card */}
-                        <div className={`w-full md:w-[45%] ${isLeft ? 'md:text-right' : 'md:text-left'}`}>
-                          <div className={`p-6 bg-white rounded-3xl border shadow-sm transition-all hover:shadow-md ${isCurrent ? 'border-indigo-400 ring-4 ring-indigo-50' : 'border-slate-100'} ${isLocked ? 'opacity-60' : ''}`}>
-                             <div className={`flex items-center gap-3 mb-2 ${isLeft ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
-                                <div className={`p-2 rounded-xl ${isCurrent ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                                   {skillIcons[node.iconType as any] || <Route className="w-5 h-5" />}
-                                </div>
-                                <h4 className="font-bold text-slate-800">{node.title}</h4>
-                             </div>
-                             <p className="text-sm text-slate-500 leading-relaxed">{node.description}</p>
-                             {isCurrent && (
-                               <button onClick={onStartSession} className="mt-4 w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
-                                 Begin This Objective
-                               </button>
-                             )}
-                          </div>
-                        </div>
-
-                        {/* Node Marker */}
-                        <div className="absolute left-4 md:left-1/2 w-10 h-10 -translate-x-1/2 flex items-center justify-center z-10">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 ${isCompleted ? 'bg-emerald-500 border-emerald-100' : isCurrent ? 'bg-white border-indigo-600 animate-pulse' : 'bg-slate-100 border-slate-200'}`}>
-                             {isCompleted ? <CheckCircle2 className="w-5 h-5 text-white" /> : 
-                              isCurrent ? <div className="w-4 h-4 rounded-full bg-indigo-600" /> : 
-                              <div className="w-3 h-3 rounded-full bg-slate-300" />}
-                          </div>
-                        </div>
-
-                        {/* Spacer for other side */}
-                        <div className="hidden md:block w-[45%]" />
-                      </motion.div>
-                    );
-                  });
-                })()}
-                </div>
-              </div>
-
-              {/* Celebration Footer */}
-              <motion.div variants={staggerItem} className="bg-emerald-900 rounded-3xl p-10 text-white text-center relative overflow-hidden">
-                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-3xl -mr-32 -mt-32" />
-                 <Crown className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-                 <h3 className="text-2xl font-black mb-2">Final Objective: {activeDashboardData.journey.targetStage}</h3>
-                 <p className="text-emerald-200 max-w-lg mx-auto mb-8 font-medium">Complete all bridge tasks and checkpoints to unlock the official assessment for your next level.</p>
-                 <div className="flex justify-center gap-4">
-                    <button onClick={onStartSession} className="bg-white text-emerald-900 px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition-colors">Start Current Path</button>
-                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* ========= HISTORY ========= */}
-          {activeTab === 'history' && (
-            <motion.div key="history" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Session History</h2>
-                <p className="text-slate-500 text-sm">Your recent overarching assessment records pulled dynamically from the server.</p>
-              </motion.div>
-              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative">
-                {(supabaseData.history?.length || 0) === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100">
-                      <Target className="w-8 h-8 text-indigo-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-2">No Assessments Completed</h3>
-                    <p className="text-slate-500 font-medium mb-6">Complete your first practice session to generate a comprehensive CEFR report card.</p>
-                    <button onClick={onStartSession} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-indigo-200 transition-all">Start Your First Assessment</button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {(supabaseData.history || []).map((record, i) => (
-                      <div key={record.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group bg-slate-50/50">
-                        <div className="flex items-center gap-4">
-                           <div className="hidden md:flex w-12 h-12 bg-white rounded-full items-center justify-center border border-slate-200 shadow-sm">
-                             <History className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
-                           </div>
-                           <div>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{new Date(record.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                             <div className="flex items-center gap-3">
-                               <h4 className="text-lg font-extrabold text-slate-800">Adaptive Diagnostics</h4>
-                               <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] uppercase font-black tracking-widest rounded">Score: {record.overallLevel}</span>
-                             </div>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="text-right hidden md:block mr-2">
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Confidence</p>
-                             <p className="text-sm font-bold text-slate-700">{Math.round(record.confidence * 100)}% reliability</p>
-                           </div>
-                           {onViewHistoryReport && (
-                             <button onClick={() => onViewHistoryReport(record.id)} className="w-full md:w-auto px-4 py-2 bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg text-sm font-bold transition-colors">
-                               View Detailed Report
-                             </button>
-                           )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </motion.section>
-            </motion.div>
-          )}
-
-          {/* ========= SETTINGS ========= */}
-          {activeTab === 'settings' && (
-            <motion.div key="settings" variants={staggerContainer} initial="hidden" animate="show" exit={{ opacity: 0 }} className="space-y-8">
-              <motion.div variants={staggerItem}>
-                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Settings</h2>
-                <p className="text-slate-500 text-sm">Manage your learning preferences.</p>
-              </motion.div>
-              <motion.section variants={staggerItem} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                <div className="text-center py-12">
-                  <Settings className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <p className="text-slate-500 font-medium">Settings will be available soon.</p>
-                </div>
-              </motion.section>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                   ))}
+               </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
 };
+
+// --- Sub-components ---
+
+const HexNode = ({ status, label }: { status: 'complete' | 'active' | 'locked', label: string }) => {
+  const variants = {
+    complete: "bg-orange-500 border-orange-400 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]",
+    active: "bg-[#0a0e17] border-orange-500 text-orange-500 shadow-[0_0_25px_rgba(249,115,22,0.3)] animate-[pulse_3s_ease-in-out_infinite]",
+    locked: "bg-slate-800/50 border-slate-700 text-slate-500"
+  };
+
+  const hexStyle = {
+      clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-3 w-20">
+      <div 
+         className={`w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-all duration-300 ${status === 'active' ? 'scale-110' : 'hover:scale-105'}`}
+      >
+          <div 
+              className={`w-full h-full flex items-center justify-center ${variants[status]}`}
+              style={hexStyle}
+          >
+             <div className="w-full h-full flex items-center justify-center scale-[0.8] bg-[#0a0e17]" style={hexStyle}>
+                <div className={`w-full h-full flex items-center justify-center ${status === 'complete' ? 'bg-orange-500' : status === 'active' ? 'bg-orange-500/10' : 'bg-slate-800/80'}`}>
+                    {status === 'complete' && <Trophy size={20} className="text-white" />}
+                    {status === 'active' && <Zap size={20} className="text-orange-500 fill-orange-500" />}
+                </div>
+             </div>
+          </div>
+      </div>
+      <span className={`text-[10px] sm:text-xs font-bold text-center leading-tight ${status === 'locked' ? 'text-slate-600' : status === 'active' ? 'text-orange-400' : 'text-slate-300'}`}>
+        {label}
+      </span>
+    </div>
+  );
+};
+
+const NavItem = ({ icon, label, active = false, onClick, isDanger = false }: { icon: any, label: string, active?: boolean, onClick?: () => void, isDanger?: boolean }) => (
+  <button 
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${
+      active 
+        ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-[inset_0_0_10px_rgba(249,115,22,0.05)]' 
+        : isDanger
+          ? 'text-rose-500 hover:bg-rose-500/10 border border-transparent'
+          : 'text-slate-400 hover:bg-slate-800/80 hover:text-white border border-transparent'
+    }`}
+  >
+    {icon}
+    <span className="font-bold text-sm tracking-wide">{label}</span>
+  </button>
+);
+
+const LoadingSkeleton = () => (
+  <div className="h-screen w-full bg-[#0a0e17] flex items-center justify-center">
+    <div className="relative flex flex-col items-center">
+      <div className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+      <div className="mt-6 text-[10px] text-orange-500 font-bold uppercase tracking-widest animate-pulse flex items-center gap-2">
+         <Zap size={14} className="fill-orange-500" /> Booting AI Engine...
+      </div>
+    </div>
+  </div>
+);
+
+export default AdvancedDashboard;
