@@ -79,14 +79,30 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsSaving(true); 
     setIsCompleting(true);
     try {
+      // 1. Finalize the academic scoring (EFSET Model) - keep as fallback/base
       await engine.finalizeAssessment(); 
       await refreshUserProfile().catch(err => console.warn('User profile refresh failed:', err)); 
-      const outcome = engine.getOutcome();
-      onSaveComplete([], outcome);
+      
+      const academicOutcome = engine.getOutcome();
+      const history = engine.getAnswerHistory();
+
+      // 2. Trigger Cloud AI Analysis (Grok-Scorer + Grok-Expert)
+      console.log('[Diagnostic] ☁️ Launching Grok Analysis Layer...');
+      const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history);
+
+      // 3. Complete saving state
+      onSaveComplete(history, { ...academicOutcome, aiAnalysis: deepAnalysis });
     } catch (e) {
       console.error('[Diagnostic] ❌ Finalization aborted.', e);
-      setSaveError('A critical failure occurred while saving your results.');
-      setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
+      setSaveError('A critical failure occurred during AI analysis. Falling back to local scoring.');
+      
+      // Fallback: Continue with local academic scoring if AI fails
+      try {
+        const academicOutcome = engine.getOutcome();
+        onSaveComplete(engine.getAnswerHistory(), academicOutcome);
+      } catch (innerE) {
+        setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
+      }
     }
   }, [engine, navigate, refreshUserProfile, onSaveComplete]);
 
@@ -412,9 +428,13 @@ const SyncingView = ({ isSaving, saveError }: any) => (
            <CheckCircle2 size={12} className="text-white" />
         </div>
       </div>
-      <div className="space-y-2">
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Finalizing results...</h3>
-        <p className="text-slate-500 font-medium">Computing your final CEFR bands and cloud persistence.</p>
+      <div className="space-y-4">
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight">AI Pedagogical Analysis...</h3>
+        <p className="text-slate-500 font-medium">Grok-Expert is analyzing your cognitive patterns & level placement.</p>
+        <div className="flex flex-col gap-2 mt-4">
+           <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest animate-pulse">Running Scorer (Grok-1)</div>
+           <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest animate-pulse delay-700">Running Analyst (Grok-2)</div>
+        </div>
         {saveError && <p className="text-rose-500 text-sm font-bold mt-4">⚠️ Sync error: {saveError}</p>}
       </div>
     </div>

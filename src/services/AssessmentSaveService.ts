@@ -1,5 +1,5 @@
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabaseClient';
-import { AssessmentOutcome } from '../types/assessment';
+import { AssessmentOutcome, AnswerRecord } from '../types/assessment';
 import { withRetry } from '../lib/utils';
 
 
@@ -193,6 +193,54 @@ export class AssessmentSaveService {
     } catch (e) {
       console.error('[AssessmentSave] Atomic Transaction failed:', e);
       throw e;
+    }
+  }
+
+  /**
+   * Invokes the Grok-powered cloud analysis pipeline.
+   * Orchestrates Scorer-Model and Pedagogical Expert via Edge Function.
+   */
+  public static async analyzeAssessmentRemote(history: AnswerRecord[]): Promise<any> {
+    try {
+      const userId = await this.getAuthenticatedUserId();
+      console.log(`[AssessmentSave] ☁️ Triggering Deep Cloud Analysis for user: ${userId}`);
+
+      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
+
+      if (!token) throw new Error("Authentication session expired.");
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/analyze-assessment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': supabaseAnonKey!
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          user_answers: history.map(h => ({
+            question_id: h.questionId,
+            skill: h.skill,
+            user_answer: h.answer,
+            expected: h.correctAnswer,
+            time: h.responseTimeMs
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('[AssessmentSave] Cloud Analysis Error:', errText);
+        throw new Error(`AI Analysis Failed: ${errText}`);
+      }
+
+      const result = await response.json();
+      console.log('[AssessmentSave] ✅ Cloud Analysis complete.', result);
+      return result.analysis;
+    } catch (err) {
+      console.error('[AssessmentSave] Remote Analysis Exception:', err);
+      throw err;
     }
   }
 

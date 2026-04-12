@@ -2,8 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowRight, BarChart3, CheckCircle2, Zap, Target, BookOpen, Mic, PenTool, 
-  Headphones, AlertTriangle, ShieldCheck, Map, Sparkles, Circle, Flag 
+  Headphones, AlertTriangle, ShieldCheck, Map, Sparkles, Circle, Flag, Info
 } from 'lucide-react';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
+import QuestionAnalysis from '../components/assessment/QuestionAnalysis';
 import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 import { supabase } from '../lib/supabaseClient';
 
@@ -31,6 +33,28 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   onContinue, 
   onReview 
 }) => {
+  const [report, setReport] = useState<any>(assessmentOutcome?.aiAnalysis || null);
+  const [loading, setLoading] = useState(!assessmentOutcome?.aiAnalysis && !isArchitecting);
+
+  useEffect(() => {
+    if (!report && !isArchitecting) {
+      const fetchAnalysis = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { data, error } = await supabase
+          .from('user_error_profiles')
+          .select('full_report')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data) setReport(data.full_report);
+        setLoading(false);
+      };
+      fetchAnalysis();
+    }
+  }, [report, isArchitecting]);
+
   const isSpeakingMissing = (result.skills.speaking?.evidenceCount ?? 0) === 0;
   const isWritingMissing = (result.skills.writing?.evidenceCount ?? 0) === 0;
   const isProvisional = isSpeakingMissing || isWritingMissing;
@@ -48,6 +72,20 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   }, [result]);
   const strengths = useMemo(() => skills.flatMap(s => s.strengths).slice(0, 4), [skills]);
   const weaknesses = useMemo(() => skills.flatMap(s => s.weaknesses).slice(0, 4), [skills]);
+
+  const radarData = useMemo(() => {
+    return skills.map(s => ({
+      subject: s.skill.charAt(0).toUpperCase() + s.skill.slice(1),
+      A: Math.round((s.masteryScore ?? s.confidence.score) * 100),
+      fullMark: 100
+    }));
+  }, [skills]);
+
+  const handleReviewScroll = () => {
+    const el = document.getElementById('question-analysis');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (onReview) onReview();
+  };
 
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -134,7 +172,19 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
           <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2"><Target className="w-5 h-5 text-indigo-500" /> Skill Breakdown</h3>
             <div className="space-y-4">
-              {skills.map((skillRes: SkillAssessmentResult) => (
+              {report?.skill_breakdown ? (
+                Object.entries(report.skill_breakdown).map(([skill, details]: [string, any]) => (
+                  <div key={skill} className="group p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-slate-50 transition-colors">
+                    <div className="flex justify-between items-center mb-1 text-sm">
+                      <div className="flex items-center gap-2 font-bold text-slate-800 capitalize">
+                         {skillIcons[skill.toLowerCase()] || <Target size={16} className="text-slate-400" />} {skill}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed italic">"{details.ai_insight}"</p>
+                  </div>
+                ))
+              ) : (
+                skills.map((skillRes: SkillAssessmentResult) => (
                   <div key={skillRes.skill}>
                     <div className="flex justify-between items-center mb-1.5 text-sm">
                       <div className="flex items-center gap-2 font-semibold text-slate-700 capitalize">
@@ -146,7 +196,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                       <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.max(5, (skillRes.masteryScore ?? skillRes.confidence.score) * 100)}%` }} />
                     </div>
                   </div>
-                )
+                ))
               )}
             </div>
           </div>
@@ -157,7 +207,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
               <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-100 blur-xl opacity-50 rounded-bl-full" />
               <h3 className="font-bold text-emerald-900 mb-4 flex items-center gap-2 relative z-10"><CheckCircle2 className="w-5 h-5" /> Detected Strengths</h3>
               <ul className="space-y-3 relative z-10">
-                {(strengths.length > 0 ? strengths : ['Strong base foundation']).map((strength: string, i: number) => (
+                {(report?.strengths || strengths).map((strength: string, i: number) => (
                   <li key={i} className="flex gap-3 text-emerald-800 text-sm font-medium leading-snug">
                     <span className="text-emerald-500 font-bold shrink-0">✓</span> {strength}
                   </li>
@@ -169,7 +219,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
               <div className="absolute top-0 right-0 w-20 h-20 bg-amber-100 blur-xl opacity-50 rounded-bl-full" />
               <h3 className="font-bold text-amber-900 mb-4 flex items-center gap-2 relative z-10"><Zap className="w-5 h-5" /> Growth Areas</h3>
               <ul className="space-y-3 relative z-10">
-                {(weaknesses.length > 0 ? weaknesses : ['Pushing toward advanced benchmarks']).map((weakness: string, i: number) => (
+                {(report?.growth_areas || weaknesses).map((weakness: string, i: number) => (
                   <li key={i} className="flex gap-3 text-amber-800 text-sm font-medium leading-snug">
                     <span className="text-amber-500 font-bold shrink-0">↗</span> {weakness}
                   </li>
@@ -179,13 +229,67 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
           </div>
         </motion.div>
 
+        {/* Section 4: Visual Error Profile (Radar Chart) */}
+        <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+           <div className="flex flex-col md:flex-row items-center gap-10">
+              <div className="w-full md:w-1/2 h-[300px] min-h-[300px]">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                       <PolarGrid stroke="#E2E8F0" />
+                       <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }} />
+                       <Radar
+                          name="Mastery"
+                          dataKey="A"
+                          stroke="#4F46E5"
+                          strokeWidth={3}
+                          fill="#4F46E5"
+                          fillOpacity={0.15}
+                       />
+                    </RadarChart>
+                 </ResponsiveContainer>
+              </div>
+              
+              <div className="w-full md:w-1/2 space-y-6">
+                 <div>
+                    <h3 className="text-xl font-black text-slate-900 mb-2 flex items-center gap-2">
+                       <Zap className="w-5 h-5 text-amber-500" /> Error Distribution
+                    </h3>
+                    <p className="text-sm text-slate-500 font-medium">Your mastery vs. error density across the 8-skill linguistic spectrum.</p>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Top Accuracy</p>
+                       <p className="text-lg font-bold text-emerald-600">{radarData.sort((a,b) => b.A - a.A)[0]?.subject || 'N/A'}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Needs Focus</p>
+                       <p className="text-lg font-bold text-rose-600">{radarData.sort((a,b) => a.A - b.A)[0]?.subject || 'N/A'}</p>
+                    </div>
+                 </div>
+                 
+                 <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">AI Recommendation</p>
+                    <p className="text-sm text-indigo-900 font-medium leading-relaxed">
+                       Focus on stabilizing your {radarData.sort((a,b) => a.A - b.A)[0]?.subject || 'weaker'} skills before attempting C1 level nuances.
+                    </p>
+                 </div>
+              </div>
+           </div>
+        </motion.div>
+
         {/* 🗺️ Learning Roadmap Section */}
         <RoadmapPreview isArchitecting={isArchitecting} />
+
+        {/* Section 5: Question-by-Question Analysis */}
+        <motion.div variants={staggerItem}>
+           <QuestionAnalysis questions={report?.question_analysis} />
+        </motion.div>
 
         {/* Footer Action */}
         <motion.div variants={staggerItem} className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
           <button 
-            onClick={onReview || (() => {})}
+            onClick={handleReviewScroll}
             className="group flex items-center gap-3 bg-white hover:bg-slate-50 text-slate-900 px-8 py-4 rounded-2xl font-bold text-lg border border-slate-200 transition-all duration-300 shadow-sm active:scale-95"
           >
             Review My Answers

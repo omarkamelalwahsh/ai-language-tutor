@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Mic, PenTool, Headphones, BookOpen, ChevronRight,
-  Coffee, Briefcase, GraduationCap, CheckCircle2, Clock, Flame, Heart
+import { 
+  Target, Flag, Zap, Award, ChevronRight, BookOpen, 
+  CheckCircle2, Coffee, Clock, Flame, Heart, Globe,
+  Mic, PenTool, Headphones
 } from 'lucide-react';
-import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 import { OnboardingState } from '../types/app';
 import { DB_SCHEMA } from '../constants/dbSchema';
 import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
@@ -15,29 +15,15 @@ const goalContextConfigs: Record<string, {
 }> = {
   casual: {
     question: "What event or situation are you preparing for?",
-    options: [
-      "Travel & Tourism", "Socializing & Friends", "Relocation & Expat Life", 
-      "Personal Interest", "Dating & Relationships", "Pop Culture (Movies, Music)", 
-      "Gaming & Online Communities", "Volunteering & Charity"
-    ],
+    options: ["Travel", "Socializing", "Relocation", "Personal Interest", "Games", "Movies & Music"],
   },
   serious: {
     question: "What is your primary field of study?",
-    options: [
-      "Engineering & Technology", "Medicine & Healthcare", "Business & Economics", 
-      "Arts & Design", "Natural Sciences", "Humanities & History", 
-      "Law & Political Science", "Computer Science", "Mathematics", 
-      "Psychology & Sociology", "Education & Teaching", "Architecture"
-    ],
+    options: ["Medicine", "Engineering", "Business", "CS & IT", "Arts", "Natural Sciences"],
   },
   professional: {
-    question: "Which industry or field do you work in?",
-    options: [
-      "Information Technology", "Finance & Accounting", "Marketing & Advertising", 
-      "Healthcare & Pharma", "Education & Training", "Management Consulting", 
-      "Sales & Business Dev", "Logistics & Supply Chain", "Real Estate & Construction", 
-      "Design & Creative", "Human Resources", "Legal Services", "Manufacturing", "Hospitality & Tourism"
-    ],
+    question: "Which industry do you work in?",
+    options: ["IT & Software", "Finance", "Healthcare", "Marketing", "Management", "Design"],
   }
 };
 
@@ -47,349 +33,308 @@ interface OnboardingViewProps {
 
 export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) => {
   const [step, setStep] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
   const [state, setState] = useState<OnboardingState>({
-    goal: null,
-    nativeLanguage: 'English',
+    goal: 'serious',
+    nativeLanguage: 'Arabic',
     targetLanguage: 'English',
     focusSkills: [],
     topics: [],
-    sessionIntensity: null,
-    goalContext: null,
+    sessionIntensity: 'regular',
+    goalContext: '',
   });
-  const totalOnboardingSteps = 5;
+
+  const totalSteps = 3;
 
   const handleNext = async () => {
-    if (step < totalOnboardingSteps) {
+    if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Mark onboarding as complete in DB directly via Supabase
+      setIsSaving(true);
       const userId = localStorage.getItem('auth_user_id');
-      const finishOnboarding = () => onComplete(state);
+      const finish = () => onComplete(state);
 
       if (userId) {
-        import('../lib/supabaseClient').then(async ({ supabase }) => {
-          try {
-            const { error } = await supabase
-              .from(DB_SCHEMA.TABLES.PROFILES)
-              .update({ 
-                 [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
-                 [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
-                 learning_goal: state.goal,
-                 goal_context: state.goalContext,
-                 focus_skills: state.focusSkills,
-                 learning_topics: state.topics,
-                 session_intensity: state.sessionIntensity,
-                 native_language: state.nativeLanguage,
-                 target_language: state.targetLanguage,
-                 updated_at: new Date().toISOString()
-              })
-              .eq('id', userId);
-            if (error) console.error('[Onboarding] Profile Update Failed:', error.message);
-          } catch (err: any) {
-             console.error('[Onboarding] Profile Update Error:', err.message);
-          } finally {
-             finishOnboarding();
-          }
-        });
-            
-        // Safety timeout
-        setTimeout(finishOnboarding, 3000);
-      } else {
-        finishOnboarding();
+        const { supabase } = await import('../lib/supabaseClient');
+        await supabase
+          .from(DB_SCHEMA.TABLES.PROFILES)
+          .update({ 
+             [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
+             [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
+             learning_goal: state.goal,
+             goal_context: state.goalContext,
+             focus_skills: state.focusSkills,
+             learning_topics: state.topics,
+             session_intensity: state.sessionIntensity,
+             native_language: state.nativeLanguage,
+             target_language: state.targetLanguage,
+             updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
       }
+      finish();
     }
   };
 
-  const goals = [
-    { id: 'casual', label: 'Casual', icon: <Coffee className="w-6 h-6" />, desc: 'For fun, travel, or personal curiosity' },
-    { id: 'serious', label: 'Serious', icon: <GraduationCap className="w-6 h-6" />, desc: 'Academic study or personal growth' },
-    { id: 'professional', label: 'Professional', icon: <Briefcase className="w-6 h-6" />, desc: 'Business, career, and workplace fluency' },
-  ] as const;
-
-  const skills = [
-    { id: 'speaking', label: 'Speaking', icon: <Mic className="w-5 h-5" />, desc: 'Conversation & pronunciation' },
-    { id: 'writing', label: 'Writing', icon: <PenTool className="w-5 h-5" />, desc: 'Grammar, clarity & structure' },
-    { id: 'listening', label: 'Listening', icon: <Headphones className="w-5 h-5" />, desc: 'Comprehension & detail' },
-    { id: 'vocabulary', label: 'Vocabulary', icon: <BookOpen className="w-5 h-5" />, desc: 'Word recall & contextual use' },
+  const steps = [
+    { id: 1, title: "Your Vision", icon: <Target size={20} /> },
+    { id: 2, title: "Language Context", icon: <Flag size={20} /> },
+    { id: 3, title: "Skill Focus", icon: <Zap size={20} /> }
   ];
 
-  const intensityOptions = [
-    { id: 'light', label: 'Light', icon: <Coffee className="w-5 h-5" />, desc: '2–3 sessions per week, ~10 min each', subtext: 'Best for casual pace' },
-    { id: 'regular', label: 'Regular', icon: <Clock className="w-5 h-5" />, desc: '4–5 sessions per week, ~15 min each', subtext: 'Recommended for steady growth' },
-    { id: 'intensive', label: 'Intensive', icon: <Flame className="w-5 h-5" />, desc: 'Daily sessions, ~20 min each', subtext: 'Fast-track to next level' },
-  ] as const;
-
-  const stepLabels = ['Goal (WHY)', 'Language (WHAT)', 'Focus Skill (HOW)', 'Topics (INTEREST)', 'Time (PACE)'];
-
   return (
-    <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center pt-16 px-4 pb-12 relative">
-      <div className="w-full max-w-2xl flex flex-col h-full mt-4">
-        {/* Progress Indicator with Step Labels */}
-        <div className="mb-8">
-          <div className="flex justify-between text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest">
-            <span>{stepLabels[step - 1]}</span>
-            <span>Step {step} of {totalOnboardingSteps}</span>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 scroll-smooth">
+      {/* 1. Progress Indicator */}
+      <div className="max-w-md w-full mb-12 flex justify-between relative mt-4">
+        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 transform -translate-y-1/2" />
+        {steps.map((s) => (
+          <div key={s.id} className="flex flex-col items-center gap-2">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${
+              step >= s.id ? 'bg-white border-indigo-600 text-indigo-600' : 'bg-slate-100 border-slate-200 text-slate-400'
+            }`}>
+              {s.icon}
+            </div>
+            <span className={`text-[10px] font-black uppercase tracking-widest ${step >= s.id ? 'text-indigo-600' : 'text-slate-400'}`}>
+              {s.title}
+            </span>
           </div>
-          <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
-            <motion.div
-              className="h-full bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.4)]"
-              initial={{ width: 0 }}
-              animate={{ width: `${(step / totalOnboardingSteps) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-          {/* Step dots */}
-          <div className="flex justify-between mt-3 px-1">
-            {stepLabels.map((label, i) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <div className={`w-2.5 h-2.5 rounded-full transition-colors ${i < step ? 'bg-indigo-600' : 'bg-slate-300'}`} />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${i < step ? 'text-indigo-600' : 'text-slate-300'}`}>{label}</span>
+        ))}
+      </div>
+
+      {/* 2. Main Card */}
+      <div className="max-w-xl w-full bg-white rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col min-h-[600px] relative overflow-hidden">
+        
+        <AnimatePresence mode="wait">
+          {/* PHASE 1: VISION */}
+          {step === 1 && (
+            <motion.section 
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8 flex-1 flex flex-col"
+            >
+              <header>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">What brings you here?</h2>
+                <p className="text-slate-500 font-medium mt-1">We'll tailor your path based on your primary goal.</p>
+              </header>
+              
+              <div className="grid gap-4">
+                {[
+                  { id: 'casual', label: 'Casual Learning', desc: 'Travel, hobbies, and meeting people.', icon: <BookOpen size={22}/> },
+                  { id: 'professional', label: 'Career Growth', desc: 'Workplace communication & networking.', icon: <Award size={22}/> },
+                  { id: 'serious', label: 'Full Mastery', desc: 'Academic and deep technical fluency.', icon: <Target size={22}/> }
+                ].map((goal) => (
+                  <button 
+                    key={goal.id}
+                    onClick={() => setState({...state, goal: goal.id as any})}
+                    className={`flex items-center gap-5 p-5 rounded-2xl border-2 text-left transition-all ${
+                      state.goal === goal.id ? 'border-indigo-600 bg-indigo-50/30 ring-4 ring-indigo-50 shadow-inner' : 'border-slate-100 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`p-4 rounded-2xl border transition-all ${state.goal === goal.id ? 'bg-white border-indigo-200 text-indigo-600 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                      {goal.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-black text-slate-800 text-lg leading-tight">{goal.label}</h3>
+                      <p className="text-xs text-slate-500 font-medium">{goal.desc}</p>
+                    </div>
+                    {state.goal === goal.id && <CheckCircle2 size={24} className="text-indigo-600" />}
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="bg-white rounded-[2rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-slate-100 flex-1 min-h-[500px] flex flex-col relative overflow-hidden">
-          <AnimatePresence mode="wait">
-
-            {/* Step 1: Goal */}
-            {step === 1 && (
-              <motion.div key="s1" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
-                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">What's your primary goal?</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-8">This helps us tailor the difficulty, vocabulary, and pacing of your sessions.</motion.p>
-                
-                <motion.div variants={staggerItem} className="grid sm:grid-cols-3 gap-4 mb-auto">
-                  {goals.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => {
-                        if (state.goal !== g.id) {
-                          setState({ ...state, goal: g.id as any, goalContext: null });
-                        }
-                      }}
-                      className={`p-6 rounded-2xl border-2 text-left transition-all ${state.goal === g.id ? 'border-indigo-600 bg-indigo-50 shadow-md shadow-indigo-100' : 'border-slate-100 hover:border-indigo-200 hover:bg-slate-50'}`}
-                    >
-                      <div className={`mb-4 w-12 h-12 rounded-full flex items-center justify-center ${state.goal === g.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
-                        {g.icon}
-                      </div>
-                      <h3 className={`font-bold mb-1 ${state.goal === g.id ? 'text-indigo-900' : 'text-slate-700'}`}>{g.label}</h3>
-                      <p className={`text-xs ${state.goal === g.id ? 'text-indigo-700/80' : 'text-slate-400'}`}>{g.desc}</p>
-                    </button>
-                  ))}
+              {state.goal && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
+                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">
+                      {goalContextConfigs[state.goal].question}
+                   </label>
+                   <select 
+                      value={state.goalContext || ''}
+                      onChange={(e) => setState({...state, goalContext: e.target.value})}
+                      className="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                   >
+                     <option value="" disabled>Select your context...</option>
+                     {goalContextConfigs[state.goal].options.map(o => <option key={o} value={o}>{o}</option>)}
+                   </select>
                 </motion.div>
-                
-                <AnimatePresence>
-                  {state.goal && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-6 overflow-hidden"
-                    >
-                      <label className="text-sm font-semibold text-slate-700 mb-2 block">
-                        {goalContextConfigs[state.goal].question}
-                      </label>
-                      <div className="relative">
-                        <select
-                          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-4 px-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer shadow-sm"
-                          value={state.goalContext || ''}
-                          onChange={(e) => setState({ ...state, goalContext: e.target.value })}
-                        >
-                          <option value="" disabled>Select an option...</option>
-                          {goalContextConfigs[state.goal].options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
-                          <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              )}
+            </motion.section>
+          )}
 
-                <motion.button variants={staggerItem} disabled={!state.goal || !state.goalContext} onClick={handleNext} className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
-                  Continue <ChevronRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            )}
+          {/* PHASE 2: CONTEXT & INTERESTS */}
+          {step === 2 && (
+            <motion.section 
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8 flex-1 flex flex-col"
+            >
+              <header>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Language & Interests</h2>
+                <p className="text-slate-500 font-medium mt-1">Tell us about your context and what excites you.</p>
+              </header>
 
-            {/* Step 2: Language Selection */}
-            {step === 2 && (
-              <motion.div key="s2" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
-                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Language Selection</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-8">Confirm your language selection for the tutoring sessions.</motion.p>
-                
-                <motion.div variants={staggerItem} className="space-y-6 mb-auto">
-                  <div>
-                    <label className="text-sm font-semibold text-slate-700 mb-2 block">I speak</label>
-                    <div
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium"
-                    >
-                      English
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">I Speak</label>
+                    <div className="p-4 bg-slate-50 rounded-xl border-2 border-slate-100 font-black text-slate-800 flex items-center gap-3">
+                       <Globe size={18} className="text-blue-500" /> Arabic
                     </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-slate-700 mb-2 block">I want to learn</label>
-                    <div
-                      className="w-full p-4 bg-white border border-indigo-200 shadow-sm shadow-indigo-100/50 rounded-xl text-slate-900 font-bold text-lg"
-                    >
-                      English
+                 </div>
+                 <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">Learning</label>
+                    <div className="p-4 bg-indigo-50/50 rounded-xl border-2 border-indigo-100 font-black text-indigo-600 flex items-center gap-3">
+                       <Award size={18} className="text-indigo-600" /> English
                     </div>
-                  </div>
-                </motion.div>
-                
-                <motion.button variants={staggerItem} onClick={handleNext} className="mt-8 w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
-                  Continue <ChevronRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            )}
+                 </div>
+              </div>
 
-            {/* Step 3: Focus Skills */}
-            {step === 3 && (
-              <motion.div key="s3" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
-                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Focus Skills</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-8">Select the areas you want to prioritize. We'll weight your assessment and learning plan accordingly.</motion.p>
-                
-                <motion.div variants={staggerItem} className="grid grid-cols-2 gap-4 mb-auto">
-                  {skills.map(s => {
-                    const isSelected = state.focusSkills.includes(s.id);
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => {
-                          const newSkills = isSelected 
-                            ? state.focusSkills.filter(id => id !== s.id)
-                            : [...state.focusSkills, s.id];
-                          setState({ ...state, focusSkills: newSkills });
-                        }}
-                        className={`p-5 rounded-2xl flex flex-col items-center justify-center gap-2 border-2 transition-all relative ${isSelected ? 'border-indigo-600 bg-indigo-50 shadow-sm' : 'border-slate-100 bg-slate-50 hover:border-indigo-200'}`}
-                      >
-                        <div className={`${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>
-                          {s.icon}
-                        </div>
-                        <span className={`font-semibold ${isSelected ? 'text-indigo-900' : 'text-slate-600'}`}>{s.label}</span>
-                        <span className={`text-[11px] ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>{s.desc}</span>
-                        {isSelected && <CheckCircle2 className="absolute top-3 right-3 w-5 h-5 text-indigo-600" />}
-                      </button>
-                    )
-                  })}
-                </motion.div>
-                
-                <motion.button variants={staggerItem} disabled={state.focusSkills.length === 0} onClick={handleNext} className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
-                  Continue <ChevronRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            )}
+              <div>
+                 <div className="flex justify-between items-center mb-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Preferred Topics</label>
+                    <span className="text-[10px] font-bold text-indigo-500">Pick any 3+</span>
+                 </div>
+                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1 no-scrollbar">
+                    {(() => {
+                      const { recommended, other } = getSortedTopicsForGoal(state.goal as GoalId);
+                      return [...recommended, ...other].map(topic => {
+                        const isSelected = state.topics.includes(topic.id);
+                        return (
+                          <button
+                            key={topic.id}
+                            onClick={() => {
+                              const newTopics = isSelected 
+                                ? state.topics.filter(id => id !== topic.id)
+                                : [...state.topics, topic.id];
+                              setState({...state, topics: newTopics as TopicId[]});
+                            }}
+                            className={`p-3 rounded-2xl border-2 text-left transition-all ${
+                              isSelected ? 'bg-indigo-600 border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white border-slate-100 hover:border-indigo-200'
+                            }`}
+                          >
+                             <span className="text-lg block mb-1">{topic.emoji}</span>
+                             <span className={`text-[10px] font-black leading-tight block ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                               {topic.label}
+                             </span>
+                          </button>
+                        )
+                      })
+                    })()}
+                 </div>
+              </div>
+            </motion.section>
+          )}
 
-            {/* Step 4: Topics / Interests */}
-            {step === 4 && (
-              <motion.div key="s4" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
-                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">What topics interest you most?</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-2">
-                  {state.goal ? `Based on your ${state.goal} goal, we've recommended relevant topics.` : "Choose the subjects you'd like to practice in your lessons."}
-                </motion.p>
-                <motion.p variants={staggerItem} className="text-xs text-slate-400 font-medium mb-6 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-indigo-400" /> Select at least one. You can mix any topics you like.
-                </motion.p>
-                
-                <motion.div variants={staggerItem} className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-auto pb-4">
-                  {(() => {
-                    const { recommended, other } = getSortedTopicsForGoal(state.goal as GoalId | null);
-                    return [...recommended, ...other].map(topic => {
-                      const isSelected = state.topics.includes(topic.id);
-                      const isRecommended = recommended.some(r => r.id === topic.id);
-                      
+          {/* PHASE 3: STRATEGY & PACE */}
+          {step === 3 && (
+            <motion.section 
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8 flex-1 flex flex-col"
+            >
+              <header>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Focus & Pace</h2>
+                <p className="text-slate-500 font-medium mt-1">How should we structure your training?</p>
+              </header>
+
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-4 block">Focus Skills</label>
+                 <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'speaking', label: 'Speaking', icon: <Mic size={20}/> },
+                      { id: 'writing', label: 'Writing', icon: <PenTool size={20}/> },
+                      { id: 'listening', label: 'Listening', icon: <Headphones size={20}/> },
+                      { id: 'vocabulary', label: 'Vocabulary', icon: <BookOpen size={20}/> }
+                    ].map(s => {
+                      const isSelected = state.focusSkills.includes(s.id);
                       return (
                         <button
-                          key={topic.id}
+                          key={s.id}
                           onClick={() => {
-                            const newTopics: TopicId[] = isSelected 
-                              ? state.topics.filter(id => id !== topic.id)
-                              : [...state.topics, topic.id];
-                            setState({ ...state, topics: newTopics });
+                            const newSkills = isSelected 
+                              ? state.focusSkills.filter(id => id !== s.id)
+                              : [...state.focusSkills, s.id];
+                            setState({...state, focusSkills: newSkills});
                           }}
-                          className={`p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden ${
-                            isSelected 
-                              ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100' 
-                              : isRecommended 
-                                ? 'border-amber-200 bg-amber-50/30 hover:border-indigo-300 hover:bg-white' 
-                                : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'
+                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
+                            isSelected ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-slate-50 border-slate-100 text-slate-500 hover:border-indigo-200'
                           }`}
                         >
-                          {isRecommended && !isSelected && (
-                            <span className="absolute top-0 right-0 bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
-                              Rec
-                            </span>
-                          )}
-                          <span className="text-xl mb-2 block relative z-10">{topic.emoji}</span>
-                          <span className={`font-semibold text-sm block relative z-10 ${
-                            isSelected ? 'text-indigo-900' : isRecommended ? 'text-amber-900' : 'text-slate-700'
-                          }`}>{topic.label}</span>
-                          <span className={`text-[10px] leading-tight block mt-0.5 relative z-10 ${
-                            isSelected ? 'text-indigo-600/70' : isRecommended ? 'text-amber-700/70' : 'text-slate-400'
-                          }`}>{topic.description}</span>
-                          {isSelected && <CheckCircle2 className="absolute top-2.5 right-2.5 w-4 h-4 text-indigo-600 z-10" />}
-                          
-                          {isRecommended && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent pointer-events-none" />
-                          )}
+                           <div className={`p-2 rounded-xl ${isSelected ? 'bg-slate-800' : 'bg-white shadow-sm'}`}>{s.icon}</div>
+                           <span className="text-xs font-black uppercase tracking-wider">{s.label}</span>
                         </button>
-                      );
-                    });
-                  })()}
-                </motion.div>
-                
-                <motion.button
-                  variants={staggerItem}
-                  disabled={state.topics.length === 0}
-                  onClick={handleNext}
-                  className="mt-8 w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
-                >
-                  Continue <ChevronRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            )}
+                      )
+                    })}
+                 </div>
+              </div>
 
-            {/* Step 5: Session Intensity */}
-            {step === 5 && (
-              <motion.div key="s4" variants={staggerContainer} initial="hidden" animate="show" exit="hidden" className="flex flex-col h-full">
-                <motion.h2 variants={staggerItem} className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Session Intensity</motion.h2>
-                <motion.p variants={staggerItem} className="text-slate-500 mb-8">How often do you want to practice? This shapes your session length and review schedule.</motion.p>
-                
-                <motion.div variants={staggerItem} className="space-y-4 mb-auto">
-                  {intensityOptions.map(opt => (
-                    <button
-                      key={opt.id}
-                      onClick={() => setState({ ...state, sessionIntensity: opt.id })}
-                      className={`w-full p-5 rounded-2xl border-2 text-left transition-all flex items-start gap-4 ${state.sessionIntensity === opt.id ? 'border-indigo-600 bg-indigo-50 shadow-md shadow-indigo-100' : 'border-slate-100 hover:border-indigo-200 hover:bg-slate-50'}`}
-                    >
-                      <div className={`mt-0.5 w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${state.sessionIntensity === opt.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        {opt.icon}
-                      </div>
-                      <div>
-                        <h3 className={`font-bold mb-0.5 ${state.sessionIntensity === opt.id ? 'text-indigo-900' : 'text-slate-700'}`}>{opt.label}</h3>
-                        <p className={`text-sm ${state.sessionIntensity === opt.id ? 'text-indigo-700' : 'text-slate-500'}`}>{opt.desc}</p>
-                        <p className={`text-xs mt-1 ${state.sessionIntensity === opt.id ? 'text-indigo-500' : 'text-slate-400'}`}>{opt.subtext}</p>
-                      </div>
-                    </button>
-                  ))}
-                </motion.div>
-                
-                <motion.button
-                  variants={staggerItem}
-                  disabled={!state.sessionIntensity}
-                  onClick={handleNext}
-                  className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 shadow-[0_8px_20px_rgba(79,70,229,0.25)] text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
-                >
-                  Complete Setup <ChevronRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            )}
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-4 block">Session Intensity</label>
+                 <div className="space-y-3">
+                    {[
+                      { id: 'light', label: 'Casual Pace', icon: <Coffee size={18}/>, meta: '2-3 sessions/week' },
+                      { id: 'regular', label: 'Serious Growth', icon: <Clock size={18}/>, meta: 'Daily 15-min focus' },
+                      { id: 'intensive', label: 'Professional Mastery', icon: <Flame size={18}/>, meta: 'Deep full immersion' }
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setState({...state, sessionIntensity: opt.id as any})}
+                        className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                          state.sessionIntensity === opt.id ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-50' : 'bg-white border-slate-100'
+                        }`}
+                      >
+                         <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${state.sessionIntensity === opt.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                               {opt.icon}
+                            </div>
+                            <div className="text-left">
+                               <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{opt.label}</p>
+                               <p className="text-[10px] text-slate-400 font-bold">{opt.meta}</p>
+                            </div>
+                         </div>
+                         {state.sessionIntensity === opt.id && <CheckCircle2 size={18} className="text-indigo-600" />}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
 
-          </AnimatePresence>
+        {/* 3. Footer Bar */}
+        <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center">
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Architecture Step</span>
+              <span className="text-sm font-black text-indigo-600">{step} <span className="text-slate-200">/</span> {totalSteps}</span>
+           </div>
+
+           <div className="flex items-center gap-3">
+              {step > 1 && (
+                <button 
+                  onClick={() => setStep(step - 1)}
+                  className="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-slate-600 transition"
+                >
+                  Back
+                </button>
+              )}
+              <button 
+                onClick={handleNext}
+                disabled={isSaving || (step === 1 && !state.goalContext) || (step === 2 && state.topics.length < 3) || (step === 3 && state.focusSkills.length === 0)}
+                className="flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200 hover:shadow-indigo-200/50 disabled:opacity-30 disabled:grayscale"
+              >
+                {isSaving ? 'Saving...' : step === 3 ? 'Start Assessment' : 'Continue'} <ChevronRight size={16}/>
+              </button>
+           </div>
         </div>
       </div>
-    </FadeTransition>
+
+      <p className="mt-8 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-50">
+        Enterprise AI Personalization Engine v2.0
+      </p>
+    </div>
   );
 };
