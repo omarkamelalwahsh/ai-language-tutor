@@ -288,10 +288,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-
-                                   {/* Multiple Choice Options */}
-                                   {['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(currentTask.type) && currentTask.options && (
+                                                                  {/* Multiple Choice Options */}
+                                   {currentTask.response_mode === 'mcq' && currentTask.options && (
                                       <div className="grid gap-3 pr-2 overflow-y-auto max-h-[400px] custom-scrollbar pb-4">
                                          {currentTask.options.map((opt, i) => (
                                            <button
@@ -309,8 +307,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                       </div>
                                    )}
 
-                                   {/* Writing Input */}
-                                   {(currentTask.skill === 'writing' || useSpeakingFallback) && (
+                                   {/* Writing Input (Text Area) */}
+                                   {(currentTask.response_mode === 'typed' || (currentTask.response_mode === 'audio' && useSpeakingFallback)) && (
                                      <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                        <textarea
                                          value={textValue}
@@ -331,8 +329,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                      </div>
                                    )}
 
-                                   {/* Speaking Input */}
-                                   {currentTask.skill === 'speaking' && !useSpeakingFallback && (
+                                   {/* Speaking Input (Audio Recorder) */}
+                                   {currentTask.response_mode === 'audio' && !useSpeakingFallback && (
                                      <div className="py-4 animate-in zoom-in-95 duration-500">
                                         <SpeakingModule 
                                           task={currentTask as any}
