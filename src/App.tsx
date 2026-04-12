@@ -135,14 +135,23 @@ function AppRoutes() {
 
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
-  const handleAssessmentSave = async (result: any, outcome: any, evals: any) => {
+  const handleAssessmentSave = async (history: any, outcome: any, evals: any) => {
     try {
       // 1. Atomically Persist results to DB (Updates Level, Skills, and History)
       const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+      const { AssessmentAnalysisService } = await import('./services/AnalysisService');
+      
       await AssessmentSaveService.saveAssessmentResults(outcome);
 
+      const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
+        outcome,
+        user?.id || 'anonymous',
+        'diagnostic_session',
+      );
+
       // 2. Persist session data locally for immediate UI response
-      await setSessionResult(result, outcome, evals);
+      // We pass computedSessionResult so that ResultAnalysisView doesn't crash on .skills undefined
+      await setSessionResult(computedSessionResult, outcome, history);
       
       // 3. Re-fetch profile to sync the new Level and Onboarding status
       await refreshData();

@@ -96,7 +96,7 @@ export const useSupabaseDashboard = () => {
       }
 
       // Fetch learner data in parallel (Joined Fetch for Profiles & Skills)
-      const [joinedRes, historyRes, errorsRes, achievementRes, journeyRes, stepsRes, skillsRes] = await Promise.all([
+      const [joinedRes, historyRes, achievementRes, journeyRes, stepsRes, skillsRes] = await Promise.all([
         supabase
           .from('learner_profiles')
           .select(`
@@ -125,11 +125,6 @@ export const useSupabaseDashboard = () => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(50),
-        supabase
-          .from('user_error_profiles')
-          .select('weakness_areas, common_mistakes, action_plan, bridge_delta, bridge_percentage')
-          .eq('user_id', user.id)
-          .maybeSingle(),
         supabase
           .from('user_achievements')
           .select('id, badge_name, earned_at')
@@ -205,23 +200,19 @@ export const useSupabaseDashboard = () => {
               confidence: h.error_rate !== undefined ? (1 - h.error_rate) : 1,      
             }))
           : [],
-        errors: (errorsRes.data as any)?.weakness_areas
-          ? (errorsRes.data as any).weakness_areas.map((w: string) => ({
+        errors: profileData?.focus_skills
+          ? profileData.focus_skills.map((w: string) => ({
               category: 'Gap',
               description: w,
             }))
           : [],
-        errorProfile: errorsRes.data
+        errorProfile: profileData
           ? {
-              common_mistakes: Array.isArray((errorsRes.data as any).common_mistakes)
-                ? (errorsRes.data as any).common_mistakes
-                : [],
-              weakness_areas: Array.isArray((errorsRes.data as any).weakness_areas)
-                ? (errorsRes.data as any).weakness_areas
-                : [],
-              action_plan: (errorsRes.data as any).action_plan || "",
-              bridge_delta: (errorsRes.data as any).bridge_delta,
-              bridge_percentage: (errorsRes.data as any).bridge_percentage,
+              common_mistakes: [],
+              weakness_areas: profileData.focus_skills || [],
+              action_plan: profileData.learning_topics?.length ? `Focusing on: ${profileData.learning_topics.join(', ')}` : "Generating your path...",
+              bridge_delta: undefined,
+              bridge_percentage: undefined,
             }
           : { weakness_areas: [], common_mistakes: [], action_plan: "" },
         achievements: achievementRes.data
@@ -276,10 +267,6 @@ export const useSupabaseDashboard = () => {
             )
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'user_error_analysis', filter: `user_id=eq.${user.id}` }, 
-                () => isMounted && fetchDashboardData()
-            )
-            .on('postgres_changes', 
-                { event: '*', schema: 'public', table: 'user_error_profiles', filter: `user_id=eq.${user.id}` }, 
                 () => isMounted && fetchDashboardData()
             )
             .on('postgres_changes', 

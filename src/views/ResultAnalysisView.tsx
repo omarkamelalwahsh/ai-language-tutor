@@ -38,22 +38,12 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
   useEffect(() => {
     if (!report && !isArchitecting) {
-      const fetchAnalysis = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        
-        const { data, error } = await supabase
-          .from('user_error_profiles')
-          .select('full_report')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (data) setReport(data.full_report);
-        setLoading(false);
-      };
-      fetchAnalysis();
+      if (assessmentOutcome?.aiAnalysis) {
+        setReport(assessmentOutcome.aiAnalysis);
+      }
+      setLoading(false);
     }
-  }, [report, isArchitecting]);
+  }, [report, isArchitecting, assessmentOutcome]);
 
   const isSpeakingMissing = (result.skills.speaking?.evidenceCount ?? 0) === 0;
   const isWritingMissing = (result.skills.writing?.evidenceCount ?? 0) === 0;
