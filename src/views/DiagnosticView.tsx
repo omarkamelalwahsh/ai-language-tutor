@@ -141,6 +141,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     return () => { isSubscribed = false; };
   }, [engine, currentTask, handleFinish]);
 
+  const handleNextTask = useCallback(
     async (answer: string, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
       if (!currentTask || isEvaluating) return;
       
