@@ -22,7 +22,8 @@ import {
   Database,
   ArrowRight,
   TrendingUp,
-  Activity
+  Activity,
+  Mic
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 
@@ -246,7 +247,7 @@ const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
                         <span className="text-[10px] bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-500 font-bold uppercase tracking-wider shadow-sm">Confidence intervals</span>
                     </div>
                     
-                    <div className="flex-1 -mt-4 relative z-0">
+                    <div className="flex-1 min-h-[300px] -mt-4 relative z-0">
                        <ResponsiveContainer width="100%" height="100%">
                          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
                            {/* Clean precise grid matching the Mockup */}
@@ -339,7 +340,7 @@ const JourneyTab = ({ dashboardData, onStartSession }: AdvancedDashboardProps) =
                                 </pattern>
                             </defs>
                             {/* Perspective transform to simulate isometric floor */}
-                            <g transform="rotateX(60deg) rotateZ(45deg)">
+                            <g style={{ transform: 'rotateX(60deg) rotateZ(45deg)' }}>
                                 <rect width="100%" height="100%" fill="url(#isometricGrid)" />
                             </g>
                         </svg>
