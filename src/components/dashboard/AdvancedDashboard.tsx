@@ -193,26 +193,35 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
 const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }: any) => {
     const profile = supabaseData?.profile || {};
-    let rawLevel = assessmentOutcome?.finalLevel || profile.overall_level || 'A1';
-    const isCalculatingLevel = rawLevel === 'Pending' || (!profile.overall_level && profile.onboardingComplete);
+    
+    // 🎯 Logic Fix: If we have a persisted level in the DB that isn't 'Pending', believe it!
+    // This solves the 'Computing...' hang after a refresh.
+    const dbLevel = profile.overall_level || profile.overallLevel;
+    const outcomeLevel = assessmentOutcome?.finalLevel;
+    
+    let rawLevel = (dbLevel && dbLevel !== 'Pending') 
+        ? dbLevel 
+        : (outcomeLevel || 'A1');
+
+    const isCalculatingLevel = rawLevel === 'Pending' || (!dbLevel && profile.onboardingComplete);
     const currentLevel = isCalculatingLevel ? 'Computing...' : rawLevel;
     const points = profile.points || 0;
 
     const skillData: SkillData[] = useMemo(() => {
         let sourceSkills = [];
-        if (assessmentOutcome?.skillBreakdown) {
+        if (supabaseData.skills?.length > 0) {
+            sourceSkills = supabaseData.skills;
+        } else if (assessmentOutcome?.skillBreakdown) {
             sourceSkills = Object.entries(assessmentOutcome.skillBreakdown).map(([id, data]: [string, any]) => ({
                 skillId: id,
                 masteryScore: Math.round((data.score || 0) * 100),
             }));
-        } else if (supabaseData.skills?.length > 0) {
-            sourceSkills = supabaseData.skills;
         } else {
             sourceSkills = ['Speaking', 'Reading', 'Writing', 'Listening'].map(s => ({ skillId: s, masteryScore: 0 }));
         }
 
         return sourceSkills.map((s: any) => ({
-            subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1).toLowerCase(),
+            subject: (s.skillId || s.skill || 'Skill').charAt(0).toUpperCase() + (s.skillId || s.skill || 'Skill').slice(1).toLowerCase(),
             A: s.masteryScore || 0,
             B: Math.min(100, (s.masteryScore || 0) + 20),
             fullMark: 100
@@ -225,10 +234,10 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between relative overflow-hidden group hover:shadow-md transition duration-300">
                     <div className="flex items-center gap-6 relative z-10">
                         <div className="w-20 h-20 rounded-[1.25rem] bg-slate-50 overflow-hidden shadow-sm border border-slate-200 shrink-0">
-                            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
+                            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName || 'Learner'}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{displayName}</h2>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{displayName || 'Learner'}</h2>
                             <div className="flex items-center gap-3 mt-2">
                                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Global Level</span>
                                 <span className="text-[11px] font-black text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">{currentLevel}</span>

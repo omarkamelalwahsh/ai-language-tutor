@@ -9,13 +9,14 @@ export interface DashboardSupabaseData {
     email: string;
   } | null;
   profile: {
-    currentLevel: string;
+    overall_level: string;
+    full_name: string;
     onboardingComplete: boolean;
     points: number;
     streak: number;
     pacingScore: number;
     accuracyRate: number;
-    selfCorrectionRate: number;
+    self_correction_rate: number;
     learningGoal: string | null;
     goalContext: string | null;
     focusSkills: string[];
@@ -113,7 +114,8 @@ export const useSupabaseDashboard = () => {
             learning_topics,
             session_intensity,
             native_language,
-            target_language
+            target_language,
+            full_name
           `)
           .eq('id', user.id)
           .single(),
@@ -163,7 +165,8 @@ export const useSupabaseDashboard = () => {
         },
         profile: profileData
           ? {
-              currentLevel: profileData[DB_SCHEMA.COLUMNS.LEVEL] || 'A1',
+              overall_level: profileData[DB_SCHEMA.COLUMNS.LEVEL] || 'A1',
+              full_name: profileData.full_name || 'Learner',
               onboardingComplete: profileData[DB_SCHEMA.COLUMNS.ONBOARDING] || false,
               points: profileData[DB_SCHEMA.COLUMNS.POINTS] || 0,
               streak: profileData.streak || 0,
@@ -179,14 +182,21 @@ export const useSupabaseDashboard = () => {
               targetLanguage: profileData.target_language || 'English',
             }
           : null,
-        skills: skillsData.map((s: any) => ({
-          skill: s.skill,
-          currentLevel: s.current_level || 'A1',
-          confidence: typeof s.confidence === 'number' ? s.confidence : ((s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || 0) / 10000),
-          skillId: s.skill,
-          masteryScore: s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ? (s[DB_SCHEMA.COLUMNS.SKILL_SCORE] / 100) : ((s.confidence || 0) * 100),
-          evidenceCount: 5, 
-        })),
+        skills: (skillsData || []).map((s: any) => {
+          const mScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ? (s[DB_SCHEMA.COLUMNS.SKILL_SCORE] / 100) : ((s.confidence || 0) * 100);
+          const sName = s.skill || 'Unknown';
+          return {
+            skill: sName,
+            skillId: sName,
+            subject: sName,
+            currentLevel: s.current_level || s.level || 'A1',
+            overallLevel: s.current_level || s.level || 'A1',
+            confidence: typeof s.confidence === 'number' ? s.confidence : ((s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || 0) / 10000),
+            masteryScore: mScore,
+            status: mScore > 70 ? 'stable' : 'improving',
+            evidenceCount: 5,
+          };
+        }),
         history: historyRes.data
           ? historyRes.data.map((h: any) => ({
               id: h.id,
