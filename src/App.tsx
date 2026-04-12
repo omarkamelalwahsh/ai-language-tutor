@@ -76,14 +76,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // 3. Onboarding Guard (If no profile exists yet, or it's incomplete, they MUST go to onboarding)
+  // 3. Profile/Onboarding Guard
+  // IMPORTANT: If we have a user but the profile is still null, it means we are in a 
+  // transition state (e.g., fetch in progress). We MUST wait before redirecting.
+  if (user && profile === null) {
+    return <LoadingScreen />;
+  }
+
   const isOnboardingComplete = profile?.onboarding_complete === true;
   
   if (!isOnboardingComplete) {
     // If not onboarded, only allow assessment-related routes
-    const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding');
+    const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
     if (!isAtAssessment) {
-      console.log('[Routing] User incomplete/missing profile. Redirecting to onboarding...');
+      console.log('[Routing] User incomplete profile. Redirecting to onboarding...');
       return <Navigate to="/onboarding" />;
     }
   }
@@ -99,7 +105,10 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <LoadingScreen />;
   
   if (user && !isInitializing) {
-    // If logged in, redirect based on profile status (treat missing profile as incomplete)
+    // ⏳ WAIT for profile to arrive before making a redirect decision
+    if (profile === null) return <LoadingScreen />;
+
+    // If logged in, redirect based on profile status
     if (profile?.onboarding_complete) return <Navigate to="/dashboard" />;
     return <Navigate to="/onboarding" />;
   }
@@ -154,13 +163,21 @@ function AppRoutes() {
 
   const handleAssessmentSave = async (result: any, outcome: any, evals: any) => {
     try {
-      // 1. Persist session data locally + trigger DB save (Now Atomic RPC)
+      // 1. Atomically Persist results to DB (Updates Level, Skills, and History)
+      const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+      await AssessmentSaveService.saveAssessmentResults(outcome);
+
+      // 2. Persist session data locally for immediate UI response
       await setSessionResult(result, outcome, evals);
       
-      // 2. Re-fetch profile from DB to ensure onboarding_complete is TRUE
+      // 3. Re-fetch profile to sync the new Level and Onboarding status
       await refreshData();
       
-      // 3. Frontend Guarantee: Navigate to Results View to prevent "Pending" state
+      // 4. Force a small delay to ensure React state commits the new profile
+      // before router starts rendering the dashboard/results view.
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // 5. Frontend Guarantee: Navigate to Results View to prevent "Pending" state
       console.log('[AppRoutes] 🚀 Finalizing with Frontend Guarantee redirect to Results...');
       navigate('/diagnostic/results', { replace: true });
     } catch (error) {

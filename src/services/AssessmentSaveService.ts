@@ -148,11 +148,12 @@ export class AssessmentSaveService {
       if (!token) throw new Error("No token for finalization");
 
       await withRetry(async () => {
-          const finalLevel = String(outcome.finalLevel || outcome.overallBand || 'B1');
+          const rawLevel = String(outcome.finalLevel || outcome.overallBand || 'B1');
+          const finalLevel = (rawLevel === 'Pending' || !rawLevel) ? 'B1' : rawLevel;
           
           console.log(`[AssessmentSave] 🎯 Finalizing Assessment with Level: ${finalLevel}`);
-          if (finalLevel === 'Pending') {
-            console.warn("[AssessmentSave] ⚠️ Caution: Sending 'Pending' as final level. This shouldn't happen after completion.");
+          if (rawLevel === 'Pending') {
+            console.warn("[AssessmentSave] ⚠️ Corrected 'Pending' level to fallback B1 during persistence.");
           }
 
           const payload = {

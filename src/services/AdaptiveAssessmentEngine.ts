@@ -375,28 +375,7 @@ export class AdaptiveAssessmentEngine {
       this.state.askedQuestionIds.push(nextItem.id);
     }
 
-    let originalOptions: string[] | undefined;
-    const ak = nextItem.answer_key;
-    if (typeof ak === 'object' && ak !== null && typeof ak.value === 'object' && ak.value !== null && 'options' in ak.value) {
-      originalOptions = ak.value.options;
-    } else {
-      originalOptions = nextItem.options;
-    }
-
-    return {
-      id: nextItem.id,
-      external_id: nextItem.external_id || nextItem.id,
-      prompt: nextItem.prompt,
-      skill: nextItem.skill as any,
-      primarySkill: nextItem.skill as any,
-      difficulty: nextItem.target_cefr as DifficultyBand,
-      type: nextItem.task_type as any,
-      response_mode: nextItem.response_mode as any,
-      audioUrl: nextItem.audio_url, 
-      stimulus: nextItem.stimulus, 
-      options: originalOptions ? this.shuffle(originalOptions) : undefined, 
-      _efset: nextItem 
-    } as any;
+    return this.buildQuestionObject(nextItem);
   }
 
   /**
@@ -777,9 +756,14 @@ export class AdaptiveAssessmentEngine {
       primarySkill: skill,
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
-      // 🚀 Explicit Logic for Response Mode
-      response_mode: (nextItem.response_mode || (skill === 'speaking' ? 'audio' : (originalOptions ? 'mcq' : 'typed'))) as any,
-      stimulus: nextItem.stimulus || undefined,
+      // 🚀 HARD OVERRIDE: Speaking tasks MUST use audio, MCQ tasks MUST use mcq mode.
+      // This protects against legacy bank data or incorrect response_mode tags.
+      response_mode: (
+        skill === 'speaking' ? 'audio' : 
+        (originalOptions && originalOptions.length > 0) ? 'mcq' : 
+        (nextItem.response_mode || 'typed')
+      ) as any,
+      stimulus: nextItem.stimulus || (nextItem as any).transcript || undefined,
       imageUrl: (nextItem as any).image_url || (nextItem as any).img || undefined, 
       audioUrl: (nextItem as any).audio_url || (nextItem as any).audio || nextItem.audio_url || undefined,
       options: originalOptions ? this.shuffle(originalOptions) : undefined,

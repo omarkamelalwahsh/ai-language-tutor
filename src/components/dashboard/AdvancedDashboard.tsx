@@ -219,19 +219,33 @@ const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
     const fullName = supabaseData?.user?.fullName || 'Omar Kamel';
 
     const skillData: SkillData[] = useMemo(() => {
-      const skills = supabaseData.skills?.length > 0 ? supabaseData.skills : [
-          { skillId: 'Speaking', masteryScore: 78, confidence: 0.8 },
-          { skillId: 'Reading', masteryScore: 42, confidence: 0.4 },
-          { skillId: 'Writing', masteryScore: 65, confidence: 0.6 },
-          { skillId: 'Listening', masteryScore: 85, confidence: 0.9 },
-      ];
-      return skills.map((s: any) => ({
+      // 🎯 Prioritize actual in-memory assessment results (Post-completion)
+      // then fall back to Supabase skills, then fallback to mockups.
+      let sourceSkills = [];
+      if (assessmentOutcome?.skillBreakdown) {
+          sourceSkills = Object.entries(assessmentOutcome.skillBreakdown).map(([id, data]: [string, any]) => ({
+              skillId: id,
+              masteryScore: Math.round((data.score || data.confidence?.score || 0) * 100),
+              confidence: data.confidence?.score || 0
+          }));
+      } else if (supabaseData.skills?.length > 0) {
+          sourceSkills = supabaseData.skills;
+      } else {
+          sourceSkills = [
+              { skillId: 'Speaking', masteryScore: 78, confidence: 0.8 },
+              { skillId: 'Reading', masteryScore: 42, confidence: 0.4 },
+              { skillId: 'Writing', masteryScore: 65, confidence: 0.6 },
+              { skillId: 'Listening', masteryScore: 85, confidence: 0.9 },
+          ];
+      }
+
+      return sourceSkills.map((s: any) => ({
         subject: s.skillId.charAt(0).toUpperCase() + s.skillId.slice(1),
         A: s.masteryScore,
-        B: Math.min(100, s.masteryScore + 20), // Background target shadow
+        B: Math.min(100, s.masteryScore + 20),
         fullMark: 100
       }));
-    }, [supabaseData.skills]);
+    }, [supabaseData.skills, assessmentOutcome]);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
@@ -258,8 +272,16 @@ const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
                     </div>
 
                     <div className="text-left sm:text-right mt-6 sm:mt-0 pt-6 sm:pt-0 border-t border-slate-100 sm:border-0 w-full sm:w-auto relative z-10">
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total points</p>
-                        <p className="text-5xl font-black text-slate-900 tracking-tighter">{points}</p>
+                        <div className="flex flex-col sm:items-end gap-2">
+                             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total points</p>
+                             <p className="text-5xl font-black text-slate-900 tracking-tighter mb-4">{points}</p>
+                             <button 
+                                onClick={props.onViewReview}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition shadow-lg shadow-indigo-500/10 active:scale-95"
+                             >
+                                <History size={14} /> Review My Answers
+                             </button>
+                        </div>
                     </div>
                 </div>
 
@@ -337,7 +359,11 @@ const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
 };
 
 
-const JourneyTab = ({ dashboardData, onStartSession }: AdvancedDashboardProps) => {
+const JourneyTab = ({ onStartSession }: AdvancedDashboardProps) => {
+    const supabaseData = useSupabaseDashboard();
+    const journeyNodes = supabaseData.persistedJourney?.nodes || [];
+    const journeyTitle = supabaseData.persistedJourney?.journeyTitle || "Bridge to Mastery";
+    
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
              {/* Left Area (8/12) */}
@@ -345,11 +371,11 @@ const JourneyTab = ({ dashboardData, onStartSession }: AdvancedDashboardProps) =
                  
                  <div className="flex justify-between items-start mb-10 z-20 relative">
                      <div>
-                         <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Diagnostic Path: Bridge to B2</h2>
-                         <p className="text-sm text-slate-500 font-medium">Visualize a non-linear responsive path.</p>
+                         <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">{journeyTitle}</h2>
+                         <p className="text-sm text-slate-500 font-medium">Your personalized AI-architected progression map.</p>
                      </div>
                      <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                         <Lock size={14} className="text-slate-400" /> Locked
+                         <MapIcon size={14} className="text-indigo-500" /> Dynamic Path
                      </div>
                  </div>
 
@@ -376,30 +402,38 @@ const JourneyTab = ({ dashboardData, onStartSession }: AdvancedDashboardProps) =
                          
                          {/* Network SVG Connections */}
                          <svg className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-sm" style={{ zIndex: -1 }}>
-                             {/* Mock coordinates for lines linking hexagons in relative space */}
-                             {/* 1 to 2 */}
-                             <line x1="25%" y1="50%" x2="55%" y2="80%" stroke="#f59e0b" strokeWidth="3" opacity="0.8" />
-                             {/* 2 to 3 */}
-                             <line x1="55%" y1="80%" x2="70%" y2="25%" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" />
-                             {/* 2 to 4 */}
-                             <line x1="55%" y1="80%" x2="85%" y2="60%" stroke="#cbd5e1" strokeWidth="2" />
-                             {/* 3 to 4 */}
-                             <line x1="70%" y1="25%" x2="85%" y2="60%" stroke="#cbd5e1" strokeWidth="2" />
+                             {journeyNodes.map((node, i) => {
+                                 if (i === 0) return null;
+                                 const x1 = 15 + (i-1) * 20;
+                                 const y1 = (i-1) % 2 === 0 ? 35 : 65;
+                                 const x2 = 15 + i * 20;
+                                 const y2 = i % 2 === 0 ? 35 : 65;
+                                 return (
+                                   <line 
+                                     key={`line-${i}`} 
+                                     x1={`${x1}%`} y1={`${y1}%`} 
+                                     x2={`${x2}%`} y2={`${y2}%`} 
+                                     stroke={node.status === 'completed' || node.status === 'current' ? "#f59e0b" : "#cbd5e1"} 
+                                     strokeWidth={node.status === 'completed' || node.status === 'current' ? "3" : "2"} 
+                                     strokeDasharray={node.status === 'locked' ? "4 4" : "0"} 
+                                   />
+                                 );
+                             })}
                          </svg>
 
-                         {/* Hardcoded positions matching Mockup 3 structure exactly */}
-                         <div className="absolute top-[40%] left-[10%]">
-                             <IsometricHexNode status="active" label="Phonetic Accuracy" onClick={onStartSession} />
-                         </div>
-                         <div className="absolute top-[70%] left-[45%]">
-                             <IsometricHexNode status="active" label="Contextual Reading" onClick={onStartSession} />
-                         </div>
-                         <div className="absolute top-[10%] left-[60%]">
-                             <IsometricHexNode status="locked" label="Phonetic Accuracy" />
-                         </div>
-                         <div className="absolute top-[50%] left-[75%]">
-                             <IsometricHexNode status="locked" label="Grammar Essentials" />
-                         </div>
+                         {journeyNodes.length > 0 ? (
+                             journeyNodes.map((node, i) => (
+                                 <div key={node.id} className="absolute" style={{ top: `${i % 2 === 0 ? 35 : 65}%`, left: `${15 + i * 20}%` }}>
+                                     <IsometricHexNode 
+                                         status={node.status === 'completed' || node.status === 'current' ? 'active' : 'locked'} 
+                                         label={node.title} 
+                                         onClick={node.status !== 'locked' ? onStartSession : undefined} 
+                                     />
+                                 </div>
+                             ))
+                         ) : (
+                             <div className="text-slate-400 font-bold animate-pulse text-sm">Architecting your path...</div>
+                         )}
                      </div>
                  </div>
 

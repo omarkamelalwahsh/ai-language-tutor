@@ -63,12 +63,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(authUser);
 
-      // ONBOARDING GUARD: Don't sync internal data if we're in the middle of onboarding
+      // ONBOARDING GUARD: Allow profile sync even on onboarding paths to prevent redirect traps
       const isOnboarding = window.location.pathname.includes('/onboarding');
-      if (isOnboarding) {
-        setProfile(null);
-        return;
-      }
 
       // Fetch Profile
       const { data: profileData } = await supabase

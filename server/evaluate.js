@@ -352,11 +352,10 @@ app.post('/api/evaluate', async (req, res) => {
             const errorRows = parsed.analysis.map(err => ({
               user_id: targetUserId,
               category: String(err.skill || payload.skill || 'General'),
-              error_tag: String(err.issue || 'Unspecified'),
+              ai_interpretation: String(err.issue || 'Unspecified'),
               user_answer: String(payload.learnerAnswer || ''),
               correct_answer: String(err.correction || ''),
-              brief_explanation: String(err.explanation || ''),
-              suggested_band: String(parsed.summary?.predicted_level || 'A1'),
+              deep_insight: String(err.explanation || ''),
               is_correct: false
             }));
             tasks.push(supabase.from('user_error_analysis').insert(errorRows));
@@ -370,10 +369,8 @@ app.post('/api/evaluate', async (req, res) => {
       }
     };
 
-    // We FIRE the persistence task but DON'T wait for it to finish the response
-    // Vercel might kill it, so we try our best. For a real production app, 
-    // we'd use a background queue, but this is the fastest 'as was' fix.
-    persistData(); 
+    // Await persistence tightly (Required for Vercel/Serverless execution)
+    await persistData(); 
 
     return res.status(200).json(parsed);
   } catch (err) {
