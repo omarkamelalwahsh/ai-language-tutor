@@ -148,10 +148,29 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                  <Bell size={18} />
                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
               </button>
+
+              {/* Profile Info (Desktop) */}
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-bold text-slate-900 leading-none">{fullName}</p>
+                <p className="text-[10px] text-slate-500 uppercase font-black mt-1">
+                  {supabaseData.profile?.currentLevel || 'A1'}
+                </p>
+              </div>
+
               <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition cursor-pointer">
                  <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
               </div>
+
+              {/* Robust Sign Out (Mobile Accessibility) */}
+              <button 
+                onClick={onLogout}
+                className="p-2 ml-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100 group shadow-sm active:scale-95"
+                title="Sign Out"
+              >
+                <LogOut size={20} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
            </div>
+
         </header>
 
         {/* Scrollable Content Views */}

@@ -18,6 +18,7 @@ interface DataContextType {
   setSessionResult: (result: AssessmentSessionResult, outcome: AssessmentOutcome, evals: TaskEvaluation[]) => void;
   setOnboarding: (state: OnboardingState) => void;
   logout: () => Promise<void>;
+  clearAllData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -155,25 +156,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('onboarding_state', JSON.stringify(state));
   };
 
+  const clearAllData = useCallback(() => {
+    console.log('[DataContext] Atomically clearing all local states...');
+    setUser(null);
+    setProfile(null);
+    setAssessmentResult(null);
+    setAssessmentOutcome(null);
+    setTaskResults([]);
+    setOnboardingState(null);
+    setIsArchitecting(false);
+  }, []);
+
   const logout = async () => {
     try {
       console.log('[DataContext] Initiating logout...');
       await supabase.auth.signOut();
       localStorage.clear();
+      sessionStorage.clear();
       
       // Reset all states
-      setUser(null);
-      setProfile(null);
-      setAssessmentResult(null);
-      setAssessmentOutcome(null);
-      setTaskResults([]);
-      setOnboardingState(null);
+      clearAllData();
       
       console.log('[DataContext] Logout successful and state cleared.');
     } catch (err) {
       console.error('[DataContext] Logout failed:', err);
       // Fallback: clear local state anyway
       localStorage.clear();
+      sessionStorage.clear();
+      clearAllData();
       window.location.href = '/auth'; // Force hard redirect as fallback
     }
   };
@@ -203,12 +213,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DataContext.Provider value={{ 
       user, profile, assessmentResult, assessmentOutcome, taskResults, 
       onboardingState, isInitializing, isArchitecting, refreshTrigger,
-      refreshData, setSessionResult, setOnboarding, logout 
+      refreshData, setSessionResult, setOnboarding, logout, clearAllData 
     }}>
       {children}
     </DataContext.Provider>
   );
 };
+
 
 export const useData = () => {
   const context = useContext(DataContext);

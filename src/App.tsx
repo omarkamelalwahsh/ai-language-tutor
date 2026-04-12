@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react';
 
 // Context
 import { DataProvider, useData } from './context/DataContext';
+import { supabase } from './lib/supabaseClient';
 
 // Views
 import { AuthView } from './views/AuthView';
@@ -129,8 +130,25 @@ function AppRoutes() {
   const { 
     user, assessmentResult, assessmentOutcome, taskResults, 
     onboardingState, setSessionResult, setOnboarding,
-    isArchitecting, logout, refreshData, devModeActive 
+    isArchitecting, logout, refreshData, devModeActive, clearAllData
   } = useData() as any;
+
+
+  const handleLogout = async () => {
+    try {
+      console.log('[App] Initiating robust logout sequence...');
+      await supabase.auth.signOut();
+      clearAllData();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force hard redirect to landing/auth to strictly clear all in-memory states
+      window.location.href = '/auth';
+    } catch (err) {
+      console.error('[App] Logout failed:', err);
+      window.location.href = '/auth';
+    }
+  };
 
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
@@ -226,11 +244,7 @@ function AppRoutes() {
                 onNavigateLeaderboard={() => navigate('/leaderboard')}
                 onViewReview={() => navigate(`/review/latest`)}
                 onViewHistoryReport={(id: string) => navigate(`/review/${id}`)}
-                onLogout={async () => { 
-                  await logout(); 
-                  // Brief delay to ensure state and localStorage are fully cleared 
-                  setTimeout(() => navigate('/'), 10);
-                }}
+                onLogout={handleLogout}
                 isArchitecting={isArchitecting}
               />
             </ProtectedRoute>
@@ -274,7 +288,7 @@ function AppRoutes() {
               <AdminDashboardView 
                 onNavigateLeaderboard={() => {}} 
                 onNavigateHome={() => {}}
-                onLogout={() => {}}
+                onLogout={handleLogout}
               />
             </ProtectedRoute>
           } />
