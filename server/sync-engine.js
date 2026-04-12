@@ -135,9 +135,23 @@ export const repairUserConsistency = async (userId) => {
               }));
               await supabase.from('user_error_analysis').insert(errorRows);
               console.log(`[Sync Engine] Inserted ${errorRows.length} error analysis rows.`);
+
+              // 3. Repair Error Profile (Action Plan)
+              const weaknessAreas = [...new Set(aiResult.errorAnalysis.map(e => e.category))];
+              const actionPlan = aiResult.errorAnalysis.map(e => `Focus on ${e.issue}: ${e.explanation}`);
+              
+              await supabase.from('user_error_profiles').upsert({
+                user_id: userId,
+                weakness_areas: weaknessAreas,
+                common_mistakes: aiResult.errorAnalysis.map(e => e.issue),
+                action_plan: actionPlan,
+                bridge_delta: "Regenerated via Consistency Engine",
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id' });
+              console.log(`[Sync Engine] Updated user_error_profiles for ${userId}.`);
             }
 
-            // 3. Optional: Boost skill states via RPC if they are completely missing (simulate evaluation bundle)
+            // 4. Optional: Boost skill states via RPC if they are completely missing (simulate evaluation bundle)
             const skillsToUpdate = Object.entries(aiResult.skills || {});
             for (const [skillName, confidence] of skillsToUpdate) {
                 await supabase.rpc('process_evaluation_bundle', {
