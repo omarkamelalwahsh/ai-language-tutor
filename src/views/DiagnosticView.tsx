@@ -73,6 +73,22 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const [progress, setProgress] = useState(engine.getProgress());
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  
+  // --- New Input State ---
+  const [textValue, setTextValue] = useState("");
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [useSpeakingFallback, setUseSpeakingFallback] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
+
+  // Reset timer on task change
+  useEffect(() => {
+    if (currentTask) {
+      startTimeRef.current = Date.now();
+      setTextValue("");
+      setSelectedOption(null);
+      setUseSpeakingFallback(false);
+    }
+  }, [currentTask?.id]);
 
   // --- Handlers ---
   const handleFinish = useCallback(async () => {
@@ -125,13 +141,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     return () => { isSubscribed = false; };
   }, [engine, currentTask, handleFinish]);
 
-  const handleNextTask = useCallback(
-    async (answer: string, responseTime: number, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
+    async (answer: string, responseMode?: ResponseMode, speakingMeta?: SpeakingSubmissionMeta) => {
       if (!currentTask || isEvaluating) return;
+      
+      const responseTime = Date.now() - startTimeRef.current;
       setIsEvaluating(true);
+      
       try {
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         await AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer);
+        
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
         if (nextQ) {
@@ -257,13 +276,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                        {currentTask.stimulus || (currentTask as any).text || currentTask.prompt}
                                    </div>
 
-                                   {/* Multiple Choice Options (Mockup 2 style) */}
+                                   {/* Multiple Choice Options */}
                                    {['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(currentTask.type) && currentTask.options && (
                                       <div className="grid gap-3 overflow-y-auto pr-2">
                                          {currentTask.options.map((opt, i) => (
                                            <button
                                              key={i}
-                                             onClick={() => handleNextTask(opt, 5000)}
+                                             onClick={() => handleNextTask(opt)}
                                              disabled={isEvaluating}
                                              className="group w-full p-4 rounded-xl border border-slate-100 bg-white hover:border-blue-400 hover:bg-blue-50/30 transition-all flex items-center gap-4 text-left shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50"
                                            >
@@ -274,6 +293,49 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                            </button>
                                          ))}
                                       </div>
+                                   )}
+
+                                   {/* Writing Input */}
+                                   {(currentTask.skill === 'writing' || useSpeakingFallback) && (
+                                     <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                       <textarea
+                                         value={textValue}
+                                         onChange={(e) => setTextValue(e.target.value)}
+                                         placeholder="Type your response here..."
+                                         disabled={isEvaluating}
+                                         className="w-full min-h-[180px] p-6 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white transition-all outline-none resize-none text-slate-700 font-medium leading-relaxed"
+                                       />
+                                       <div className="flex justify-between items-center px-1">
+                                          {textValue.length > 0 && textValue.length < 5 && (
+                                            <span className="text-[10px] font-bold text-amber-500 uppercase">Give us a bit more detail!</span>
+                                          )}
+                                          <div className="flex-1" />
+                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            Characters: {textValue.length}
+                                          </span>
+                                       </div>
+                                     </div>
+                                   )}
+
+                                   {/* Speaking Input */}
+                                   {currentTask.skill === 'speaking' && !useSpeakingFallback && (
+                                     <div className="py-4 animate-in zoom-in-95 duration-500">
+                                        <SpeakingModule 
+                                          task={currentTask as any}
+                                          isEvaluating={isEvaluating}
+                                          feedback={null}
+                                          retryCount={0}
+                                          onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)}
+                                        />
+                                        <div className="mt-8 flex justify-center">
+                                           <button 
+                                              onClick={() => setUseSpeakingFallback(true)}
+                                              className="text-xs font-bold text-slate-400 hover:text-blue-500 underline underline-offset-4 transition"
+                                           >
+                                              I can't talk right now (Switch to typing)
+                                           </button>
+                                        </div>
+                                     </div>
                                    )}
 
                                    {/* Audio for Listening */}
@@ -303,12 +365,22 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                             >
                                Skip
                             </button>
-                            <button 
-                               className="px-10 py-3 rounded-xl bg-[#1A73E8] text-white font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition"
-                               onClick={() => {}} // Usually MCQ submit is handled by click, for text it's here
-                            >
-                               Next
-                            </button>
+                             <button 
+                                className={`px-10 py-3 rounded-xl font-bold shadow-lg transition active:scale-95 flex items-center gap-2 ${
+                                   (textValue.trim().length >= 5 || ['mcq', 'listening', 'mcq_reading', 'reading_mcq', 'listening_mcq', 'fill_blank'].includes(currentTask.type) || ['listening'].includes(currentTask.skill)) && !isEvaluating
+                                   ? 'bg-[#1A73E8] text-white shadow-blue-500/20 hover:bg-blue-700'
+                                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                                }`}
+                                disabled={isEvaluating || ((currentTask.skill === 'writing' || useSpeakingFallback) && textValue.trim().length < 5) || (currentTask.skill === 'speaking' && !useSpeakingFallback)}
+                                onClick={() => {
+                                  if (currentTask.skill === 'writing' || useSpeakingFallback) {
+                                    handleNextTask(textValue);
+                                  }
+                                }}
+                             >
+                                {isEvaluating ? <RefreshingLoader /> : 'Next'}
+                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -438,6 +510,13 @@ const SyncingView = ({ isSaving, saveError }: any) => (
         {saveError && <p className="text-rose-500 text-sm font-bold mt-4">⚠️ Sync error: {saveError}</p>}
       </div>
     </div>
+  </div>
+);
+
+const RefreshingLoader = () => (
+  <div className="flex items-center gap-2">
+    <RefreshCcw size={14} className="animate-spin" />
+    <span>Syncing...</span>
   </div>
 );
 
