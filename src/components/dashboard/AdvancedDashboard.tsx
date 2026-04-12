@@ -23,7 +23,9 @@ import {
   ArrowRight,
   TrendingUp,
   Activity,
-  Mic
+  Mic,
+  Heart,
+  X
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 
