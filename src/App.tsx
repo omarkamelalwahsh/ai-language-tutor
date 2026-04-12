@@ -64,52 +64,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   const location = window.location.pathname;
 
-  // 1. Loading Guard: Absolute priority. While initializing, show NOTHING but the loading screen.
-  if (isInitializing) {
-    return <LoadingScreen />;
-  }
-  
-  // 2. Auth Guard: Only redirect if we are CERTAIN there is no user session.
-  // We check isInitializing again here for total defensive safety.
-  if (!user && !isInitializing) {
-    console.warn('[Routing] Unauthenticated access to protected route. Redirecting to /auth');
-    return <Navigate to="/auth" replace />;
-  }
-
-  // 3. Profile/Onboarding Guard
-  // IMPORTANT: If we have a user but the profile is still null, it means we are in a 
-  // transition state (e.g., fetch in progress). We MUST wait before redirecting.
-  if (user && profile === null) {
-    return <LoadingScreen />;
-  }
+  if (isInitializing) return <LoadingScreen />;
+  if (!user) return <Navigate to="/auth" replace />;
 
   const isOnboardingComplete = profile?.onboarding_complete === true;
   
   if (!isOnboardingComplete) {
-    // If not onboarded, only allow assessment-related routes
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
-    if (!isAtAssessment) {
-      console.log('[Routing] User incomplete profile. Redirecting to onboarding...');
-      return <Navigate to="/onboarding" />;
-    }
+    if (!isAtAssessment) return <Navigate to="/onboarding" />;
   }
 
   return <>{children}</>;
 };
 
-// Helper for public/auth routes
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
   
-  // 🛡️ Loading Guard
   if (isInitializing) return <LoadingScreen />;
   
-  if (user && !isInitializing) {
-    // ⏳ WAIT for profile to arrive before making a redirect decision
-    if (profile === null) return <LoadingScreen />;
-
-    // If logged in, redirect based on profile status
-    if (profile?.onboarding_complete) return <Navigate to="/dashboard" />;
+  if (user) {
+    if (profile?.onboarding_complete === true) return <Navigate to="/dashboard" />;
     return <Navigate to="/onboarding" />;
   }
   

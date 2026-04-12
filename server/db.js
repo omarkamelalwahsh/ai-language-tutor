@@ -10,6 +10,7 @@ dotenv.config();
  */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
   // We can also have fallback settings if DATABASE_URL is missing
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
