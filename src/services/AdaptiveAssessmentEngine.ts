@@ -80,7 +80,7 @@ export class AdaptiveAssessmentEngine {
   private efsetOverall: OverallState;
   private selector: AdaptiveSelector;
   private askedQuestionIds: Set<string> = new Set();
-  private auditorPromise: Promise<void> | null = null;
+  private auditorPromise: Promise<void> | null = null; // Deprecated, replaced by Edge Function
   
   private banks: Record<CEFRLevel, QuestionBankItem[]> = {
     'A1': [], 'A2': [], 'B1': [], 'B2': [], 'C1': [], 'C2': []
@@ -324,8 +324,7 @@ export class AdaptiveAssessmentEngine {
       this.state.completed = true;
       console.log(`[Engine] Stopping. Confidence: ${this.efsetOverall.confidence}, Questions: ${uniqueAnsweredCount}`);
       
-      // 🕵️ Final Audit Trigger (Auditor Agent)
-      this.auditorPromise = this.finishAssessment();
+      // 🕵️ Final Audit Trigger removed to prevent redundant LLM latency. Handled by Edge Function natively.
       return null;
     }
 
@@ -886,15 +885,7 @@ export class AdaptiveAssessmentEngine {
   }
 
   private async finishAssessment() {
-    console.log('[Engine] 🏁 Assessment Phase Complete. Generating Psychometric Audit...');
-    try {
-      const auditor = await GroqScoringService.callAuditor(this.state.taskEvaluations);
-      if (auditor) {
-        this.state.finalAuditor = auditor;
-      }
-    } catch (e) {
-      console.error('[Engine] Auditor failed:', e);
-    }
+    // Deprecated. Moved to Edge Function to halve AI latency.
   }
 
   private rangeToLabel(range: [CEFRLevel, CEFRLevel]): BandLabel {
@@ -976,12 +967,6 @@ export class AdaptiveAssessmentEngine {
     console.log(`[Engine] 🏁 Starting Fire-and-Forget finalization for session ${this.assessmentId}...`);
     
     try {
-      // 0. Wait for the Auditor (AI Diagnosis) to finish if it's still running
-      if (this.auditorPromise) {
-        console.log("[Engine] ⏳ Waiting for AI Auditor to finalize CEFR level...");
-        await this.auditorPromise.catch(err => console.error("[Engine] Auditor failed in background:", err));
-      }
-
       // 1. Calculate Results IMMEDIATELY from Memory
       const finalOutcome = this.getOutcome();
       // Fetch authenticated user ID securely (No localStorage async locks)
@@ -1007,30 +992,11 @@ export class AdaptiveAssessmentEngine {
       // A. Sync any remaining buffered questions
       await AssessmentSaveService.syncPendingLogs();
 
-      // B. Save final profile metrics to Supabase
+      // B. Save final profile metrics to Supabase (Atomic First Pass)
       await AssessmentSaveService.saveAssessmentResults(finalOutcome);
 
-      // C. Notify internal API (Syncing metadata)
-      const token = this.safeGetLocalStorage('auth_token');
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('/api/assessments/complete', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-           assessmentId: this.assessmentId,
-           overallLevel: finalOutcome.finalLevel || finalOutcome.overallBand,
-           confidence: finalOutcome.overallConfidence,
-           auditorReport: finalOutcome.auditorReport
-        })
-      });
-
-      if (!res.ok) {
-        console.warn(`[Engine] API Sync background returned ${res.status}`);
-      } else {
-        console.log("[Engine] ✅ Internal API notified of completion.");
-      }
+      // C. Internal API Notification (Deprecated, removed to prevent hanging)
+      // Edge function analyzeAssessmentRemote in DiagnosticView handles the comprehensive sync.
 
       // 3. IMMEDIATE RELEASE: Unblock the UI so the user sees results NOW
       return true;
