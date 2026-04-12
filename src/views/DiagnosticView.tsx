@@ -236,9 +236,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         {/* Diagnostic Split Layout (Mockup 2) */}
         <div className="flex-1 overflow-hidden flex flex-col lg:flex-row p-6 md:p-8 gap-6 md:gap-8 overflow-y-auto lg:overflow-hidden lg:pb-8">
             
-            {/* Left: Question Card (8/12 equivalent) */}
-            <section className="flex-1 flex flex-col min-w-0 h-full">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 md:p-10 flex-1 flex flex-col relative overflow-hidden group hover:shadow-md transition duration-300">
+            <section className="flex-1 flex flex-col min-w-0 min-h-0">
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 md:p-10 flex-1 flex flex-col relative group hover:shadow-md transition duration-300">
                     
                     {/* Progress & Breadcrumb */}
                     <div className="flex justify-between items-center mb-4">
@@ -279,7 +278,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
                                    {/* Multiple Choice Options */}
                                    {['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(currentTask.type) && currentTask.options && (
-                                      <div className="grid gap-3 overflow-y-auto pr-2">
+                                      <div className="grid gap-3 pr-2 overflow-y-auto max-h-[400px] custom-scrollbar pb-4">
                                          {currentTask.options.map((opt, i) => (
                                            <button
                                              key={i}
@@ -352,7 +351,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="mt-8 pt-8 border-t border-slate-100 flex justify-between items-center">
+                    <div className="mt-auto pt-8 border-t border-slate-100 flex justify-between items-center bg-white z-10">
                         <button 
                            onClick={() => navigate('/dashboard')}
                            className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition"
@@ -401,48 +400,47 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                             </div>
                         </div>
 
-                        {/* Circular Confidence Gauges (Mockup 2 style) */}
-                        <div className="space-y-12">
-                            {/* Confidence 1 */}
-                            <div className="relative">
-                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Confidence</h4>
-                                <div className="relative w-32 h-32 flex items-center justify-center">
-                                    <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-                                        <motion.circle 
-                                           cx="50" cy="50" r="42" fill="none" 
-                                           stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
-                                           initial={{ strokeDasharray: "0 264" }}
-                                           animate={{ strokeDasharray: `${progress.confidence * 264} 264` }}
-                                           transition={{ duration: 1 }}
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                       <span className="text-2xl font-black text-slate-900">{progress.currentBand}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Confidence 2 */}
-                            <div className="relative">
-                                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Confidence</h4>
-                                <div className="relative w-32 h-32 flex items-center justify-center">
-                                    <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-                                        <motion.circle 
-                                           cx="50" cy="50" r="42" fill="none" 
-                                           stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
-                                           initial={{ strokeDasharray: "0 264" }}
-                                           animate={{ strokeDasharray: `${Math.min(0.9, progress.confidence + 0.1) * 264} 264` }}
-                                           transition={{ duration: 1.2 }}
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                       <span className="text-2xl font-black text-slate-900">{Math.round(progress.confidence * 100)}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                         <div className="grid grid-cols-1 gap-12">
+                             {/* Confidence 1 */}
+                             <div className="flex flex-col items-center">
+                                 <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Estimated Level</h4>
+                                 <div className="relative w-32 h-32 flex items-center justify-center">
+                                     <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                                         <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
+                                         <motion.circle 
+                                            cx="50" cy="50" r="42" fill="none" 
+                                            stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
+                                            initial={{ strokeDasharray: "0 264" }}
+                                            animate={{ strokeDasharray: `${progress.confidence * 264} 264` }}
+                                            transition={{ duration: 1 }}
+                                         />
+                                     </svg>
+                                     <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                        <span className="text-2xl font-black text-slate-900">{progress.currentBand}</span>
+                                     </div>
+                                 </div>
+                             </div>
+ 
+                             {/* Confidence 2 */}
+                             <div className="flex flex-col items-center">
+                                 <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Internal Confidence Level</h4>
+                                 <div className="relative w-32 h-32 flex items-center justify-center">
+                                     <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                                         <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
+                                         <motion.circle 
+                                            cx="50" cy="50" r="42" fill="none" 
+                                            stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
+                                            initial={{ strokeDasharray: "0 264" }}
+                                            animate={{ strokeDasharray: `${Math.min(0.9, progress.confidence + 0.1) * 264} 264` }}
+                                            transition={{ duration: 1.2 }}
+                                         />
+                                     </svg>
+                                     <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-2xl font-black text-slate-900">{Math.round(progress.confidence * 100)}%</span>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
                     </div>
 
                     <div className="mt-8 flex justify-center">
