@@ -193,29 +193,12 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   if (!currentTask) return <LoadingSkeleton />;
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] text-slate-800 font-sans overflow-hidden relative">
+    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden font-sans selection:bg-blue-500/30">
       
-      {/* 1. Sidebar (Inactive for Diagnostic, but present for UI consistency) */}
-      <aside className="w-64 bg-[#0B1437] flex flex-col p-6 shrink-0 z-10 hidden md:flex rounded-br-3xl shadow-xl">
-        <div className="flex items-center gap-3 mb-10 px-2 opacity-50 cursor-not-allowed">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500 shadow-lg shadow-blue-500/30">
-             <Trophy size={20} className="text-white" fill="currentColor" />
-          </div>
-          <div><h1 className="text-xl font-black text-white leading-tight tracking-tight">Career Copilot</h1></div>
-        </div>
-        
-        <nav className="space-y-1.5 flex-1 opacity-50">
-          <NavItem icon={<Home size={18}/>} label="Home" active={false} />
-          <NavItem icon={<MapIcon size={18}/>} label="My Path" active={true} />
-          <NavItem icon={<BarChart3 size={18}/>} label="Analytics" active={false} />
-          <NavItem icon={<History size={18}/>} label="History" active={false} />
-        </nav>
-      </aside>
-
       {/* 2. Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
+      <main className="flex-1 flex flex-col overflow-hidden relative max-w-4xl mx-auto w-full">
         {/* Top Header */}
-        <header className="h-[72px] bg-[#F8FAFC]/80 backdrop-blur-md flex items-center justify-between px-8 shrink-0 relative z-20">
+        <header className="h-[72px] bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0 relative z-20">
            {/* Mockup 2 Header: My Path | Analytics */}
            <div className="flex items-center gap-8 text-sm font-bold text-slate-400">
               <span className="text-slate-800 border-b-2 border-blue-600 pb-1 px-1 transition-all cursor-default">My Path</span>
@@ -272,7 +255,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                    {progress.answered + 1}.
                                 </span>
                                 <div className="space-y-8 flex-1">
-                                   <div className={`p-6 bg-[#F8F9FA] rounded-2xl border border-slate-100 text-slate-700 leading-relaxed font-medium transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
+                                   <div className={`p-8 bg-blue-50/30 rounded-3xl border border-blue-100 text-slate-800 leading-relaxed font-bold text-xl shadow-inner transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
+                                       <span className="text-[11px] text-blue-500 uppercase tracking-[0.2em] block mb-2 font-black">Question Prompt</span>
                                        {currentTask.stimulus || (currentTask as any).text || currentTask.prompt}
                                    </div>
 
