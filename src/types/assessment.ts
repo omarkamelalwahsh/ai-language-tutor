@@ -156,6 +156,7 @@ export type TaskEvaluation = {
   }[];
   skill?: SkillName;
   difficulty: DifficultyBand;
+  systemFlags?: string[];
   debug?: {
     taskId: string;
     appliedWeights: Partial<Record<AssessmentSkill, number>>;

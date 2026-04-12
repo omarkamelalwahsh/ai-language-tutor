@@ -582,6 +582,24 @@ export class AdaptiveAssessmentEngine {
         this.efsetOverall = CEFREngine.computeOverall(this.efsetSkills);
         this.state.overallConfidence = this.efsetOverall.confidence;
 
+        // 💎 [Intelligent Scoring] Speaking Fallback Penalties & Reasoning
+        const isSpeakingFallback = efsetItem.skill === 'speaking' && responseMode === 'typed';
+        const systemFlags: string[] = [];
+
+        if (isSpeakingFallback) {
+          // 1. Confidence Penalty: Signal that we have a "Blind Spot"
+          this.state.overallConfidence = Math.max(0.1, this.state.overallConfidence - 0.05);
+          systemFlags.push("SPEAKING_BYPASSED_BY_USER");
+          
+          // 2. Prepend warning to reasoning
+          const fallbackNote = "⚠️ [System Notice] Speaking skill not evaluated because a typing fallback was used. Progress in Speaking was skipped for this task.";
+          if (evaluation.reasoning) {
+            evaluation.reasoning = `${fallbackNote}\n\n${evaluation.reasoning}`;
+          } else {
+            evaluation.reasoning = fallbackNote;
+          }
+        }
+
         // 3. Evaluation Record
         const taskEval: TaskEvaluation = {
           taskId: efsetItem.id,
@@ -598,7 +616,8 @@ export class AdaptiveAssessmentEngine {
           difficulty: efsetItem.target_cefr as any,
           skill: efsetItem.skill as any,
           errorTag: evaluation.error_tag,
-          briefExplanation: evaluation.feedback
+          briefExplanation: evaluation.feedback,
+          systemFlags
         };
         this.state.taskEvaluations.push(taskEval);
 

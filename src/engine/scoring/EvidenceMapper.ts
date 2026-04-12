@@ -70,12 +70,20 @@ export class EvidenceMapper {
     const taskPower = getEvidentialPower(rawTaskType) || 1;
     
     // 3. معالجة الـ Evidence Policy (ما سيظهر في الداشبورد)
-    let policyMap = item.evidence_policy || {};
+    let policyMap = { ...(item.evidence_policy || {}) };
+    const originalSkill = (item.skill as string) || 'reading';
     
-    // لو الـ Database مبعتش سياسة، بنعمل Fallback للمهارة الأساسية للسؤال
-    if (!policyMap || Object.keys(policyMap).length === 0) {
-        const defaultSkill = (item.skill as SkillName) || 'reading';
-        policyMap = { [defaultSkill]: { weight: 1.0, direct: true } };
+    // 🛡️ Intelligent Fallback: لو الطالب "كتب" بدل ما "يسجل" في سؤال Speaking
+    if (originalSkill === 'speaking' && actualResponseMode === 'typed') {
+        // نضمن وجود مهارات لغوية تانية عشان مجهوده في الكتابة يتحسب
+        if (!policyMap.writing) policyMap.writing = { weight: 0.6, direct: false };
+        if (!policyMap.grammar) policyMap.grammar = { weight: 0.4, direct: false };
+        if (!policyMap.vocabulary) policyMap.vocabulary = { weight: 0.3, direct: false };
+    }
+
+    // لو الـ Database مبعتش سياسة خالص
+    if (Object.keys(policyMap).length === 0) {
+        policyMap = { [originalSkill]: { weight: 1.0, direct: true } };
     }
     
     for (const [skillStr, policy] of Object.entries(policyMap)) {
@@ -88,7 +96,7 @@ export class EvidenceMapper {
        
         evidences.push({
             skill: skillStr as SkillName,
-            score: Number(baseScore.toFixed(4)), // تقريب الرقم لضمان سلامة الـ JSON
+            score: Number(baseScore.toFixed(4)), 
             weight: (Number(castPolicy.weight) || 0.5) * taskPower,
             direct: !!castPolicy.direct,
             numericDifficulty
