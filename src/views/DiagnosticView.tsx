@@ -255,10 +255,19 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                    {progress.answered + 1}.
                                 </span>
                                 <div className="space-y-8 flex-1">
-                                   <div className={`p-8 bg-blue-50/30 rounded-3xl border border-blue-100 text-slate-800 leading-relaxed font-bold text-xl shadow-inner transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
-                                       <span className="text-[11px] text-blue-500 uppercase tracking-[0.2em] block mb-2 font-black">Question Prompt</span>
-                                       {currentTask.stimulus || (currentTask as any).text || currentTask.prompt}
-                                   </div>
+                                    <div className={`p-8 bg-blue-50/30 rounded-3xl border border-blue-100 text-slate-800 leading-relaxed font-bold text-xl shadow-inner transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
+                                        <span className="text-[11px] text-blue-500 uppercase tracking-[0.2em] block mb-2 font-black">Question Prompt</span>
+                                        <div className="space-y-3">
+                                            {currentTask.stimulus && currentTask.skill !== 'listening' && (
+                                                <div className="text-xs font-black text-blue-600/60 uppercase tracking-widest border-b border-blue-100 pb-2 mb-2">
+                                                    {currentTask.stimulus}
+                                                </div>
+                                            )}
+                                            <div className="text-slate-800">
+                                                {currentTask.prompt || (currentTask as any).text}
+                                            </div>
+                                        </div>
+                                    </div>
 
                                    {/* Multiple Choice Options */}
                                    {['mcq', 'fill_blank', 'reading_mcq', 'listening_mcq'].includes(currentTask.type) && currentTask.options && (
