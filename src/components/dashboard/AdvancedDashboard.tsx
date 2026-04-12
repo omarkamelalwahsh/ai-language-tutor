@@ -211,7 +211,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 // SUB-COMPONENTS (TABS)
 // ============================================================================
 
-const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
+const HomeTab = ({ assessmentOutcome, onViewReview }: AdvancedDashboardProps) => {
     const supabaseData = useSupabaseDashboard();
     const profile = supabaseData?.profile || {};
     const currentLevel = assessmentOutcome?.finalLevel || profile.currentLevel || profile.overall_level || 'B1+';
@@ -276,7 +276,7 @@ const HomeTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
                              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total points</p>
                              <p className="text-5xl font-black text-slate-900 tracking-tighter mb-4">{points}</p>
                              <button 
-                                onClick={props.onViewReview}
+                                onClick={onViewReview}
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition shadow-lg shadow-indigo-500/10 active:scale-95"
                              >
                                 <History size={14} /> Review My Answers
