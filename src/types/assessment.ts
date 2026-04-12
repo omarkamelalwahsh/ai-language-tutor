@@ -338,6 +338,7 @@ export type AssessmentQuestion = {
   
   // Backward compatibility
   skill?: AssessmentSkill;
+  response_mode?: 'audio' | 'typed' | 'mcq';
   rubricId?: string;
   discriminationValue?: number; // Legacy
 };

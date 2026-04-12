@@ -191,9 +191,15 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const skillInfo = SKILL_CONFIG[currentTask?.skill || 'reading'] || SKILL_CONFIG.reading;
 
   const canSubmitTyped = textValue.trim().length >= 5;
-  const isTypedMode = currentTask?.response_mode === 'typed' || (currentTask?.response_mode === 'audio' && useSpeakingFallback);
+  
+  // 🎯 Input Mode Priority Logic:
+  // 1. MCQ tasks are always mcq mode
+  // 2. Speaking tasks default to audio unless fallback is active
+  // 3. Audio mode requires response_mode === 'audio' (with fallback safety)
+  // 4. Everything else is typed
   const isMcqMode = currentTask?.response_mode === 'mcq';
-  const isAudioMode = currentTask?.response_mode === 'audio' && !useSpeakingFallback;
+  const isAudioMode = !isMcqMode && currentTask?.response_mode === 'audio' && !useSpeakingFallback;
+  const isTypedMode = !isMcqMode && !isAudioMode;
 
   // --- Render ---
   if (isCompleting) return <SyncingView isSaving={isSaving} saveError={saveError} />;

@@ -775,7 +775,7 @@ export class AdaptiveAssessmentEngine {
       primarySkill: nextItem.skill as any,
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
-      response_mode: nextItem.response_mode as any,
+      response_mode: (nextItem.response_mode || (nextItem.skill === 'speaking' ? 'audio' : 'typed')) as any,
       stimulus: nextItem.stimulus,
       imageUrl: (nextItem as any).image_url || (nextItem as any).img, 
       audioUrl: (nextItem as any).audio_url || (nextItem as any).audio || nextItem.audio_url,
