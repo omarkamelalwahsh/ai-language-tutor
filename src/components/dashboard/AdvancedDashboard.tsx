@@ -166,8 +166,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                 {activeTab === 'home' && <HomeTab {...props} />}
                 {activeTab === 'journey' && <JourneyTab {...props} />}
                 {activeTab === 'analytics' && <AnalyticsTab {...props} />}
+                {activeTab === 'history' && <HistoryTab {...props} />}
+                {activeTab === 'settings' && <SettingsTab {...props} />}
                 {/* Fallbacks */}
-                {['history', 'practice', 'settings'].includes(activeTab) && (
+                {['practice'].includes(activeTab) && (
                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
                       <Zap className="w-12 h-12 mb-4 text-slate-200" />
                       <h2 className="text-xl font-bold text-slate-600">Module Restructuring</h2>
@@ -596,6 +598,316 @@ const AnalyticsTab = ({ assessmentOutcome }: AdvancedDashboardProps) => {
 
                     <div className="absolute bottom-6 right-6 text-slate-300 hover:text-blue-500 cursor-pointer transition">
                         <RefreshCcw size={16} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const SettingsTab = ({  }: AdvancedDashboardProps) => {
+    const supabaseData = useSupabaseDashboard();
+    const profile = supabaseData.profile;
+    const [isSaving, setIsSaving] = React.useState(false);
+    
+    const [settings, setSettings] = React.useState({
+        why: profile?.learningGoal || 'casual',
+        what: profile?.targetLanguage || 'English',
+        how: profile?.focusSkills || ['speaking', 'listening'],
+        interest: profile?.learningTopics || ['general'],
+        pace: profile?.sessionIntensity || 'regular'
+    });
+
+    React.useEffect(() => {
+        if (profile) {
+            setSettings({
+                why: profile.learningGoal || 'casual',
+                what: profile.targetLanguage || 'English',
+                how: profile.focusSkills || [],
+                interest: profile.learningTopics || [],
+                pace: profile.sessionIntensity || 'regular'
+            });
+        }
+    }, [profile]);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        const userId = localStorage.getItem('auth_user_id');
+        if (!userId) return;
+
+        try {
+            const { supabase } = await import('../../lib/supabaseClient');
+            const { error } = await supabase
+                .from('learner_profiles')
+                .update({
+                    learning_goal: settings.why,
+                    focus_skills: settings.how,
+                    learning_topics: settings.interest,
+                    session_intensity: settings.pace,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+
+            if (error) throw error;
+            if (supabaseData.refresh) supabaseData.refresh();
+        } catch (err) {
+            console.error('[Settings] Save Failed:', err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const SettingCard = ({ icon, label, title, subtitle, children }: { icon: any, label: string, title: string, subtitle: string, children: React.ReactNode }) => (
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition relative">
+            <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                        {icon}
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">{label}</span>
+                            <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none">{title}</h3>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-1.5 font-medium">{subtitle}</p>
+                    </div>
+                </div>
+            </div>
+            {children}
+        </div>
+    );
+
+    return (
+        <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 pb-20">
+            <div className="flex items-center justify-between mb-2">
+                <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Adaptive Profile</h2>
+                    <p className="text-slate-500 font-medium">Fine-tune your learning engine across 5 dimensions.</p>
+                </div>
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition shadow-lg
+                    ${isSaving 
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/25 active:scale-95'}
+                  `}
+                >
+                    {isSaving ? 'Syncing...' : 'Save Changes'}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 1. Goal (WHY) */}
+                <SettingCard icon={<Trophy size={20} />} label="Goal" title="The WHY" subtitle="What is your ultimate objective?">
+                    <select 
+                        value={settings.why}
+                        onChange={(e) => setSettings({...settings, why: e.target.value as any})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                        <option value="casual">Casual Learner</option>
+                        <option value="serious">Academic Performance</option>
+                        <option value="professional">Professional Career</option>
+                    </select>
+                </SettingCard>
+
+                {/* 2. Language (WHAT) */}
+                <SettingCard icon={<Brain size={20} />} label="Language" title="The WHAT" subtitle="Your target language interface.">
+                    <div className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-400 cursor-not-allowed flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-emerald-500" /> English (Standard)
+                    </div>
+                </SettingCard>
+
+                {/* 3. Skill Focus (HOW) */}
+                <SettingCard icon={<Activity size={20} />} label="Focus Skill" title="The HOW" subtitle="Select your training priorities.">
+                    <div className="flex flex-wrap gap-2">
+                        {['speaking', 'writing', 'listening', 'vocabulary'].map(skill => {
+                            const isSelected = settings.how.includes(skill);
+                            return (
+                                <button
+                                    key={skill}
+                                    onClick={() => {
+                                        const next = isSelected 
+                                            ? settings.how.filter(s => s !== skill)
+                                            : [...settings.how, skill];
+                                        setSettings({...settings, how: next});
+                                    }}
+                                    className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition
+                                        ${isSelected ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}
+                                    `}
+                                >
+                                    {skill}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </SettingCard>
+
+                {/* 4. Topics (INTEREST) */}
+                <SettingCard icon={<Heart size={20} />} label="Topics" title="The INTEREST" subtitle="Subjects that keep you engaged.">
+                   <div className="space-y-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Interests</p>
+                        <div className="flex flex-wrap gap-2">
+                            {settings.interest.map(t => (
+                                <span key={t} className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-600 border border-slate-200 shadow-sm flex items-center gap-1.5 capitalize">
+                                    {t} <X size={10} className="text-slate-400 cursor-pointer" onClick={() => setSettings({...settings, interest: settings.interest.filter(i => i !== t)})} />
+                                </span>
+                            ))}
+                            <button className="px-3 py-1 bg-white border border-slate-200 border-dashed rounded-lg text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition">+ Add Topic</button>
+                        </div>
+                   </div>
+                </SettingCard>
+
+                {/* 5. Time (PACE) */}
+                <div className="md:col-span-2">
+                    <SettingCard icon={<Clock size={20} />} label="Time" title="The PACE" subtitle="Set your weekly intensity level.">
+                        <div className="grid grid-cols-3 gap-4">
+                            {[
+                                { id: 'light', label: 'Light', desc: 'Social Pace' },
+                                { id: 'regular', label: 'Regular', desc: 'Balanced growth' },
+                                { id: 'intensive', label: 'Intensive', desc: 'Fast track' }
+                            ].map(opt => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => setSettings({...settings, pace: opt.id as any})}
+                                    className={`p-4 rounded-2xl border-2 transition text-left
+                                        ${settings.pace === opt.id ? 'border-blue-500 bg-blue-50/30 shadow-md shadow-blue-500/10' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}
+                                    `}
+                                >
+                                    <h4 className={`font-black uppercase tracking-widest text-xs ${settings.pace === opt.id ? 'text-blue-600' : 'text-slate-600'}`}>
+                                        {opt.label}
+                                    </h4>
+                                    <p className="text-[11px] text-slate-400 font-bold mt-1">{opt.desc}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </SettingCard>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const HistoryTab = ({ assessmentOutcome, onViewHistoryReport }: AdvancedDashboardProps) => {
+    const supabaseData = useSupabaseDashboard();
+    const history = supabaseData.history || [];
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
+            {/* Left Area: Chronological Log (8 cols) */}
+            <div className="lg:col-span-8 flex flex-col gap-6 h-full">
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 flex flex-col group hover:shadow-md transition">
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Assessment History</h3>
+                        <div className="flex items-center gap-2">
+                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{history.length} Sessions Found</span>
+                             <div className="w-[1px] h-3 bg-slate-200" />
+                             <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline transition">Export PDF</button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                        {history.length > 0 ? (
+                            history.map((session: any) => (
+                                <div key={session.id} className="p-5 rounded-2xl border border-slate-50 bg-slate-50/30 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all group/session flex items-center justify-between cursor-default">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center shadow-sm group-hover/session:border-blue-200 transition-colors">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">
+                                                {new Date(session.createdAt).toLocaleString('default', { month: 'short' })}
+                                            </span>
+                                            <span className="text-lg font-black text-slate-900 leading-none">
+                                                {new Date(session.createdAt).getDate()}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="font-bold text-slate-900 text-[15px] leading-none">Diagnostic Assessment</h4>
+                                                <span className="text-[10px] bg-blue-50 text-blue-600 font-black px-2 py-0.5 rounded border border-blue-100">
+                                                    {session.overallLevel}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] font-medium text-slate-400 italic">
+                                                ID: {session.id.substring(0, 8)}... • {new Date(session.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-8">
+                                        <div className="hidden md:flex flex-col items-end">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Confidence</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                                    <div 
+                                                        className="h-full bg-blue-500 rounded-full" 
+                                                        style={{ width: `${(session.confidence || 0) * 100}%` }} 
+                                                    />
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-700">{Math.round((session.confidence || 0) * 100)}%</span>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => onViewHistoryReport && onViewHistoryReport(session.id)}
+                                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-black text-slate-600 uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm active:scale-95"
+                                        >
+                                            View Report
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="h-64 flex flex-col items-center justify-center text-slate-300">
+                                <History size={48} strokeWidth={1.5} className="mb-4 opacity-20" />
+                                <p className="text-sm font-bold uppercase tracking-widest">No history recorded yet</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Area: Highlights & Stats (4 cols) */}
+            <div className="lg:col-span-4 flex flex-col gap-6">
+                <div className="bg-[#0B1437] rounded-3xl p-8 text-white relative overflow-hidden group hover:shadow-xl transition shadow-lg shadow-slate-200">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <TrendingUp size={80} />
+                    </div>
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-2 relative z-10">
+                        <TrendingUp size={18} className="text-blue-400" /> Progress velocity
+                    </h3>
+                    
+                    <div className="space-y-6 relative z-10">
+                        <div>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Max Level Reached</p>
+                            <p className="text-4xl font-black">{history[0]?.overallLevel || 'B1'}</p>
+                        </div>
+                        <div className="flex gap-10">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sessions</p>
+                                <p className="text-2xl font-black">{history.length}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Avg Score</p>
+                                <p className="text-2xl font-black">
+                                    {history.length > 0 
+                                        ? Math.round(history.reduce((a, b) => a + (b.confidence || 0), 0) / history.length * 100) 
+                                        : 0}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-slate-700/50 flex items-center justify-between relative z-10">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Database Sync: Active</span>
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex-1 group hover:shadow-md transition">
+                    <h3 className="text-lg font-black text-slate-900 mb-6 tracking-tight">System Notice</h3>
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 border-dashed">
+                        <p className="text-[13px] text-amber-800 font-medium leading-relaxed">
+                            Assessment logs are retained for 90 days. For long-term tracking, please refer to the "Skill Proficiency" matrix in Analytics.
+                        </p>
                     </div>
                 </div>
             </div>

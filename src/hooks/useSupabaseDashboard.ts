@@ -16,6 +16,13 @@ export interface DashboardSupabaseData {
     pacingScore: number;
     accuracyRate: number;
     selfCorrectionRate: number;
+    learningGoal: string | null;
+    goalContext: string | null;
+    focusSkills: string[];
+    learningTopics: string[];
+    sessionIntensity: string | null;
+    nativeLanguage: string;
+    targetLanguage: string;
   } | null;
   skills: {
     skill: string;
@@ -102,7 +109,14 @@ export const useSupabaseDashboard = () => {
               streak,
               pacing_score,
               accuracy_rate,
-              self_correction_rate
+              self_correction_rate,
+              learning_goal,
+              goal_context,
+              focus_skills,
+              learning_topics,
+              session_intensity,
+              native_language,
+              target_language
             `)
             .eq('id', user.id)
             .single(),
@@ -160,6 +174,13 @@ export const useSupabaseDashboard = () => {
                   pacingScore: profileData.pacing_score || 0,
                   accuracyRate: profileData.accuracy_rate || 0,
                   selfCorrectionRate: profileData.self_correction_rate || 0,
+                  learningGoal: profileData.learning_goal || null,
+                  goalContext: profileData.goal_context || null,
+                  focusSkills: profileData.focus_skills || [],
+                  learningTopics: profileData.learning_topics || [],
+                  sessionIntensity: profileData.session_intensity || null,
+                  nativeLanguage: profileData.native_language || 'English',
+                  targetLanguage: profileData.target_language || 'English',
                 }
               : null,
             skills: skillsData.map((s: any) => ({

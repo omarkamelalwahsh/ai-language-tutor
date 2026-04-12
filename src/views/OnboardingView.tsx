@@ -74,6 +74,13 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               .update({ 
                  [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
                  [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
+                 learning_goal: state.goal,
+                 goal_context: state.goalContext,
+                 focus_skills: state.focusSkills,
+                 learning_topics: state.topics,
+                 session_intensity: state.sessionIntensity,
+                 native_language: state.nativeLanguage,
+                 target_language: state.targetLanguage,
                  updated_at: new Date().toISOString()
               })
               .eq('id', userId);
@@ -112,7 +119,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     { id: 'intensive', label: 'Intensive', icon: <Flame className="w-5 h-5" />, desc: 'Daily sessions, ~20 min each', subtext: 'Fast-track to next level' },
   ] as const;
 
-  const stepLabels = ['Goal', 'Languages', 'Skills', 'Topics', 'Intensity'];
+  const stepLabels = ['Goal (WHY)', 'Language (WHAT)', 'Focus Skill (HOW)', 'Topics (INTEREST)', 'Time (PACE)'];
 
   return (
     <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center pt-16 px-4 pb-12 relative">
