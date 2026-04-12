@@ -154,7 +154,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       
       try {
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
-        await AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer);
+        
+        // FIRE AND FORGET: Save to database without blocking the UI
+        AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer);
         
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
@@ -164,9 +166,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           await handleFinish();
         }
       } catch (err) {
-        console.error("⚠️ [DiagnosticView] Error:", err);
+        console.error("⚠️ [DiagnosticView] Error during submission:", err);
+        // Attempt recovery to next question anyway
         const nextQ = await engine.getNextQuestion();
-        if (nextQ) setCurrentTask(nextQ);
+        if (nextQ) setTaskWithReset(nextQ);
         else await handleFinish();
       } finally {
         setIsEvaluating(false);

@@ -22,7 +22,7 @@ interface ResultAnalysisViewProps {
   result: AssessmentSessionResult;
   assessmentOutcome?: any;
   isArchitecting?: boolean;
-  onContinue: () => void;
+  onContinue: (summary?: any) => void;
   onReview?: () => void;
 }
 
@@ -35,6 +35,8 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 }) => {
   const [report, setReport] = useState<any>(assessmentOutcome?.aiAnalysis || null);
   const [loading, setLoading] = useState(!assessmentOutcome?.aiAnalysis && !isArchitecting);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [finalizeProgress, setFinalizeProgress] = useState(0);
 
   useEffect(() => {
     if (!report && !isArchitecting) {
@@ -70,6 +72,41 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
       fullMark: 100
     }));
   }, [skills]);
+
+  const handleFinalize = async () => {
+    if (isFinalizing) return;
+    setIsFinalizing(true);
+    
+    try {
+      // Import service dynamically
+      const { AssessmentSaveService } = await import('../services/AssessmentSaveService');
+      
+      // Simulate progress for UX
+      const timer = setInterval(() => {
+        setFinalizeProgress(prev => (prev < 90 ? prev + Math.random() * 15 : prev));
+      }, 400);
+
+      const result = await AssessmentSaveService.finalizeFullDiagnostic(
+        assessmentOutcome,
+        assessmentOutcome?.aiAnalysis
+      );
+
+      clearInterval(timer);
+      setFinalizeProgress(100);
+      
+      // Short delay to show 100% completion
+      setTimeout(() => {
+        onContinue(result);
+      }, 600);
+      
+    } catch (err) {
+      console.error("Finalization failed:", err);
+      setIsFinalizing(false);
+      setFinalizeProgress(0);
+      // Fallback to basic continue if critical error
+      onContinue();
+    }
+  };
 
   const handleReviewScroll = () => {
     const el = document.getElementById('question-analysis');
@@ -285,11 +322,34 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
             Review My Answers
           </button>
           <button 
-            onClick={onContinue}
-            className="group flex items-center gap-3 bg-slate-900 hover:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-indigo-500/25 active:scale-95"
+            onClick={handleFinalize}
+            disabled={isFinalizing}
+            className={`group relative flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl overflow-hidden ${
+              isFinalizing 
+                ? 'bg-slate-800 text-slate-300 cursor-wait' 
+                : 'bg-slate-900 hover:bg-indigo-600 text-white hover:shadow-indigo-500/25 active:scale-95'
+            }`}
           >
-            Review Learning Journey
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            {isFinalizing && (
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${finalizeProgress}%` }}
+                className="absolute inset-0 bg-indigo-500/20"
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-3">
+              {isFinalizing ? (
+                <>
+                  <Sparkles className="w-5 h-5 animate-spin" />
+                  Architecting Path... {Math.round(finalizeProgress)}%
+                </>
+              ) : (
+                <>
+                  Start Learning Journey
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </span>
           </button>
         </motion.div>
         

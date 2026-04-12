@@ -141,7 +141,7 @@ function AppRoutes() {
       const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
       const { AssessmentAnalysisService } = await import('./services/AnalysisService');
       
-      await AssessmentSaveService.saveAssessmentResults(outcome);
+      await AssessmentSaveService.saveAssessmentComprehensive(history, outcome, evals);
 
       const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
         outcome,

@@ -326,7 +326,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                 disabled={isSaving || (step === 1 && !state.goalContext) || (step === 2 && state.topics.length < 3) || (step === 3 && state.focusSkills.length === 0)}
                 className="flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200 hover:shadow-indigo-200/50 disabled:opacity-30 disabled:grayscale"
               >
-                {isSaving ? 'Saving...' : step === 3 ? 'Start Assessment' : 'Continue'} <ChevronRight size={16}/>
+                {isSaving ? 'Saving...' : step === 3 ? 'Complete Setup' : 'Continue'} <ChevronRight size={16}/>
               </button>
            </div>
         </div>

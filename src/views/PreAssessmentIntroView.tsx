@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import {
   Mic, PenTool, Headphones, BookOpen, ChevronRight,
-  CheckCircle2, Clock, Award, BarChart2, Target, Sparkles, Shield
+  CheckCircle2, Clock, Award, BarChart2, Target, Sparkles, Shield, ArrowRight, Zap
 } from 'lucide-react';
 import { FadeTransition, staggerContainer, staggerItem } from '../lib/animations';
 
@@ -30,114 +30,140 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
   onBack,
 }) => {
   return (
-    <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center pt-12 px-4 pb-12">
+    <FadeTransition className="min-h-screen bg-white flex flex-col items-center">
+      {/* Dynamic Background Decor */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-[120px] opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-50 rounded-full blur-[120px] opacity-60" />
+      </div>
+
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="w-full max-w-2xl"
+        className="w-full max-w-4xl px-6 py-12 md:py-20 relative z-10"
       >
-        {/* Header */}
-        <motion.div variants={staggerItem} className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 border border-indigo-100">
-            <Clock className="w-3.5 h-3.5" />
-            About 5–10 minutes
-          </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-4 leading-tight">
-            Before we begin, let's find<br />your starting level
-          </h1>
-          <p className="text-lg text-slate-500 max-w-lg mx-auto leading-relaxed">
-            This short pre-assessment helps us understand your current English level so we can personalize your learning journey.
-          </p>
-        </motion.div>
-
-        {/* Main Card */}
-        <motion.div
-          variants={staggerItem}
-          className="bg-white rounded-[2rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-slate-100 mb-6"
-        >
-          {/* What we'll assess */}
-          <div className="mb-8">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
-              What we'll check
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {assessedSkills.map((skill) => (
-                <div
-                  key={skill.label}
-                  className="flex items-start gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100"
-                >
-                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 flex-shrink-0">
-                    {skill.icon}
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800 text-sm">{skill.label}</p>
-                    <p className="text-xs text-slate-400">{skill.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-slate-100 mb-8" />
-
-          {/* What you'll get */}
-          <div className="mb-8">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
-              What you'll get after
-            </h2>
-            <div className="space-y-3">
-              {outcomes.map((outcome, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center border border-emerald-100 flex-shrink-0">
-                    {outcome.icon}
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">{outcome.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-slate-100 mb-8" />
-
-          {/* Reassurance */}
-          <div className="flex items-start gap-3 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
-            <Shield className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* Left Column: Value Prop */}
+          <motion.div variants={staggerItem} className="space-y-8">
             <div>
-              <p className="text-sm font-bold text-indigo-900 mb-0.5">This is not an exam</p>
-              <p className="text-xs text-indigo-700/70 leading-relaxed">
-                There are no grades and no pressure. Just answer naturally — your honest responses help us place you accurately and create a better plan.
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-lg shadow-indigo-200"
+              >
+                <Sparkles className="w-3 h-3" />
+                Stage 2: Proficiency Scan
+              </motion.div>
+              <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
+                Let's architect your <span className="text-indigo-600">perfect path.</span>
+              </h1>
+              <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-lg">
+                Your profile is set! Now, we need 8 minutes of your time to map your current English mastery across all core skills.
               </p>
             </div>
-          </div>
-        </motion.div>
 
-        {/* CTA */}
-        <motion.div variants={staggerItem} className="flex flex-col gap-3">
-          <button
-            onClick={onStartAssessment}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98] flex items-center justify-center gap-2 text-lg"
-          >
-            Start Pre-Assessment
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <div className="space-y-4">
+               {outcomes.map((outcome, i) => (
+                <div key={i} className="flex items-center gap-4 group">
+                  <div className="w-12 h-12 bg-slate-50 text-indigo-600 rounded-2xl flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform shadow-sm">
+                    {outcome.icon}
+                  </div>
+                  <p className="text-slate-700 font-bold">{outcome.text}</p>
+                </div>
+              ))}
+            </div>
 
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="w-full text-slate-400 hover:text-slate-600 font-medium py-3 text-sm transition-colors"
-            >
-              ← Back to preferences
-            </button>
-          )}
-        </motion.div>
+            {/* CTA Tablet/Desktop */}
+            <div className="hidden lg:flex flex-col gap-4 pt-4">
+              <button
+                onClick={onStartAssessment}
+                className="group relative w-full max-w-sm bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:shadow-[0_25px_50px_rgba(79,70,229,0.4)] active:scale-[0.98] flex items-center justify-center gap-3 text-xl overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                Start Diagnostic
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+              {onBack && (
+                <button onClick={onBack} className="text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors text-left pl-2">
+                  ← Back to goals
+                </button>
+              )}
+            </div>
+          </motion.div>
 
-        {/* Footer note */}
-        <motion.p variants={staggerItem} className="text-center text-xs text-slate-400 mt-6">
-          You can retake this assessment later to track your improvement.
-        </motion.p>
+          {/* Right Column: Interactive Card */}
+          <motion.div variants={staggerItem} className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 rounded-[3rem] blur-2xl" />
+            <div className="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 relative">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8">What we'll analyze</h3>
+              
+              <div className="grid gap-4">
+                {assessedSkills.map((skill, idx) => (
+                  <motion.div 
+                    key={skill.label}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + (idx * 0.1) }}
+                    className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-white transition-all group"
+                  >
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+                      {skill.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-900 leading-tight">{skill.label}</h4>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">{skill.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-10 p-5 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-4">
+                <Shield className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                  <span className="font-black">No Pressure Policy:</span> This is not an exam. There are no grades—just a blueprint for your success.
+                </p>
+              </div>
+            </div>
+
+            {/* CTA Mobile only */}
+            <div className="lg:hidden mt-8 space-y-4">
+              <button
+                onClick={onStartAssessment}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 text-lg"
+              >
+                Start Diagnostic
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              {onBack && (
+                <button onClick={onBack} className="w-full text-slate-400 font-bold text-sm">
+                  ← Back to goals
+                </button>
+              )}
+            </div>
+          </motion.div>
+          
+        </div>
+
+        {/* Floating Stat badges */}
+        <div className="hidden lg:block absolute bottom-10 right-0 left-0 pointer-events-none">
+           <div className="flex justify-center gap-20">
+              {[
+                { label: 'Time estimate', value: '8-10 Mins', icon: <Clock className="w-4 h-4" /> },
+                { label: 'CEFR Standard', value: 'A1 - C2', icon: <Award className="w-4 h-4" /> },
+                { label: 'AI Powered', value: 'Real-time', icon: <Zap className="w-4 h-4" /> }
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-3 text-slate-400 opacity-60">
+                   <div className="p-2 bg-slate-100 rounded-lg">{stat.icon}</div>
+                   <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest">{stat.label}</p>
+                      <p className="text-xs font-bold text-slate-800">{stat.value}</p>
+                   </div>
+                </div>
+              ))}
+           </div>
+        </div>
       </motion.div>
     </FadeTransition>
   );
