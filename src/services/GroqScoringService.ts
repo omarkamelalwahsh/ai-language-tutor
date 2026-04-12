@@ -80,39 +80,51 @@ export class GroqScoringService {
     currentLevel: string,
     historyJson: string
   ): Promise<ProctorOutput | null> {
-    const systemPrompt = `Act as a Senior CEFR Language Examiner and ML Engineer.
-Your goal is to evaluate the user's answer dynamically and deeply, finding their "Breaking Point" or "Proficiency Level."
+    const expectedAnswer = (question as any).correctAnswer || "OPEN ENDED - JUDGE LINGUISTIC QUALITY";
+    const systemPrompt = `Act as a Senior CEFR Language Examiner.
+Your goal is to evaluate the user's answer dynamically and deeply.
 
 DYNAMIC DIFFICULTY RULES:
 - Start at the user's current level: ${currentLevel}.
 - STREAK UP: If the user answers 2 consecutive questions perfectly (Score > 0.85), INCREASE difficulty by one sub-level (e.g., B1 -> B2).
 - STREAK DOWN: If the user fails 1 question significantly (Score < 0.4), DROP difficulty immediately to probe for foundational gaps.
 
-CRITICAL SCORING LOGIC (SEMANTIC TOLERANCE):
-- Focus on the SEMANTIC MEANING and Linguistic Accuracy. Do NOT enforce a strict 1:1 word match with the "Expected Answer."
-- If the "Expected Correct Answer" is empty or null, treat the question as OPEN-ENDED. Score based purely on language quality (Grammar, Lexical Range, Relevance).
-- If the user's answer is logically correct or synonymous with the expected answer, SCORE it HIGH (e.g., 1.0) and set is_correct = true. Do NOT penalize for using different words for the same idea.
-- score: 0.0 to 1.0 based on accuracy and domain relevance.
-- feedback: Short, actionable advice in English.
+REFERENCE ANSWER:
+- Expected Correct Answer: "${expectedAnswer}"
 
-OUTPUT SCHEMA (Must be strictly JSON):
+CRITICAL SCORING LOGIC:
+1. SEMANTIC TOLERANCE: Focus on MEANING and Linguistic Accuracy. Do NOT enforce a strict 1:1 word match unless it's a specific vocabulary/grammar point.
+2. REFERENCE PRIORITY: Use the "Expected Correct Answer" as your primary anchor. If it matches semantically, is_correct MUST be true.
+3. OPEN-ENDED HANDLING: If the expected answer is marked "OPEN ENDED", judge purely on Grammar, Lexical Range, and Relevance to the prompt.
+4. MCQ HANDLING: If this is an MCQ task, the user must provide the correct option text.
+
+OUTPUT SCHEMA (JSON):
 {
-  "score": number,
+  "score": 0.0-1.0,
   "is_correct": boolean,
   "feedback": "string",
   "error_tag": "string",
-  "detected_level": "string (A1-C2)",
+  "detected_level": "A1-C2",
   "next_question": "string",
   "expected_skill": "Grammar | Speaking | Vocabulary",
   "current_difficulty_calibration": "A1-C2",
   "reasoning": "string"
 }`;
 
-    // Gracefully handle undefined/null options and correct answers to prevent LLM hallucinations
+    // 🕵️ Developer Logging: Payload Audit
+    if (import.meta.env.DEV) {
+      console.log("🔍 [Proctor Payload]", {
+        prompt: question.prompt,
+        user_answer: answer,
+        expected_answer: expectedAnswer,
+        level: currentLevel
+      });
+    }
+
     const userMessage = JSON.stringify({
       last_question: question.prompt || "Unknown Question",
       user_answer: answer || "[No Answer]",
-      expected_answer: question.correctAnswer || "OPEN ENDED - JUDGE LINGUISTIC QUALITY",
+      expected_answer: expectedAnswer,
       session_history: historyJson
     });
 

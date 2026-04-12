@@ -399,6 +399,31 @@ export class AdaptiveAssessmentEngine {
     } as any;
   }
 
+  /**
+   * Extracts a plain-text representation of the correct answer from various key formats.
+   */
+  private extractCorrectAnswerText(item: any): string {
+    const key = item.answer_key;
+    if (!key) return "";
+
+    // Case 1: Multiple Choice (Nested Object)
+    if (typeof key === 'object' && key.type === 'mcq' && key.value?.options) {
+      const options = key.value.options;
+      const idx = key.value.correct_index;
+      return (options[idx] || "").toString().trim();
+    }
+
+    // Case 2: Exact Match (Nested Object)
+    if (typeof key === 'object' && key.value && !Array.isArray(key.value) && typeof key.value !== 'object') {
+      return key.value.toString().trim();
+    }
+
+    // Case 3: Direct String
+    if (typeof key === 'string') return key.trim();
+
+    return "";
+  }
+
   public async submitAnswer(
     question: AssessmentQuestion,
     answer: string,
@@ -419,13 +444,8 @@ export class AdaptiveAssessmentEngine {
       return { correct: false, score: 0 };
     }
 
-    const correctAns = efsetItem.answer_key;
-    let correctText = '';
-    if (typeof correctAns === 'string') {
-      correctText = correctAns;
-    } else if (correctAns && typeof correctAns === 'object' && (correctAns as any).value) {
-      correctText = String((correctAns as any).value);
-    }
+    const correctText = this.extractCorrectAnswerText(efsetItem);
+    (question as any).correctAnswer = correctText; // 🛡️ Bind for Proctor
 
     // 🎯 INITIAL LOGGING (Unconfirmed state)
     this.state.answerHistory.push({
@@ -447,7 +467,23 @@ export class AdaptiveAssessmentEngine {
       // 🎯 SHIELD-FIRST: Save attempt BEFORE AI evaluation to prevent data loss on timeout
       console.log("📤 [Engine] Pre-eval save attempt for:", efsetItem.id);
       
-      // 🤖 PROCTOR AGENT: The single source of truth for scoring and adaptivity
+      // 🏎️ [LOCAL BYPASS] Deterministic MCQ Check: Fast, Cheap, Error-free
+      if (efsetItem.response_mode === 'mcq' || ['mcq', 'listening_mcq', 'reading_mcq'].includes(efsetItem.task_type)) {
+        const isMatch = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
+        console.log(`[Engine] ⚡ MCQ Local Bypass: ${isMatch ? 'CORRECT' : 'INCORRECT'}`);
+        
+        const localEvaluation = {
+          score: isMatch ? 1.0 : 0.0,
+          is_correct: isMatch,
+          feedback: isMatch ? 'Great job!' : `Correct answer: ${correctText}`,
+          detected_level: this.streakTracking.currentCalibration,
+          reasoning: 'Deterministic MCQ match'
+        };
+        
+        return this.processEvaluation(efsetItem, answer, localEvaluation, responseMode, speakingMeta);
+      }
+
+      // 🤖 PROCTOR AGENT: Qualitative analysis for Writing/Speaking
       const recentHistory = this.state.answerHistory.slice(-5).map(h => ({
         q: h.questionId,
         s: h.score,
@@ -461,7 +497,6 @@ export class AdaptiveAssessmentEngine {
         JSON.stringify(recentHistory)
       );
 
-      // We wait for proctor but we ensure the save service is called with whatever we have
       const proctor = await proctorPromise.catch(e => {
         console.warn("⚠️ [Engine] Proctor failed or timed out, using fallback for save.");
         return null;
@@ -471,14 +506,32 @@ export class AdaptiveAssessmentEngine {
         score: 0, 
         is_correct: false, 
         feedback: 'AI Evaluation Failed/Timeout', 
-        detected_level: this.streakTracking.currentCalibration 
+        detected_level: this.streakTracking.currentCalibration,
+        reasoning: 'AI Timeout Fallback'
       };
 
-      if (proctor) {
-        this.streakTracking.proctorAdvice = proctor;
-        const score = proctor.score;
-        const isCorrectResult = proctor.is_correct;
-        console.log(`[Engine] Proctor confirmed: ${proctor.detected_level} | Score: ${score}`);
+      return this.processEvaluation(efsetItem, answer, evaluation, responseMode, speakingMeta);
+    } catch (err) {
+      console.error("[Engine] Overall submission failure.", err);
+      return { correct: false, score: 0, evaluation: null as any };
+    }
+  }
+
+  /**
+   * Central processor for all evaluations (AI or Local)
+   */
+  private async processEvaluation(
+    efsetItem: QuestionBankItem,
+    answer: string,
+    evaluation: any,
+    responseMode?: ResponseMode,
+    speakingMeta?: SpeakingSubmissionMeta
+  ) {
+    const score = evaluation.score;
+    const isCorrectResult = evaluation.is_correct;
+    
+    this.streakTracking.proctorAdvice = evaluation;
+    console.log(`[Engine] Processing Result: ${isCorrectResult ? '✅' : '❌'} | Score: ${score}`);
 
 
         // 1. Streak-based Difficulty Adjustment (Symmetric: 2 consecutive required for BOTH directions)
@@ -541,11 +594,11 @@ export class AdaptiveAssessmentEngine {
           descriptorEvidence: evidences.map(e => ({
             descriptorId: e.skill, support: e.score, sourceSkill: e.skill as any, weight: e.weight
           })),
-          notes: [proctor.reasoning],
+          notes: [evaluation.reasoning || ""],
           difficulty: efsetItem.target_cefr as any,
           skill: efsetItem.skill as any,
-          errorTag: proctor.error_tag,
-          briefExplanation: proctor.feedback
+          errorTag: evaluation.error_tag,
+          briefExplanation: evaluation.feedback
         };
         this.state.taskEvaluations.push(taskEval);
 
@@ -554,29 +607,16 @@ export class AdaptiveAssessmentEngine {
         if (this.state.answerHistory[historyIdx]) {
           this.state.answerHistory[historyIdx].correct = isCorrectResult;
           this.state.answerHistory[historyIdx].score = score;
-          this.state.answerHistory[historyIdx].errorTag = proctor.error_tag;
-          this.state.answerHistory[historyIdx].briefExplanation = proctor.feedback;
+          this.state.answerHistory[historyIdx].errorTag = evaluation.error_tag;
+          this.state.answerHistory[historyIdx].briefExplanation = evaluation.feedback;
         }
 
         // 6. Journey Logic: If success criteria met (e.g., mastering the current calibration)
         if (score > 0.85 && this.streakTracking.consecutivePerfect >= 1) {
-          // Note: Logic to identify current journey step ID would go here
-          // For now, we signal completion of the "current" context if applicable
           console.log('[Engine] 🎯 Success criteria met for potential journey step advancement.');
         }
 
         return { correct: isCorrectResult, score, evaluation };
-      }
-
-      const isDetCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-      const fallbackEval = { score: isDetCorrect ? 1.0 : 0.0, is_correct: isDetCorrect, feedback: 'Deterministic Fallback', detected_level: this.streakTracking.currentCalibration };
-      return { correct: isDetCorrect, score: fallbackEval.score, evaluation: fallbackEval };
-    } catch (err) {
-      console.error("[Engine] Proctor failed. Using fallback.", err);
-      const isDetCorrect = answer.trim().toLowerCase() === correctText.trim().toLowerCase();
-      const catchEval = { score: isDetCorrect ? 1.0 : 0.0, is_correct: isDetCorrect, feedback: 'Error Fallback', detected_level: this.streakTracking.currentCalibration };
-      return { correct: isDetCorrect, score: catchEval.score, evaluation: catchEval };
-    }
   }
 
   private performCalibrationReset() {
@@ -719,6 +759,7 @@ export class AdaptiveAssessmentEngine {
       response_mode: nextItem.response_mode as any,
       audioUrl: nextItem.audio_url,
       stimulus: nextItem.stimulus,
+      imageUrl: (nextItem as any).image_url || (nextItem as any).img, 
       options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;

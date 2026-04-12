@@ -258,14 +258,35 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                     <div className={`p-8 bg-blue-50/30 rounded-3xl border border-blue-100 text-slate-800 leading-relaxed font-bold text-xl shadow-inner transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
                                         <span className="text-[11px] text-blue-500 uppercase tracking-[0.2em] block mb-2 font-black">Question Prompt</span>
                                         <div className="space-y-3">
-                                            {currentTask.stimulus && currentTask.skill !== 'listening' && (
-                                                <div className="text-xs font-black text-blue-600/60 uppercase tracking-widest border-b border-blue-100 pb-2 mb-2">
-                                                    {currentTask.stimulus}
+                                            {/* Stimulus (Text Context) */}
+                                            {currentTask.stimulus && (currentTask.skill !== 'listening' || !currentTask.audioUrl) && (
+                                                <div className="space-y-3">
+                                                    {currentTask.skill === 'listening' && !currentTask.audioUrl && (
+                                                        <div className="px-3 py-1 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest inline-block">
+                                                            ⚠️ Audio unavailable - Reading Fallback
+                                                        </div>
+                                                    )}
+                                                    <div className="text-xs font-black text-blue-600/60 uppercase tracking-widest border-b border-blue-100 pb-2 mb-2">
+                                                        {currentTask.stimulus}
+                                                    </div>
                                                 </div>
                                             )}
+
+                                            {/* Primary Question */}
                                             <div className="text-slate-800">
                                                 {currentTask.prompt || (currentTask as any).text}
                                             </div>
+
+                                            {/* Image Support */}
+                                            {(currentTask as any).imageUrl && (
+                                                <div className="mt-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-white">
+                                                    <img 
+                                                        src={(currentTask as any).imageUrl} 
+                                                        alt="Question illustration" 
+                                                        className="w-full h-auto max-h-[300px] object-cover" 
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
