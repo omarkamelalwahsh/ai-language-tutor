@@ -776,10 +776,9 @@ export class AdaptiveAssessmentEngine {
       difficulty: nextItem.target_cefr as DifficultyBand,
       type: nextItem.task_type as any,
       response_mode: nextItem.response_mode as any,
-      audioUrl: nextItem.audio_url,
       stimulus: nextItem.stimulus,
       imageUrl: (nextItem as any).image_url || (nextItem as any).img, 
-      audioUrl: (nextItem as any).audio_url || (nextItem as any).audio,
+      audioUrl: (nextItem as any).audio_url || (nextItem as any).audio || nextItem.audio_url,
       options: originalOptions ? this.shuffle(originalOptions) : undefined,
       _efset: nextItem
     } as any;

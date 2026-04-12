@@ -1,26 +1,18 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Mic, 
-  MessageSquare, 
-  Focus, 
-  TrendingUp, 
+  X, 
   CheckCircle2, 
-  XCircle, 
   RefreshCcw, 
-  SkipForward, 
-  Brain, 
-  Trophy,
-  History,
-  LayoutDashboard,
-  Map as MapIcon,
-  BarChart3,
-  Settings,
-  LogOut,
+  SkipForward,
   ChevronRight,
-  Bell,
-  Home,
-  BookOpen
+  BookOpen,
+  Headphones,
+  Pen,
+  Mic,
+  ArrowRight,
+  Zap,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -40,18 +32,28 @@ interface DiagnosticViewProps {
   onSaveComplete: (results: TaskResult[], outcome: AssessmentOutcome) => void;
 }
 
+// Skill badge config
+const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string; label: string }> = {
+  reading:    { icon: <BookOpen size={14} />,    color: 'text-violet-600',  bg: 'bg-violet-50 border-violet-200', label: 'Reading' },
+  listening:  { icon: <Headphones size={14} />,  color: 'text-sky-600',     bg: 'bg-sky-50 border-sky-200',       label: 'Listening' },
+  writing:    { icon: <Pen size={14} />,         color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', label: 'Writing' },
+  speaking:   { icon: <Mic size={14} />,         color: 'text-amber-600',   bg: 'bg-amber-50 border-amber-200',    label: 'Speaking' },
+  vocabulary: { icon: <Zap size={14} />,         color: 'text-rose-600',    bg: 'bg-rose-50 border-rose-200',      label: 'Vocabulary' },
+  grammar:    { icon: <BookOpen size={14} />,    color: 'text-indigo-600',  bg: 'bg-indigo-50 border-indigo-200',  label: 'Grammar' },
+};
+
 // ============================================================================
-// MAIN DIAGNOSTIC VIEW (ENTERPRISE LIGHT THEME)
+// MAIN DIAGNOSTIC VIEW — FOCUSED SINGLE-COLUMN LAYOUT
 // ============================================================================
 export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, onboardingState, taskResults }) => {
   const navigate = useNavigate();
   const { refreshData: refreshUserProfile, logout, user } = useData() as any;
-  const fullName = user?.fullName || 'Omar Kamel';
 
   // --- Engine Persistence ---
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showQuitDialog, setShowQuitDialog] = useState(false);
 
   if (!engineRef.current) {
     const startBand: any = 'B1';
@@ -74,13 +76,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   
-  // --- New Input State ---
+  // --- Input State ---
   const [textValue, setTextValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [useSpeakingFallback, setUseSpeakingFallback] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
 
-  // Reset timer on task change
+  // Reset on task change
   useEffect(() => {
     if (currentTask) {
       startTimeRef.current = Date.now();
@@ -95,24 +97,20 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsSaving(true); 
     setIsCompleting(true);
     try {
-      // 1. Finalize the academic scoring (EFSET Model) - keep as fallback/base
       await engine.finalizeAssessment(); 
       await refreshUserProfile().catch(err => console.warn('User profile refresh failed:', err)); 
       
       const academicOutcome = engine.getOutcome();
       const history = engine.getAnswerHistory();
 
-      // 2. Trigger Cloud AI Analysis (Grok-Scorer + Grok-Expert)
       console.log('[Diagnostic] ☁️ Launching Grok Analysis Layer...');
       const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history);
 
-      // 3. Complete saving state
       onSaveComplete(history, { ...academicOutcome, aiAnalysis: deepAnalysis });
     } catch (e) {
       console.error('[Diagnostic] ❌ Finalization aborted.', e);
       setSaveError('A critical failure occurred during AI analysis. Falling back to local scoring.');
       
-      // Fallback: Continue with local academic scoring if AI fails
       try {
         const academicOutcome = engine.getOutcome();
         onSaveComplete(engine.getAnswerHistory(), academicOutcome);
@@ -188,348 +186,389 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     }
   }, [currentTask, isEvaluating, engine, handleFinish]);
 
-  // --- Render Logic ---
+  // --- Derived ---
+  const progressPercent = Math.round(((progress.answered + 1) / progress.total) * 100);
+  const skillInfo = SKILL_CONFIG[currentTask?.skill || 'reading'] || SKILL_CONFIG.reading;
+
+  const canSubmitTyped = textValue.trim().length >= 5;
+  const isTypedMode = currentTask?.response_mode === 'typed' || (currentTask?.response_mode === 'audio' && useSpeakingFallback);
+  const isMcqMode = currentTask?.response_mode === 'mcq';
+  const isAudioMode = currentTask?.response_mode === 'audio' && !useSpeakingFallback;
+
+  // --- Render ---
   if (isCompleting) return <SyncingView isSaving={isSaving} saveError={saveError} />;
   if (!currentTask) return <LoadingSkeleton />;
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden font-sans selection:bg-blue-500/30">
+    <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans selection:bg-blue-500/20">
       
-      {/* 2. Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden relative max-w-4xl mx-auto w-full">
-        {/* Top Header */}
-        <header className="h-[72px] bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0 relative z-20">
-           {/* Mockup 2 Header: My Path | Analytics */}
-           <div className="flex items-center gap-8 text-sm font-bold text-slate-400">
-              <span className="text-slate-800 border-b-2 border-blue-600 pb-1 px-1 transition-all cursor-default">My Path</span>
-              <span className="hover:text-slate-600 cursor-pointer px-1">Analytics</span>
-           </div>
-           
-           <div className="flex items-center gap-4">
-              <button className="relative p-2 bg-white rounded-full border border-slate-200 text-slate-400 shadow-sm">
-                 <Bell size={18} />
-                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
-              </button>
-              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                 <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full" />
+      {/* ══════════ TOP BAR ══════════ */}
+      <header className="shrink-0 px-4 sm:px-8 h-16 flex items-center gap-4 bg-white/80 backdrop-blur-xl border-b border-slate-100 z-30">
+        {/* Quit Button */}
+        <button 
+          onClick={() => setShowQuitDialog(true)}
+          className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 transition-all active:scale-90"
+          aria-label="Quit assessment"
+        >
+          <X size={18} strokeWidth={2.5} />
+        </button>
+
+        {/* Progress Bar */}
+        <div className="flex-1 flex items-center gap-3">
+          <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner relative">
+            <motion.div 
+              className="h-full rounded-full relative"
+              style={{ 
+                background: 'linear-gradient(90deg, #6366F1, #3B82F6, #06B6D4)',
+                boxShadow: '0 0 12px rgba(99, 102, 241, 0.4)'
+              }}
+              initial={{ width: `${(progress.answered / progress.total) * 100}%` }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
+              {/* Inner shimmer */}
+              <div className="absolute inset-0 rounded-full overflow-hidden">
+                <div 
+                  className="absolute inset-0 opacity-30"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
+                    animation: 'shimmer 2s infinite',
+                  }}
+                />
               </div>
-           </div>
-        </header>
+            </motion.div>
+          </div>
+          <span className="text-xs font-bold text-slate-400 tabular-nums whitespace-nowrap">
+            {progress.answered + 1} / {progress.total}
+          </span>
+        </div>
+      </header>
 
-        {/* Diagnostic Split Layout (Mockup 2) */}
-        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row p-6 md:p-8 gap-6 md:gap-8 overflow-y-auto lg:overflow-hidden lg:pb-8">
-            
-            <section className="flex-1 flex flex-col min-w-0 min-h-0">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 md:p-10 flex-1 flex flex-col relative group hover:shadow-md transition duration-300">
-                    
-                    {/* Progress & Breadcrumb */}
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-                           Question {progress.answered + 1}/{progress.total} 
-                           <span className="text-slate-300 font-medium normal-case ml-2">
-                             (Skill Focus: {currentTask.skill.charAt(0).toUpperCase() + currentTask.skill.slice(1)} - Wildcard Phase)
-                           </span>
-                        </span>
+      {/* ══════════ MAIN CONTENT (CENTERED) ══════════ */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto w-full px-4 sm:px-8 py-8 sm:py-12 flex flex-col min-h-full">
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentTask.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="flex-1 flex flex-col"
+            >
+              {/* Skill Badge */}
+              <div className="mb-6">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider ${skillInfo.bg} ${skillInfo.color}`}>
+                  {skillInfo.icon}
+                  {skillInfo.label}
+                </span>
+              </div>
+
+              {/* ── Stimulus / Context ── */}
+              {currentTask.stimulus && (currentTask.skill !== 'listening' || !currentTask.audioUrl) && (
+                <div className="mb-6">
+                  {currentTask.skill === 'listening' && !currentTask.audioUrl && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-3 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest">
+                      <AlertTriangle size={12} />
+                      Audio unavailable — Reading Fallback
                     </div>
-
-                    {/* Progress Bar (Mockup 2 Style) */}
-                    <div className="h-2 w-full bg-slate-100 rounded-full mb-10 overflow-hidden shadow-inner flex">
-                        <motion.div 
-                           className="h-full bg-[#1A73E8] transition-all"
-                           initial={{ width: `${(progress.answered / progress.total) * 100}%` }}
-                           animate={{ width: `${((progress.answered + 1) / progress.total) * 100}%` }}
-                        />
-                    </div>
-
-                    <div className="flex-1 flex flex-col min-h-0">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={currentTask.id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="flex-1 flex flex-col"
-                          >
-                             <div className="flex items-start gap-5">
-                                <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 flex items-center justify-center font-black text-sm shadow-sm shrink-0">
-                                   {progress.answered + 1}.
-                                </span>
-                                <div className="space-y-8 flex-1">
-                                    <div className={`p-8 bg-blue-50/30 rounded-3xl border border-blue-100 text-slate-800 leading-relaxed font-bold text-xl shadow-inner transition duration-500 ${isEvaluating ? 'opacity-40 grayscale blur-[1px]' : ''}`}>
-                                        <span className="text-[11px] text-blue-500 uppercase tracking-[0.2em] block mb-2 font-black">Question Prompt</span>
-                                        <div className="space-y-3">
-                                            {/* Stimulus (Text Context) */}
-                                            {currentTask.stimulus && (currentTask.skill !== 'listening' || !currentTask.audioUrl) && (
-                                                <div className="space-y-3">
-                                                    {currentTask.skill === 'listening' && !currentTask.audioUrl && (
-                                                        <div className="px-3 py-1 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest inline-block">
-                                                            ⚠️ Audio unavailable - Reading Fallback
-                                                        </div>
-                                                    )}
-                                                    <div className="text-xs font-black text-blue-600/60 uppercase tracking-widest border-b border-blue-100 pb-2 mb-2">
-                                                        {currentTask.stimulus}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Primary Question */}
-                                            <div className="text-slate-800">
-                                                {currentTask.prompt || (currentTask as any).text}
-                                            </div>
-
-                                            {/* Image Support */}
-                                            {(currentTask as any).imageUrl && (
-                                                <div className="mt-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-white">
-                                                    <img 
-                                                        src={(currentTask as any).imageUrl} 
-                                                        alt="Question illustration" 
-                                                        className="w-full h-auto max-h-[300px] object-cover" 
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                   {/* Multiple Choice Options */}
-                                   {currentTask.response_mode === 'mcq' && currentTask.options && (
-                                      <div className="grid gap-3 pr-2 overflow-y-auto max-h-[400px] custom-scrollbar pb-4">
-                                         {currentTask.options.map((opt, i) => (
-                                           <button
-                                             key={i}
-                                             onClick={() => handleNextTask(opt)}
-                                             disabled={isEvaluating}
-                                             className="group w-full p-4 rounded-xl border border-slate-100 bg-white hover:border-blue-400 hover:bg-blue-50/30 transition-all flex items-center gap-4 text-left shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50"
-                                           >
-                                              <span className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 font-bold text-xs flex items-center justify-center group-hover:border-blue-200 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors capitalize">
-                                                 {String.fromCharCode(65 + i)}.
-                                              </span>
-                                              <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">{opt}</span>
-                                           </button>
-                                         ))}
-                                      </div>
-                                   )}
-
-                                   {/* Writing Input (Text Area) */}
-                                   {(currentTask.response_mode === 'typed' || (currentTask.response_mode === 'audio' && useSpeakingFallback)) && (
-                                     <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                       <textarea
-                                         value={textValue}
-                                         onChange={(e) => setTextValue(e.target.value)}
-                                         placeholder="Type your response here..."
-                                         disabled={isEvaluating}
-                                         className="w-full min-h-[180px] p-6 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white transition-all outline-none resize-none text-slate-700 font-medium leading-relaxed"
-                                       />
-                                       <div className="flex justify-between items-center px-1">
-                                          {textValue.length > 0 && textValue.length < 5 && (
-                                            <span className="text-[10px] font-bold text-amber-500 uppercase">Give us a bit more detail!</span>
-                                          )}
-                                          <div className="flex-1" />
-                                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                            Characters: {textValue.length}
-                                          </span>
-                                       </div>
-                                     </div>
-                                   )}
-
-                                   {/* Speaking Input (Audio Recorder) */}
-                                   {currentTask.response_mode === 'audio' && !useSpeakingFallback && (
-                                     <div className="py-4 animate-in zoom-in-95 duration-500">
-                                        <SpeakingModule 
-                                          task={currentTask as any}
-                                          isEvaluating={isEvaluating}
-                                          feedback={null}
-                                          retryCount={0}
-                                          onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)}
-                                        />
-                                        <div className="mt-8 flex justify-center">
-                                           <button 
-                                              onClick={() => setUseSpeakingFallback(true)}
-                                              className="text-xs font-bold text-slate-400 hover:text-blue-500 underline underline-offset-4 transition"
-                                           >
-                                              I can't talk right now (Switch to typing)
-                                           </button>
-                                        </div>
-                                     </div>
-                                   )}
-
-                                   {/* Audio for Listening */}
-                                   {currentTask.skill === 'listening' && currentTask.audioUrl && (
-                                       <div className="max-w-md">
-                                          <AudioPlaybackControl audioUrl={currentTask.audioUrl} className="shadow-sm border border-slate-100" />
-                                       </div>
-                                   )}
-                                </div>
-                             </div>
-                          </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="mt-auto pt-8 border-t border-slate-100 flex justify-between items-center bg-white z-10">
-                        <button 
-                           onClick={() => navigate('/dashboard')}
-                           className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition"
-                        >
-                           Cancel
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <button 
-                              onClick={handleSkip}
-                              className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition"
-                            >
-                               Skip
-                            </button>
-                             <button 
-                                className={`px-10 py-3 rounded-xl font-bold shadow-lg transition active:scale-95 flex items-center gap-2 ${
-                                   (textValue.trim().length >= 5 || ['mcq', 'listening', 'mcq_reading', 'reading_mcq', 'listening_mcq', 'fill_blank'].includes(currentTask.type) || ['listening'].includes(currentTask.skill)) && !isEvaluating
-                                   ? 'bg-[#1A73E8] text-white shadow-blue-500/20 hover:bg-blue-700'
-                                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                                }`}
-                                disabled={isEvaluating || ((currentTask.skill === 'writing' || useSpeakingFallback) && textValue.trim().length < 5) || (currentTask.skill === 'speaking' && !useSpeakingFallback)}
-                                onClick={() => {
-                                  if (currentTask.skill === 'writing' || useSpeakingFallback) {
-                                    handleNextTask(textValue);
-                                  }
-                                }}
-                             >
-                                {isEvaluating ? <RefreshingLoader /> : 'Next'}
-                             </button>
-
-                        </div>
-                    </div>
+                  )}
+                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/60 text-sm text-slate-600 leading-relaxed font-medium">
+                    {currentTask.stimulus}
+                  </div>
                 </div>
-            </section>
+              )}
 
-            {/* Right: Parallel Progress (Mockup 2 Sidebar) */}
-            <section className="w-full lg:w-80 flex flex-col h-full gap-6">
-                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex flex-col h-full group hover:shadow-md transition">
-                    <h3 className="text-xl font-black text-slate-900 mb-8 tracking-tight">Parallel Progress</h3>
-                    
-                    <div className="space-y-10 flex-1">
-                        {/* Level Indicator */}
-                        <div className="relative">
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Estimated Level:</h4>
-                            <div className="text-4xl font-black text-slate-900 tracking-tighter">
-                                {progress.currentBand}
-                            </div>
-                        </div>
+              {/* ── Audio Player ── */}
+              {currentTask.skill === 'listening' && currentTask.audioUrl && (
+                <div className="mb-6">
+                  <AudioPlaybackControl audioUrl={currentTask.audioUrl} className="shadow-sm border border-slate-200 rounded-2xl" />
+                </div>
+              )}
 
-                         <div className="grid grid-cols-1 gap-12">
-                             {/* Confidence 1 */}
-                             <div className="flex flex-col items-center">
-                                 <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Estimated Level</h4>
-                                 <div className="relative w-32 h-32 flex items-center justify-center">
-                                     <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                                         <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-                                         <motion.circle 
-                                            cx="50" cy="50" r="42" fill="none" 
-                                            stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
-                                            initial={{ strokeDasharray: "0 264" }}
-                                            animate={{ strokeDasharray: `${progress.confidence * 264} 264` }}
-                                            transition={{ duration: 1 }}
-                                         />
-                                     </svg>
-                                     <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                        <span className="text-2xl font-black text-slate-900">{progress.currentBand}</span>
-                                     </div>
-                                 </div>
-                             </div>
- 
-                             {/* Confidence 2 */}
-                             <div className="flex flex-col items-center">
-                                 <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Internal Confidence Level</h4>
-                                 <div className="relative w-32 h-32 flex items-center justify-center">
-                                     <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                                         <circle cx="50" cy="50" r="42" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-                                         <motion.circle 
-                                            cx="50" cy="50" r="42" fill="none" 
-                                            stroke="#1A73E8" strokeWidth="10" strokeLinecap="round"
-                                            initial={{ strokeDasharray: "0 264" }}
-                                            animate={{ strokeDasharray: `${Math.min(0.9, progress.confidence + 0.1) * 264} 264` }}
-                                            transition={{ duration: 1.2 }}
-                                         />
-                                     </svg>
-                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-2xl font-black text-slate-900">{Math.round(progress.confidence * 100)}%</span>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
+              {/* ── Question Prompt ── */}
+              <div className={`mb-8 transition-all duration-300 ${isEvaluating ? 'opacity-40 blur-[1px]' : ''}`}>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 leading-snug tracking-tight">
+                  {currentTask.prompt || (currentTask as any).text}
+                </h2>
+
+                {/* Image Support */}
+                {(currentTask as any).imageUrl && (
+                  <div className="mt-5 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white max-w-lg">
+                    <img 
+                      src={(currentTask as any).imageUrl} 
+                      alt="Question illustration" 
+                      className="w-full h-auto max-h-[280px] object-cover" 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* ══════════ INPUT AREA ══════════ */}
+              <div className="flex-1 flex flex-col">
+
+                {/* ── MCQ Options ── */}
+                {isMcqMode && currentTask.options && (
+                  <div className="grid gap-3">
+                    {currentTask.options.map((opt, i) => (
+                      <motion.button
+                        key={i}
+                        onClick={() => {
+                          setSelectedOption(opt);
+                          // Auto-submit after a brief visual feedback
+                          setTimeout(() => handleNextTask(opt), 350);
+                        }}
+                        disabled={isEvaluating || selectedOption !== null}
+                        whileTap={{ scale: 0.98 }}
+                        className={`group w-full p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-center gap-4 text-left relative overflow-hidden ${
+                          selectedOption === opt
+                            ? 'border-indigo-500 bg-indigo-50 shadow-lg shadow-indigo-500/10'
+                            : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/30 hover:shadow-md'
+                        } ${isEvaluating || selectedOption !== null ? 'pointer-events-none' : ''}`}
+                      >
+                        <span className={`w-8 h-8 rounded-xl border-2 font-bold text-sm flex items-center justify-center shrink-0 transition-all ${
+                          selectedOption === opt
+                            ? 'border-indigo-500 bg-indigo-500 text-white'
+                            : 'border-slate-200 bg-slate-50 text-slate-500 group-hover:border-indigo-300 group-hover:text-indigo-500'
+                        }`}>
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        <span className={`text-base sm:text-lg font-medium transition-colors ${
+                          selectedOption === opt ? 'text-indigo-700' : 'text-slate-700 group-hover:text-slate-900'
+                        }`}>
+                          {opt}
+                        </span>
+                        {selectedOption === opt && (
+                          <motion.div 
+                            initial={{ scale: 0 }} animate={{ scale: 1 }} 
+                            className="ml-auto"
+                          >
+                            <CheckCircle2 size={20} className="text-indigo-500" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── Typed Input (Writing / Speaking Fallback) ── */}
+                {isTypedMode && (
+                  <div className="space-y-3">
+                    {useSpeakingFallback && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest">
+                        <Pen size={12} />
+                        Typing Mode — Speaking skipped
+                      </div>
+                    )}
+                    <textarea
+                      value={textValue}
+                      onChange={(e) => setTextValue(e.target.value)}
+                      placeholder="Type your answer here…"
+                      disabled={isEvaluating}
+                      autoFocus
+                      className="w-full min-h-[160px] sm:min-h-[200px] p-5 sm:p-6 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none resize-none text-slate-700 text-base font-medium leading-relaxed placeholder:text-slate-300"
+                    />
+                    <div className="flex justify-between items-center px-1">
+                      {textValue.length > 0 && textValue.length < 5 && (
+                        <span className="text-xs font-semibold text-amber-500">Keep going…</span>
+                      )}
+                      <div className="flex-1" />
+                      <span className="text-xs font-semibold text-slate-300 tabular-nums">
+                        {textValue.length} characters
+                      </span>
                     </div>
+                  </div>
+                )}
 
-                    <div className="mt-8 flex justify-center">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 hover:text-blue-500 cursor-pointer transition active:rotate-180 duration-500">
-                           <RefreshCcw size={18} />
-                        </div>
+                {/* ── Speaking Input (Audio Recorder) ── */}
+                {isAudioMode && (
+                  <div className="space-y-4">
+                    <SpeakingModule 
+                      task={currentTask as any}
+                      isEvaluating={isEvaluating}
+                      feedback={null}
+                      retryCount={0}
+                      onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)}
+                    />
+                    <div className="flex justify-center pt-2">
+                      <button 
+                        onClick={() => setUseSpeakingFallback(true)}
+                        className="text-xs font-semibold text-slate-400 hover:text-indigo-500 underline underline-offset-4 decoration-dashed transition"
+                      >
+                        Can't talk right now? Switch to typing
+                      </button>
                     </div>
-                 </div>
-            </section>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* ══════════ FOOTER ACTIONS ══════════ */}
+          {!isMcqMode && (
+            <div className="mt-auto pt-6 pb-4 flex items-center justify-between gap-3 shrink-0">
+              <button 
+                onClick={handleSkip}
+                disabled={isEvaluating}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all disabled:opacity-40"
+              >
+                Skip
+              </button>
+
+              {isTypedMode && (
+                <button 
+                  onClick={() => handleNextTask(textValue)}
+                  disabled={isEvaluating || !canSubmitTyped}
+                  className={`px-8 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 flex items-center gap-2 ${
+                    canSubmitTyped && !isEvaluating
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 hover:shadow-xl'
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                  }`}
+                >
+                  {isEvaluating ? <SubmittingLoader /> : (
+                    <>
+                      Check Answer
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* MCQ skip only */}
+          {isMcqMode && (
+            <div className="mt-auto pt-6 pb-4 flex items-center justify-end shrink-0">
+              <button 
+                onClick={handleSkip}
+                disabled={isEvaluating}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all disabled:opacity-40 flex items-center gap-1.5"
+              >
+                <SkipForward size={14} />
+                Skip
+              </button>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* ══════════ QUIT CONFIRMATION DIALOG ══════════ */}
+      <AnimatePresence>
+        {showQuitDialog && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setShowQuitDialog(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto">
+                <AlertTriangle size={28} className="text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Quit Assessment?</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Your progress will <strong>not</strong> be saved. You'll need to start over next time.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <button 
+                  onClick={() => setShowQuitDialog(false)}
+                  className="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/20"
+                >
+                  Continue Learning
+                </button>
+                <button 
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 font-semibold text-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+                >
+                  Quit
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Shimmer animation keyframes */}
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 };
 
 
 // ============================================================================
-// HELPERS
+// HELPER COMPONENTS
 // ============================================================================
 
-const NavItem = ({ icon, label, active = false, onClick, isDanger = false }: any) => (
-  <button 
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[13px] transition-all ${
-      active 
-        ? 'bg-blue-600 text-white border-blue-500 shadow-lg' 
-        : isDanger
-          ? 'text-rose-400 hover:bg-rose-500/10 border-transparent'
-          : 'text-slate-400 border-transparent'
-    }`}
-  >
-    {icon}
-    <span className="tracking-wide">{label}</span>
-  </button>
+const SubmittingLoader = () => (
+  <div className="flex items-center gap-2">
+    <RefreshCcw size={14} className="animate-spin" />
+    <span>Checking…</span>
+  </div>
 );
 
 const LoadingSkeleton = () => (
-    <div className="h-screen w-full bg-[#F8FAFC] flex items-center justify-center">
-      <div className="relative flex flex-col items-center">
-        <div className="w-16 h-16 border-[5px] border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <div className="mt-6 text-xs text-slate-400 font-bold uppercase tracking-widest animate-pulse flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
-           <RefreshCcw size={14} className="text-blue-500 animate-spin" /> Preparing Assessment Layer...
-        </div>
-      </div>
-    </div>
-);
-
-const SyncingView = ({ isSaving, saveError }: any) => (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6 text-center">
+  <div className="h-screen w-full bg-[#F7F8FC] flex items-center justify-center">
     <div className="flex flex-col items-center gap-6">
       <div className="relative">
-        <div className="w-20 h-20 rounded-2xl bg-white border border-slate-100 shadow-xl flex items-center justify-center">
-           <RefreshCcw className={`w-10 h-10 text-blue-500 ${isSaving ? 'animate-spin' : ''}`} />
-        </div>
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-           <CheckCircle2 size={12} className="text-white" />
-        </div>
+        <div className="w-16 h-16 border-[4px] border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
       </div>
-      <div className="space-y-4">
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight">AI Pedagogical Analysis...</h3>
-        <p className="text-slate-500 font-medium">Grok-Expert is analyzing your cognitive patterns & level placement.</p>
-        <div className="flex flex-col gap-2 mt-4">
-           <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest animate-pulse">Running Scorer (Grok-1)</div>
-           <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest animate-pulse delay-700">Running Analyst (Grok-2)</div>
-        </div>
-        {saveError && <p className="text-rose-500 text-sm font-bold mt-4">⚠️ Sync error: {saveError}</p>}
+      <div className="text-center space-y-1.5">
+        <p className="text-sm font-bold text-slate-700">Preparing your assessment…</p>
+        <p className="text-xs text-slate-400">Building personalized question set</p>
       </div>
     </div>
   </div>
 );
 
-const RefreshingLoader = () => (
-  <div className="flex items-center gap-2">
-    <RefreshCcw size={14} className="animate-spin" />
-    <span>Syncing...</span>
+const SyncingView = ({ isSaving, saveError }: any) => (
+  <div className="min-h-screen bg-[#F7F8FC] flex items-center justify-center p-6">
+    <div className="flex flex-col items-center gap-6 text-center max-w-sm">
+      <div className="relative">
+        <div className="w-20 h-20 rounded-3xl bg-white border border-slate-100 shadow-xl flex items-center justify-center">
+          <RefreshCcw className={`w-9 h-9 text-indigo-500 ${isSaving ? 'animate-spin' : ''}`} />
+        </div>
+        <motion.div 
+          initial={{ scale: 0 }} animate={{ scale: 1 }} 
+          transition={{ delay: 0.3 }}
+          className="absolute -top-2 -right-2 w-7 h-7 bg-emerald-500 rounded-full border-4 border-[#F7F8FC] flex items-center justify-center shadow-lg"
+        >
+          <CheckCircle2 size={14} className="text-white" />
+        </motion.div>
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-bold text-slate-900 tracking-tight">Analyzing Your Results…</h3>
+        <p className="text-sm text-slate-500">Our AI is evaluating your performance and building your learning profile.</p>
+      </div>
+      <div className="flex flex-col gap-1.5 mt-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500 animate-pulse">
+          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+          Running Scorer Engine
+        </div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-amber-500 animate-pulse" style={{ animationDelay: '0.5s' }}>
+          <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          Running Diagnostic Analyst
+        </div>
+      </div>
+      {saveError && (
+        <p className="text-rose-500 text-xs font-semibold mt-3 px-4 py-2 bg-rose-50 rounded-xl border border-rose-200">
+          ⚠️ {saveError}
+        </p>
+      )}
+    </div>
   </div>
 );
 
