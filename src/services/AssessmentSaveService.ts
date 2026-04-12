@@ -122,15 +122,21 @@ export class AssessmentSaveService {
     return true;
   }
 
-  static async log_and_update_assessment(task: any, evaluation: any, answer: string) {
+  static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
     // Non-blocking fire-and-forget save to keep the UI fluid
     (async () => {
+      console.log(`📤 [AssessmentSave] Background save triggered for Q: ${task.id}`);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        let finalUserId = userId;
+        if (!finalUserId) {
+          const { data: { user } } = await supabase.auth.getUser();
+          finalUserId = user?.id;
+        }
+        
+        if (!finalUserId) return;
 
         const payload = {
-          user_id: user.id,
+          user_id: finalUserId,
           question_id: String(task.id),
           question: task.prompt,
           answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
