@@ -1005,21 +1005,17 @@ export class AdaptiveAssessmentEngine {
       // 2. SYNCHRONOUS BACKEND TASKS: Enforce await before routing
       
       // A. Sync any remaining buffered questions
-      await AssessmentSaveService.syncPendingLogs().catch(e => console.warn("[Sync] Initial buffer sync warn:", e));
+      await AssessmentSaveService.syncPendingLogs();
 
       // B. Save final profile metrics to Supabase
-      await AssessmentSaveService.saveAssessmentResults(finalOutcome).then(() => {
-        console.log("[Engine] ✅ Cloud Results natively secured.");
-      }).catch(err => {
-        console.error("🚨 [Engine] Final Result RPC Save failed:", err);
-      });
+      await AssessmentSaveService.saveAssessmentResults(finalOutcome);
 
       // C. Notify internal API (Syncing metadata)
       const token = this.safeGetLocalStorage('auth_token');
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      fetch('/api/assessments/complete', {
+      const res = await fetch('/api/assessments/complete', {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -1028,17 +1024,20 @@ export class AdaptiveAssessmentEngine {
            confidence: finalOutcome.overallConfidence,
            auditorReport: finalOutcome.auditorReport
         })
-      }).then(res => {
-        if (!res.ok) console.warn(`[Engine] API Sync background returned ${res.status}`);
-        else console.log("[Engine] ✅ Internal API notified of completion.");
-      }).catch(err => console.error("🚨 [Engine] API Sync background failed:", err));
+      });
+
+      if (!res.ok) {
+        console.warn(`[Engine] API Sync background returned ${res.status}`);
+      } else {
+        console.log("[Engine] ✅ Internal API notified of completion.");
+      }
 
       // 3. IMMEDIATE RELEASE: Unblock the UI so the user sees results NOW
       return true;
 
     } catch (criticalError) {
       console.error("❌ [Engine] Critical Finalization Crash:", criticalError);
-      return true; // Still return true to avoid getting the user stuck
+      return false; 
     }
   }
 

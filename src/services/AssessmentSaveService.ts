@@ -7,15 +7,16 @@ export class AssessmentSaveService {
   /**
    * Helper to ensure valid user session before DB interaction.
    */
-  private static async getAuthenticatedUserId(): Promise<string> {
-    const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
-    const userJson = authStorage ? JSON.parse(authStorage)?.user : null;
-    let userId = userJson?.id || localStorage.getItem('auth_user_id');
-    
-    if (!userId) {
-      throw new Error(`Auth context missing: No user session found locally or remotely`);
+  public static async getAuthenticatedUserIdSafe(): Promise<string> {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      throw new Error(`Auth context missing: ${error?.message || 'No user session'}`);
     }
-    return userId;
+    return user.id;
+  }
+
+  private static async getAuthenticatedUserId(): Promise<string> {
+    return this.getAuthenticatedUserIdSafe();
   }
 
   // Helper buffers unchanged...
@@ -50,30 +51,14 @@ export class AssessmentSaveService {
     console.log(`[Buffer] 🔄 Background Sync: Attempting to secure ${buffer.length} logs...`);
 
     try {
-      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
-      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
+      const { error } = await supabase.from('assessment_logs').insert(buffer);
+      if (error) throw error;
 
-      if (!token) throw new Error("No token for sync");
-
-      const response = await fetch(`${supabaseUrl}/rest/v1/assessment_logs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'apikey': supabaseAnonKey!,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(buffer)
-      });
-
-      if (response.ok) {
-        localStorage.removeItem('pending_assessment_logs');
-        console.log(`[Buffer] ✅ Background Sync complete. ${buffer.length} logs secured.`);
-      } else {
-        console.warn(`[Buffer] ⚠️ Background Sync partial failure:`, await response.text());
-      }
+      localStorage.removeItem('pending_assessment_logs');
+      console.log(`[Buffer] ✅ Background Sync complete. ${buffer.length} logs secured.`);
     } catch (err) {
       console.error(`[Buffer] ❌ Background Sync failed:`, err);
+      throw err;
     }
 
     return true;

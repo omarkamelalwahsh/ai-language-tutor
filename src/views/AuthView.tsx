@@ -88,6 +88,21 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           localStorage.setItem('auth_token', data.session.access_token);
           localStorage.setItem('auth_user_id', data.user.id);
 
+          const userId = data.user.id;
+          const { error: profileError } = await supabase
+            .from('learner_profiles')
+            .upsert({
+              id: userId,
+              full_name: name,
+              overall_level: 'A1',
+              onboarding_complete: false,
+              updated_at: new Date().toISOString()
+            });
+
+          if (profileError) {
+             console.error("[Auth] Initial profile upsert failed:", profileError);
+          }
+
           onLogin('user', false);
         }
       }

@@ -101,7 +101,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsSaving(true); 
     setIsCompleting(true);
     try {
-      await engine.finalizeAssessment(); 
+      const ok = await engine.finalizeAssessment(); 
+      if (!ok) {
+        throw new Error('Finalization failed');
+      }
       await refreshUserProfile().catch(err => console.warn('User profile refresh failed:', err)); 
       
       const academicOutcome = engine.getOutcome();

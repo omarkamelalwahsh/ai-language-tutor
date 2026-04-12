@@ -27,6 +27,13 @@ async function setupDatabase() {
         full_name TEXT,
         overall_level TEXT DEFAULT 'Pending',
         onboarding_complete BOOLEAN DEFAULT FALSE,
+        learning_goal TEXT,
+        goal_context TEXT,
+        focus_skills JSONB,
+        learning_topics JSONB,
+        session_intensity TEXT,
+        native_language TEXT,
+        target_language TEXT,
         points INTEGER DEFAULT 0,
         streak INTEGER DEFAULT 0,
         pacing_score INTEGER DEFAULT NULL,
@@ -53,6 +60,18 @@ async function setupDatabase() {
       ALTER TABLE learner_profiles ALTER COLUMN self_correction_rate SET DEFAULT NULL;
       ALTER TABLE learner_profiles ALTER COLUMN accuracy_rate SET DEFAULT NULL;
       ALTER TABLE learner_profiles ALTER COLUMN onboarding_complete SET DEFAULT FALSE;
+      -- Add missing columns if they don't exist
+      DO $$ BEGIN
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS learning_goal TEXT;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS goal_context TEXT;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS focus_skills JSONB;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS learning_topics JSONB;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS session_intensity TEXT;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS native_language TEXT;
+        ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS target_language TEXT;
+      EXCEPTION
+        WHEN duplicate_column THEN NULL;
+      END $$;
     `);
 
     // 3. Skill States (proficiency decomposition)

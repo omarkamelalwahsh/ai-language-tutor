@@ -58,7 +58,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
         const { supabase } = await import('../lib/supabaseClient');
         await supabase
           .from(DB_SCHEMA.TABLES.PROFILES)
-          .update({ 
+          .upsert({ 
+             id: userId,
              [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
              [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
              learning_goal: state.goal,
@@ -69,8 +70,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
              native_language: state.nativeLanguage,
              target_language: state.targetLanguage,
              updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
+          });
       }
       finish();
     }
