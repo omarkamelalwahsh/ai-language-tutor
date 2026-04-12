@@ -288,7 +288,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                                                 </div>
                                             )}
                                         </div>
-                                                                  {/* Multiple Choice Options */}
+                                    </div>
+
+                                   {/* Multiple Choice Options */}
                                    {currentTask.response_mode === 'mcq' && currentTask.options && (
                                       <div className="grid gap-3 pr-2 overflow-y-auto max-h-[400px] custom-scrollbar pb-4">
                                          {currentTask.options.map((opt, i) => (
