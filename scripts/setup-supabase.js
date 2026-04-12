@@ -25,15 +25,14 @@ async function setupDatabase() {
       CREATE TABLE IF NOT EXISTS learner_profiles (
         id UUID PRIMARY KEY, -- Maps directly to auth.users.id
         full_name TEXT,
-        overall_level TEXT DEFAULT 'B1',
+        overall_level TEXT DEFAULT 'Pending',
         onboarding_complete BOOLEAN DEFAULT FALSE,
         points INTEGER DEFAULT 0,
         streak INTEGER DEFAULT 0,
-        pacing_score INTEGER DEFAULT 75,
-        confidence_style TEXT DEFAULT 'Calculated',
-        self_correction_rate INTEGER DEFAULT 82,
-        accuracy_rate INTEGER DEFAULT 82,
-        onboarding_complete BOOLEAN DEFAULT FALSE,
+        pacing_score INTEGER DEFAULT NULL,
+        confidence_style TEXT DEFAULT NULL,
+        self_correction_rate INTEGER DEFAULT NULL,
+        accuracy_rate INTEGER DEFAULT NULL,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -48,12 +47,12 @@ async function setupDatabase() {
         END IF;
       END $$;
       
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS pacing_score INTEGER DEFAULT 75;
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS confidence_style TEXT DEFAULT 'Calculated';
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS self_correction_rate INTEGER DEFAULT 82;
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS accuracy_rate INTEGER DEFAULT 82;
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT FALSE;
-      ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+      ALTER TABLE learner_profiles ALTER COLUMN overall_level SET DEFAULT 'Pending';
+      ALTER TABLE learner_profiles ALTER COLUMN pacing_score SET DEFAULT NULL;
+      ALTER TABLE learner_profiles ALTER COLUMN confidence_style SET DEFAULT NULL;
+      ALTER TABLE learner_profiles ALTER COLUMN self_correction_rate SET DEFAULT NULL;
+      ALTER TABLE learner_profiles ALTER COLUMN accuracy_rate SET DEFAULT NULL;
+      ALTER TABLE learner_profiles ALTER COLUMN onboarding_complete SET DEFAULT FALSE;
     `);
 
     // 3. Skill States (proficiency decomposition)
@@ -149,18 +148,18 @@ async function setupDatabase() {
       CREATE OR REPLACE FUNCTION public.handle_new_user()
       RETURNS trigger AS $$
       BEGIN
-        INSERT INTO public.learner_profiles (id, full_name, overall_level)
-        VALUES (new.id, new.raw_user_meta_data->>'full_name', 'A1');
+        INSERT INTO public.learner_profiles (id, full_name, overall_level, onboarding_complete)
+        VALUES (new.id, new.raw_user_meta_data->>'full_name', 'Pending', FALSE);
 
-        -- Initialize Skill States
-        INSERT INTO public.skill_states (user_id, skill)
+        -- Initialize Skill States with nulls
+        INSERT INTO public.skill_states (user_id, skill, current_score, confidence)
         VALUES 
-          (new.id, 'listening'),
-          (new.id, 'reading'),
-          (new.id, 'writing'),
-          (new.id, 'speaking'),
-          (new.id, 'grammar'),
-          (new.id, 'vocabulary');
+          (new.id, 'listening', 0, 0),
+          (new.id, 'reading', 0, 0),
+          (new.id, 'writing', 0, 0),
+          (new.id, 'speaking', 0, 0),
+          (new.id, 'grammar', 0, 0),
+          (new.id, 'vocabulary', 0, 0);
 
         RETURN new;
       END;
