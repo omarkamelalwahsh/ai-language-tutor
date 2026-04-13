@@ -8,6 +8,7 @@ import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } fro
 import QuestionAnalysis from '../components/assessment/QuestionAnalysis';
 import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 import { supabase } from '../lib/supabaseClient';
+import { normalizeBand } from '../lib/cefr-utils';
 
 const skillIcons: Record<string, React.ReactNode> = {
   speaking: <Mic className="w-5 h-5 text-rose-500" />,
@@ -56,7 +57,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                           `${result.overall.estimatedLevel} emerging`;
 
   const skills = useMemo(() => {
-     return (Object.values(result.skills) as SkillAssessmentResult[]).sort((a, b) => {
+     return [...(Object.values(result.skills) as SkillAssessmentResult[])].sort((a, b) => {
        const scoreA = a.masteryScore ?? 0;
        const scoreB = b.masteryScore ?? 0;
        return scoreA - scoreB;
@@ -162,7 +163,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
           <div className="relative z-10 flex-1 space-y-3">
             <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Estimated Level</p>
             <div className="flex items-center gap-4">
-              <span className="text-7xl font-black text-indigo-600 tracking-tighter">{result.overall.estimatedLevel}</span>
+              <span className="text-7xl font-black text-indigo-600 tracking-tighter">{normalizeBand(result.overall.estimatedLevel)}</span>
               <div className="flex flex-col gap-1.5">
                 <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold border border-indigo-100 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4" /> {confidenceLabel}
@@ -283,22 +284,21 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                     </h3>
                     <p className="text-sm text-slate-500 font-medium">Your mastery vs. error density across the 8-skill linguistic spectrum.</p>
                  </div>
-                 
-                 <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Top Accuracy</p>
-                       <p className="text-lg font-bold text-emerald-600">{radarData.sort((a,b) => b.A - a.A)[0]?.subject || 'N/A'}</p>
+                       <p className="text-lg font-bold text-emerald-600">{[...radarData].sort((a,b) => b.A - a.A)[0]?.subject || 'N/A'}</p>
                     </div>
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Needs Focus</p>
-                       <p className="text-lg font-bold text-rose-600">{radarData.sort((a,b) => a.A - b.A)[0]?.subject || 'N/A'}</p>
+                       <p className="text-lg font-bold text-rose-600">{[...radarData].sort((a,b) => a.A - b.A)[0]?.subject || 'N/A'}</p>
                     </div>
                  </div>
                  
                  <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">AI Recommendation</p>
                     <p className="text-sm text-indigo-900 font-medium leading-relaxed">
-                       Focus on stabilizing your {radarData.sort((a,b) => a.A - b.A)[0]?.subject || 'weaker'} skills before attempting C1 level nuances.
+                       Focus on stabilizing your {[...radarData].sort((a,b) => a.A - b.A)[0]?.subject || 'weaker'} skills before attempting C1 level nuances.
                     </p>
                  </div>
               </div>

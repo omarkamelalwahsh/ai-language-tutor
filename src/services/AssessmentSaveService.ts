@@ -192,13 +192,15 @@ export class AssessmentSaveService {
         }
 
         const { error } = await supabase.from('assessment_logs').insert(payload);
+        
         if (error) {
-          console.warn("[AssessmentSave] Background save failed, buffering...", error);
+          console.error(`[AssessmentSaveService] ❌ Failed to log question ${payload.question_id}:`, error.message);
           this.saveToLocalBuffer(payload);
         } else {
-          console.log(`✅ [AssessmentSave] Recorded in background: ${task.id}`);
+          console.log(`[AssessmentSaveService] ✅ Successfully logged question ${payload.question_id} to assessment_logs.`);
         }
       } catch (err) {
+        console.error('[AssessmentSaveService] ❌ Background logging error:', err);
         this.saveToLocalBuffer(payload);
       }
     })();

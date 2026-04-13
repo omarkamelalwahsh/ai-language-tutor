@@ -156,6 +156,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
         // ⚡ INSTANT TRANSITION: Save in background, don't wait for network
+        console.log(`[Diagnostic] 📤 Background logging question ${currentTask.id} to assessment_logs...`);
         AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
         
         setProgress(engine.getProgress());

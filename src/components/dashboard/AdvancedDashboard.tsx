@@ -27,10 +27,15 @@ import {
     Heart,
     Target,
     Layout,
-    X
+    X,
+    Sparkles,
+    PenTool,
+    Headphones,
+    LayoutDashboard
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { VisualErrorProfile } from './VisualErrorProfile';
+import { normalizeBand } from '../../lib/cefr-utils';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
@@ -156,7 +161,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         <div className="hidden md:block text-right">
                             <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
                             <p className="text-[10px] text-slate-500 uppercase font-black mt-1">
-                                {supabaseData.profile?.overall_level || 'Calculating...'}
+                                {normalizeBand(supabaseData.profile?.overall_level || 'A1')}
                             </p>
                         </div>
 
@@ -218,13 +223,13 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
 
     const hasCompletedAssessment = profile.hasCompletedAssessment === true;
     const isCalculatingLevel = rawLevel === 'Pending' || (!dbLevel && profile.onboardingComplete && !hasCompletedAssessment);
-    const currentLevel = isCalculatingLevel ? 'Computing...' : rawLevel;
+    const currentLevel = isCalculatingLevel ? 'Computing...' : normalizeBand(rawLevel);
     const points = profile.points || 0;
 
     const skills = supabaseData.skills || [];
     
     const skillData = useMemo(() => {
-        // 🛡️ Bulletproof 6-Skill Order for Production Stability
+        if (!Array.isArray(skills)) return [];
         const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'vocabulary', 'grammar'];
         
         return skillOrder.map(skillName => {
@@ -353,6 +358,33 @@ const JourneyTab = ({ onStartSession, supabaseData }: any) => {
     const journeyNodes = supabaseData.persistedJourney?.nodes || [];
     const journeyTitle = supabaseData.persistedJourney?.journeyTitle || "Bridge to Mastery";
     
+    const JourneyHexPath = () => {
+        if (!Array.isArray(journeyNodes) || journeyNodes.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center p-12 text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <MapIcon className="w-8 h-8 text-slate-300" />
+                    </div>
+                    <p className="text-slate-400 font-medium italic">Your personalized path is being architected...</p>
+                </div>
+            );
+        }
+        return (
+            <div className="relative py-12 flex flex-col items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-20 relative z-10 px-4">
+                    {journeyNodes.map((node: any, idx: number) => (
+                        <IsometricHexNode 
+                            key={node.id}
+                            status={node.status === 'completed' || node.status === 'available' ? 'active' : 'locked'}
+                            label={node.title}
+                            onClick={node.status !== 'locked' ? onStartSession : undefined}
+                        />
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
              <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-10 min-h-[550px] relative overflow-hidden flex flex-col group hover:shadow-md transition duration-300">
@@ -382,44 +414,9 @@ const JourneyTab = ({ onStartSession, supabaseData }: any) => {
                      </div>
                  </div>
 
-                 <div className="flex-1 w-full relative z-10 flex items-center justify-center py-10">
-                     <div className="relative w-full max-w-2xl h-80 bg-transparent flex items-center justify-center">
-                         <svg className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-sm" style={{ zIndex: -1 }}>
-                             {journeyNodes.map((node: any, i: number) => {
-                                 if (i === 0) return null;
-                                 const x1 = 15 + (i-1) * 20;
-                                 const y1 = (i-1) % 2 === 0 ? 35 : 65;
-                                 const x2 = 15 + i * 20;
-                                 const y2 = i % 2 === 0 ? 35 : 65;
-                                 return (
-                                   <line 
-                                     key={`line-${i}`} 
-                                     x1={`${x1}%`} y1={`${y1}%`} 
-                                     x2={`${x2}%`} y2={`${y2}%`} 
-                                     stroke={node.status === 'completed' || node.status === 'current' ? "#f59e0b" : "#cbd5e1"} 
-                                     strokeWidth={node.status === 'completed' || node.status === 'current' ? "3" : "2"} 
-                                     strokeDasharray={node.status === 'locked' ? "4 4" : "0"} 
-                                   />
-                                 );
-                             })}
-                         </svg>
-
-                         {journeyNodes.length > 0 ? (
-                             journeyNodes.map((node: any, i: number) => (
-                                 <div key={node.id} className="absolute" style={{ top: `${i % 2 === 0 ? 35 : 65}%`, left: `${15 + i * 20}%` }}>
-                                     <IsometricHexNode 
-                                         status={node.status === 'completed' || node.status === 'current' ? 'active' : 'locked'} 
-                                         label={node.title} 
-                                         onClick={node.status !== 'locked' ? onStartSession : undefined} 
-                                     />
-                                 </div>
-                             ))
-                         ) : (
-                             <div className="text-slate-400 font-bold animate-pulse text-sm">Architecting your path...</div>
-                         )}
-                     </div>
+                 <div className="flex-1 w-full relative z-10">
+                     <JourneyHexPath />
                  </div>
-
              </div>
 
              <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 h-full min-h-[500px] group hover:shadow-md transition duration-300 relative">
