@@ -68,7 +68,20 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
 export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const supabaseData = useSupabaseDashboard();
 
-  // Active Adaptive Sync fallback
+  // 1. Move ALL Hooks to the top (Stably ordered)
+  const [tasks, setTasks] = useState<SessionTask[]>([]);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [feedback, setFeedback] = useState<TaskFeedbackPayload | null>(null);
+  const [evaluation, setEvaluation] = useState<TaskEvaluationResult | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [sessionResults, setSessionResults] = useState<TaskEvaluationResult[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
+  
+  const taskStartTime = useRef(Date.now());
+
+  // 2. Active Adaptive Sync fallback (Memoized)
   const activeResult = React.useMemo(() => {
     if (result) return result;
     if (supabaseData.isLoading) return null;
@@ -95,6 +108,14 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     } as AssessmentSessionResult;
   }, [result, supabaseData]);
 
+  // 3. Populate tasks once activeResult is ready
+  React.useEffect(() => {
+    if (activeResult && tasks.length === 0) {
+      setTasks(RuntimeService.generateSessionTasks(activeResult));
+    }
+  }, [activeResult, tasks.length]);
+
+  // 4. Return Loading Shell (Must be AFTER all hooks)
   if (!activeResult) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -106,24 +127,6 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
       </div>
     );
   }
-
-  const [tasks] = useState<SessionTask[]>(RuntimeService.generateSessionTasks(activeResult));
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  
-  const [feedback, setFeedback] = useState<TaskFeedbackPayload | null>(null);
-  const [evaluation, setEvaluation] = useState<TaskEvaluationResult | null>(null);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-
-  // Retry state
-  const [retryCount, setRetryCount] = useState(0);
-  const [hintsUsed, setHintsUsed] = useState(0);
-
-  // Behavioral tracking
-  const taskStartTime = useRef(Date.now());
-
-  // Session-level stats
-  const [sessionResults, setSessionResults] = useState<TaskEvaluationResult[]>([]);
-  const [showSummary, setShowSummary] = useState(false);
 
   const currentTask = tasks[currentTaskIndex];
 

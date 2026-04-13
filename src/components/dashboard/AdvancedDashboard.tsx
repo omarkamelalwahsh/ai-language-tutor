@@ -548,10 +548,10 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 -mt-4 min-h-[300px] w-full flex items-center justify-center">
+                        <div className="relative mt-2 w-full h-[320px] flex items-center justify-center">
                            {skillData.length > 0 ? (
-                             <ResponsiveContainer width="100%" height="100%">
-                               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
+                             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
                                  <PolarGrid stroke="#f1f5f9" strokeDasharray="3 3"/>
                                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
                                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
