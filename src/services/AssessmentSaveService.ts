@@ -151,16 +151,15 @@ export class AssessmentSaveService {
   }
 
   /**
-   * SEQUENTIAL LOGGER: Reverted to blocking call for maximum Data Integrity.
+   * LIGHTNING LOGGER: Non-blocking Fire-and-Forget orchestration.
    */
-  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
+  public static log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
     const finalUserId = userId || this.cachedUserId;
     
     const payload = {
       user_id: finalUserId,
       question_id: String(task.id),
       question: task.prompt,
-      answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
       user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
       correct_answer: task.correctAnswer || '',
       is_correct: evaluation.is_correct || false,
@@ -170,28 +169,28 @@ export class AssessmentSaveService {
       created_at: new Date().toISOString()
     };
 
-    try {
-      if (!payload.user_id) {
-        const resolvedId = await this.getAuthenticatedUserIdSafe();
-        payload.user_id = resolvedId;
-      }
+    // 🚀 FIRE AND FORGET
+    (async () => {
+      try {
+        if (!payload.user_id) {
+          const resolvedId = await this.getAuthenticatedUserIdSafe();
+          payload.user_id = resolvedId;
+        }
 
-      console.log(`📤 [AssessmentSave] Sequential recording for: ${task.id}`);
-      const { error } = await supabase.from('assessment_logs').insert(payload);
-      
-      if (error) {
-        console.warn("[AssessmentSave] Save failed, buffering...", error);
+        const { error } = await supabase.from('assessment_logs').insert(payload);
+        if (error) {
+          console.warn("[AssessmentSave] Background save failed, buffering...", error);
+          this.saveToLocalBuffer(payload);
+        } else {
+          console.log(`✅ [AssessmentSave] Recorded: ${task.id}`);
+        }
+      } catch (err) {
         this.saveToLocalBuffer(payload);
-        return { status: 'buffered', error };
       }
+    })();
 
-      console.log(`✅ [AssessmentSave] Recorded: ${task.id}`);
-      return { status: 'success' };
-    } catch (err) {
-      console.error("🔥 [AssessmentSave] Error:", err);
-      this.saveToLocalBuffer(payload);
-      return { status: 'error', error: err };
-    }
+    // ⚡ RETURN INSTANTLY
+    return { status: 'background_submitted' };
   }
 
 

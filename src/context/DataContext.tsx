@@ -15,6 +15,7 @@ interface DataContextType {
   isArchitecting: boolean;
   refreshTrigger: number;
   refreshData: () => Promise<void>;
+  updateProfileLocally: (updates: any) => void;
   setSessionResult: (result: AssessmentSessionResult, outcome: AssessmentOutcome, evals: TaskEvaluation[]) => void;
   setOnboarding: (state: OnboardingState) => void;
   logout: () => Promise<void>;
@@ -155,6 +156,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('last_assessment_result', JSON.stringify(result));
     localStorage.setItem('last_assessment_outcome', JSON.stringify(outcome));
     localStorage.setItem('last_assessment_evals', JSON.stringify(evals));
+  };
+
+  const updateProfileLocally = (updates: any) => {
+    setProfile((prev: any) => ({ ...prev, ...updates }));
+    // Also update local storage to survive simple refreshes
+    if (profile) {
+      localStorage.setItem('cached_profile', JSON.stringify({ ...profile, ...updates }));
+    }
   };
 
   const setOnboarding = (state: OnboardingState) => {

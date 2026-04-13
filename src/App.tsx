@@ -113,7 +113,8 @@ function AppRoutes() {
   const { 
     user, assessmentResult, assessmentOutcome, taskResults, 
     onboardingState, setSessionResult, setOnboarding,
-    isArchitecting, logout, refreshData, devModeActive, clearAllData
+    isArchitecting, logout, refreshData, devModeActive, clearAllData,
+    updateProfileLocally
   } = useData() as any;
 
   React.useEffect(() => {
@@ -146,49 +147,55 @@ function AppRoutes() {
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
   const handleAssessmentSave = async (history: any, outcome: any, evaluations: any) => {
-    try {
-      const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
-      const { AssessmentAnalysisService } = await import('./services/AnalysisService');
-      
-      console.log('[App] 🛡️ Stability Mode: Initiating Sequential Finalization Gate...');
-      
-      // 1. Deep AI Analysis (Model B / Grok) - Blocking to ensure we have the full report
-      console.log('[App] ☁️ Running Deep Cloud Analysis (Model B)...');
-      const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
-          console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
-          return null;
-      });
+    // ⚡ LIGHTNING RELEASE V2: Instant Hydration & Redirect
+    const { AssessmentAnalysisService } = await import('./services/AnalysisService');
+    
+    // 1. Calculate local academic result immediately
+    const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
+      outcome,
+      user?.id || 'anonymous',
+      'diagnostic_session',
+    );
 
-      // 2. Comprehensive DB Save (Wait for all 5 tables)
-      console.log('[App] 🏗️ Persisting to 5 database tables...');
-      await AssessmentSaveService.saveAssessmentComprehensive({
-        userId: user?.id,
-        history,
-        outcome: { ...outcome, aiAnalysis: deepAnalysis },
-        evaluations
-      });
+    // 2. OPTIMISTIC HYDRATION: Update local memory so pages aren't empty
+    console.log('[App] 💧 Optimistically hydrating local state...');
+    setSessionResult(computedSessionResult, outcome, history);
+    updateProfileLocally({
+        onboarding_complete: true,
+        overall_level: outcome.overallBand || 'A1',
+        has_completed_assessment: true
+    });
 
-      // 3. Local State Hydration
-      const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
-        { ...outcome, aiAnalysis: deepAnalysis },
-        user?.id || 'anonymous',
-        'diagnostic_session',
-      );
-      setSessionResult(computedSessionResult, { ...outcome, aiAnalysis: deepAnalysis }, history);
+    // 3. INSTANT REDIRECT
+    console.log('[App] 🚀 Lightning Redirect to Results View...');
+    navigate('/diagnostic/results', { replace: true });
 
-      // 4. Global Profile Sync (Ensures Dashboard sees new level)
-      await refreshData();
-      
-      // 5. Short buffer for React state reconciliation
-      await new Promise(resolve => setTimeout(resolve, 200));
+    // 4. BACKGROUND ORCHESTRATION (The "Heavy" work)
+    (async () => {
+      try {
+        const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+        
+        console.log('[App] ☁️ Starting Background Deep Analysis (Model B)...');
+        const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
+            console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
+            return null;
+        });
 
-      console.log('[App] ✅ Finalization Complete. Securely Redirecting...');
-      navigate('/diagnostic/results', { replace: true });
-    } catch (err) {
-      console.error('[App] ❌ Finalization Gate Failure:', err);
-      // Fallback redirect to dashboard to prevent getting stuck
-      navigate('/dashboard', { replace: true });
-    }
+        console.log('[App] 🏗️ Persisting to 5 database tables in background...');
+        await AssessmentSaveService.saveAssessmentComprehensive({
+          userId: user?.id,
+          history,
+          outcome: { ...outcome, aiAnalysis: deepAnalysis },
+          evaluations
+        });
+
+        // Silent refresh of profile just to sync with DB eventually
+        await refreshData();
+        console.log('[App] ✅ Background Sync Complete.');
+      } catch (err) {
+        console.error('[App] ❌ Background Async Error:', err);
+      }
+    })();
   };
 
   return (
