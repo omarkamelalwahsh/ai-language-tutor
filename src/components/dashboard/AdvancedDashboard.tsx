@@ -224,15 +224,30 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const skills = supabaseData.skills || [];
     
     const skillData = useMemo(() => {
-        if (!skills || skills.length === 0) return [];
+        // 🛡️ Always include at least 4 core skills to ensure RadarChart renders a polygon
+        const BASE_SKILLS = ['Listening', 'Reading', 'Speaking', 'Writing'];
+        const dataMap: Record<string, any> = {};
         
-        return skills.map(s => ({
-            // Normalize: 'listening' -> 'Listening'
-            subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
-            // Fix: Use raw score as the DB already returns normalized 0-100 values (e.g., 5, 25, 60)
-            score: s.current_score || 0,
-            fullMark: 100
-        }));
+        BASE_SKILLS.forEach(s => {
+            dataMap[s.toLowerCase()] = { subject: s, score: 0, fullMark: 100 };
+        });
+
+        if (skills && skills.length > 0) {
+            skills.forEach((s: any) => {
+                const key = (s.skill || '').toLowerCase();
+                if (dataMap[key]) {
+                    dataMap[key].score = s.current_score || 0;
+                } else if (key) {
+                    dataMap[key] = { 
+                        subject: key.charAt(0).toUpperCase() + key.slice(1), 
+                        score: s.current_score || 0,
+                        fullMark: 100 
+                    };
+                }
+            });
+        }
+        
+        return Object.values(dataMap);
     }, [skills]);
 
     return (
@@ -467,16 +482,32 @@ const AnalyticsTab = ({ supabaseData }: any) => {
     }, [history, achievements]);
 
     const skillData = React.useMemo(() => {
-        if (skills.length === 0) return [];
-        return skills.map((s: any) => {
-            const currentScore = s.current_score || 0;
-            return {
-                subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
-                current: currentScore,
-                target: Math.min(100, currentScore + 20),
-                fullMark: 100
-            };
+        const BASE_SKILLS = ['Listening', 'Reading', 'Speaking', 'Writing'];
+        const dataMap: Record<string, any> = {};
+        
+        BASE_SKILLS.forEach(s => {
+            dataMap[s.toLowerCase()] = { subject: s, current: 0, target: 20, fullMark: 100 };
         });
+
+        if (skills && skills.length > 0) {
+            skills.forEach((s: any) => {
+                const key = (s.skill || '').toLowerCase();
+                const currentScore = s.current_score || 0;
+                if (dataMap[key]) {
+                    dataMap[key].current = currentScore;
+                    dataMap[key].target = Math.min(100, currentScore + 20);
+                } else if (key) {
+                    dataMap[key] = {
+                        subject: key.charAt(0).toUpperCase() + key.slice(1),
+                        current: currentScore,
+                        target: Math.min(100, currentScore + 20),
+                        fullMark: 100
+                    };
+                }
+            });
+        }
+        
+        return Object.values(dataMap);
     }, [skills]);
 
     const formatTimeAgo = (dateString: string) => {
