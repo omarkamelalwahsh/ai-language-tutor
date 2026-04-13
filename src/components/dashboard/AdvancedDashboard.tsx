@@ -227,11 +227,11 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
         if (!skills || skills.length === 0) return [];
         
         return skills.map(s => ({
-          // Normalize: 'listening' -> 'Listening'
-          subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
-          // Score normalization: Handle 0-10000 and 0-1 scales safely
-          score: s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0),
-          fullMark: 100
+            // Normalize: 'listening' -> 'Listening'
+            subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
+            // Fix: Use raw score as the DB already returns normalized 0-100 values (e.g., 5, 25, 60)
+            score: s.current_score || 0,
+            fullMark: 100
         }));
     }, [skills]);
 
@@ -269,7 +269,7 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 12, fontWeight: 700 }} />
                                 {/* Add explicit domain to prevent Recharts from crashing on 0-values */}
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar name="Skills" dataKey="A" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.35} />
+                                <Radar name="Skills" dataKey="score" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.35} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
@@ -468,12 +468,15 @@ const AnalyticsTab = ({ supabaseData }: any) => {
 
     const skillData = React.useMemo(() => {
         if (skills.length === 0) return [];
-        return skills.map((s: any) => ({
-          subject: s.skill,
-          current: s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0),
-          target: Math.min(100, (s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0)) + 25),
-          fullMark: 100
-        }));
+        return skills.map((s: any) => {
+            const currentScore = s.current_score || 0;
+            return {
+                subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
+                current: currentScore,
+                target: Math.min(100, currentScore + 20),
+                fullMark: 100
+            };
+        });
     }, [skills]);
 
     const formatTimeAgo = (dateString: string) => {
