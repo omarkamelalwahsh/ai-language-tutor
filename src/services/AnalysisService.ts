@@ -30,8 +30,11 @@ export class AssessmentAnalysisService {
     const skillResults = {} as Record<SkillName, SkillAssessmentResult>;
     const ALL_SKILLS: SkillName[] = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
 
+    // 🛡️ Safety check: Ensure breakdown exists to prevent property access crash
+    const breakdown = outcome?.skillBreakdown || {};
+
     for (const skill of ALL_SKILLS) {
-      const engineSkill = outcome.skillBreakdown[skill as AssessmentSkill];
+      const engineSkill = breakdown[skill as AssessmentSkill];
       
       if (!engineSkill) {
         // Safe fallback for untested skills

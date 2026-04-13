@@ -223,7 +223,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DataContext.Provider value={{ 
       user, profile, assessmentResult, assessmentOutcome, taskResults, 
       onboardingState, isInitializing, isArchitecting, refreshTrigger,
-      refreshData, setSessionResult, setOnboarding, logout, clearAllData 
+      refreshData, setSessionResult, setOnboarding, logout, clearAllData,
+      updateProfileLocally
     }}>
       {children}
     </DataContext.Provider>
