@@ -224,32 +224,17 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const skills = supabaseData.skills || [];
     
     const skillData = useMemo(() => {
-        // 🛡️ Always include at least 4 core skills to ensure RadarChart renders a polygon
-        const BASE_SKILLS = ['Listening', 'Reading', 'Speaking', 'Writing'];
-        const dataMap: Record<string, any> = {};
+        // 🛡️ Bulletproof 6-Skill Order for Production Stability
+        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'vocabulary', 'grammar'];
         
-        BASE_SKILLS.forEach(s => {
-            dataMap[s.toLowerCase()] = { subject: s, score: 0, fullMark: 100 };
+        return skillOrder.map(skillName => {
+            const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
+            return {
+                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+                score: s ? s.masteryScore : 0, 
+                fullMark: 100
+            };
         });
-
-        if (skills && skills.length > 0) {
-            skills.forEach((s: any) => {
-                const key = (s.skill || '').toLowerCase();
-                // 🎯 Use normalized 0-100 masteryScore for accurate visualization
-                const val = s.masteryScore || 0;
-                if (dataMap[key]) {
-                    dataMap[key].score = val;
-                } else if (key) {
-                    dataMap[key] = { 
-                        subject: key.charAt(0).toUpperCase() + key.slice(1), 
-                        score: val,
-                        fullMark: 100 
-                    };
-                }
-            });
-        }
-        
-        return Object.values(dataMap);
     }, [skills]);
 
     return (
@@ -280,13 +265,21 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex-1 flex flex-col min-h-[450px]">
                     <h3 className="text-xl font-bold text-slate-900 mb-6">Mastery Distribution</h3>
                     <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
-                                <PolarGrid stroke="#f1f5f9" strokeDasharray="4 4" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 12, fontWeight: 700 }} />
-                                {/* Add explicit domain to prevent Recharts from crashing on 0-values */}
+                        <ResponsiveContainer width="100%" height={320}>
+                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
+                                <PolarGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
+                                {/* Explicit Domain [0, 100] is CRITICAL for accurate mapping */}
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar name="Skills" dataKey="score" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.35} />
+                                <Radar 
+                                    name="Mastery" 
+                                    dataKey="score" 
+                                    stroke="#f59e0b" 
+                                    strokeWidth={3} 
+                                    fill="#f59e0b" 
+                                    fillOpacity={0.4} 
+                                    animationDuration={1200}
+                                />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
@@ -483,34 +476,20 @@ const AnalyticsTab = ({ supabaseData }: any) => {
         return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
     }, [history, achievements]);
 
-    const skillData = React.useMemo(() => {
-        const BASE_SKILLS = ['Listening', 'Reading', 'Speaking', 'Writing'];
-        const dataMap: Record<string, any> = {};
+    const skillData = useMemo(() => {
+        // 🛡️ Bulletproof 6-Skill Order for Production Stability
+        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'vocabulary', 'grammar'];
         
-        BASE_SKILLS.forEach(s => {
-            dataMap[s.toLowerCase()] = { subject: s, current: 0, target: 20, fullMark: 100 };
+        return skillOrder.map(skillName => {
+            const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
+            const val = s ? s.masteryScore : 0;
+            return {
+                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+                current: val,
+                target: Math.min(100, val + 20),
+                fullMark: 100
+            };
         });
-
-        if (skills && skills.length > 0) {
-            skills.forEach((s: any) => {
-                const key = (s.skill || '').toLowerCase();
-                // 🎯 Use normalized 0-100 masteryScore for accurate visualization
-                const val = s.masteryScore || 0;
-                if (dataMap[key]) {
-                    dataMap[key].current = val;
-                    dataMap[key].target = Math.min(100, val + 20);
-                } else if (key) {
-                    dataMap[key] = {
-                        subject: key.charAt(0).toUpperCase() + key.slice(1),
-                        current: val,
-                        target: Math.min(100, val + 20),
-                        fullMark: 100
-                    };
-                }
-            });
-        }
-        
-        return Object.values(dataMap);
     }, [skills]);
 
     const formatTimeAgo = (dateString: string) => {
@@ -552,11 +531,11 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                            {skillData.length > 0 ? (
                              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                 <PolarGrid stroke="#f1f5f9" strokeDasharray="3 3"/>
-                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
+                                 <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3"/>
+                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
                                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#f8fafc" fillOpacity={0.4} />
-                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.25} />
+                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#f8fafc" fillOpacity={0.4} animationDuration={1000} />
+                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.25} animationDuration={1200} />
                                  <Tooltip 
                                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
                                     itemStyle={{ fontWeight: 'bold', fontSize: '12px', color: '#1e293b' }}
