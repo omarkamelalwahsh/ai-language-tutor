@@ -143,22 +143,23 @@ CRITICAL INSTRUCTIONS:
 
     // 4. Learning Journeys (Insert/Update Journey and Steps)
     if (finalReport.learning_journey && finalReport.learning_journey.nodes) {
-       // Check if journey exists
-       let journeyRes = await supabase.from('learning_journeys').select('id').eq('user_id', user_id).single();
-       let journeyId;
-       
-       if (journeyRes.data) {
-          journeyId = journeyRes.data.id;
-       } else {
-          const insertRes = await supabase.from('learning_journeys').insert({
+       console.log(`[Edge Function] Hydrating Learning Journey...`);
+       const { data: journey, error: jError } = await supabase
+          .from('learning_journeys')
+          .upsert({
              user_id: user_id,
              nodes: finalReport.learning_journey.nodes,
              current_node_id: finalReport.learning_journey.nodes.find((n:any)=>n.status==='current')?.id || 'step_1'
-          }).select('id').single();
-          if(insertRes.data) journeyId = insertRes.data.id;
+          }, { onConflict: 'user_id' })
+          .select('id')
+          .single();
+
+       if (jError) {
+          console.error(`[Edge Function] Journey Upsert Error: ${jError.message}`);
        }
 
-       if (journeyId) {
+       if (journey?.id) {
+          const journeyId = journey.id;
           // Clear old steps and insert new
           await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
           const stepsToInsert = finalReport.learning_journey.nodes.map((node: any, idx: number) => ({
