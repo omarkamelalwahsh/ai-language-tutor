@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Target, Compass, Zap, ArrowRight, PlayCircle, BookOpen, 
@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { AssessmentSessionResult } from '../types/assessment';
 import { JourneyService } from '../services/JourneyService';
-import { JourneyNode } from '../types/dashboard';
+import { JourneyNode, LearnerJourneyPayload } from '../types/dashboard';
+import { supabase } from '../lib/supabaseClient';
 
 interface LearningJourneyViewProps {
   result: AssessmentSessionResult;
@@ -35,7 +36,57 @@ const staggerItem = {
 };
 
 export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result, onStartSession, onViewDashboard }) => {
-  const journey = useMemo(() => JourneyService.buildJourney(result), [result]);
+  const staticJourney = useMemo(() => JourneyService.buildJourney(result), [result]);
+  const [journey, setJourney] = useState<LearnerJourneyPayload>(staticJourney);
+
+  // Fetch dynamic journey from Supabase if available
+  useEffect(() => {
+    const fetchDynamicJourney = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: journeyRow } = await supabase
+          .from('learning_journeys')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (journeyRow) {
+          const { data: steps } = await supabase
+            .from('journey_steps')
+            .select('*')
+            .eq('journey_id', journeyRow.id)
+            .order('order_index', { ascending: true });
+
+          const meta = journeyRow.metadata || {};
+          const nodes: JourneyNode[] = (steps || []).map((s: any) => ({
+            id: s.id,
+            type: s.skill_focus === 'remediation' ? 'task' : (s.icon_type === 'assessment' ? 'checkpoint' : 'task'),
+            status: s.status || 'locked',
+            title: s.title,
+            description: s.description || '',
+            iconType: s.icon_type || 'assessment',
+            estimatedDuration: undefined
+          }));
+
+          if (nodes.length > 0) {
+            setJourney({
+              currentStage: meta.current_stage || staticJourney.currentStage,
+              targetStage: meta.target_stage || staticJourney.targetStage,
+              journeyTitle: meta.journey_title || staticJourney.journeyTitle,
+              currentCapabilitiesSummary: staticJourney.currentCapabilitiesSummary,
+              targetCapabilitiesSummary: staticJourney.targetCapabilitiesSummary,
+              nodes
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[LearningJourneyView] Failed to fetch dynamic journey, using static:', err);
+      }
+    };
+    fetchDynamicJourney();
+  }, [staticJourney]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 selection:bg-indigo-500/30 font-sans text-slate-900 flex flex-col items-center">

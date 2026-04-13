@@ -60,6 +60,7 @@ export interface DashboardSupabaseData {
   persistedJourney: {
     nodes: any[];
     currentNodeId: string | null;
+    journeyTitle: string;
     updatedAt: string;
   } | null;
   isSyncing: boolean;
@@ -96,7 +97,7 @@ export const useSupabaseDashboard = () => {
       }
 
       // Fetch learner data in parallel (Joined Fetch for Profiles & Skills)
-      const [joinedRes, historyRes, achievementRes, journeyRes, stepsRes, skillsRes] = await Promise.all([
+      const [joinedRes, historyRes, achievementRes, journeyRes, stepsRes, skillsRes, errorProfileRes] = await Promise.all([
         supabase
           .from('learner_profiles')
           .select(`
@@ -132,17 +133,22 @@ export const useSupabaseDashboard = () => {
           .limit(10),
         supabase
           .from('learning_journeys')
-          .select('id, current_node_id, updated_at')
+          .select('id, current_node_id, metadata, nodes, updated_at')
           .eq('user_id', user.id)
           .maybeSingle(),
         supabase
           .from('journey_steps')
-          .select('id, journey_id, title, description, status, order_index, icon_type')
+          .select('id, journey_id, title, description, status, order_index, icon_type, skill_focus')
           .order('order_index', { ascending: true }),
         supabase
           .from(DB_SCHEMA.TABLES.SKILLS)
           .select(`skill, current_level, ${DB_SCHEMA.COLUMNS.SKILL_SCORE}, confidence, updated_at`)
+          .eq('user_id', user.id),
+        supabase
+          .from('user_error_profiles')
+          .select('weakness_areas, common_mistakes, action_plan, bridge_delta, bridge_percentage, full_report')
           .eq('user_id', user.id)
+          .maybeSingle()
       ]);
 
       // Circuit Breaker: If any critical fetch fails, signal sync state
@@ -206,13 +212,13 @@ export const useSupabaseDashboard = () => {
               description: w,
             }))
           : [],
-        errorProfile: profileData
+        errorProfile: errorProfileRes.data
           ? {
-              common_mistakes: [],
-              weakness_areas: profileData.focus_skills || [],
-              action_plan: profileData.learning_topics?.length ? `Focusing on: ${profileData.learning_topics.join(', ')}` : "Generating your path...",
-              bridge_delta: undefined,
-              bridge_percentage: undefined,
+              common_mistakes: errorProfileRes.data.common_mistakes || [],
+              weakness_areas: errorProfileRes.data.weakness_areas || [],
+              action_plan: errorProfileRes.data.action_plan || "Generating your path...",
+              bridge_delta: errorProfileRes.data.bridge_delta,
+              bridge_percentage: errorProfileRes.data.bridge_percentage,
             }
           : { weakness_areas: [], common_mistakes: [], action_plan: "" },
         achievements: achievementRes.data
@@ -230,9 +236,11 @@ export const useSupabaseDashboard = () => {
             description: s.description,
             status: s.status,
             orderIndex: s.order_index,
-            iconType: s.icon_type
+            iconType: s.icon_type,
+            skillFocus: (s as any).skill_focus
           })),
           currentNodeId: journeyData.current_node_id,
+          journeyTitle: journeyData.metadata?.journey_title || 'Bridge to Mastery',
           updatedAt: journeyData.updated_at,
         } : null,
         isSyncing: !!isSyncing,

@@ -90,9 +90,14 @@ export class JourneyService {
           .from('learning_journeys')
           .upsert({
             user_id: user.id,
-            journey_title: resultPayload.journeyTitle,
-            current_stage: resultPayload.currentStage,
-            target_stage: resultPayload.targetStage,
+            nodes: resultPayload.nodes,
+            current_node_id: resultPayload.nodes[0]?.id || 'start',
+            metadata: {
+              journey_title: resultPayload.journeyTitle,
+              current_stage: resultPayload.currentStage,
+              target_stage: resultPayload.targetStage,
+              generated_at: new Date().toISOString()
+            },
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' })
           .select()

@@ -149,7 +149,12 @@ CRITICAL INSTRUCTIONS:
           .upsert({
              user_id: user_id,
              nodes: finalReport.learning_journey.nodes,
-             current_node_id: finalReport.learning_journey.nodes.find((n:any)=>n.status==='current')?.id || 'step_1'
+             current_node_id: finalReport.learning_journey.nodes.find((n:any)=>n.status==='current')?.id || 'step_1',
+             metadata: {
+               overall_level: finalReport.learner_profile?.overall_level || 'B1',
+               generated_at: new Date().toISOString()
+             },
+             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' })
           .select('id')
           .single();
@@ -165,9 +170,11 @@ CRITICAL INSTRUCTIONS:
           const stepsToInsert = finalReport.learning_journey.nodes.map((node: any, idx: number) => ({
              journey_id: journeyId,
              title: node.title,
-             description: node.title, // or any description if provided
-             order_index: idx + 1,
+             description: node.description || node.title,
+             order_index: idx,
              status: node.status,
+             icon_type: node.icon_type || node.iconType || 'map-pin',
+             skill_focus: node.skill_focus || node.skill || 'general',
              is_locked: node.status === 'locked'
           }));
           await supabase.from('journey_steps').insert(stepsToInsert);
