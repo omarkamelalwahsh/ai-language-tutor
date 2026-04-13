@@ -221,29 +221,34 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const points = profile.points || 0;
 
     const skillData: SkillData[] = useMemo(() => {
-        let sourceSkills: any[] = [];
-        if (supabaseData.skills?.length > 0) {
-            sourceSkills = supabaseData.skills;
-        } else if (assessmentOutcome?.skillBreakdown) {
-            sourceSkills = Object.keys(assessmentOutcome.skillBreakdown).map(k => ({
-                skillId: k.toLowerCase(),
-                skill: k,
-                masteryScore: (assessmentOutcome.skillBreakdown[k].score || 0) * 100
-            }));
-        }
+        let sourceMap: Record<string, any> = {};
         
-        // Final Fallback: If still empty, show placeholders for visual consistency
-        if (sourceSkills.length === 0) {
-            return ['Reading', 'Listening', 'Speaking', 'Writing'].map(s => ({
-                subject: s,
-                A: 0,
-                B: 20,
-                fullMark: 100
-            }));
+        // Base mapping to ensure Recharts always has 4 points to draw a polygon
+        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
+        CORE_SKILLS.forEach(skill => {
+            sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
+        });
+
+        // Overlay actual user data
+        if (supabaseData.skills?.length > 0) {
+            supabaseData.skills.forEach((s: any) => {
+                const sKey = (s.skillId || s.skill || '').toLowerCase();
+                if (sKey) sourceMap[sKey] = s;
+            });
+        } else if (assessmentOutcome?.skillBreakdown) {
+            Object.keys(assessmentOutcome.skillBreakdown).forEach(k => {
+                const sKey = k.toLowerCase();
+                sourceMap[sKey] = {
+                    skillId: sKey,
+                    skill: k,
+                    masteryScore: (assessmentOutcome.skillBreakdown[k].score || 0) * 100
+                };
+            });
         }
 
-        return sourceSkills.map((s: any) => ({
-            subject: (s.skillId || s.skill || 'Skill').charAt(0).toUpperCase() + (s.skillId || s.skill || 'Skill').slice(1).toLowerCase(),
+        // Return matched array (ensuring >3 points)
+        return Object.values(sourceMap).map((s: any) => ({
+            subject: (s.skill || s.skillId || 'Skill').charAt(0).toUpperCase() + (s.skill || s.skillId || 'Skill').slice(1).toLowerCase(),
             A: s.masteryScore || 0,
             B: Math.min(100, (s.masteryScore || 0) + 20),
             fullMark: 100
@@ -458,13 +463,22 @@ const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) =
     const hasData = (weaknesses || []).length > 0 || (supabaseData.skills || []).length > 0;
 
     const skillData = React.useMemo(() => {
-        const skills = (supabaseData.skills || []).length > 0 ? supabaseData.skills : [
-            { skillId: 'Speaking', masteryScore: 78 },
-            { skillId: 'Reading', masteryScore: 42 },
-            { skillId: 'Writing', masteryScore: 65 },
-            { skillId: 'Listening', masteryScore: 85 },
-        ];
-        return skills.map((s: any) => ({
+        let sourceMap: Record<string, any> = {};
+        
+        // Base mapping to ensure Recharts always has 4 points
+        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
+        CORE_SKILLS.forEach(skill => {
+            sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
+        });
+
+        if ((supabaseData.skills || []).length > 0) {
+            supabaseData.skills.forEach((s: any) => {
+                const sKey = (s.skillId || s.skill || '').toLowerCase();
+                if (sKey) sourceMap[sKey] = s;
+            });
+        }
+        
+        return Object.values(sourceMap).map((s: any) => ({
           subject: (s.skillId || s.skill || 'Skill').charAt(0).toUpperCase() + (s.skillId || s.skill || 'Skill').slice(1).toLowerCase(),
           A: s.masteryScore || 0,
           B: Math.min(100, (s.masteryScore || 0) * 1.3), 
