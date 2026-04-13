@@ -151,9 +151,9 @@ export class AssessmentSaveService {
   }
 
   /**
-   * VISIBLE SEQUENTIAL LOGGER: Reverted to awaited call to ensure Network Tab visibility.
+   * LIGHTNING LOGGER: Non-blocking Fire-and-Forget orchestration.
    */
-  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
+  public static log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
     const finalUserId = userId || this.cachedUserId;
     
     const payload = {
@@ -169,28 +169,28 @@ export class AssessmentSaveService {
       created_at: new Date().toISOString()
     };
 
-    try {
-      if (!payload.user_id) {
-        const resolvedId = await this.getAuthenticatedUserIdSafe();
-        payload.user_id = resolvedId;
-      }
+    // 🚀 FIRE AND FORGET: Clear the path for the next question instantly
+    (async () => {
+      try {
+        if (!payload.user_id) {
+          const resolvedId = await this.getAuthenticatedUserIdSafe();
+          payload.user_id = resolvedId;
+        }
 
-      console.log(`📤 [AssessmentSave] Recording: ${task.id}`);
-      const { error } = await supabase.from('assessment_logs').insert(payload);
-      
-      if (error) {
-        console.warn("[AssessmentSave] Save failed, buffering...", error);
+        const { error } = await supabase.from('assessment_logs').insert(payload);
+        if (error) {
+          console.warn("[AssessmentSave] Background save failed, buffering...", error);
+          this.saveToLocalBuffer(payload);
+        } else {
+          console.log(`✅ [AssessmentSave] Recorded in background: ${task.id}`);
+        }
+      } catch (err) {
         this.saveToLocalBuffer(payload);
-        return { status: 'buffered', error };
       }
+    })();
 
-      console.log(`✅ [AssessmentSave] Logged: ${task.id}`);
-      return { status: 'success' };
-    } catch (err) {
-      console.error("🔥 [AssessmentSave] Error:", err);
-      this.saveToLocalBuffer(payload);
-      return { status: 'error', error: err };
-    }
+    // ⚡ RETURN INSTANTLY
+    return { status: 'background_submitted' };
   }
 
 
