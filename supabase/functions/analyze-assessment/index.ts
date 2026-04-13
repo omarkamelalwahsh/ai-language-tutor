@@ -119,14 +119,14 @@ CRITICAL INSTRUCTIONS:
     // 2. Skill States Upsert
     if (finalReport.skill_breakdown && Array.isArray(finalReport.skill_breakdown)) {
        for (const skill of finalReport.skill_breakdown) {
-          await supabase.from('skill_states').upsert({
-             user_id: user_id,
-             skill: skill.skill,
-             current_level: skill.level,
-             current_score: skill.score,
-             confidence: Math.min(skill.score / 100, 1),
-             updated_at: new Date()
-          }, { onConflict: 'user_id, skill' });
+           await supabase.from('skill_states').upsert({
+              user_id: user_id,
+              skill: (skill.skill || '').toLowerCase(),
+              current_level: skill.level,
+              current_score: Math.round((skill.score > 1 ? skill.score : skill.score * 100) * 100),
+              confidence: skill.score > 1 ? skill.score / 100 : skill.score,
+              updated_at: new Date()
+           }, { onConflict: 'user_id, skill' });
        }
     }
 

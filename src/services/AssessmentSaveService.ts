@@ -254,15 +254,18 @@ export class AssessmentSaveService {
       }));
 
       // C. skill_states (Performance Upsert)
-      const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => ({
-        user_id: userId,
-        skill: skillKey,
-        current_level: outcome.skillBreakdown[skillKey].band,
-        current_score: outcome.skillBreakdown[skillKey].score,
-        confidence: outcome.skillBreakdown[skillKey].confidence,
-        last_tested: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }));
+      const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillName => {
+        const skillKey = skillName.toLowerCase();
+        return {
+          user_id: userId,
+          skill: skillKey,
+          current_level: outcome.skillBreakdown[skillName].band,
+          current_score: outcome.skillBreakdown[skillName].score,
+          confidence: outcome.skillBreakdown[skillName].confidence,
+          last_tested: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+      });
 
       // EXECUTION (Sequential Orchestration)
       console.log("🟠 Executing Sequential Inserts...");
@@ -365,8 +368,7 @@ export class AssessmentSaveService {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'apikey': supabaseAnonKey!,
-          'x-supabase-auth': token
+          'apikey': supabaseAnonKey!
         },
         body: JSON.stringify({
           user_id: userId,
@@ -407,7 +409,7 @@ export class AssessmentSaveService {
         .upsert(
           {
             user_id: userId,
-            skill: skillName || 'unknown',
+            skill: (skillName || 'unknown').toLowerCase(),
             current_score: Math.round((confidence || 0.5) * 10000),
             confidence: confidence ?? 0.5,
             current_level: resolvedLevel,

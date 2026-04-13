@@ -221,16 +221,25 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const points = profile.points || 0;
 
     const skillData: SkillData[] = useMemo(() => {
-        let sourceSkills = [];
+        let sourceSkills: any[] = [];
         if (supabaseData.skills?.length > 0) {
             sourceSkills = supabaseData.skills;
         } else if (assessmentOutcome?.skillBreakdown) {
-            sourceSkills = Object.entries(assessmentOutcome.skillBreakdown).map(([id, data]: [string, any]) => ({
-                skillId: id,
-                masteryScore: Math.round((data.score || 0) * 100),
+            sourceSkills = Object.keys(assessmentOutcome.skillBreakdown).map(k => ({
+                skillId: k.toLowerCase(),
+                skill: k,
+                masteryScore: (assessmentOutcome.skillBreakdown[k].score || 0) * 100
             }));
-        } else {
-            sourceSkills = ['Speaking', 'Reading', 'Writing', 'Listening'].map(s => ({ skillId: s, masteryScore: 0 }));
+        }
+        
+        // Final Fallback: If still empty, show placeholders for visual consistency
+        if (sourceSkills.length === 0) {
+            return ['Reading', 'Listening', 'Speaking', 'Writing'].map(s => ({
+                subject: s,
+                A: 0,
+                B: 20,
+                fullMark: 100
+            }));
         }
 
         return sourceSkills.map((s: any) => ({

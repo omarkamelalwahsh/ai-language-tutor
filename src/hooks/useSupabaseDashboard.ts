@@ -184,16 +184,22 @@ export const useSupabaseDashboard = () => {
             }
           : null,
         skills: (skillsData || []).map((s: any) => {
-          const mScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ? (s[DB_SCHEMA.COLUMNS.SKILL_SCORE] / 100) : ((s.confidence || 0) * 100);
-          const sName = s.skill || 'Unknown';
+          // Robust Scaling: If score is very small (< 1), it might be a raw decimal confidence
+          // If score is 1-100, use as is. If > 100, it's our 0-10000 range.
+          const rawScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || (s.confidence * 100) || 0;
+          const mScore = rawScore > 100 ? (rawScore / 100) : rawScore;
+          
+          const sNameRaw = s.skill || 'Unknown';
+          const sNameNorm = sNameRaw.charAt(0).toUpperCase() + sNameRaw.slice(1).toLowerCase(); // Display as PascalCase
+
           return {
-            skill: sName,
-            skillId: sName,
-            subject: sName,
+            skill: sNameNorm,
+            skillId: sNameRaw.toLowerCase(), // ID for internal logic
+            subject: sNameNorm,
             currentLevel: s.current_level || s.level || 'A1',
             overallLevel: s.current_level || s.level || 'A1',
-            confidence: typeof s.confidence === 'number' ? s.confidence : ((s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || 0) / 10000),
-            masteryScore: mScore,
+            confidence: typeof s.confidence === 'number' ? s.confidence : (mScore / 100),
+            masteryScore: Math.min(100, Math.max(0, mScore)),
             status: mScore > 70 ? 'stable' : 'improving',
             evidenceCount: 5,
           };
