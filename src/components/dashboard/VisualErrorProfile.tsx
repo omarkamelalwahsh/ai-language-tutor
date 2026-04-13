@@ -13,17 +13,20 @@ interface ErrorAnalysisRow {
 }
 
 export const VisualErrorProfile = () => {
-  const { refreshTrigger } = useData();
+  const { user, refreshTrigger } = useData();
   const [data, setData] = useState<ErrorAnalysisRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchErrorAnalysis = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
+        setLoading(true);
         // Fetch using the json structure: id, created_at, category, is_correct
         const { data: analysis, error: fetchError } = await supabase
           .from('user_error_analysis')
@@ -38,6 +41,8 @@ export const VisualErrorProfile = () => {
             reading: { total: 0, mistakes: 0 },
             speaking: { total: 0, mistakes: 0 },
             writing: { total: 0, mistakes: 0 },
+            grammar: { total: 0, mistakes: 0 },
+            vocabulary: { total: 0, mistakes: 0 },
           };
 
           analysis.forEach(row => {
@@ -75,7 +80,7 @@ export const VisualErrorProfile = () => {
     };
 
     fetchErrorAnalysis();
-  }, [refreshTrigger]);
+  }, [user?.id, refreshTrigger]);
 
   if (loading) {
     return (

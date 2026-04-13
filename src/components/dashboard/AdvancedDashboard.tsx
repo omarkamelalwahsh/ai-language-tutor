@@ -222,8 +222,8 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const points = profile.points || 0;
 
     const skillData: SkillData[] = useMemo(() => {
-        // Base mapping to ensure Recharts always has 4 points to draw a polygon
-        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
+        // Base mapping to ensure Recharts always has 5 points to draw a polygon
+        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening', 'Grammar'];
         const sourceMap: Record<string, { skill: string; masteryScore: number }> = {};
         
         CORE_SKILLS.forEach(skill => {

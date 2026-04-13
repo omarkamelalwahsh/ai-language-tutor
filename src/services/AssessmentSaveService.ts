@@ -68,6 +68,20 @@ export class AssessmentSaveService {
   }
 
   /**
+   * Utility to map raw skill tags (e.g. 'speaking-1') to canonical categories.
+   */
+  private static toCanonicalSkill(skillRaw: string): string {
+    const s = (skillRaw || '').toLowerCase();
+    if (s.includes('speak')) return 'speaking';
+    if (s.includes('read')) return 'reading';
+    if (s.includes('writ')) return 'writing';
+    if (s.includes('listen')) return 'listening';
+    if (s.includes('vocab') || s.includes('word')) return 'vocabulary';
+    if (s.includes('gramm')) return 'grammar';
+    return s;
+  }
+
+  /**
    * JOURNEY FACTORY: Generates initial nodes based on CEFR level.
    * Total 36 nodes (6 per level).
    */
@@ -237,14 +251,14 @@ export class AssessmentSaveService {
         user_answer: h.answer,
         score: h.score !== undefined ? h.score : (h.isCorrect ? 1 : 0),
         is_correct: h.isCorrect ?? (h as any).correct,
-        skill: h.skill,
+        skill: this.toCanonicalSkill(h.skill),
         created_at: h.timestamp || new Date().toISOString()
       }));
 
       // B. user_error_analysis (Incorrect ONLY)
       const errorAnalysisPayload = history.filter(h => !(h.isCorrect ?? (h as any).correct)).map(h => ({
         user_id: userId,
-        category: h.skill,
+        category: this.toCanonicalSkill(h.skill),
         user_answer: h.answer,
         correct_answer: h.correctAnswer || '',
         is_correct: false,

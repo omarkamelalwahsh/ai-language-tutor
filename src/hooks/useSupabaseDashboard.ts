@@ -204,13 +204,22 @@ export const useSupabaseDashboard = () => {
           mScore = Math.min(100, Math.max(0, mScore));
 
           // 🎯 Skill Name Normalization: DB stores lowercase, UI needs Title Case
-          const sNameRaw = s.skill || 'unknown';
-          const sNameNorm = sNameRaw.charAt(0).toUpperCase() + sNameRaw.slice(1).toLowerCase();
+          const sNameRaw = (s.skill || 'unknown').toLowerCase();
+          
+          let sNameNorm = sNameRaw;
+          if (sNameRaw.includes('speak')) sNameNorm = 'speaking';
+          else if (sNameRaw.includes('read')) sNameNorm = 'reading';
+          else if (sNameRaw.includes('writ')) sNameNorm = 'writing';
+          else if (sNameRaw.includes('listen')) sNameNorm = 'listening';
+          else if (sNameRaw.includes('vocab')) sNameNorm = 'vocabulary';
+          else if (sNameRaw.includes('gramm')) sNameNorm = 'grammar';
+
+          const titleCase = sNameNorm.charAt(0).toUpperCase() + sNameNorm.slice(1);
 
           return {
-            id: s.id || `skill-${sNameRaw.toLowerCase()}`,
-            skill: sNameNorm,
-            skillId: sNameRaw.toLowerCase(),
+            id: s.id || `skill-${sNameNorm}`,
+            skill: titleCase,
+            skillId: sNameNorm,
             subject: sNameNorm,
             currentLevel: s.current_level || s.level || 'A1',
             overallLevel: s.current_level || s.level || 'A1',

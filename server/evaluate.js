@@ -478,29 +478,65 @@ app.post('/api/assessments/complete', async (req, res) => {
 });
 
 app.get('/api/assessments/:id/responses', async (req, res) => {
-  const { id } = req.params;
+  let { id } = req.params;
+  const userId = req.query.userId || (req.user ? req.user.id : null);
   
   try {
-     // Fetch the assessment metadata
+     // 1. Resolve 'latest' if needed
+     if (id === 'latest') {
+       if (!userId) return res.status(400).json({ error: "userId is required to resolve 'latest' assessment." });
+       const { data: latestAsmt, error: lError } = await supabase
+         .from('assessments')
+         .select('id')
+         .eq('user_id', userId)
+         .order('created_at', { ascending: false })
+         .limit(1)
+         .single();
+       
+       if (lError || !latestAsmt) throw new Error("No previous assessment found for this user.");
+       id = latestAsmt.id;
+     }
+
+     // 2. Fetch the assessment metadata
      const { data: assessmentData } = await supabase
        .from('assessments')
        .select('*')
        .eq('id', id)
        .single();
 
-     // Fetch all linked responses
-     const { data: responsesData } = await supabase
+     // 3. Fetch all linked responses with joined question text
+     // NOTE: We assume 'question_id' in responses matches 'id' in bank. 
+     // We also fetch stimulus/prompt from the bank.
+     const { data: responsesData, error: rError } = await supabase
        .from('assessment_responses')
-       .select('question_id, user_answer, is_correct, cefr_level, ai_feedback_text, skill')
+       .select(`
+         id,
+         question_id,
+         user_answer,
+         is_correct,
+         cefr_level,
+         ai_feedback_text,
+         skill,
+         question_bank_items (
+           prompt,
+           stimulus
+         )
+       `)
        .eq('assessment_id', id);
+
+     if (rError) throw rError;
 
      return res.status(200).json({
         assessment: assessmentData,
-        responses: responsesData || []
+        responses: (responsesData || []).map(r => ({
+          ...r,
+          prompt: r.question_bank_items?.prompt || null,
+          stimulus: r.question_bank_items?.stimulus || null
+        }))
      });
   } catch (err) {
-    console.error('[Server Error] Fetch Responses crash:', err);
-    res.status(500).json({ error: 'Could not fetch assessment report' });
+     console.error('[Server Error] Fetch Responses crash:', err);
+     res.status(500).json({ error: err.message || 'Could not fetch assessment report' });
   }
 });
 

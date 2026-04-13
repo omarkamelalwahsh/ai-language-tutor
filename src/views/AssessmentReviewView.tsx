@@ -5,6 +5,7 @@ import {
   ArrowLeft, CheckCircle2, XCircle, BrainCircuit, Mic, PenTool, Headphones, BookOpen, AlertCircle, AlertTriangle, MessageSquare
 } from 'lucide-react';
 import { TaskEvaluation } from '../types/assessment';
+import { useData } from '../context/DataContext';
 
 interface ExternalResponse {
   question_id: string;
@@ -42,16 +43,22 @@ const getBadgeColor = (level?: string) => {
 
 export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ evaluations, assessmentId, onBack }) => {
   const navigate = useNavigate();
+  const { user } = useData();
   const [dbResponses, setDbResponses] = useState<ExternalResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [useLocal, setUseLocal] = useState(true);
+  const [useLocal, setUseLocal] = useState(!assessmentId || assessmentId === 'latest');
 
   useEffect(() => {
     if (assessmentId) {
       const fetchDb = async () => {
         setIsLoading(true);
         try {
-          const res = await fetch(`/api/assessments/${assessmentId}/responses`);
+          // Pass userId if latest is requested
+          const url = assessmentId === 'latest' 
+            ? `/api/assessments/latest/responses?userId=${user?.id}`
+            : `/api/assessments/${assessmentId}/responses`;
+
+          const res = await fetch(url);
           if (res.ok) {
             const data = await res.json();
             if (data.responses && data.responses.length > 0) {
@@ -65,9 +72,13 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
           setIsLoading(false);
         }
       };
-      fetchDb();
+      
+      // Only fetch if we have an ID or we are resolving the latest for a user
+      if (assessmentId !== 'latest' || user?.id) {
+        fetchDb();
+      }
     }
-  }, [assessmentId]);
+  }, [assessmentId, user?.id]);
 
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -159,10 +170,15 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                 {/* Detailed Analysis Area */}
                 <div className="p-6 md:p-8 space-y-6">
                    
-                   {item.prompt && (
-                     <div className="space-y-2">
+                   {(item.prompt || (item as any).stimulus) && (
+                     <div className="space-y-3">
                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Question Context</p>
-                       <p className="text-slate-800 font-bold text-lg leading-snug">{item.prompt}</p>
+                       {(item as any).stimulus && (
+                         <div className="p-4 bg-slate-50 border-l-4 border-slate-300 rounded-r-xl text-slate-600 text-sm italic mb-2 italic">
+                           { (item as any).stimulus }
+                         </div>
+                       )}
+                       {item.prompt && <p className="text-slate-800 font-bold text-lg leading-snug">{item.prompt}</p>}
                      </div>
                    )}
 

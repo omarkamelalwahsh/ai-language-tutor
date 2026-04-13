@@ -310,7 +310,7 @@ function AppRoutes() {
             <ProtectedRoute>
               <AssessmentReviewView 
                 evaluations={taskResults}
-                assessmentId={window.location.pathname.split('/').pop() === 'latest' ? undefined : window.location.pathname.split('/').pop()}
+                assessmentId={window.location.pathname.split('/').pop()}
                 onBack={() => navigate(-1)}
               />
             </ProtectedRoute>
