@@ -122,48 +122,48 @@ export class AssessmentSaveService {
     return true;
   }
 
-  static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
-    // Non-blocking fire-and-forget save to keep the UI fluid
-    (async () => {
-      console.log(`📤 [AssessmentSave] Background save triggered for Q: ${task.id}`);
-      try {
-        let finalUserId = userId;
-        if (!finalUserId) {
-          const { data: { user } } = await supabase.auth.getUser();
-          finalUserId = user?.id;
-        }
-        
-        if (!finalUserId) return;
-
-        const payload = {
-          user_id: finalUserId,
-          question_id: String(task.id),
-          question: task.prompt,
-          answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-          user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-          correct_answer: task.correctAnswer || '',
-          is_correct: evaluation.is_correct || false,
-          category: task.skill || "vocabulary",
-          score: evaluation.score || 0,
-          evaluation_metadata: evaluation,
-          created_at: new Date().toISOString()
-        };
-
-        // We do NOT await this in the main thread to prevent the 'stuck' UI
-        const { error } = await supabase.from('assessment_logs').insert(payload);
-        if (error) {
-          console.warn("[AssessmentSave] Background save failed, buffering locally...", error);
-          this.saveToLocalBuffer(payload);
-        } else {
-          console.log("✅ [AssessmentSave] Background save success.");
-        }
-      } catch (err) {
-        console.error("🔥 [AssessmentSave] Background error:", err);
+  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
+    console.log(`📤 [AssessmentSave] Log triggered for Q: ${task.id}`);
+    try {
+      let finalUserId = userId;
+      if (!finalUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        finalUserId = user?.id;
       }
-    })();
+      
+      if (!finalUserId) {
+        console.warn("[AssessmentSave] User session missing, skipping log.");
+        return { status: 'skipped_no_user' };
+      }
 
-    // Always return immediately to allow navigation
-    return { status: 'background_processing' };
+      const payload = {
+        user_id: finalUserId,
+        question_id: String(task.id),
+        question: task.prompt,
+        answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+        correct_answer: task.correctAnswer || '',
+        is_correct: evaluation.is_correct || false,
+        category: task.skill || "vocabulary",
+        score: evaluation.score || 0,
+        evaluation_metadata: evaluation,
+        created_at: new Date().toISOString()
+      };
+
+      // Sequential Insert (Awaited for reliability)
+      const { error } = await supabase.from('assessment_logs').insert(payload);
+      if (error) {
+        console.warn("[AssessmentSave] Save failed, buffering locally...", error);
+        this.saveToLocalBuffer(payload);
+        return { status: 'buffered', error };
+      } else {
+        console.log("✅ [AssessmentSave] Save success.");
+        return { status: 'success' };
+      }
+    } catch (err) {
+      console.error("🔥 [AssessmentSave] Log error:", err);
+      return { status: 'error', error: err };
+    }
   }
 
 

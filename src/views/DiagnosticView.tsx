@@ -158,8 +158,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       try {
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        // FIRE AND FORGET: Save to database without blocking the UI
-        AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
+        // SEQUENTIAL SAVE: Ensure data is recorded before moving to next question
+        await AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
         
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
