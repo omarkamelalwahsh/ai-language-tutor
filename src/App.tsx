@@ -116,6 +116,16 @@ function AppRoutes() {
     isArchitecting, logout, refreshData, devModeActive, clearAllData
   } = useData() as any;
 
+  React.useEffect(() => {
+    if (user) {
+      // ⚡ LIGHTNING AUTH: Warm up the session cache early
+      (async () => {
+        const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+        await AssessmentSaveService.warmupAuth();
+      })();
+    }
+  }, [user]);
+
 
   const handleLogout = async () => {
     try {
@@ -136,43 +146,48 @@ function AppRoutes() {
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
   const handleAssessmentSave = async (history: any, outcome: any, evaluations: any) => {
-    try {
-      // 1. Atomically Persist results to DB (Updates Level, Skills, and History)
-      const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
-      const { AssessmentAnalysisService } = await import('./services/AnalysisService');
-      
-      await AssessmentSaveService.saveAssessmentComprehensive({
-        userId: user?.id,
-        history,
-        outcome,
-        evaluations
-      });
+    // ⚡ LIGHTNING RELEASE: Immediately populate local context for the Results View
+    const { AssessmentAnalysisService } = await import('./services/AnalysisService');
+    const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
+      outcome,
+      user?.id || 'anonymous',
+      'diagnostic_session',
+    );
 
-      const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
-        outcome,
-        user?.id || 'anonymous',
-        'diagnostic_session',
-      );
+    // 1. Sync local context (ResultAnalysisView reads from here)
+    setSessionResult(computedSessionResult, outcome, history);
 
-      // 2. Persist session data locally for immediate UI response
-      // We pass computedSessionResult so that ResultAnalysisView doesn't crash on .skills undefined
-      await setSessionResult(computedSessionResult, outcome, history);
-      
-      // 3. Re-fetch profile to sync the new Level and Onboarding status
-      await refreshData();
-      
-      // 4. Force a small delay to ensure React state commits the new profile
-      // before router starts rendering the dashboard/results view.
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
-      // 5. Frontend Guarantee: Navigate to Results View to prevent "Pending" state
-      console.log('[AppRoutes] 🚀 Finalizing with Frontend Guarantee redirect to Results...');
-      navigate('/diagnostic/results', { replace: true });
-    } catch (error) {
-      console.error('[AppRoutes] Assessment save failed:', error);
-      // Fallback redirect
-      navigate('/dashboard', { replace: true });
-    }
+    // 2. IMMEDIATE REDIRECT: Don't wait for DB latency
+    console.log('[App] 🚀 Optimistic Redirect to Results...');
+    navigate('/diagnostic/results', { replace: true });
+
+    // 3. BACKGROUND ORCHESTRATION: Handle persistence without blocking the user
+    (async () => {
+      try {
+        const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+        
+        console.log('[App] ☁️ Starting Background Deep Analysis (Model B)...');
+        // 🚀 Parallel execution of Grok Analysis and initial sync preparation
+        const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
+            console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
+            return null;
+        });
+
+        console.log('[App] ☁️ Starting Background Persistence Sync...');
+        await AssessmentSaveService.saveAssessmentComprehensive({
+          userId: user?.id,
+          history,
+          outcome: { ...outcome, aiAnalysis: deepAnalysis }, // Merge Grok analysis
+          evaluations
+        });
+
+        // Sync the global profile state once the DB is settled
+        await refreshData();
+        console.log('[App] ✅ Background Sync & Profile Refresh Complete.');
+      } catch (err) {
+        console.error('[App] ❌ Background Sync Error:', err);
+      }
+    })();
   };
 
   return (

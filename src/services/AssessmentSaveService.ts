@@ -4,14 +4,42 @@ import { withRetry } from '../lib/utils';
 
 
 export class AssessmentSaveService {
+  private static cachedUserId: string | null = null;
+  private static cachedToken: string | null = null;
+
+  /**
+   * Warm up the Auth cache to eliminate 500ms+ latency during assessment.
+   */
+  public static async warmupAuth(): Promise<string | null> {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!error && user) {
+        this.cachedUserId = user.id;
+        
+        // Warm up the token for Edge Function calls (Model B / Grok)
+        const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+        this.cachedToken = authStorage ? JSON.parse(authStorage)?.access_token : null;
+        
+        console.log("⚡ [AuthCache] Session warmed up and cached.");
+        return user.id;
+      }
+    } catch (e) {
+      console.warn("⚠️ [AuthCache] Warmup failed:", e);
+    }
+    return null;
+  }
+
   /**
    * Helper to ensure valid user session before DB interaction.
    */
   public static async getAuthenticatedUserIdSafe(): Promise<string> {
+    if (this.cachedUserId) return this.cachedUserId;
+    
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
       throw new Error(`Auth context missing: ${error?.message || 'No user session'}`);
     }
+    this.cachedUserId = user.id;
     return user.id;
   }
 
@@ -122,48 +150,49 @@ export class AssessmentSaveService {
     return true;
   }
 
+  /**
+   * OPTIMISTIC LOGGER: Fires to DB in background but returns instantly.
+   */
   public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
-    console.log(`📤 [AssessmentSave] Log triggered for Q: ${task.id}`);
-    try {
-      let finalUserId = userId;
-      if (!finalUserId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        finalUserId = user?.id;
-      }
-      
-      if (!finalUserId) {
-        console.warn("[AssessmentSave] User session missing, skipping log.");
-        return { status: 'skipped_no_user' };
-      }
+    const finalUserId = userId || this.cachedUserId;
+    
+    // Capture data for background closure
+    const payload = {
+      user_id: finalUserId,
+      question_id: String(task.id),
+      question: task.prompt,
+      answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+      user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+      correct_answer: task.correctAnswer || '',
+      is_correct: evaluation.is_correct || false,
+      category: task.skill || "vocabulary",
+      score: evaluation.score || 0,
+      evaluation_metadata: evaluation,
+      created_at: new Date().toISOString()
+    };
 
-      const payload = {
-        user_id: finalUserId,
-        question_id: String(task.id),
-        question: task.prompt,
-        answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-        user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-        correct_answer: task.correctAnswer || '',
-        is_correct: evaluation.is_correct || false,
-        category: task.skill || "vocabulary",
-        score: evaluation.score || 0,
-        evaluation_metadata: evaluation,
-        created_at: new Date().toISOString()
-      };
+    // 🚀 FIRE AND FORGET (Non-blocking but traced)
+    (async () => {
+      try {
+        if (!payload.user_id) {
+          const resolvedId = await this.getAuthenticatedUserIdSafe();
+          payload.user_id = resolvedId;
+        }
 
-      // Sequential Insert (Awaited for reliability)
-      const { error } = await supabase.from('assessment_logs').insert(payload);
-      if (error) {
-        console.warn("[AssessmentSave] Save failed, buffering locally...", error);
+        const { error } = await supabase.from('assessment_logs').insert(payload);
+        if (error) {
+          console.warn("[LightningSave] Background save failed, buffering...", error);
+          this.saveToLocalBuffer(payload);
+        } else {
+          console.log(`✅ [LightningSave] Recorded: ${task.id}`);
+        }
+      } catch (err) {
         this.saveToLocalBuffer(payload);
-        return { status: 'buffered', error };
-      } else {
-        console.log("✅ [AssessmentSave] Save success.");
-        return { status: 'success' };
       }
-    } catch (err) {
-      console.error("🔥 [AssessmentSave] Log error:", err);
-      return { status: 'error', error: err };
-    }
+    })();
+
+    // ⚡ Return instantly to allow next question to render
+    return { status: 'background_submitted' };
   }
 
 
@@ -324,12 +353,14 @@ export class AssessmentSaveService {
    */
   public static async analyzeAssessmentRemote(history: AnswerRecord[]): Promise<any> {
     try {
-      const userId = await this.getAuthenticatedUserId();
-      console.log(`[AssessmentSave] ☁️ Triggering Deep Cloud Analysis for user: ${userId}`);
+      const userId = this.cachedUserId || await this.getAuthenticatedUserId();
+      console.log(`[AssessmentSave] ☁️ Triggering Deep Cloud Analysis (Model B) for: ${userId}`);
 
-      const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
-      const token = authStorage ? JSON.parse(authStorage)?.access_token : null;
-
+      const token = this.cachedToken || (() => {
+        const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
+        return authStorage ? JSON.parse(authStorage)?.access_token : null;
+      })();
+      
       if (!token) throw new Error("Authentication session expired.");
 
       const response = await fetch(`${supabaseUrl}/functions/v1/analyze-assessment`, {

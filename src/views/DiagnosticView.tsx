@@ -111,11 +111,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       const history = engine.getAnswerHistory();
       const evaluations = engine.getEvaluations();
 
-      console.log('[Diagnostic] ☁️ Launching Grok Analysis Layer...');
-      const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history);
-
-      // Pass all 3 artifacts to the orchestrator in App.tsx
-      await onSaveComplete(history, { ...academicOutcome, aiAnalysis: deepAnalysis }, evaluations);
+      // ⚡ LIGHTNING RELEASE: Pass raw data to App.tsx and let it handle the rest
+      await onSaveComplete(history, academicOutcome, evaluations);
     } catch (e) {
       console.error('[Diagnostic] ❌ Finalization aborted.', e);
       setSaveError('A critical failure occurred during AI analysis. Falling back to local scoring.');
@@ -158,8 +155,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       try {
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        // SEQUENTIAL SAVE: Ensure data is recorded before moving to next question
-        await AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
+        // ⚡ OPTIMISTIC LOGGING: Start save in background, don't wait for it
+        AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
         
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
