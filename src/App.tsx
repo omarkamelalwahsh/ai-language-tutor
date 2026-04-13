@@ -67,11 +67,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
 
+  // Redirect Fix Cache
+  const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
+  const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
   const isOnboardingComplete = profile?.onboarding_complete === true;
   
-  if (!isOnboardingComplete) {
+  if (!isOnboardingComplete && !hasCompletedAssessment) {
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
     if (!isAtAssessment) return <Navigate to="/onboarding" />;
+  }
+
+  // Block access to onboarding or diagnostic if assessment is already complete
+  if (hasCompletedAssessment) {
+    if (location === '/onboarding' || location === '/diagnostic' || location === '/diagnostic/intro') {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;
@@ -83,8 +93,12 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <LoadingScreen />;
   
   if (user) {
-    if (profile?.onboarding_complete === true) return <Navigate to="/dashboard" />;
-    return <Navigate to="/onboarding" />;
+    const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
+    const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
+
+    if (hasCompletedAssessment) return <Navigate to="/dashboard" replace />;
+    if (profile?.onboarding_complete === true) return <Navigate to="/diagnostic/intro" replace />;
+    return <Navigate to="/onboarding" replace />;
   }
   
   return <>{children}</>;
@@ -159,6 +173,7 @@ function AppRoutes() {
 
     // 2. OPTIMISTIC HYDRATION: Update local memory so pages aren't empty
     console.log('[App] 💧 Optimistically hydrating local state...');
+    localStorage.setItem('has_completed_assessment', 'true'); // Fast cache for routing
     setSessionResult(computedSessionResult, outcome, history);
     updateProfileLocally({
         onboarding_complete: true,

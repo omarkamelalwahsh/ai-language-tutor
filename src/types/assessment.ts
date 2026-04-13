@@ -366,6 +366,9 @@ export type AnswerRecord = {
   /** Model A Analysis */
   errorTag?: string;
   briefExplanation?: string;
+  /** Legacy fallbacks */
+  isCorrect?: boolean;
+  timestamp?: string;
 };
 
 export type AssessmentStability = "stable" | "emerging" | "fragile" | "insufficient_data";
@@ -475,6 +478,7 @@ export type AssessmentOutcome = {
     diagnosis_report: string;
     is_consistent: boolean;
   };
+  aiAnalysis?: any;
 };
 
 /** Legacy QuestionResult type (backward compat) */

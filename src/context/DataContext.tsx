@@ -157,7 +157,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile((prev: any) => ({ ...prev, ...updates }));
     // Also update local storage to survive simple refreshes
     if (profile) {
-      localStorage.setItem('cached_profile', JSON.stringify({ ...profile, ...updates }));
+      sessionStorage.setItem('cached_profile', JSON.stringify({ ...profile, ...updates }));
     }
   };
 
@@ -209,6 +209,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const { JourneyService } = await import('../services/JourneyService');
           const dynamicJourney = await JourneyService.generateDynamicJourney(assessmentResult);
+          
+          // Explicitly save the journey to DB after generation as architected
+          if (dynamicJourney && user?.id) {
+            await JourneyService.persistJourney(dynamicJourney, user.id);
+          }
         } catch (err) {
           console.error('[DataContext] Failed to architect dynamic journey:', err);
         } finally {

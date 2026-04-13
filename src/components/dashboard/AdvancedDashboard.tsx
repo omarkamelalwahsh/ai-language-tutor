@@ -216,7 +216,8 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
         ? dbLevel 
         : (outcomeLevel || 'A1');
 
-    const isCalculatingLevel = rawLevel === 'Pending' || (!dbLevel && profile.onboardingComplete);
+    const hasCompletedAssessment = profile.hasCompletedAssessment === true;
+    const isCalculatingLevel = rawLevel === 'Pending' || (!dbLevel && profile.onboardingComplete && !hasCompletedAssessment);
     const currentLevel = isCalculatingLevel ? 'Computing...' : rawLevel;
     const points = profile.points || 0;
 
@@ -312,7 +313,7 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                     <div className="space-y-4">
                         {(supabaseData.errorProfile?.weakness_areas || []).length > 0 ? (
                             supabaseData.errorProfile.weakness_areas.map((w: string, i: number) => (
-                                <div key={i} className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-center gap-3 group hover:bg-white hover:shadow-sm transition">
+                                <div key={`focus-${i}`} className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-center gap-3 group hover:bg-white hover:shadow-sm transition">
                                     <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-50">
                                         <Target size={14} className="group-hover:scale-110 transition-transform" />
                                     </div>
@@ -565,7 +566,7 @@ const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) =
                     <div className="space-y-6">
                         {(supabaseData.skills || []).length > 0 ? (
                            supabaseData.skills.map((skill: any) => (
-                            <div key={skill.skillId} className="border-b border-slate-100 pb-6 last:border-0 group/skill">
+                            <div key={skill.id} className="border-b border-slate-100 pb-6 last:border-0 group/skill">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/skill:bg-blue-50 group-hover/skill:text-blue-500 transition-colors border border-slate-100">

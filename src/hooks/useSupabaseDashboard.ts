@@ -12,6 +12,7 @@ export interface DashboardSupabaseData {
     overall_level: string;
     full_name: string;
     onboardingComplete: boolean;
+    hasCompletedAssessment: boolean;
     points: number;
     streak: number;
     pacingScore: number;
@@ -26,12 +27,14 @@ export interface DashboardSupabaseData {
     targetLanguage: string;
   } | null;
   skills: {
+    id: string;
     skill: string;
     currentLevel: string;
     confidence: number;
     skillId: string;
     masteryScore: number;
     evidenceCount: number;
+    updatedAt: string;
     isCapped?: boolean;
   }[];
   history: {
@@ -104,6 +107,7 @@ export const useSupabaseDashboard = () => {
             id, 
             ${DB_SCHEMA.COLUMNS.LEVEL}, 
             ${DB_SCHEMA.COLUMNS.ONBOARDING}, 
+            ${DB_SCHEMA.COLUMNS.HAS_COMPLETED},
             ${DB_SCHEMA.COLUMNS.POINTS}, 
             streak,
             pacing_score,
@@ -142,7 +146,7 @@ export const useSupabaseDashboard = () => {
           .order('order_index', { ascending: true }),
         supabase
           .from(DB_SCHEMA.TABLES.SKILLS)
-          .select(`skill, current_level, ${DB_SCHEMA.COLUMNS.SKILL_SCORE}, confidence, updated_at`)
+          .select(`id, skill, current_level, ${DB_SCHEMA.COLUMNS.SKILL_SCORE}, confidence, updated_at`)
           .eq('user_id', user.id),
         supabase
           .from('user_error_profiles')
@@ -169,6 +173,7 @@ export const useSupabaseDashboard = () => {
               overall_level: profileData[DB_SCHEMA.COLUMNS.LEVEL] || 'A1',
               full_name: profileData.full_name || 'Learner',
               onboardingComplete: profileData[DB_SCHEMA.COLUMNS.ONBOARDING] || false,
+              hasCompletedAssessment: profileData[DB_SCHEMA.COLUMNS.HAS_COMPLETED] || false,
               points: profileData[DB_SCHEMA.COLUMNS.POINTS] || 0,
               streak: profileData.streak || 0,
               pacingScore: profileData.pacing_score || 0,
@@ -184,26 +189,15 @@ export const useSupabaseDashboard = () => {
             }
           : null,
         skills: (skillsData || []).map((s: any) => {
-          // 🎯 Robust 3-Tier Score Normalization:
-          // The DB may contain current_score in 3 different ranges depending on the save path:
-          //   - 0-1 decimal  (from saveAssessmentComprehensive writing raw confidence)
-          //   - 1-100        (percentage, ideal range)
-          //   - 100-10000    (from updateSkillState using confidence * 10000)
+          // 🎯 Strict Score Normalization: DB stores 0-10000, UI expects 0-100
           const rawScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ?? null;
-          const fallbackScore = typeof s.confidence === 'number' ? s.confidence * 100 : 0;
           let mScore: number;
 
           if (rawScore === null || rawScore === undefined) {
-            mScore = fallbackScore;
-          } else if (rawScore <= 1 && rawScore > 0) {
-            // 0-1 decimal range → convert to percentage
-            mScore = rawScore * 100;
-          } else if (rawScore > 100) {
-            // 100-10000 backend precision range → convert to percentage
-            mScore = rawScore / 100;
+            mScore = typeof s.confidence === 'number' ? s.confidence * 100 : 0;
           } else {
-            // Already in 0-100 range
-            mScore = rawScore;
+            // Strictly divide by 100 (e.g. 8500 / 100 = 85)
+            mScore = rawScore / 100;
           }
 
           // Clamp to 0-100
@@ -214,6 +208,7 @@ export const useSupabaseDashboard = () => {
           const sNameNorm = sNameRaw.charAt(0).toUpperCase() + sNameRaw.slice(1).toLowerCase();
 
           return {
+            id: s.id || `skill-${sNameRaw.toLowerCase()}`,
             skill: sNameNorm,
             skillId: sNameRaw.toLowerCase(),
             subject: sNameNorm,
@@ -223,6 +218,7 @@ export const useSupabaseDashboard = () => {
             masteryScore: Math.round(mScore * 10) / 10,
             status: mScore > 70 ? 'stable' : 'improving',
             evidenceCount: 5,
+            updatedAt: s.updated_at || new Date().toISOString(),
           };
         }),
         history: historyRes.data

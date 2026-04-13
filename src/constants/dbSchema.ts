@@ -8,6 +8,7 @@ export const DB_SCHEMA = {
     LEVEL: 'overall_level',
     ONBOARDING: 'onboarding_complete', // المسمى المعتمد
     POINTS: 'points',
-    SKILL_SCORE: 'current_score'
+    SKILL_SCORE: 'current_score',
+    HAS_COMPLETED: 'has_completed_assessment'
   }
 } as const;

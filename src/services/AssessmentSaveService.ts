@@ -257,8 +257,8 @@ export class AssessmentSaveService {
        const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillName => {
          const skillKey = skillName.toLowerCase();
          const rawScore = outcome.skillBreakdown[skillName].score || 0;
-         // 🎯 Normalize to 0-10000 range for consistency with updateSkillState
-         const normalizedScore = rawScore <= 1 ? Math.round(rawScore * 10000) : (rawScore > 100 ? rawScore : Math.round(rawScore * 100));
+         // 🎯 Normalize cleanly: cast to 0-1, then strictly multiply by 10000
+         const normalizedScore = Math.round((rawScore > 1 ? rawScore / 100 : rawScore) * 10000);
          return {
            user_id: userId,
            skill: skillKey,
@@ -290,6 +290,7 @@ export class AssessmentSaveService {
           overall_level: (outcome as any).finalLevel || (outcome as any).overallBand || 'B1',
           points: (oldProfile?.points || 0) + ((outcome as any).pointsAwarded || 50),
           onboarding_complete: true,
+          has_completed_assessment: true,
           updated_at: new Date().toISOString()
         }).eq('id', userId),
         
@@ -498,8 +499,8 @@ export class AssessmentSaveService {
       // B. skill_states (Performance Mapping)
        const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => {
          const rawScore = outcome.skillBreakdown[skillKey].score || 0;
-         // 🎯 Normalize to 0-10000 range for consistency with updateSkillState
-         const normalizedScore = rawScore <= 1 ? Math.round(rawScore * 10000) : (rawScore > 100 ? rawScore : Math.round(rawScore * 100));
+         // 🎯 Normalize cleanly: cast to 0-1, then strictly multiply by 10000
+         const normalizedScore = Math.round((rawScore > 1 ? rawScore / 100 : rawScore) * 10000);
          return {
            user_id: userId,
            skill: skillKey.toLowerCase(),

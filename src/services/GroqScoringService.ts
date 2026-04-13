@@ -1,6 +1,5 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
 
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY || ""; 
 const MODEL_A = "llama-3.1-8b-instant"; 
 const MODEL_B = "llama-3.3-70b-versatile";
 
@@ -31,21 +30,18 @@ export interface AuditorOutput {
 export class GroqScoringService {
   private static async callGroq(model: string, systemPrompt: string, userMessage: string) {
     try {
-      console.log("DEBUG: Sending request with key length:", API_KEY.length);
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      console.log(`[GroqService] Forwarding inference request to Backend Proxy (${model})...`);
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${API_KEY}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model,
+          modelType: model,
           messages: [
             { role: "system", content: `${systemPrompt}\n\nEnsure the response is a valid JSON object.` },
             { role: "user", content: userMessage }
-          ],
-          temperature: 0.1,
-          response_format: { type: "json_object" }
+          ]
         })
       });
 

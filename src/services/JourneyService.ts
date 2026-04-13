@@ -81,56 +81,56 @@ export class JourneyService {
       nodes
     };
 
-    // 4. Persist to Supabase (8-table Alignment)
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // A. Upsert the main journey metadata
-        const { data: journeyRow, error: jError } = await supabase
-          .from('learning_journeys')
-          .upsert({
-            user_id: user.id,
-            nodes: resultPayload.nodes,
-            current_node_id: resultPayload.nodes[0]?.id || 'start',
-            metadata: {
-              journey_title: resultPayload.journeyTitle,
-              current_stage: resultPayload.currentStage,
-              target_stage: resultPayload.targetStage,
-              generated_at: new Date().toISOString()
-            },
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' })
-          .select()
-          .single();
-
-        if (jError) throw jError;
-        const journeyId = journeyRow.id;
-
-        // B. Atomic Step Update: Clear and Rebuild
-        // 1. Delete old steps
-        await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
-
-        // 2. Insert new granular steps
-        const stepsToInsert = resultPayload.nodes.map((node, i) => ({
-          journey_id: journeyId,
-          title: node.title,
-          description: node.description,
-          order_index: i,
-          status: node.status,
-          icon_type: node.iconType,
-          skill_focus: node.id.includes('gap') ? 'remediation' : 'progression'
-        }));
-
-        const { error: sError } = await supabase.from('journey_steps').insert(stepsToInsert);
-        if (sError) throw sError;
-
-        console.log(`[JourneyService] ✅ Journey and ${stepsToInsert.length} steps persisted.`);
-      }
-    } catch (e) {
-      console.warn('[JourneyService] Database persistence failed, returning in-memory result:', e);
-    }
-
     return resultPayload;
+  }
+
+  /**
+   * Explicitly persists a generated journey to the database.
+   */
+  public static async persistJourney(journey: LearnerJourneyPayload, userId: string): Promise<void> {
+    try {
+      // A. Upsert the main journey metadata
+      const { data: journeyRow, error: jError } = await supabase
+        .from('learning_journeys')
+        .upsert({
+          user_id: userId,
+          nodes: journey.nodes,
+          current_node_id: journey.nodes[0]?.id || 'start',
+          metadata: {
+            journey_title: journey.journeyTitle,
+            current_stage: journey.currentStage,
+            target_stage: journey.targetStage,
+            generated_at: new Date().toISOString()
+          },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+        .select()
+        .single();
+
+      if (jError) throw jError;
+      const journeyId = journeyRow.id;
+
+      // B. Atomic Step Update: Clear and Rebuild
+      await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
+
+      const stepsToInsert = journey.nodes.map((node, i) => ({
+        journey_id: journeyId,
+        title: node.title,
+        description: node.description,
+        order_index: i,
+        status: node.status,
+        icon_type: node.iconType,
+        skill_focus: node.id.includes('gap') ? 'remediation' : 'progression'
+      }));
+
+      const { error: sError } = await supabase.from('journey_steps').insert(stepsToInsert);
+      if (sError) throw sError;
+
+      console.log(`[JourneyService] ✅ Journey and ${stepsToInsert.length} steps persisted.`);
+    } catch (e) {
+      console.warn('[JourneyService] Database persistence failed:', e);
+      throw e;
+    }
   }
 
   // ---- Private Helpers ----
