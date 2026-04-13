@@ -354,10 +354,9 @@ export class AssessmentSaveService {
       const userId = this.cachedUserId || await this.getAuthenticatedUserId();
       console.log(`[AssessmentSave] ☁️ Triggering Deep Cloud Analysis (Model B) for: ${userId}`);
 
-      const token = this.cachedToken || (() => {
-        const authStorage = localStorage.getItem('sb-' + (new URL(supabaseUrl!).hostname.split('.')[0]) + '-auth-token');
-        return authStorage ? JSON.parse(authStorage)?.access_token : null;
-      })();
+      // 🛡️ Robust Token Retrieval: Use official helper
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       
       if (!token) throw new Error("Authentication session expired.");
 
@@ -366,7 +365,8 @@ export class AssessmentSaveService {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'apikey': supabaseAnonKey!
+          'apikey': supabaseAnonKey!,
+          'x-supabase-auth': token
         },
         body: JSON.stringify({
           user_id: userId,

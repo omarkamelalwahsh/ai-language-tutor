@@ -171,17 +171,22 @@ function AppRoutes() {
     navigate('/diagnostic/results', { replace: true });
 
     // 4. BACKGROUND ORCHESTRATION (The "Heavy" work)
+    // We execute this in an async closure to prevent blocking the UI
     (async () => {
       try {
+        console.log('[App] 🧵 Background worker started...');
         const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
         
-        console.log('[App] ☁️ Starting Background Deep Analysis (Model B)...');
+        // Ensure auth is warm in this context
+        await AssessmentSaveService.warmupAuth();
+        
+        console.log('[App] ☁️ Triggering Deep Cloud Analysis...');
         const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
-            console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
+            console.warn("[App] Cloud analysis failed. Reason:", e.message);
             return null;
         });
 
-        console.log('[App] 🏗️ Persisting to 5 database tables in background...');
+        console.log('[App] 🏗️ Persisting comprehensive data to 5 tables...');
         await AssessmentSaveService.saveAssessmentComprehensive({
           userId: user?.id,
           history,
@@ -189,11 +194,11 @@ function AppRoutes() {
           evaluations
         });
 
-        // Silent refresh of profile just to sync with DB eventually
+        // 🔄 Sync local profile with DB updates
         await refreshData();
-        console.log('[App] ✅ Background Sync Complete.');
+        console.log('[App] ✅ Background Sync Complete. Ecosystem Hydrated.');
       } catch (err) {
-        console.error('[App] ❌ Background Async Error:', err);
+        console.error('[App] ❌ Background worker failed:', err);
       }
     })();
   };

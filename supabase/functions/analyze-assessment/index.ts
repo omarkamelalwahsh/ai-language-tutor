@@ -5,14 +5,16 @@ const GROK_API_KEY = Deno.env.get('GROK_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-auth',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 serve(async (req) => {
-  // CORS
+  // CORS Preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 
-      'Access-Control-Allow-Origin': '*', 
-      'Access-Control-Allow-Methods': 'POST', 
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' 
-    } })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
@@ -187,14 +189,14 @@ CRITICAL INSTRUCTIONS:
     }
 
     return new Response(JSON.stringify({ success: true, analysis: finalReport }), {
-      headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     })
 
   } catch (err) {
     console.error(`[Edge Function Error]: ${err.message}`);
     return new Response(JSON.stringify({ error: err.message }), { 
       status: 500,
-      headers: { "Content-Type": "application/json", 'Access-Control-Allow-Origin': '*' }
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     })
   }
 })
