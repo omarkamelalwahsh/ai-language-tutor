@@ -279,14 +279,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </div>
 
               {/* ── Stimulus / Context ── */}
-              {currentTask.stimulus && (currentTask.skill !== 'listening' || !currentTask.audioUrl) && (
+              {currentTask.stimulus && currentTask.skill !== 'listening' && (
                 <div className="mb-6">
-                  {currentTask.skill === 'listening' && !currentTask.audioUrl && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-3 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest">
-                      <AlertTriangle size={12} />
-                      Audio unavailable — Reading Fallback
-                    </div>
-                  )}
                   <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/60 text-sm text-slate-600 leading-relaxed font-medium">
                     {currentTask.stimulus}
                   </div>
@@ -294,11 +288,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               )}
 
               {/* ── Audio Player Area (Listening / Pronunciation) ── */}
-              {currentTask.audioUrl && (
-                <div className="mb-6 flex justify-center p-6 bg-indigo-50/50 rounded-2xl border-2 border-dashed border-indigo-200/50 shadow-inner">
+              {(currentTask.audioUrl || currentTask.skill === 'listening') && (
+                <div className="mb-6 flex flex-col items-center p-6 bg-indigo-50/50 rounded-2xl border-2 border-dashed border-indigo-200/50 shadow-inner">
+                  {currentTask.skill === 'listening' && !currentTask.audioUrl && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-4 bg-amber-50 border border-amber-200 text-amber-600 rounded-lg text-[10px] uppercase font-black tracking-widest">
+                      <AlertTriangle size={12} />
+                      AI Voice Generation Fallback Used
+                    </div>
+                  )}
                   <div className="max-w-md w-full">
                     <AudioPlaybackControl 
                       audioUrl={currentTask.audioUrl} 
+                      transcript={!currentTask.audioUrl ? (currentTask.stimulus || currentTask.prompt) : undefined}
                       className="bg-white rounded-xl shadow-sm border border-slate-100" 
                     />
                   </div>

@@ -254,18 +254,21 @@ export class AssessmentSaveService {
       }));
 
       // C. skill_states (Performance Upsert)
-      const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillName => {
-        const skillKey = skillName.toLowerCase();
-        return {
-          user_id: userId,
-          skill: skillKey,
-          current_level: outcome.skillBreakdown[skillName].band,
-          current_score: outcome.skillBreakdown[skillName].score,
-          confidence: outcome.skillBreakdown[skillName].confidence,
-          last_tested: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-      });
+       const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillName => {
+         const skillKey = skillName.toLowerCase();
+         const rawScore = outcome.skillBreakdown[skillName].score || 0;
+         // 🎯 Normalize to 0-10000 range for consistency with updateSkillState
+         const normalizedScore = rawScore <= 1 ? Math.round(rawScore * 10000) : (rawScore > 100 ? rawScore : Math.round(rawScore * 100));
+         return {
+           user_id: userId,
+           skill: skillKey,
+           current_level: outcome.skillBreakdown[skillName].band,
+           current_score: normalizedScore,
+           confidence: outcome.skillBreakdown[skillName].confidence,
+           last_tested: new Date().toISOString(),
+           updated_at: new Date().toISOString()
+         };
+       });
 
       // EXECUTION (Sequential Orchestration)
       console.log("🟠 Executing Sequential Inserts...");
@@ -493,15 +496,20 @@ export class AssessmentSaveService {
       }));
 
       // B. skill_states (Performance Mapping)
-      const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => ({
-        user_id: userId,
-        skill: skillKey,
-        current_level: outcome.skillBreakdown[skillKey].band,
-        current_score: outcome.skillBreakdown[skillKey].score,
-        confidence: outcome.skillBreakdown[skillKey].confidence,
-        last_tested: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }));
+       const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => {
+         const rawScore = outcome.skillBreakdown[skillKey].score || 0;
+         // 🎯 Normalize to 0-10000 range for consistency with updateSkillState
+         const normalizedScore = rawScore <= 1 ? Math.round(rawScore * 10000) : (rawScore > 100 ? rawScore : Math.round(rawScore * 100));
+         return {
+           user_id: userId,
+           skill: skillKey.toLowerCase(),
+           current_level: outcome.skillBreakdown[skillKey].band,
+           current_score: normalizedScore,
+           confidence: outcome.skillBreakdown[skillKey].confidence,
+           last_tested: new Date().toISOString(),
+           updated_at: new Date().toISOString()
+         };
+       });
 
       // C. Journey Factory Initialization
       const { nodes, currentNodeId } = this.generateInitialJourneyNodes(newLevel);

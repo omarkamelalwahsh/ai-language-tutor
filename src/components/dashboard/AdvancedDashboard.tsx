@@ -221,36 +221,46 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const points = profile.points || 0;
 
     const skillData: SkillData[] = useMemo(() => {
-        let sourceMap: Record<string, any> = {};
-        
         // Base mapping to ensure Recharts always has 4 points to draw a polygon
         const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
+        const sourceMap: Record<string, { skill: string; masteryScore: number }> = {};
+        
         CORE_SKILLS.forEach(skill => {
             sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
         });
 
-        // Overlay actual user data
+        // Overlay actual user data from Supabase hook (already normalized to 0-100)
         if (supabaseData.skills?.length > 0) {
             supabaseData.skills.forEach((s: any) => {
                 const sKey = (s.skillId || s.skill || '').toLowerCase();
-                if (sKey) sourceMap[sKey] = s;
+                if (sKey) {
+                    // Defense-in-depth: clamp to 0-100 even if hook missed it
+                    const score = typeof s.masteryScore === 'number' ? s.masteryScore : 0;
+                    const safeScore = Math.min(100, Math.max(0, isNaN(score) ? 0 : score));
+                    sourceMap[sKey] = { 
+                        skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
+                        masteryScore: safeScore
+                    };
+                }
             });
         } else if (assessmentOutcome?.skillBreakdown) {
             Object.keys(assessmentOutcome.skillBreakdown).forEach(k => {
                 const sKey = k.toLowerCase();
+                const rawScore = assessmentOutcome.skillBreakdown[k].score || 0;
+                // Normalize: if 0-1 decimal, scale to percentage
+                const pctScore = rawScore <= 1 ? rawScore * 100 : (rawScore > 100 ? rawScore / 100 : rawScore);
                 sourceMap[sKey] = {
-                    skillId: sKey,
-                    skill: k,
-                    masteryScore: (assessmentOutcome.skillBreakdown[k].score || 0) * 100
+                    skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
+                    masteryScore: Math.min(100, Math.max(0, pctScore))
                 };
             });
         }
 
-        // Return matched array (ensuring >3 points)
-        return Object.values(sourceMap).map((s: any) => ({
-            subject: (s.skill || s.skillId || 'Skill').charAt(0).toUpperCase() + (s.skill || s.skillId || 'Skill').slice(1).toLowerCase(),
-            A: s.masteryScore || 0,
-            B: Math.min(100, (s.masteryScore || 0) + 20),
+        // Return matched array (ensuring >3 points for polygon)
+        return Object.values(sourceMap).map((s) => ({
+            subject: s.skill,
+            A: Math.round(s.masteryScore * 10) / 10,
+            B: Math.min(100, Math.round((s.masteryScore + 20) * 10) / 10),
             fullMark: 100
         }));
     }, [supabaseData.skills, assessmentOutcome]);
@@ -465,10 +475,10 @@ const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) =
     const hasData = (weaknesses || []).length > 0 || (supabaseData.skills || []).length > 0;
 
     const skillData = React.useMemo(() => {
-        let sourceMap: Record<string, any> = {};
-        
         // Base mapping to ensure Recharts always has 4 points
         const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
+        const sourceMap: Record<string, { skill: string; masteryScore: number }> = {};
+        
         CORE_SKILLS.forEach(skill => {
             sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
         });
@@ -476,14 +486,21 @@ const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) =
         if ((supabaseData.skills || []).length > 0) {
             supabaseData.skills.forEach((s: any) => {
                 const sKey = (s.skillId || s.skill || '').toLowerCase();
-                if (sKey) sourceMap[sKey] = s;
+                if (sKey) {
+                    const score = typeof s.masteryScore === 'number' ? s.masteryScore : 0;
+                    const safeScore = Math.min(100, Math.max(0, isNaN(score) ? 0 : score));
+                    sourceMap[sKey] = {
+                        skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
+                        masteryScore: safeScore
+                    };
+                }
             });
         }
         
-        return Object.values(sourceMap).map((s: any) => ({
-          subject: (s.skillId || s.skill || 'Skill').charAt(0).toUpperCase() + (s.skillId || s.skill || 'Skill').slice(1).toLowerCase(),
-          A: s.masteryScore || 0,
-          B: Math.min(100, (s.masteryScore || 0) * 1.3), 
+        return Object.values(sourceMap).map((s) => ({
+          subject: s.skill,
+          A: Math.round(s.masteryScore * 10) / 10,
+          B: Math.min(100, Math.round(s.masteryScore * 1.3 * 10) / 10), 
           fullMark: 100
         }));
     }, [supabaseData.skills]);

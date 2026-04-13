@@ -33,51 +33,14 @@ export class AdaptiveSelector {
   public selectNext(state: SelectorState): QuestionBankItem | null {
     const { skills, askedQuestionIds, currentOverallLevel } = state;
     const count = askedQuestionIds.size;
-    const coreSkills: SkillName[] = ['listening', 'reading', 'writing', 'speaking'];
-
-    // --------------------------------------------------------------------------
-    // PHASE 1: RANDOMIZED ROUND ROBIN (1-4)
-    // --------------------------------------------------------------------------
-    if (count < 4) {
-      const targetSkill = this.shuffledRR[count];
-      console.log(`[Selector] Phase 1: SHUFFLED RR | target: ${targetSkill} | level: ${currentOverallLevel}`);
-      return this.findBestItem(currentOverallLevel, targetSkill, askedQuestionIds);
-    }
-
-    // --------------------------------------------------------------------------
-    // PHASE 2 & 3: ADAPTIVE & WILDCARDS (5-20)
-    // --------------------------------------------------------------------------
-    const isAdvocatePhase = count >= 17; // Questions 18, 19, 20
     
-    // 1. Determine target skill
-    let targetSkill: SkillName;
+    // 🎯 STRICLY EQUAL DISTRIBUTION: 20 questions / 4 core skills = exactly 5 questions per skill
+    const targetSkill = this.shuffledRR[count % this.shuffledRR.length];
 
-    if (isAdvocatePhase) {
-      // PHASE 3: Wildcard Advocate - Prioritize weakest link
-      targetSkill = coreSkills.sort((a, b) => skills[a].score - skills[b].score)[0];
-      console.log(`[Selector] Phase 3: WILDCARD ADVOCATE | Lifting weakest link: ${targetSkill}`);
-    } else {
-      // PHASE 2: Adaptive with Slot Management
-      const availableSkills = coreSkills.filter(s => {
-        const used = skills[s].directEvidenceCount;
-        const capped = used >= this.SKILL_CAPS[s];
-        if (capped) console.log(`[Selector] 🚫 Slot for ${s} capped (${used}/${this.SKILL_CAPS[s]})`);
-        return !capped;
-      });
+    console.log(`[Selector] Round Robin | target: ${targetSkill} | level: ${currentOverallLevel} | Q: ${count + 1}/20`);
 
-      const missingAny = availableSkills.filter(s => skills[s].directEvidenceCount === 0);
-      if (missingAny.length > 0) {
-        targetSkill = missingAny[Math.floor(Math.random() * missingAny.length)];
-      } else {
-        // Normal Adaptive: Pick lowest confidence from available pool
-        const pool = availableSkills.length > 0 ? availableSkills : coreSkills;
-        targetSkill = pool.sort((a, b) => skills[a].confidence - skills[b].confidence)[0];
-      }
-    }
-
-    // 2. Determine target level
+    // 2. Determine target level (Adaptive based on recent momentum)
     const skillState = skills[targetSkill];
-    const currentScore = skillState.score;
     const momentum = skillState.history.slice(-2).reduce((acc, h) => acc + h.score, 0) / 2 || 0.5;
 
     let targetLevel = currentOverallLevel;

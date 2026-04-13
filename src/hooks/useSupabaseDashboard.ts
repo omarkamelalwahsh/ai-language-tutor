@@ -184,22 +184,43 @@ export const useSupabaseDashboard = () => {
             }
           : null,
         skills: (skillsData || []).map((s: any) => {
-          // Robust Scaling: If score is very small (< 1), it might be a raw decimal confidence
-          // If score is 1-100, use as is. If > 100, it's our 0-10000 range.
-          const rawScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || (s.confidence * 100) || 0;
-          const mScore = rawScore > 100 ? (rawScore / 100) : rawScore;
-          
-          const sNameRaw = s.skill || 'Unknown';
-          const sNameNorm = sNameRaw.charAt(0).toUpperCase() + sNameRaw.slice(1).toLowerCase(); // Display as PascalCase
+          // 🎯 Robust 3-Tier Score Normalization:
+          // The DB may contain current_score in 3 different ranges depending on the save path:
+          //   - 0-1 decimal  (from saveAssessmentComprehensive writing raw confidence)
+          //   - 1-100        (percentage, ideal range)
+          //   - 100-10000    (from updateSkillState using confidence * 10000)
+          const rawScore = s[DB_SCHEMA.COLUMNS.SKILL_SCORE] ?? null;
+          const fallbackScore = typeof s.confidence === 'number' ? s.confidence * 100 : 0;
+          let mScore: number;
+
+          if (rawScore === null || rawScore === undefined) {
+            mScore = fallbackScore;
+          } else if (rawScore <= 1 && rawScore > 0) {
+            // 0-1 decimal range → convert to percentage
+            mScore = rawScore * 100;
+          } else if (rawScore > 100) {
+            // 100-10000 backend precision range → convert to percentage
+            mScore = rawScore / 100;
+          } else {
+            // Already in 0-100 range
+            mScore = rawScore;
+          }
+
+          // Clamp to 0-100
+          mScore = Math.min(100, Math.max(0, mScore));
+
+          // 🎯 Skill Name Normalization: DB stores lowercase, UI needs Title Case
+          const sNameRaw = s.skill || 'unknown';
+          const sNameNorm = sNameRaw.charAt(0).toUpperCase() + sNameRaw.slice(1).toLowerCase();
 
           return {
             skill: sNameNorm,
-            skillId: sNameRaw.toLowerCase(), // ID for internal logic
+            skillId: sNameRaw.toLowerCase(),
             subject: sNameNorm,
             currentLevel: s.current_level || s.level || 'A1',
             overallLevel: s.current_level || s.level || 'A1',
             confidence: typeof s.confidence === 'number' ? s.confidence : (mScore / 100),
-            masteryScore: Math.min(100, Math.max(0, mScore)),
+            masteryScore: Math.round(mScore * 10) / 10,
             status: mScore > 70 ? 'stable' : 'improving',
             evidenceCount: 5,
           };
@@ -286,6 +307,10 @@ export const useSupabaseDashboard = () => {
             .on('postgres_changes', 
                 { event: '*', schema: 'public', table: 'learning_journeys', filter: `user_id=eq.${user.id}` }, 
                 () => safeFetch()
+            )
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'skill_states', filter: `user_id=eq.${user.id}` },
+                () => isMounted && fetchDashboardData()
             )
             .subscribe();
     });
