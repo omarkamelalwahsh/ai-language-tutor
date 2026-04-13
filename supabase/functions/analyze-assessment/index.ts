@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const GROK_API_KEY = Deno.env.get('GROK_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -104,7 +104,8 @@ CRITICAL INSTRUCTIONS:
 
     // --- STEP 3: Full Architecture Persistence Logic ---
     console.log(`[Edge Function] Full Architecture Persistent Save...`);
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    // Use SERVICE_ROLE_KEY to bypass RLS for server-side writes
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     // 1. Profile Update
     await supabase.from('learner_profiles').update({
@@ -193,7 +194,7 @@ CRITICAL INSTRUCTIONS:
          deep_insight: q.what_it_tells_us,
          question_number: i + 1
        }));
-       await supabase.from('user_error_analysis').insert(analysisRows);
+       await supabase.from('user_error_analysis').upsert(analysisRows, { ignoreDuplicates: true });
     }
 
     return new Response(JSON.stringify({ success: true, analysis: finalReport }), {

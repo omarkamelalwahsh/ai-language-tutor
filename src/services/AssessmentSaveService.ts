@@ -269,11 +269,11 @@ export class AssessmentSaveService {
 
       const results = await Promise.all([
         // 1. Insert detailed responses (UUID safety enforced by toValidUUID)
-        supabase.from('assessment_responses').insert(responsesPayload),
+        supabase.from('assessment_responses').upsert(responsesPayload, { onConflict: 'id', ignoreDuplicates: true }),
         
         // 2. Insert error analysis for failures
         errorAnalysisPayload.length > 0 
-          ? supabase.from('user_error_analysis').insert(errorAnalysisPayload) 
+          ? supabase.from('user_error_analysis').upsert(errorAnalysisPayload, { ignoreDuplicates: true }) 
           : Promise.resolve({ error: null }),
         
         // 3. Update Proficiency Matrix
@@ -506,9 +506,9 @@ export class AssessmentSaveService {
 
       // EXECUTION
       const results = await Promise.all([
-        // 1. Error Analysis Bulk Insert
+        // 1. Error Analysis Bulk Insert (use upsert to prevent 409 conflict)
         errorAnalysisPayload.length > 0 
-          ? supabase.from('user_error_analysis').insert(errorAnalysisPayload) 
+          ? supabase.from('user_error_analysis').upsert(errorAnalysisPayload, { ignoreDuplicates: true }) 
           : Promise.resolve({ error: null }),
 
         // 2. Cumulative Intelligence Refresh

@@ -199,16 +199,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Dynamic Journey Generation Trigger (moved from App.tsx)
+  // 🔧 FIX: Use ref to ensure we only trigger once per assessmentResult
+  const journeyGeneratedRef = useRef(false);
   useEffect(() => {
-    if (assessmentResult && !isArchitecting) {
+    if (assessmentResult && !isArchitecting && !journeyGeneratedRef.current) {
+      journeyGeneratedRef.current = true;
       const triggerDynamicJourney = async () => {
         setIsArchitecting(true);
         try {
           const { JourneyService } = await import('../services/JourneyService');
           const dynamicJourney = await JourneyService.generateDynamicJourney(assessmentResult);
-          
-          // We could store journey in state too if needed, 
-          // but usually it's derived in dashboardData or fetched.
         } catch (err) {
           console.error('[DataContext] Failed to architect dynamic journey:', err);
         } finally {
@@ -217,7 +217,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       triggerDynamicJourney();
     }
-  }, [assessmentResult, isArchitecting]);
+  }, [assessmentResult]); // ✅ Only re-run when assessmentResult changes, NOT isArchitecting
 
   return (
     <DataContext.Provider value={{ 
