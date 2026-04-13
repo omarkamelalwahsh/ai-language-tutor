@@ -73,13 +73,13 @@ const circuitBreaker = {
   },
 };
 
-let llmClient = null;
-if (process.env.GROQ_API_KEY) {
+const apiKey = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
+if (apiKey) {
   llmClient = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
+    apiKey: apiKey,
     baseURL: "https://api.groq.com/openai/v1",
   });
-  console.log(`[Evaluator] Groq client initialized. Model: ${CONFIG.model}`);
+  console.log(`[Evaluator] Groq client initialized.`);
 } else {
   console.warn("[Evaluator] GROQ_API_KEY not set. Deterministic fallback only.");
 }
@@ -419,9 +419,8 @@ app.post('/api/transcribe', async (req, res) => {
   });
 });
 
-// --- GENERIC CHAT COMPLETION ENDPOINT (For Journey Generation, etc.) ---
 app.post('/api/chat', async (req, res) => {
-  const { messages, temperature, response_format } = req.body;
+  const { messages, temperature, response_format, modelType } = req.body;
   
   if (!llmClient) {
     return res.status(503).json({ 
@@ -429,16 +428,18 @@ app.post('/api/chat', async (req, res) => {
     });
   }
 
-  if (circuitBreaker.isOpen()) {
-    return res.status(503).json({ error: "Circuit breaker open. Try again later." });
-  }
+  // Model selection sync with Vercel API
+  const model = modelType === 'SMART' || modelType === 'llama-3.3-70b-versatile'
+    ? "llama-3.3-70b-versatile" 
+    : "llama-3.1-8b-instant";
 
   try {
+    console.log(`[Server] Proxying chat request for model: ${model}`);
     const aiTask = llmClient.chat.completions.create({
-      model: CONFIG.model,
+      model: model,
       messages: messages || [],
       temperature: temperature ?? CONFIG.temperature,
-      response_format: response_format || undefined,
+      response_format: response_format || { type: "json_object" },
     });
 
     const timeoutTask = new Promise((_, reject) => 
