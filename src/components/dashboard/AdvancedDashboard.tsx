@@ -235,12 +235,14 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
         if (skills && skills.length > 0) {
             skills.forEach((s: any) => {
                 const key = (s.skill || '').toLowerCase();
+                // 🎯 Use normalized 0-100 masteryScore for accurate visualization
+                const val = s.masteryScore || 0;
                 if (dataMap[key]) {
-                    dataMap[key].score = s.current_score || 0;
+                    dataMap[key].score = val;
                 } else if (key) {
                     dataMap[key] = { 
                         subject: key.charAt(0).toUpperCase() + key.slice(1), 
-                        score: s.current_score || 0,
+                        score: val,
                         fullMark: 100 
                     };
                 }
@@ -492,15 +494,16 @@ const AnalyticsTab = ({ supabaseData }: any) => {
         if (skills && skills.length > 0) {
             skills.forEach((s: any) => {
                 const key = (s.skill || '').toLowerCase();
-                const currentScore = s.current_score || 0;
+                // 🎯 Use normalized 0-100 masteryScore for accurate visualization
+                const val = s.masteryScore || 0;
                 if (dataMap[key]) {
-                    dataMap[key].current = currentScore;
-                    dataMap[key].target = Math.min(100, currentScore + 20);
+                    dataMap[key].current = val;
+                    dataMap[key].target = Math.min(100, val + 20);
                 } else if (key) {
                     dataMap[key] = {
                         subject: key.charAt(0).toUpperCase() + key.slice(1),
-                        current: currentScore,
-                        target: Math.min(100, currentScore + 20),
+                        current: val,
+                        target: Math.min(100, val + 20),
                         fullMark: 100
                     };
                 }

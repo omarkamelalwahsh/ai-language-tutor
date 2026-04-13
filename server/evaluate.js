@@ -7,6 +7,7 @@ import { authRouter } from "./auth.js";
 import formidable from 'formidable';
 import fs from 'fs';
 
+let llmClient = null;
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -437,7 +438,7 @@ app.post('/api/chat', async (req, res) => {
     console.log(`[Server] Proxying chat request for model: ${model}`);
     
     // Construct request body
-    const requestBody: any = {
+    const requestBody = {
       model: model,
       messages: messages || [],
       temperature: temperature ?? CONFIG.temperature,
