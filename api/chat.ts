@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "API configuration error on server." });
   }
 
-  const { messages, modelType } = req.body;
+  const { messages, modelType, temperature, response_format } = req.body;
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Missing or invalid 'messages' array in request body." });
   }
@@ -26,18 +26,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`[Backend] Forwarding to Groq: ${model} (Messages: ${messages.length})`);
 
+    const body: any = {
+      model,
+      messages,
+      temperature: temperature || 0.1,
+    };
+
+    if (response_format) {
+      body.response_format = response_format;
+    }
+
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.1,
-        response_format: { type: "json_object" }
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();

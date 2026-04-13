@@ -435,12 +435,20 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     console.log(`[Server] Proxying chat request for model: ${model}`);
-    const aiTask = llmClient.chat.completions.create({
+    
+    // Construct request body
+    const requestBody: any = {
       model: model,
       messages: messages || [],
       temperature: temperature ?? CONFIG.temperature,
-      response_format: response_format || { type: "json_object" },
-    });
+    };
+
+    // Only set response_format if provided by caller to avoid 'JSON mode' errors on non-json prompts
+    if (response_format) {
+      requestBody.response_format = response_format;
+    }
+
+    const aiTask = llmClient.chat.completions.create(requestBody);
 
     const timeoutTask = new Promise((_, reject) => 
       setTimeout(() => reject(new Error("Timeout")), 9000)
@@ -449,8 +457,16 @@ app.post('/api/chat', async (req, res) => {
     const response = await Promise.race([aiTask, timeoutTask]);
     res.json(response);
   } catch (err) {
-    console.error('[Server] Chat Error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[Server] Chat Proxy Error Detail:', {
+      message: err.message,
+      stack: err.stack,
+      modelType,
+      model
+    });
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: err.message 
+    });
   }
 });
 
