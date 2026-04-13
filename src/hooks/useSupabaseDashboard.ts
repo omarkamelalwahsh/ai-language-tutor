@@ -225,6 +225,7 @@ export const useSupabaseDashboard = () => {
             overallLevel: s.current_level || s.level || 'A1',
             confidence: typeof s.confidence === 'number' ? s.confidence : (mScore / 100),
             masteryScore: Math.round(mScore * 10) / 10,
+            current_score: s[DB_SCHEMA.COLUMNS.SKILL_SCORE] || 0,
             status: mScore > 70 ? 'stable' : 'improving',
             evidenceCount: 5,
             updatedAt: s.updated_at || new Date().toISOString(),

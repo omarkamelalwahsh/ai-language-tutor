@@ -498,61 +498,121 @@ app.get('/api/assessments/:id/responses', async (req, res) => {
   const userId = req.query.userId || (req.user ? req.user.id : null);
   
   try {
+     console.log(`[Review] Fetching responses for assessment: ${id}, user: ${userId}`);
+
      // 1. Resolve 'latest' if needed
      if (id === 'latest') {
        if (!userId) return res.status(400).json({ error: "userId is required to resolve 'latest' assessment." });
-       const { data: latestAsmt, error: lError } = await supabase
+       
+       // Try 'assessments' table first (formal)
+       let { data: latestAsmt } = await supabase
          .from('assessments')
          .select('id')
          .eq('user_id', userId)
          .order('created_at', { ascending: false })
          .limit(1)
-         .single();
+         .maybeSingle();
        
-       if (lError || !latestAsmt) throw new Error("No previous assessment found for this user.");
-       id = latestAsmt.id;
+       if (latestAsmt) {
+         id = latestAsmt.id;
+       } else {
+         // Fallback: Check 'assessment_logs' (transient)
+         const { data: latestLog } = await supabase
+           .from('assessment_logs')
+           .select('question_id, created_at')
+           .eq('user_id', userId)
+           .order('created_at', { ascending: false })
+           .limit(1)
+           .maybeSingle();
+
+         if (!latestLog) return res.status(404).json({ error: "No previous assessment found for this user." });
+         
+         // In logs, we might not have a session ID, so we might return all logs for that day/run
+         // But for now, let's treat it as a special case or just use the log's created_at as a filter later
+         id = 'from_logs'; 
+       }
      }
 
-     // 2. Fetch the assessment metadata
-     const { data: assessmentData } = await supabase
-       .from('assessments')
-       .select('*')
-       .eq('id', id)
-       .single();
+     // 2. Fetch the assessment metadata (if not logs)
+     let metadata = null;
+     if (id !== 'from_logs') {
+       const { data: assessmentData } = await supabase
+         .from('assessments')
+         .select('*')
+         .eq('id', id)
+         .maybeSingle();
+       metadata = assessmentData;
+     }
 
-     // 3. Fetch all linked responses with joined question text
-     // NOTE: We assume 'question_id' in responses matches 'id' in bank. 
-     // We also fetch stimulus/prompt from the bank.
-     const { data: responsesData, error: rError } = await supabase
-       .from('assessment_responses')
-       .select(`
-         id,
-         question_id,
-         user_answer,
-         is_correct,
-         cefr_level,
-         ai_feedback_text,
-         skill,
-         question_bank_items (
-           prompt,
-           stimulus
-         )
-       `)
-       .eq('assessment_id', id);
+     // 3. Fetch all linked responses (Try Formal Table first)
+     let finalResponses = [];
+     if (id !== 'from_logs') {
+       const { data: responsesData, error: rError } = await supabase
+         .from('assessment_responses')
+         .select(`
+           id,
+           question_id,
+           user_answer,
+           is_correct,
+           cefr_level,
+           ai_feedback_text,
+           skill,
+           question_bank_items (
+             prompt,
+             stimulus
+           )
+         `)
+         .eq('assessment_id', id);
 
-     if (rError) throw rError;
+       if (responsesData && responsesData.length > 0) {
+         finalResponses = responsesData.map(r => ({
+           ...r,
+           prompt: r.question_bank_items?.prompt || 'Question content missing',
+           stimulus: r.question_bank_items?.stimulus || null
+         }));
+       }
+     }
 
-     return res.status(200).json({
-        assessment: assessmentData,
-        responses: (responsesData || []).map(r => ({
-          ...r,
-          prompt: r.question_bank_items?.prompt || null,
-          stimulus: r.question_bank_items?.stimulus || null
-        }))
+     // 4. Fallback to assessment_logs if formal table empty
+     if (finalResponses.length === 0 && userId) {
+       console.log(`[Review] Falling back to assessment_logs for user: ${userId}`);
+       const { data: logData, error: logError } = await supabase
+         .from('assessment_logs')
+         .select('*')
+         .eq('user_id', userId)
+         .order('created_at', { ascending: true });
+       
+       if (logError) throw logError;
+
+       if (logData && logData.length > 0) {
+         // Filter to only the most recent "cluster" of logs (within last 1 hour)
+         const mostRecent = new Date(logData[logData.length - 1].created_at).getTime();
+         const thresh = 60 * 60 * 1000; // 1 hour
+         
+         finalResponses = logData
+           .filter(l => (mostRecent - new Date(l.created_at).getTime()) < thresh)
+           .map(l => ({
+             id: l.id,
+             question_id: l.question_id,
+             user_answer: l.user_answer,
+             is_correct: l.is_correct,
+             cefr_level: l.evaluation_metadata?.cefr_level || 'Pending',
+             ai_feedback_text: l.evaluation_metadata?.feedback || 'Review available soon',
+             skill: l.category || 'General',
+             prompt: l.question || 'Original question text',
+             stimulus: l.evaluation_metadata?.stimulus || null
+           }));
+       }
+     }
+
+     res.status(200).json({
+       assessment: metadata || { id: 'latest_transient', created_at: new Date().toISOString() },
+       responses: finalResponses
      });
+
   } catch (err) {
-     console.error('[Server Error] Fetch Responses crash:', err);
-     res.status(500).json({ error: err.message || 'Could not fetch assessment report' });
+    console.error('[Server Error] Assessment Responses fetch crash:', err);
+    res.status(500).json({ error: 'Failed to fetch assessment report', details: err.message });
   }
 });
 

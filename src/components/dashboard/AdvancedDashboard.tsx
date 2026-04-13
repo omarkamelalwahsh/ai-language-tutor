@@ -221,50 +221,19 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
     const currentLevel = isCalculatingLevel ? 'Computing...' : rawLevel;
     const points = profile.points || 0;
 
-    const skillData: SkillData[] = useMemo(() => {
-        // Base mapping to ensure Recharts always has 5 points to draw a polygon
-        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening', 'Grammar'];
-        const sourceMap: Record<string, { skill: string; masteryScore: number }> = {};
+    const skills = supabaseData.skills || [];
+    
+    const skillData = useMemo(() => {
+        if (!skills || skills.length === 0) return [];
         
-        CORE_SKILLS.forEach(skill => {
-            sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
-        });
-
-        // Overlay actual user data from Supabase hook (already normalized to 0-100)
-        if (supabaseData.skills?.length > 0) {
-            supabaseData.skills.forEach((s: any) => {
-                const sKey = (s.skillId || s.skill || '').toLowerCase();
-                if (sKey) {
-                    // Defense-in-depth: clamp to 0-100 even if hook missed it
-                    const score = typeof s.masteryScore === 'number' ? s.masteryScore : 0;
-                    const safeScore = Math.min(100, Math.max(0, isNaN(score) ? 0 : score));
-                    sourceMap[sKey] = { 
-                        skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
-                        masteryScore: safeScore
-                    };
-                }
-            });
-        } else if (assessmentOutcome?.skillBreakdown) {
-            Object.keys(assessmentOutcome.skillBreakdown).forEach(k => {
-                const sKey = k.toLowerCase();
-                const rawScore = assessmentOutcome.skillBreakdown[k].score || 0;
-                // Normalize: if 0-1 decimal, scale to percentage
-                const pctScore = rawScore <= 1 ? rawScore * 100 : (rawScore > 100 ? rawScore / 100 : rawScore);
-                sourceMap[sKey] = {
-                    skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
-                    masteryScore: Math.min(100, Math.max(0, pctScore))
-                };
-            });
-        }
-
-        // Return matched array (ensuring >3 points for polygon)
-        return Object.values(sourceMap).map((s) => ({
-            subject: s.skill,
-            A: Math.round(s.masteryScore * 10) / 10,
-            B: Math.min(100, Math.round((s.masteryScore + 20) * 10) / 10),
-            fullMark: 100
+        return skills.map(s => ({
+          // Normalize: 'listening' -> 'Listening'
+          subject: s.skill ? s.skill.charAt(0).toUpperCase() + s.skill.slice(1) : 'Unknown',
+          // Score normalization: Handle 0-10000 and 0-1 scales safely
+          score: s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0),
+          fullMark: 100
         }));
-    }, [supabaseData.skills, assessmentOutcome]);
+    }, [skills]);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
@@ -470,209 +439,195 @@ const JourneyTab = ({ onStartSession, supabaseData }: any) => {
     );
 };
 
-const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) => {
+const AnalyticsTab = ({ supabaseData }: any) => {
+    const skills = supabaseData.skills || [];
+    const errorProfile = supabaseData.errorProfile || { weakness_areas: [], common_mistakes: [], action_plan: "" };
+    const history = supabaseData.history || [];
+    const achievements = supabaseData.achievements || [];
     
-    // Check if we have actual data to show or if we should show a prompt
-    const hasData = (weaknesses || []).length > 0 || (supabaseData.skills || []).length > 0;
+    // Combine history and achievements for the Event Log
+    const eventLog = React.useMemo(() => {
+        const events = [
+            ...history.map((h: any) => ({
+                id: `h-${h.id}`,
+                title: 'Assessment Analyzed',
+                desc: h.overallLevel ? `Level: ${h.overallLevel}` : 'Diagnostic sync',
+                time: h.createdAt,
+                type: 'history'
+            })),
+            ...achievements.map((a: any) => ({
+                id: `a-${a.id}`,
+                title: `Achievement: ${a.name}`,
+                desc: 'Milestone reached',
+                time: a.earnedAt,
+                type: 'achievement'
+            }))
+        ];
+        return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+    }, [history, achievements]);
 
     const skillData = React.useMemo(() => {
-        // Base mapping to ensure Recharts always has 4 points
-        const CORE_SKILLS = ['Speaking', 'Reading', 'Writing', 'Listening'];
-        const sourceMap: Record<string, { skill: string; masteryScore: number }> = {};
-        
-        CORE_SKILLS.forEach(skill => {
-            sourceMap[skill.toLowerCase()] = { skill, masteryScore: 0 };
-        });
-
-        if ((supabaseData.skills || []).length > 0) {
-            supabaseData.skills.forEach((s: any) => {
-                const sKey = (s.skillId || s.skill || '').toLowerCase();
-                if (sKey) {
-                    const score = typeof s.masteryScore === 'number' ? s.masteryScore : 0;
-                    const safeScore = Math.min(100, Math.max(0, isNaN(score) ? 0 : score));
-                    sourceMap[sKey] = {
-                        skill: sKey.charAt(0).toUpperCase() + sKey.slice(1).toLowerCase(),
-                        masteryScore: safeScore
-                    };
-                }
-            });
-        }
-        
-        return Object.values(sourceMap).map((s) => ({
+        if (skills.length === 0) return [];
+        return skills.map((s: any) => ({
           subject: s.skill,
-          A: Math.round(s.masteryScore * 10) / 10,
-          B: Math.min(100, Math.round(s.masteryScore * 1.3 * 10) / 10), 
+          current: s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0),
+          target: Math.min(100, (s.current_score > 100 ? s.current_score / 100 : (s.current_score || 0)) + 25),
           fullMark: 100
         }));
-    }, [supabaseData.skills]);
+    }, [skills]);
+
+    const formatTimeAgo = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+        if (diffInHours < 1) return 'Just now';
+        if (diffInHours === 1) return '1 hour ago';
+        if (diffInHours < 24) return `${diffInHours} hours ago`;
+        return date.toLocaleDateString();
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
-            <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 h-[380px] flex flex-col group hover:shadow-md transition">
-                    <div className="flex justify-between items-center mb-2 z-10">
-                        <h3 className="text-lg font-black text-slate-900">Skill Overview</h3>
-                        <span className="text-[9px] bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-500 font-bold uppercase tracking-wider shadow-sm">Confidence interval</span>
-                    </div>
-                    <div className="flex-1 -mt-6">
-                       <ResponsiveContainer width="100%" height={280}>
-                         <RadarChart cx="50%" cy="50%" outerRadius="65%" data={skillData}>
-                           <PolarGrid stroke="#f1f5f9" strokeDasharray="3 3"/>
-                           <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} />
-                           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                           <Radar name="Skills" dataKey="B" stroke="#3b82f6" strokeWidth={1} fill="#3b82f6" fillOpacity={0.05} />
-                           <Radar name="SkillsTarget" dataKey="A" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.25} />
-                         </RadarChart>
-                       </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                    <h3 className="text-lg font-black text-slate-900 mb-4 tracking-tight">Action Plan</h3>
-                    
-                    {Array.isArray(actionPlan) ? (
-                        <div className="space-y-3">
-                            {actionPlan.map((step: string, i: number) => (
-                                <div key={i} className="flex gap-3 items-start">
-                                    <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mt-0.5 shrink-0">
-                                        <CheckCircle2 size={12} />
-                                    </div>
-                                    <p className="text-[13px] text-slate-600 font-medium leading-tight">{step}</p>
+            {/* Main Content Area */}
+            <div className="lg:col-span-9 flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+                    {/* Enhanced Radar Chart */}
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition">
+                        <div className="flex justify-between items-center mb-2 z-10">
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Overview</h3>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current</span>
                                 </div>
-                            ))}
+                                <div className="flex items-center gap-1.5 ml-2">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-200" />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target</span>
+                                </div>
+                            </div>
                         </div>
-                    ) : (
-                        <p className="text-[13px] text-slate-500 leading-relaxed font-medium">
-                            {actionPlan || "Your personalized roadmap is being generated by AI..."}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            <div className="lg:col-span-8 flex flex-col gap-6">
-                 {/* Premium Visual Error Profile Integration */}
-                 <VisualErrorProfile />
-            </div>
-
-            <div className="lg:col-span-5 flex flex-col h-full hidden">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition overflow-y-auto max-h-[600px] custom-scrollbar">
-                    <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Proficiency</h3>
-                        <div className="p-1 px-3 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100 shadow-sm">
-                            Real-time Signals
+                        <div className="flex-1 -mt-4">
+                           {skillData.length > 0 ? (
+                             <ResponsiveContainer width="100%" height="100%">
+                               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
+                                 <PolarGrid stroke="#f1f5f9" strokeDasharray="3 3"/>
+                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
+                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#f8fafc" fillOpacity={0.4} />
+                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.25} />
+                               </RadarChart>
+                             </ResponsiveContainer>
+                           ) : (
+                             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                                <Activity size={32} className="opacity-20 animate-pulse" />
+                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Predicting Matrix...</p>
+                             </div>
+                           )}
                         </div>
                     </div>
-                    <div className="space-y-6">
-                        {(supabaseData.skills || []).length > 0 ? (
-                           supabaseData.skills.map((skill: any) => (
-                            <div key={skill.id} className="border-b border-slate-100 pb-6 last:border-0 group/skill">
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/skill:bg-blue-50 group-hover/skill:text-blue-500 transition-colors border border-slate-100">
-                                            {skill.skillId?.toLowerCase() === 'speaking' && <Mic size={18} />}
-                                            {skill.skillId?.toLowerCase() === 'listening' && <Activity size={18} />}
-                                            {skill.skillId?.toLowerCase() === 'reading' && <BookOpen size={18} />}
-                                            {skill.skillId?.toLowerCase() === 'writing' && <ArrowRight size={18} />}
-                                            {!['speaking', 'listening', 'reading', 'writing'].includes(skill.skillId?.toLowerCase() || '') && <Zap size={18} />}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-[15px] text-slate-900 leading-snug capitalize group-hover/skill:text-blue-600 transition-colors">
-                                                {skill.skillId}
-                                            </h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border 
-                                                    ${skill.masteryScore > 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                                                      skill.masteryScore > 40 ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                                                      'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                                                    {skill.currentLevel || (skill.masteryScore > 80 ? 'B2' : skill.masteryScore > 50 ? 'B1' : 'A2')}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                                                    {skill.masteryScore}% Mastery
-                                                </span>
+
+                    {/* Skill Deep Dive */}
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition overflow-hidden">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Deep Dive</h3>
+                            <div className="p-1 px-3 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">AI Inference</div>
+                        </div>
+                        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                            {(errorProfile.weakness_areas || []).length > 0 ? (
+                                errorProfile.weakness_areas.map((w: string, i: number) => (
+                                    <div key={i} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 group/item hover:bg-white hover:shadow-sm transition">
+                                        <div className="flex gap-4">
+                                            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover/item:border-amber-200 transition">
+                                                <Zap size={14} className="text-amber-500" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[13px] font-black text-slate-900 leading-tight mb-1">{w}</h4>
+                                                <p className="text-[11px] font-medium text-slate-500 leading-relaxed italic">"Dynamic context mapping reveals A2 to B1 gap in descriptive logic."</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Stability</div>
-                                        <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full border
-                                            ${skill.status === 'stable' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-                                            {skill.status || 'stable'}
-                                        </span>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3">
+                                    <BookOpen size={40} className="text-slate-300" />
+                                    <p className="text-xs font-black uppercase tracking-widest">Awaiting assessment cycles</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
-                                        <motion.div 
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${skill.masteryScore}%` }}
-                                            className={`h-full transition-all duration-1000 
-                                                ${skill.masteryScore > 70 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 
-                                                  skill.masteryScore > 40 ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 
-                                                  'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]'}`}
-                                        />
-                                    </div>
-                                    {(skill.weaknesses || []).length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {skill.weaknesses.slice(0, 2).map((w: string, idx: number) => (
-                                                <span key={idx} className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md">
-                                                    {w}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Plan */}
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 group hover:shadow-md transition relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+                    <h3 className="text-xl font-black text-slate-900 mb-6 tracking-tight flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+                            <Trophy size={16} />
+                        </div>
+                        Action Plan
+                    </h3>
+                    <div className="flex flex-col md:flex-row gap-8 items-center">
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-600 leading-relaxed mb-6">
+                                {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect. Complete more assessments to accelerate this process."}
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                                {['Speaking Drills', 'Vocab Expansion', 'Grammar Polish'].map(tag => (
+                                    <span key={tag} className="px-4 py-2 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                        {tag}
+                                    </span>
+                                ))}
                             </div>
-                           ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-48 text-slate-400">
-                                <Activity className="w-12 h-12 mb-4 opacity-20" />
-                                <p className="text-sm font-medium">Syncing Skill Profile...</p>
+                        </div>
+                        <div className="w-full md:w-48 h-32 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 flex flex-col justify-center relative overflow-hidden group-hover:scale-[1.02] transition duration-500 shadow-xl">
+                            <div className="relative z-10">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Bridge Delta</div>
+                                <div className="text-3xl font-black text-white">+{errorProfile.bridge_percentage || 12}%</div>
+                                <div className="text-[9px] font-bold text-amber-500 uppercase tracking-tighter mt-1">Growth Index</div>
                             </div>
-                        )}
+                            <Activity className="absolute bottom-[-10px] right-[-10px] w-24 h-24 text-white/5" />
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {/* Parallel Event Log Sidebar */}
             <div className="lg:col-span-3 flex flex-col h-full">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition relative">
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition relative flex flex-col">
                     <h3 className="text-xl font-black text-slate-900 mb-8 tracking-tight">Parallel Event Log</h3>
                     
-                    <div className="space-y-6 relative ml-2 before:absolute before:inset-0 before:ml-[7px] before:-translate-x-px before:h-full before:w-[2px] before:bg-slate-100">
-                        <div className="flex gap-4 relative z-10 w-full group/event cursor-default">
-                            <div className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-50 border-2 border-emerald-400 flex items-center justify-center text-emerald-500 mt-1 shadow-[0_0_8px_rgba(52,211,153,0.3)] group-hover/event:scale-110 transition">
-                                <CheckCircle2 size={10} strokeWidth={4} />
+                    <div className="space-y-8 relative ml-2 flex-1 before:absolute before:inset-0 before:ml-[7px] before:-translate-x-px before:h-full before:w-[1.5px] before:bg-slate-100">
+                        {eventLog.length > 0 ? (
+                            eventLog.map(event => (
+                                <div key={event.id} className="flex gap-5 relative z-10 w-full group/event cursor-default">
+                                    <div className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center mt-1 transition shadow-sm
+                                        ${event.type === 'history' ? 'bg-blue-50 border-blue-400 text-blue-500' : 'bg-amber-50 border-amber-400 text-amber-500'}`}>
+                                        {event.type === 'history' ? <CheckCircle2 size={10} strokeWidth={4} /> : <Trophy size={10} strokeWidth={3} className="fill-amber-500" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[13px] font-bold text-slate-900 leading-tight group-hover/event:text-blue-600 transition">{event.title}</h4>
+                                        <p className="text-[11px] font-medium text-slate-500 mb-1.5">{event.desc}</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{formatTimeAgo(event.time)}</p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full opacity-20 py-20">
+                                <History size={48} className="text-slate-300" />
                             </div>
-                            <div>
-                                <h4 className="text-[13px] font-bold text-slate-900 leading-tight">Saved Assessment</h4>
-                                <p className="text-[11px] font-medium text-slate-500 mb-1.5">(RPC cast to Numeric)</p>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">3 hours ago</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 relative z-10 w-full group/event cursor-default">
-                            <div className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-50 border-2 border-emerald-400 flex items-center justify-center text-emerald-500 mt-1 shadow-[0_0_8px_rgba(52,211,153,0.3)] group-hover/event:scale-110 transition">
-                                <CheckCircle2 size={10} strokeWidth={4} />
-                            </div>
-                            <div>
-                                <h4 className="text-[13px] font-bold text-slate-900 leading-tight">Updated B1 Reading Goal</h4>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-2">2 hours ago</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 relative z-10 w-full group/event cursor-default">
-                            <div className="flex-shrink-0 w-4 h-4 rounded-full bg-amber-50 border-2 border-amber-400 flex items-center justify-center text-amber-500 mt-1 shadow-[0_0_8px_rgba(251,191,36,0.3)] group-hover/event:scale-110 transition">
-                                <Trophy size={10} strokeWidth={3} className="fill-amber-500" />
-                            </div>
-                            <div>
-                                <h4 className="text-[13px] font-bold text-slate-900 leading-tight">Achievement Earned: Diagnostic Pioneer</h4>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-2">2 hours ago</p>
-                            </div>
-                        </div>
+                        )}
+                    </div>
+
+                    <div className="mt-8 pt-8 border-t border-slate-50">
+                        <button className="w-full py-3 rounded-2xl bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition duration-300">
+                            Download Report
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: any) => {
     const history = supabaseData.history || [];
