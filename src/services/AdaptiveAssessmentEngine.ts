@@ -979,24 +979,11 @@ export class AdaptiveAssessmentEngine {
          console.warn("[Engine] Auth retrieval error, user might be offline", authError);
       }
       
+      // 2. MARK COMPLETED ONLY
+      // We do NOT call AssessmentSaveService from the engine anymore to prevent dual-sync mess.
+      // Finalization is now orchestrated by AssessmentSaveService.finalizeFullDiagnostic
+      // called after Grok analysis is ready.
       this.state.completed = true;
-
-      // Ensure persistence only executes if properly authenticated
-      if (!currentAuthSession) {
-        console.warn("[Engine] No valid user session found, skipping cloud persistence.");
-        return true; 
-      }
-
-      // 2. SYNCHRONOUS BACKEND TASKS: Enforce await before routing
-      
-      // A. Sync any remaining buffered questions
-      await AssessmentSaveService.syncPendingLogs();
-
-      // B. Save final profile metrics to Supabase (Atomic First Pass)
-      await AssessmentSaveService.saveAssessmentResults(finalOutcome);
-
-      // C. Internal API Notification (Deprecated, removed to prevent hanging)
-      // Edge function analyzeAssessmentRemote in DiagnosticView handles the comprehensive sync.
 
       // 3. IMMEDIATE RELEASE: Unblock the UI so the user sees results NOW
       return true;
@@ -1010,6 +997,10 @@ export class AdaptiveAssessmentEngine {
 
   public async completeAssessment(): Promise<void> {
     await this.finalizeAssessment();
+  }
+
+  public getAnswerHistory(): AnswerRecord[] {
+    return this.state.answerHistory;
   }
 
   public getState(): AdaptiveAssessmentState {

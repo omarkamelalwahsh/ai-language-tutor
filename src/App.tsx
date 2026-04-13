@@ -135,13 +135,18 @@ function AppRoutes() {
 
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
-  const handleAssessmentSave = async (history: any, outcome: any, evals: any) => {
+  const handleAssessmentSave = async (history: any, outcome: any, evaluations: any) => {
     try {
       // 1. Atomically Persist results to DB (Updates Level, Skills, and History)
       const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
       const { AssessmentAnalysisService } = await import('./services/AnalysisService');
       
-      await AssessmentSaveService.saveAssessmentComprehensive(history, outcome, evals);
+      await AssessmentSaveService.saveAssessmentComprehensive({
+        userId: user?.id,
+        history,
+        outcome,
+        evaluations
+      });
 
       const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
         outcome,

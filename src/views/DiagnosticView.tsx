@@ -109,18 +109,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       
       const academicOutcome = engine.getOutcome();
       const history = engine.getAnswerHistory();
+      const evaluations = engine.getEvaluations();
 
       console.log('[Diagnostic] ☁️ Launching Grok Analysis Layer...');
       const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history);
 
-      await onSaveComplete(history, { ...academicOutcome, aiAnalysis: deepAnalysis });
+      // Pass all 3 artifacts to the orchestrator in App.tsx
+      await onSaveComplete(history, { ...academicOutcome, aiAnalysis: deepAnalysis }, evaluations);
     } catch (e) {
       console.error('[Diagnostic] ❌ Finalization aborted.', e);
       setSaveError('A critical failure occurred during AI analysis. Falling back to local scoring.');
       
       try {
         const academicOutcome = engine.getOutcome();
-        await onSaveComplete(engine.getAnswerHistory(), academicOutcome);
+        const evaluations = engine.getEvaluations();
+        await onSaveComplete(engine.getAnswerHistory(), academicOutcome, evaluations);
       } catch (innerE) {
         setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
       }

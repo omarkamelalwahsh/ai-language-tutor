@@ -10,7 +10,7 @@ export class DashboardService {
 
     return {
       isNewLearner: !result,
-      primaryGoalText: result?.overall?.rationale?.[0] || result?.overallBand || `Building toward ${targetLevel}.`,
+      primaryGoalText: result?.overall?.rationale?.[0] || (result as any)?.overallBand || `Building toward ${targetLevel}.`,
       recommendedNextAction: {
         label: result?.recommendedNextTasks?.[0] || 'Start Practice',
         actionId: 'practice_1',

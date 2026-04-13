@@ -171,12 +171,17 @@ export class AssessmentSaveService {
    * PRODUCTION-READY: Advanced Assessment Finalization Logic
    * Orchestrates 5 tables with historical context and cumulative merging.
    */
-  public static async saveAssessmentComprehensive(
-    history: AnswerRecord[], 
-    outcome: AssessmentOutcome, 
-    grokAnalysis: any
-  ): Promise<void> {
-    const userId = await this.getAuthenticatedUserId();
+  public static async saveAssessmentComprehensive(payload: {
+    history: AnswerRecord[];
+    outcome: AssessmentOutcome;
+    evaluations?: any;
+    userId?: string;
+  }): Promise<void> {
+    const { history, outcome, evaluations, userId: providedUserId } = payload;
+    const grokAnalysis = outcome.aiAnalysis || evaluations;
+    
+    // 🛡️ User ID Resilience: Use provided, fallback to current session
+    const userId = providedUserId || await this.getAuthenticatedUserId();
     console.log(`[Architecture] 🏗️ Launching Comprehensive Save for user: ${userId}`);
 
     try {
@@ -249,8 +254,8 @@ export class AssessmentSaveService {
         
         // 4. Update Core Profile (Atomic points increment simulated via fetch+write)
         supabase.from('learner_profiles').update({
-          overall_level: outcome.finalLevel || outcome.overallBand || 'B1',
-          points: (oldProfile?.points || 0) + (outcome.pointsAwarded || 50),
+          overall_level: (outcome as any).finalLevel || (outcome as any).overallBand || 'B1',
+          points: (oldProfile?.points || 0) + ((outcome as any).pointsAwarded || 50),
           onboarding_complete: true,
           updated_at: new Date().toISOString()
         }).eq('id', userId),
@@ -311,15 +316,7 @@ export class AssessmentSaveService {
     };
   }
 
-  /**
-   * Saves full assessment results (profile, skills, error profiles) to Supabase.
-   * DEPRECATED: Please use saveAssessmentComprehensive for full orchestration.
-   */
-  public static async saveAssessmentResults(outcome: AssessmentOutcome): Promise<void> {
-    // Forwarding to newer logic if possible, or maintaining legacy support
-    console.warn("Legacy saveAssessmentResults called. Consider migrating to saveAssessmentComprehensive.");
-    // ... existing legacy code ...
-  }
+  // Legacy saveAssessmentResults was removed in favor of saveAssessmentComprehensive orchestration.
 
   /**
    * Invokes the Grok-powered cloud analysis pipeline.
