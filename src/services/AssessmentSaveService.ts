@@ -151,12 +151,11 @@ export class AssessmentSaveService {
   }
 
   /**
-   * OPTIMISTIC LOGGER: Fires to DB in background but returns instantly.
+   * SEQUENTIAL LOGGER: Reverted to blocking call for maximum Data Integrity.
    */
   public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
     const finalUserId = userId || this.cachedUserId;
     
-    // Capture data for background closure
     const payload = {
       user_id: finalUserId,
       question_id: String(task.id),
@@ -171,28 +170,28 @@ export class AssessmentSaveService {
       created_at: new Date().toISOString()
     };
 
-    // 🚀 FIRE AND FORGET (Non-blocking but traced)
-    (async () => {
-      try {
-        if (!payload.user_id) {
-          const resolvedId = await this.getAuthenticatedUserIdSafe();
-          payload.user_id = resolvedId;
-        }
-
-        const { error } = await supabase.from('assessment_logs').insert(payload);
-        if (error) {
-          console.warn("[LightningSave] Background save failed, buffering...", error);
-          this.saveToLocalBuffer(payload);
-        } else {
-          console.log(`✅ [LightningSave] Recorded: ${task.id}`);
-        }
-      } catch (err) {
-        this.saveToLocalBuffer(payload);
+    try {
+      if (!payload.user_id) {
+        const resolvedId = await this.getAuthenticatedUserIdSafe();
+        payload.user_id = resolvedId;
       }
-    })();
 
-    // ⚡ Return instantly to allow next question to render
-    return { status: 'background_submitted' };
+      console.log(`📤 [AssessmentSave] Sequential recording for: ${task.id}`);
+      const { error } = await supabase.from('assessment_logs').insert(payload);
+      
+      if (error) {
+        console.warn("[AssessmentSave] Save failed, buffering...", error);
+        this.saveToLocalBuffer(payload);
+        return { status: 'buffered', error };
+      }
+
+      console.log(`✅ [AssessmentSave] Recorded: ${task.id}`);
+      return { status: 'success' };
+    } catch (err) {
+      console.error("🔥 [AssessmentSave] Error:", err);
+      this.saveToLocalBuffer(payload);
+      return { status: 'error', error: err };
+    }
   }
 
 

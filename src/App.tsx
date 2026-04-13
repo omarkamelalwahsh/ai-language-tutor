@@ -146,48 +146,49 @@ function AppRoutes() {
   const dashboardData = useMemo(() => DashboardService.buildPayload(assessmentResult), [assessmentResult]);
 
   const handleAssessmentSave = async (history: any, outcome: any, evaluations: any) => {
-    // ⚡ LIGHTNING RELEASE: Immediately populate local context for the Results View
-    const { AssessmentAnalysisService } = await import('./services/AnalysisService');
-    const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
-      outcome,
-      user?.id || 'anonymous',
-      'diagnostic_session',
-    );
+    try {
+      const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
+      const { AssessmentAnalysisService } = await import('./services/AnalysisService');
+      
+      console.log('[App] 🛡️ Stability Mode: Initiating Sequential Finalization Gate...');
+      
+      // 1. Deep AI Analysis (Model B / Grok) - Blocking to ensure we have the full report
+      console.log('[App] ☁️ Running Deep Cloud Analysis (Model B)...');
+      const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
+          console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
+          return null;
+      });
 
-    // 1. Sync local context (ResultAnalysisView reads from here)
-    setSessionResult(computedSessionResult, outcome, history);
+      // 2. Comprehensive DB Save (Wait for all 5 tables)
+      console.log('[App] 🏗️ Persisting to 5 database tables...');
+      await AssessmentSaveService.saveAssessmentComprehensive({
+        userId: user?.id,
+        history,
+        outcome: { ...outcome, aiAnalysis: deepAnalysis },
+        evaluations
+      });
 
-    // 2. IMMEDIATE REDIRECT: Don't wait for DB latency
-    console.log('[App] 🚀 Optimistic Redirect to Results...');
-    navigate('/diagnostic/results', { replace: true });
+      // 3. Local State Hydration
+      const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
+        { ...outcome, aiAnalysis: deepAnalysis },
+        user?.id || 'anonymous',
+        'diagnostic_session',
+      );
+      setSessionResult(computedSessionResult, { ...outcome, aiAnalysis: deepAnalysis }, history);
 
-    // 3. BACKGROUND ORCHESTRATION: Handle persistence without blocking the user
-    (async () => {
-      try {
-        const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
-        
-        console.log('[App] ☁️ Starting Background Deep Analysis (Model B)...');
-        // 🚀 Parallel execution of Grok Analysis and initial sync preparation
-        const deepAnalysis = await AssessmentSaveService.analyzeAssessmentRemote(history).catch(e => {
-            console.warn("[App] Cloud analysis failed, falling back to local signals.", e);
-            return null;
-        });
+      // 4. Global Profile Sync (Ensures Dashboard sees new level)
+      await refreshData();
+      
+      // 5. Short buffer for React state reconciliation
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-        console.log('[App] ☁️ Starting Background Persistence Sync...');
-        await AssessmentSaveService.saveAssessmentComprehensive({
-          userId: user?.id,
-          history,
-          outcome: { ...outcome, aiAnalysis: deepAnalysis }, // Merge Grok analysis
-          evaluations
-        });
-
-        // Sync the global profile state once the DB is settled
-        await refreshData();
-        console.log('[App] ✅ Background Sync & Profile Refresh Complete.');
-      } catch (err) {
-        console.error('[App] ❌ Background Sync Error:', err);
-      }
-    })();
+      console.log('[App] ✅ Finalization Complete. Securely Redirecting...');
+      navigate('/diagnostic/results', { replace: true });
+    } catch (err) {
+      console.error('[App] ❌ Finalization Gate Failure:', err);
+      // Fallback redirect to dashboard to prevent getting stuck
+      navigate('/dashboard', { replace: true });
+    }
   };
 
   return (

@@ -155,8 +155,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       try {
         const { evaluation } = await engine.submitAnswer(currentTask, answer, responseTime, responseMode, speakingMeta);
         
-        // ⚡ OPTIMISTIC LOGGING: Start save in background, don't wait for it
-        AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
+        // SEQUENTIAL SYNC: Ensure database confirmation before UI transition
+        await AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
         
         setProgress(engine.getProgress());
         const nextQ = await engine.getNextQuestion();
