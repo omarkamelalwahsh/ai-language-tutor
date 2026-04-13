@@ -506,7 +506,7 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex-1 -mt-4">
+                        <div className="flex-1 -mt-4 min-h-[300px] w-full flex items-center justify-center">
                            {skillData.length > 0 ? (
                              <ResponsiveContainer width="100%" height="100%">
                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
@@ -515,12 +515,16 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                  <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#f8fafc" fillOpacity={0.4} />
                                  <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.25} />
+                                 <Tooltip 
+                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
+                                    itemStyle={{ fontWeight: 'bold', fontSize: '12px', color: '#1e293b' }}
+                                 />
                                </RadarChart>
                              </ResponsiveContainer>
                            ) : (
-                             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
-                                <Activity size={32} className="opacity-20 animate-pulse" />
-                                <p className="text-xs font-bold uppercase tracking-widest opacity-40">Predicting Matrix...</p>
+                             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
+                                <Activity size={32} className="opacity-20 animate-pulse text-amber-500" />
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Predicting Matrix...</p>
                              </div>
                            )}
                         </div>
