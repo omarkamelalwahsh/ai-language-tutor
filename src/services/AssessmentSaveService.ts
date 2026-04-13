@@ -151,9 +151,9 @@ export class AssessmentSaveService {
   }
 
   /**
-   * LIGHTNING LOGGER: Non-blocking Fire-and-Forget orchestration.
+   * VISIBLE SEQUENTIAL LOGGER: Reverted to awaited call to ensure Network Tab visibility.
    */
-  public static log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
+  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
     const finalUserId = userId || this.cachedUserId;
     
     const payload = {
@@ -169,28 +169,28 @@ export class AssessmentSaveService {
       created_at: new Date().toISOString()
     };
 
-    // 🚀 FIRE AND FORGET
-    (async () => {
-      try {
-        if (!payload.user_id) {
-          const resolvedId = await this.getAuthenticatedUserIdSafe();
-          payload.user_id = resolvedId;
-        }
-
-        const { error } = await supabase.from('assessment_logs').insert(payload);
-        if (error) {
-          console.warn("[AssessmentSave] Background save failed, buffering...", error);
-          this.saveToLocalBuffer(payload);
-        } else {
-          console.log(`✅ [AssessmentSave] Recorded: ${task.id}`);
-        }
-      } catch (err) {
-        this.saveToLocalBuffer(payload);
+    try {
+      if (!payload.user_id) {
+        const resolvedId = await this.getAuthenticatedUserIdSafe();
+        payload.user_id = resolvedId;
       }
-    })();
 
-    // ⚡ RETURN INSTANTLY
-    return { status: 'background_submitted' };
+      console.log(`📤 [AssessmentSave] Recording: ${task.id}`);
+      const { error } = await supabase.from('assessment_logs').insert(payload);
+      
+      if (error) {
+        console.warn("[AssessmentSave] Save failed, buffering...", error);
+        this.saveToLocalBuffer(payload);
+        return { status: 'buffered', error };
+      }
+
+      console.log(`✅ [AssessmentSave] Logged: ${task.id}`);
+      return { status: 'success' };
+    } catch (err) {
+      console.error("🔥 [AssessmentSave] Error:", err);
+      this.saveToLocalBuffer(payload);
+      return { status: 'error', error: err };
+    }
   }
 
 
