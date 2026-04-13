@@ -29,7 +29,7 @@ import {
     Layout,
     X
 } from 'lucide-react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { VisualErrorProfile } from './VisualErrorProfile';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
@@ -283,10 +283,12 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex-1 flex flex-col min-h-[450px]">
                     <h3 className="text-xl font-bold text-slate-900 mb-6">Mastery Distribution</h3>
                     <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={300}>
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillData}>
                                 <PolarGrid stroke="#f1f5f9" strokeDasharray="4 4" />
                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 12, fontWeight: 700 }} />
+                                {/* Add explicit domain to prevent Recharts from crashing on 0-values */}
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar name="Skills" dataKey="A" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.35} />
                             </RadarChart>
                         </ResponsiveContainer>
@@ -495,10 +497,11 @@ const AnalyticsTab = ({ supabaseData, weaknesses, mistakes, actionPlan }: any) =
                         <span className="text-[9px] bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-500 font-bold uppercase tracking-wider shadow-sm">Confidence interval</span>
                     </div>
                     <div className="flex-1 -mt-6">
-                       <ResponsiveContainer width="100%" height="100%">
+                       <ResponsiveContainer width="100%" height={280}>
                          <RadarChart cx="50%" cy="50%" outerRadius="65%" data={skillData}>
                            <PolarGrid stroke="#f1f5f9" strokeDasharray="3 3"/>
                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} />
+                           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                            <Radar name="Skills" dataKey="B" stroke="#3b82f6" strokeWidth={1} fill="#3b82f6" fillOpacity={0.05} />
                            <Radar name="SkillsTarget" dataKey="A" stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" fillOpacity={0.25} />
                          </RadarChart>
