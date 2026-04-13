@@ -528,19 +528,24 @@ const AnalyticsTab = ({ supabaseData }: any) => {
             {/* Main Content Area */}
             <div className="lg:col-span-9 flex flex-col gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
-                    {/* Enhanced Radar Chart */}
+                    {/* Skill Overview */}
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition">
                         <div className="flex justify-between items-center mb-2 z-10">
                             <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Overview</h3>
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current</span>
+                            <div className="flex items-center gap-4">
+                                <div className="hidden sm:flex items-center gap-3">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 ml-2">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1.5 ml-2">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-200" />
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target</span>
-                                </div>
+                                <button className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-white hover:shadow-sm transition">
+                                    Confidence interval
+                                </button>
                             </div>
                         </div>
                         <div className="flex-1 -mt-4 min-h-[300px] w-full flex items-center justify-center">
@@ -568,31 +573,42 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                     </div>
 
                     {/* Skill Deep Dive */}
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition overflow-hidden">
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Deep Dive</h3>
                             <div className="p-1 px-3 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">AI Inference</div>
                         </div>
-                        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="flex-1 space-y-6">
                             {(errorProfile.weakness_areas || []).length > 0 ? (
-                                errorProfile.weakness_areas.map((w: string, i: number) => (
-                                    <div key={i} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 group/item hover:bg-white hover:shadow-sm transition">
-                                        <div className="flex gap-4">
-                                            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover/item:border-amber-200 transition">
-                                                <Zap size={14} className="text-amber-500" />
-                                            </div>
+                                (errorProfile.weakness_areas || []).slice(0, 3).map((w: string, i: number) => (
+                                    <div key={i} className="group/dive">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0 group-hover/dive:scale-125 transition" />
                                             <div>
-                                                <h4 className="text-[13px] font-black text-slate-900 leading-tight mb-1">{w}</h4>
-                                                <p className="text-[11px] font-medium text-slate-500 leading-relaxed italic">"Dynamic context mapping reveals A2 to B1 gap in descriptive logic."</p>
+                                                <h4 className="text-[14px] font-black text-slate-900 leading-snug mb-1">
+                                                    {w}: <span className="text-slate-500 font-bold">{errorProfile.common_mistakes?.[i] || "Inference errors in complex sentences"}</span>
+                                                    <span className="ml-2 text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                                        {skills.find((s: any) => (s.skill || '').toLowerCase() === w.toLowerCase())?.currentLevel || 'A2'} → B1 gap
+                                                    </span>
+                                                </h4>
+                                                <p className="text-[12px] font-medium text-slate-400 leading-relaxed max-w-md">
+                                                    Logic mapping identifies specific structural patterns where context comprehension breaks down.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3">
+                                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3 py-10">
                                     <BookOpen size={40} className="text-slate-300" />
                                     <p className="text-xs font-black uppercase tracking-widest">Awaiting assessment cycles</p>
                                 </div>
+                            )}
+
+                            {(errorProfile.weakness_areas || []).length > 3 && (
+                                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition">
+                                    Show more <ChevronRight size={14} className="rotate-90" />
+                                </button>
                             )}
                         </div>
                     </div>
@@ -607,26 +623,29 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                         </div>
                         Action Plan
                     </h3>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                        <div className="flex-1">
-                            <p className="text-sm font-medium text-slate-600 leading-relaxed mb-6">
-                                {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect. Complete more assessments to accelerate this process."}
-                            </p>
+                    
+                    <div className="relative">
+                        <p className="text-[15px] font-medium text-slate-600 leading-[1.8] mb-8 max-w-3xl">
+                            {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect. Complete more assessments to accelerate this process."}
+                        </p>
+                        
+                        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
                             <div className="flex flex-wrap gap-3">
-                                {['Speaking Drills', 'Vocab Expansion', 'Grammar Polish'].map(tag => (
-                                    <span key={tag} className="px-4 py-2 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                {(errorProfile.weakness_areas || ['Speaking Drills', 'Vocab Expansion', 'Grammar Polish']).slice(0, 3).map((tag: string) => (
+                                    <span key={tag} className="px-5 py-2.5 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white hover:shadow-sm transition cursor-default">
                                         {tag}
                                     </span>
                                 ))}
                             </div>
-                        </div>
-                        <div className="w-full md:w-48 h-32 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 flex flex-col justify-center relative overflow-hidden group-hover:scale-[1.02] transition duration-500 shadow-xl">
-                            <div className="relative z-10">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Bridge Delta</div>
-                                <div className="text-3xl font-black text-white">+{errorProfile.bridge_percentage || 12}%</div>
-                                <div className="text-[9px] font-bold text-amber-500 uppercase tracking-tighter mt-1">Growth Index</div>
+
+                            <div className="w-full md:w-48 h-28 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 flex flex-col justify-center relative overflow-hidden group-hover:scale-[1.02] transition duration-500 shadow-xl shrink-0">
+                                <div className="relative z-10">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 opacity-60">Bridge Delta</div>
+                                    <div className="text-3xl font-black text-white tracking-tighter">+{errorProfile.bridge_percentage || 12}%</div>
+                                    <div className="text-[9px] font-bold text-amber-500 uppercase tracking-widest mt-1">Growth Index</div>
+                                </div>
+                                <Activity className="absolute bottom-[-15px] right-[-15px] w-24 h-24 text-white/5 rotate-12" />
                             </div>
-                            <Activity className="absolute bottom-[-10px] right-[-10px] w-24 h-24 text-white/5" />
                         </div>
                     </div>
                 </div>
