@@ -229,9 +229,13 @@ const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }:
         
         return skillOrder.map(skillName => {
             const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
+            // Protect against fractional database values showing up as tiny dots
+            const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore) : 0;
+            const finalScore = raw < 1 && raw > 0 ? raw * 100 : raw;
+
             return {
                 subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
-                score: s ? s.masteryScore : 0, 
+                score: Math.round(finalScore || 0), 
                 fullMark: 100
             };
         });
@@ -457,23 +461,23 @@ const AnalyticsTab = ({ supabaseData }: any) => {
     
     // Combine history and achievements for the Event Log
     const eventLog = React.useMemo(() => {
-        const events = [
-            ...history.map((h: any) => ({
-                id: `h-${h.id}`,
-                title: 'Assessment Analyzed',
-                desc: h.overallLevel ? `Level: ${h.overallLevel}` : 'Diagnostic sync',
-                time: h.createdAt,
-                type: 'history'
-            })),
-            ...achievements.map((a: any) => ({
-                id: `a-${a.id}`,
-                title: `Achievement: ${a.name}`,
-                desc: 'Milestone reached',
-                time: a.earnedAt,
-                type: 'achievement'
-            }))
-        ];
-        return events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+        const historyItems = history.map((h: any) => ({
+            id: `h-${h.id}`,
+            title: `Assessment: ${h.overallLevel || h.category || 'General'}`,
+            desc: h.overallLevel ? `Level: ${h.overallLevel}` : 'Diagnostic preview',
+            time: h.createdAt || h.created_at || Date.now(),
+            type: 'history'
+        }));
+        
+        const achievementItems = achievements.map((a: any) => ({
+            id: `a-${a.id}`,
+            title: `Unlocked: ${a.name || a.badge_name}`,
+            desc: 'Milestone reached',
+            time: a.earnedAt || a.earned_at || Date.now(),
+            type: 'achievement'
+        }));
+
+        return [...historyItems, ...achievementItems].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
     }, [history, achievements]);
 
     const skillData = useMemo(() => {
@@ -482,11 +486,17 @@ const AnalyticsTab = ({ supabaseData }: any) => {
         
         return skillOrder.map(skillName => {
             const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
-            const val = s ? s.masteryScore : 0;
+            // Protect against fractional values like 0.9 showing up in tooltips/charts
+            const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore) : 0;
+            const currentScore = Math.round(raw < 1 && raw > 0 ? raw * 100 : raw);
+            
+            // Add level label for deeper analytics display
+            const levelLabel = s?.currentLevel ? ` (${s.currentLevel})` : '';
+
             return {
-                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
-                current: val,
-                target: Math.min(100, val + 20),
+                subject: `${skillName.charAt(0).toUpperCase() + skillName.slice(1)}${levelLabel}`,
+                current: currentScore,
+                target: Math.min(100, currentScore + 20),
                 fullMark: 100
             };
         });
@@ -534,8 +544,10 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                  <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3"/>
                                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
                                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#f8fafc" fillOpacity={0.4} animationDuration={1000} />
-                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.25} animationDuration={1200} />
+                                 {/* Target Radar needs to be first and less opaque (e.g. fill #e2e8f0) */}
+                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#e2e8f0" fillOpacity={0.2} animationDuration={1000} />
+                                 {/* Current Radar should be second and highlighted (e.g. fill #f59e0b) */}
+                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.6} animationDuration={1200} />
                                  <Tooltip 
                                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
                                     itemStyle={{ fontWeight: 'bold', fontSize: '12px', color: '#1e293b' }}
@@ -565,13 +577,13 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0 group-hover/dive:scale-125 transition" />
                                             <div>
                                                 <h4 className="text-[14px] font-black text-slate-900 leading-snug mb-1">
-                                                    {w}: <span className="text-slate-500 font-bold">{errorProfile.common_mistakes?.[i] || "Inference errors in complex sentences"}</span>
+                                                    {w}: <span className="text-slate-500 font-bold">{errorProfile.common_mistakes?.[i] || "Needs foundational support and pattern practice."}</span>
                                                     <span className="ml-2 text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                                                        {skills.find((s: any) => (s.skill || '').toLowerCase() === w.toLowerCase())?.currentLevel || 'A2'} → B1 gap
+                                                        {skills.find((s: any) => (s.skill || '').toLowerCase() === w.toLowerCase())?.currentLevel || 'A1'} → Target gap
                                                     </span>
                                                 </h4>
                                                 <p className="text-[12px] font-medium text-slate-400 leading-relaxed max-w-md">
-                                                    Logic mapping identifies specific structural patterns where context comprehension breaks down.
+                                                    Logic mapping identifies specific structural patterns to focus your learning trajectory.
                                                 </p>
                                             </div>
                                         </div>
