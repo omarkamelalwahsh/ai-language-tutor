@@ -38,3 +38,23 @@ export async function withRetry<T>(
   console.error(`[withRetry] All ${maxRetries} attempts failed.`);
   throw lastError;
 }
+
+/**
+ * Utility to ensure deterministic UUIDs from string IDs (e.g. node_1)
+ */
+export function toValidUUID(id: string): string {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(id)) return id;
+
+  // Use a fixed namespace + deterministic hash
+  let hash = 0;
+  const namespace = "ai-language-tutor-v2";
+  const combined = namespace + id;
+  for (let i = 0; i < combined.length; i++) {
+    const char = combined.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; 
+  }
+  const hex = Math.abs(hash).toString(16).padStart(12, '0');
+  return `00000000-0000-4000-8000-${hex}`; 
+}

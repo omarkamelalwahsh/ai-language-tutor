@@ -6,6 +6,7 @@ export interface JourneyNode {
   description: string;
   iconType: 'speaking' | 'writing' | 'listening' | 'vocabulary' | 'assessment' | 'grammar';
   estimatedDuration?: string;
+  skillFocus?: 'remediation' | 'progression';
 }
 
 export interface LearnerJourneyPayload {

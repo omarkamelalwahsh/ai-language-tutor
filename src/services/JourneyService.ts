@@ -4,6 +4,7 @@ import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
 import { CEFR_CATALOG, CefrDescriptor, getDescriptorById } from '../data/cefr-catalog';
 import { InferenceGateway, LLMJourneyNode } from './InferenceGateway';
 import { supabase } from '../lib/supabaseClient';
+import { toValidUUID } from '../lib/utils';
 
 /**
  * Service to generate the Learner Journey Roadmap.
@@ -63,13 +64,14 @@ export class JourneyService {
 
     // 3. Map LLM nodes to UI structure
     const nodes: JourneyNode[] = response.nodes.map((node: LLMJourneyNode, index: number) => ({
-      id: node.id || `node_${index}`,
+      id: toValidUUID(node.id || `node_${index}`),
       type: node.type === 'CHECKPOINT' ? 'checkpoint' : 'task',
       status: index === 0 ? 'current' : 'locked',
       title: node.title,
       description: node.description,
       iconType: this.mapIconType(node.icon, node.skills?.[0]),
-      estimatedDuration: `${(node.difficulty || 2) * 15} mins`
+      estimatedDuration: `${(node.difficulty || 2) * 15} mins`,
+      skillFocus: node.type === 'REMEDIATION' ? 'remediation' : 'progression'
     }));
 
     const resultPayload: LearnerJourneyPayload = {
@@ -114,13 +116,14 @@ export class JourneyService {
       await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
 
       const stepsToInsert = journey.nodes.map((node, i) => ({
+        id: node.id, // Explicitly pass the deterministic UUID
         journey_id: journeyId,
         title: node.title,
         description: node.description,
         order_index: i,
         status: node.status,
         icon_type: node.iconType,
-        skill_focus: node.id.includes('gap') ? 'remediation' : 'progression'
+        skill_focus: node.skillFocus || (node.id.includes('gap') ? 'remediation' : 'progression')
       }));
 
       const { error: sError } = await supabase.from('journey_steps').insert(stepsToInsert);
@@ -175,35 +178,38 @@ export class JourneyService {
     // Phase 1: Remediation (Gap Filling)
     gaps.forEach(gap => {
       nodes.push({
-        id: `gap_${gap.id}`,
+        id: toValidUUID(`gap_${gap.id}`),
         type: 'task',
         status: nodeIndex === 0 ? 'current' : 'locked',
         title: `Bridge: ${gap.skill.charAt(0).toUpperCase() + gap.skill.slice(1)}`,
         description: gap.canonicalTextEn,
         iconType: this.mapIconType('', gap.skill),
+        skillFocus: 'remediation'
       });
       nodeIndex++;
     });
 
     // Checkpoint
     nodes.push({
-      id: `cp_remediation`,
+      id: toValidUUID(`cp_remediation`),
       type: 'checkpoint',
       status: 'locked',
       title: 'Foundation Checkpoint',
       description: 'Validate remediation of identified gaps before moving to new objectives.',
       iconType: 'assessment',
+      skillFocus: 'progression'
     });
 
     // Phase 2: Progression (New Objectives)
     objectives.forEach(obj => {
       nodes.push({
-        id: `obj_${obj.id}`,
+        id: toValidUUID(`obj_${obj.id}`),
         type: 'task',
         status: 'locked',
         title: `Target: ${obj.skill.charAt(0).toUpperCase() + obj.skill.slice(1)}`,
         description: obj.canonicalTextEn,
         iconType: this.mapIconType('', obj.skill),
+        skillFocus: 'progression'
       });
     });
 

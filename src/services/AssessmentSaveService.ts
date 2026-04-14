@@ -1,6 +1,6 @@
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabaseClient';
 import { AssessmentOutcome, AnswerRecord } from '../types/assessment';
-import { withRetry } from '../lib/utils';
+import { withRetry, toValidUUID } from '../lib/utils';
 
 
 export class AssessmentSaveService {
@@ -47,25 +47,6 @@ export class AssessmentSaveService {
     return this.getAuthenticatedUserIdSafe();
   }
 
-  /**
-   * Utility to ensure deterministic UUIDs from string question IDs (e.g. B1_L_01)
-   */
-  private static toValidUUID(id: string): string {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRegex.test(id)) return id;
-
-    // Use a fixed namespace (e.g. hash of project name) + deterministic hash
-    let hash = 0;
-    const namespace = "ai-language-tutor-v2";
-    const combined = namespace + id;
-    for (let i = 0; i < combined.length; i++) {
-        const char = combined.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0; 
-    }
-    const hex = Math.abs(hash).toString(16).padStart(12, '0');
-    return `00000000-0000-4000-8000-${hex}`; 
-  }
 
   /**
    * Utility to map raw skill tags (e.g. 'speaking-1') to canonical categories.
@@ -98,7 +79,8 @@ export class AssessmentSaveService {
     levels.slice(0, 6).forEach((lvl, lIdx) => {
       for (let i = 1; i <= nodesPerLevel; i++) {
         const globalIdx = (lIdx * nodesPerLevel) + i;
-        const nodeId = `node_${globalIdx}`;
+        const logicalId = `node_${globalIdx}`;
+        const nodeId = toValidUUID(logicalId);
         const isCompleted = globalIdx <= currentStartNodeIndex;
         const isCurrent = globalIdx === currentStartNodeIndex + 1;
         
@@ -108,7 +90,7 @@ export class AssessmentSaveService {
           id: nodeId,
           title: `${lvl} ${i}: ${i === 1 ? 'Foundations' : 'Intermediate Practice'}`,
           level: lvl,
-          status: isCompleted ? 'completed' : (isCurrent ? 'available' : 'locked'),
+          status: isCompleted ? 'completed' : (isCurrent ? 'current' : 'locked'),
           order: globalIdx,
           points: 100
         });
