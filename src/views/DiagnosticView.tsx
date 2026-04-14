@@ -77,8 +77,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     const engine = new AdaptiveAssessmentEngine('B1', onboardingState ? {
       goal: onboardingState.goal || undefined,
       preferredTopics: (onboardingState.topics || []) as string[],
-    } : undefined, null);
-    if (taskResults && taskResults.length > 0) engine.initializeFromHistory(taskResults, []); 
+    } : undefined, user?.id);
     engineRef.current = engine;
   }
 
@@ -170,7 +169,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   const skillInfo = SKILL_CONFIG[currentTask.skill] || SKILL_CONFIG.reading;
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
-  const isSplitLayout = progress.currentBlock === 2 || progress.currentBlock === 3;
+
+  // Split Layout if in Block 2 or 3 AND has a stimulus
+  const isSplitLayout = (progress.currentBlock === 2 || progress.currentBlock === 3) && !!currentTask.stimulus;
 
   return (
     <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
@@ -180,22 +181,26 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         </button>
         <div className="flex-1 flex items-center gap-4">
           <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-            <motion.div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
+            <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
-          <span className="text-xs font-bold text-slate-400 tabular-nums">{progress.answered + 1} / 40</span>
+          <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
+            PROG: {progress.answered + 1} / 40
+          </span>
         </div>
       </header>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showBlockTransition && (
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-white/95 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-white/98 backdrop-blur-md">
             <div className="text-center space-y-6">
-              <div className="w-24 h-24 rounded-3xl bg-indigo-50 flex items-center justify-center mx-auto shadow-xl shadow-indigo-100/50">
-                {BLOCK_INFO[showBlockTransition]?.icon}
+              <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 flex items-center justify-center mx-auto shadow-2xl shadow-indigo-100/50">
+                <span className={BLOCK_INFO[showBlockTransition]?.color || "text-indigo-600"}>
+                  {React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
+                </span>
               </div>
-              <div className="space-y-2">
-                <p className="text-indigo-500 font-bold uppercase tracking-widest text-xs">Section {showBlockTransition}</p>
-                <h2 className="text-4xl font-black text-slate-900">{BLOCK_INFO[showBlockTransition]?.label}</h2>
+              <div className="space-y-1">
+                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Entering Phase {showBlockTransition}</p>
+                <h2 className="text-5xl font-black text-slate-900 tracking-tight">{BLOCK_INFO[showBlockTransition]?.label}</h2>
               </div>
             </div>
           </motion.div>
@@ -203,61 +208,120 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       </AnimatePresence>
 
       <main className={`flex-1 overflow-hidden flex ${isSplitLayout ? 'flex-row' : 'flex-col'}`}>
-        {isSplitLayout && currentTask.stimulus && (
-          <aside className="w-1/2 overflow-y-auto p-12 bg-white border-r border-slate-100">
+        {isSplitLayout && (
+          <aside className="w-5/12 overflow-y-auto p-12 bg-white border-r border-slate-100 shadow-[inset_-10px_0_30px_-20px_rgba(0,0,0,0.05)]">
             <div className="max-w-xl ml-auto">
-              <label className="inline-flex items-center gap-2 mb-6 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                <BookOpen size={12} /> Reference Text
+              <label className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
+                <BookOpen size={14} /> Passage {progress.currentBlock === 3 ? '(Remains)' : ''}
               </label>
-              <div className="text-lg text-slate-600 leading-[1.8] font-medium selection:bg-violet-100">
+              <div className="text-xl text-slate-600 leading-[1.8] font-medium selection:bg-indigo-100">
                 {currentTask.stimulus}
               </div>
             </div>
           </aside>
         )}
 
-        <div className={`${isSplitLayout ? 'w-1/2 bg-[#F7F8FC]' : 'w-full'} overflow-y-auto`}>
-          <div className="max-w-2xl mx-auto px-8 py-12 flex flex-col min-h-full">
-            <div className="mb-6 flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider ${skillInfo.bg} ${skillInfo.color}`}>
-                {skillInfo.icon} {skillInfo.label}
-              </span>
-              {zoneInfo && <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest ${zoneInfo.bg} ${zoneInfo.color}`}>{zoneInfo.icon} {zoneInfo.label}</span>}
+        <div className={`${isSplitLayout ? 'w-7/12 bg-[#F7F8FC]' : 'w-full'} overflow-y-auto`}>
+          <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col min-h-full">
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${skillInfo.bg} ${skillInfo.color}`}>
+                  {skillInfo.icon} {skillInfo.label}
+                </span>
+                {zoneInfo && (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${zoneInfo.bg} ${zoneInfo.color}`}>
+                    {zoneInfo.icon} {zoneInfo.label}
+                  </span>
+                )}
+              </div>
+              <div className="px-3 py-1 bg-slate-200/50 text-slate-500 rounded-lg text-[10px] font-bold">
+                BLOCK {progress.currentBlock}
+              </div>
             </div>
 
             {!isSplitLayout && currentTask.stimulus && currentTask.skill !== 'listening' && (
-              <div className="mb-8 p-5 bg-white rounded-2xl border border-slate-200 text-sm italic text-slate-500">{currentTask.stimulus}</div>
+              <div className="mb-10 p-7 bg-white rounded-[2rem] border border-slate-200/60 shadow-sm text-lg italic text-slate-600 leading-relaxed">
+                {currentTask.stimulus}
+              </div>
             )}
 
-            <div className="mb-8">
-              <h1 className="text-3xl font-black text-slate-900 leading-tight">
+            <div className="mb-10">
+              <h1 className="text-4xl font-black text-slate-900 leading-[1.15] tracking-tight">
                 {currentTask.prompt}
               </h1>
             </div>
 
             <div className="flex-1">
               {currentTask.response_mode === 'mcq' ? (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {currentTask.options?.map((opt, i) => (
-                    <button key={i} onClick={() => { setSelectedOption(opt); setTimeout(() => handleNextTask(opt), 300); }} className={`w-full p-5 rounded-2xl border-2 text-left transition-all ${selectedOption === opt ? 'border-indigo-500 bg-indigo-50' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                      {opt}
+                    <button 
+                      key={i} 
+                      onClick={() => { setSelectedOption(opt); setTimeout(() => handleNextTask(opt), 350); }} 
+                      disabled={isEvaluating}
+                      className={`w-full p-6 rounded-[1.5rem] border-2 text-left transition-all group relative overflow-hidden ${
+                        selectedOption === opt 
+                          ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-50 shadow-md' 
+                          : 'bg-white border-slate-200/70 hover:border-indigo-300 hover:shadow-lg hover:shadow-slate-200/50 active:scale-[0.98]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 relative z-10">
+                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center font-black text-sm transition-colors ${
+                          selectedOption === opt ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'
+                        }`}>
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                        <span className="text-lg font-bold text-slate-700">{opt}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
               ) : currentTask.response_mode === 'audio' && !useSpeakingFallback ? (
-                <SpeakingModule task={currentTask as any} isEvaluating={isEvaluating} feedback={null} retryCount={0} onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)} />
+                <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">
+                  <SpeakingModule 
+                    task={currentTask as any} 
+                    isEvaluating={isEvaluating} 
+                    feedback={null} 
+                    retryCount={0} 
+                    onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)} 
+                  />
+                </div>
               ) : (
-                <div className="space-y-4">
-                  <textarea value={textValue} onChange={e => setTextValue(e.target.value)} placeholder="Type your answer..." className="w-full h-48 p-6 rounded-2xl bg-white border border-slate-200 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-slate-700 text-lg font-medium" />
-                  <button onClick={() => handleNextTask(textValue)} disabled={textValue.length < 5 || isEvaluating} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50">
-                    {isEvaluating ? 'Evaluating...' : 'Submit Answer'}
+                <div className="space-y-6">
+                  <div className="relative group">
+                    <textarea 
+                      value={textValue} 
+                      onChange={e => setTextValue(e.target.value)} 
+                      placeholder="Type your response here..." 
+                      className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-slate-700 text-xl font-medium" 
+                    />
+                    <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{textValue.length} characters</div>
+                  </div>
+                  <button 
+                    onClick={() => handleNextTask(textValue)} 
+                    disabled={textValue.length < 5 || isEvaluating} 
+                    className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0"
+                  >
+                    {isEvaluating ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <RefreshCcw className="animate-spin" size={20} /> Analyzing Consistency...
+                      </span>
+                    ) : 'Submit Phase Answer'}
                   </button>
                 </div>
               )}
             </div>
             
-            <div className="mt-8 flex justify-end">
-              <button onClick={handleSkip} className="text-slate-400 font-bold text-sm hover:text-slate-600 transition-all">Skip Question</button>
+            <div className="mt-12 flex justify-between items-center bg-slate-100/50 p-4 rounded-2xl">
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <Shield size={14} /> Encrypted Session
+              </div>
+              <button 
+                onClick={() => setShowQuitDialog(true)} 
+                className="px-4 py-2 text-slate-400 font-black text-xs hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              >
+                End Session
+              </button>
             </div>
           </div>
         </div>

@@ -271,13 +271,23 @@ app.post('/api/evaluate', async (req, res) => {
   console.log('[Server] Evaluation request received for user:', payload.userId);
   
   try {
+    const targetUserId = req.user?.id || payload.userId;
+    const internalQId = payload.questionId;
     let parsed;
 
     if (payload.isMCQ) {
       // ⚡ MCQ FAST-PATH: Bypass AI for simple multiple-choice tasks
+      const isCorrect = payload.learnerAnswer === payload.correctAnswer || payload.isCorrect;
       parsed = {
-        suggestedBand: payload.currentBand,
-        isCorrect: payload.isCorrect,
+        summary: {
+          predicted_level: payload.currentBand,
+          overall_score: isCorrect ? 1.0 : 0.0,
+          isCorrect: isCorrect,
+          points_awarded: isCorrect ? 20 : 0 
+        },
+        skills: {
+          [payload.skill?.toLowerCase() || 'general']: isCorrect ? 1.0 : 0.0
+        },
         confidence: 1.0,
         reasoning: "Automated MCQ validation"
       };
@@ -292,7 +302,7 @@ app.post('/api/evaluate', async (req, res) => {
       if (circuitBreaker.isOpen()) {
         parsed = fallbackResult(payload.currentBand, "LLM circuit breaker open");
       } else {
-        // 🛡️ TIMEOUT GUARD: Race the LLM call against an 8s hard limit to beat Vercel's 10s
+        // 🛡️ TIMEOUT GUARD
         try {
           const aiTask = llmClient.chat.completions.create({
               model: CONFIG.model,

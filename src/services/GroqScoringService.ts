@@ -164,4 +164,38 @@ FINAL EVALUATION SCHEMA:
 
     return await this.callGroq(MODEL_B, systemPrompt, JSON.stringify(historyContext));
   }
+
+  /**
+   * Direct evaluation via the evaluate.js API
+   */
+  public static async getScoringResultFromAPI(
+    question: AssessmentQuestion,
+    answer: string,
+    currentLevel: string
+  ): Promise<any> {
+    try {
+      const response = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: localStorage.getItem('auth_user_id'),
+          assessmentId: (question as any)._battery?.assessmentId || 'battery-fetch',
+          skill: question.skill,
+          currentBand: currentLevel,
+          learnerAnswer: answer,
+          questionId: question.id,
+          prompt: question.prompt,
+          stimulus: question.stimulus,
+          isMCQ: question.response_mode === 'mcq'
+        })
+      });
+
+      if (!response.ok) throw new Error("API Score fetch failed");
+      return await response.json();
+    } catch (err) {
+      console.error("[GroqScoringService] API Eval Error:", err);
+      return { score: 0.5, is_correct: false, feedback: "Service temporarily unavailable." };
+    }
+  }
 }
+

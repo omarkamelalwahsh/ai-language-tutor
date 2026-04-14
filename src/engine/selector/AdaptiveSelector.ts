@@ -3,13 +3,14 @@
  * 
  * Implements the 4-Block Sequential Flow:
  * 1. Listening & Language Use (10 Qs)
- * 2. Reading (10 Qs - Big Stimulus)
+ * 2. Reading (10 Qs - Shared Stimulus)
  * 3. Writing (10 Qs - Same Stimulus)
  * 4. Speaking (10 Qs - Audio)
  */
 
 import { CEFRLevel, QuestionBankItem } from '../../types/efset';
 import { ASSESSMENT_CONFIG, DifficultyZone } from '../../config/assessment-config';
+import { supabase } from '../../lib/supabaseClient';
 
 export interface BatteryQuestion {
   item: QuestionBankItem;
@@ -21,110 +22,137 @@ export interface BatteryQuestion {
 }
 
 export class BatterySelector {
-  private banks: Record<CEFRLevel, QuestionBankItem[]>;
-  private seenIds: Set<string>;
-
-  constructor(banks: Record<CEFRLevel, QuestionBankItem[]>, seenIds: Set<string> = new Set()) {
-    this.banks = banks;
-    this.seenIds = seenIds;
+  private static async getSeenIds(userId: string): Promise<Set<string>> {
+    try {
+      const { data } = await supabase
+        .from('assessment_responses')
+        .select('question_id')
+        .eq('user_id', userId);
+      return new Set((data || []).map(r => r.question_id));
+    } catch (e) {
+      console.warn("[Selector] Failed to fetch seen IDs:", e);
+      return new Set();
+    }
   }
 
-  public buildFullBattery(): BatteryQuestion[] {
+  public static async fetchAndBuild(userId: string): Promise<BatteryQuestion[]> {
+    console.log("[Selector] Initializing Smart Pull for battery...");
+    const seenIds = userId ? await this.getSeenIds(userId) : new Set<string>();
     const battery: BatteryQuestion[] = [];
-    
-    // 1. BLOCK 1: Language Use & Listening (Q1-10)
-    const block1Pools = {
-      listening: this.getPoolForSkill(['listening']),
-      grammar: this.getPoolForSkill(['grammar']),
-      vocabulary: this.getPoolForSkill(['vocabulary'])
-    };
-    
-    const block1Qs = [
-      ...this.sampleFromZones(block1Pools.listening, { EASY: 1, MEDIUM: 2, HARD: 1 }, 'listening'),
-      ...this.sampleFromZones(block1Pools.grammar, { EASY: 1, MEDIUM: 1, HARD: 1 }, 'grammar'),
-      ...this.sampleFromZones(block1Pools.vocabulary, { EASY: 1, MEDIUM: 1, HARD: 1 }, 'vocabulary')
-    ];
-    this.addToBattery(battery, block1Qs, 1);
 
-    // 2. BLOCK 2 & 3: Reading & Writing (Q11-30) - Shared Stimulus
-    const sharedStimulus = this.findMasterStimulus();
-    
-    const readingPool = this.getPoolForSkill(['reading']);
-    const block2Qs = this.sampleFromZones(readingPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'reading');
-    block2Qs.forEach(q => (q as any).stimulus = sharedStimulus.text);
-    this.addToBattery(battery, block2Qs, 2);
+    // --- BLOCK 1: Listening & Language Use (10 Qs) ---
+    // Skills: listening, grammar, vocabulary
+    const block1Pool = await this.queryPool(['listening', 'grammar', 'vocabulary'], seenIds);
+    const block1Qs = this.sampleSequential(block1Pool, { EASY: 3, MEDIUM: 4, HARD: 3 });
+    this.addBatch(battery, block1Qs, 1);
 
-    const writingPool = this.getPoolForSkill(['writing']);
-    const block3Qs = this.sampleFromZones(writingPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'writing');
-    block3Qs.forEach(q => (q as any).stimulus = sharedStimulus.text);
-    this.addToBattery(battery, block3Qs, 3);
+    // --- BLOCK 2 & 3: Reading & Writing (Shared Stimulus) ---
+    // We fetch questions that share the same stimulus text
+    const sharedPool = await this.querySharedStimulusPool(seenIds);
+    if (sharedPool.reading.length >= 10 && sharedPool.writing.length >= 10) {
+      this.addBatch(battery, this.sampleSequential(sharedPool.reading, { EASY: 3, MEDIUM: 4, HARD: 3 }), 2);
+      this.addBatch(battery, this.sampleSequential(sharedPool.writing, { EASY: 3, MEDIUM: 4, HARD: 3 }), 3);
+    } else {
+      // Fallback if no shared stimulus found (unlikely with our generation)
+      const rPool = await this.queryPool(['reading'], seenIds);
+      const wPool = await this.queryPool(['writing'], seenIds);
+      this.addBatch(battery, this.sampleSequential(rPool, { EASY: 3, MEDIUM: 4, HARD: 3 }), 2);
+      this.addBatch(battery, this.sampleSequential(wPool, { EASY: 3, MEDIUM: 4, HARD: 3 }), 3);
+    }
 
-    // 4. BLOCK 4: Speaking (Q31-40)
-    const speakingPool = this.getPoolForSkill(['speaking']);
-    const block4Qs = this.sampleFromZones(speakingPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'speaking');
-    this.addToBattery(battery, block4Qs, 4);
+    // --- BLOCK 4: Speaking (10 Qs) ---
+    const block4Pool = await this.queryPool(['speaking'], seenIds);
+    const block4Qs = this.sampleSequential(block4Pool, { EASY: 3, MEDIUM: 4, HARD: 3 });
+    this.addBatch(battery, block4Qs, 4);
 
+    console.log(`[Selector] Battery built with ${battery.length} questions.`);
     return battery;
   }
 
-  private addToBattery(battery: BatteryQuestion[], items: QuestionBankItem[], block: number) {
-    items.forEach((item) => {
-      const zone = this.getZoneForLevel(item.target_cefr);
-      const pointValue = ASSESSMENT_CONFIG.ZONES[zone].pointsPerQuestion;
-      battery.push({
-        item, block, skill: item.skill, zone, globalIndex: battery.length, pointValue
-      });
-    });
+  private static async queryPool(skills: string[], seenIds: Set<string>): Promise<QuestionBankItem[]> {
+    // We fetch a buffer of 50 per skill to ensure we have enough even after filtering seen IDs
+    const { data, error } = await supabase
+      .from('question_bank_items')
+      .select('*')
+      .in('skill', skills)
+      .limit(150);
+
+    if (error) throw error;
+    return (data || []).filter(q => !seenIds.has(q.id)) as any;
   }
 
-  private getPoolForSkill(skills: string[]): QuestionBankItem[] {
-    const pool: QuestionBankItem[] = [];
-    Object.values(this.banks).forEach(levelBank => {
-      pool.push(...levelBank.filter(q => 
-        skills.includes(q.skill.toLowerCase()) && !this.seenIds.has(q.id)
-      ));
-    });
-    return pool;
+  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ reading: QuestionBankItem[], writing: QuestionBankItem[] }> {
+    // 1. Find a stimulus that has multiple questions
+    const { data: candidates } = await supabase
+      .from('question_bank_items')
+      .select('stimulus')
+      .not('stimulus', 'is', null)
+      .eq('skill', 'reading')
+      .limit(10);
+    
+    if (!candidates || candidates.length === 0) return { reading: [], writing: [] };
+
+    // Pick the first candidate stimulus
+    const stimulus = candidates[0].stimulus;
+
+    // 2. Fetch all reading and writing tasks for this stimulus
+    const { data: tasks } = await supabase
+      .from('question_bank_items')
+      .select('*')
+      .eq('stimulus', stimulus)
+      .in('skill', ['reading', 'writing']);
+
+    const items = (tasks || []) as any[];
+    return {
+      reading: items.filter(i => i.skill === 'reading' && !seenIds.has(i.id)),
+      writing: items.filter(i => i.skill === 'writing' && !seenIds.has(i.id))
+    };
   }
 
-  private sampleFromZones(pool: QuestionBankItem[], counts: Record<DifficultyZone, number>, skill: string): QuestionBankItem[] {
+  private static sampleSequential(pool: QuestionBankItem[], counts: Record<DifficultyZone, number>): QuestionBankItem[] {
     const sampled: QuestionBankItem[] = [];
     const zones: DifficultyZone[] = ['EASY', 'MEDIUM', 'HARD'];
 
     zones.forEach(zone => {
-      const zoneLevels = ASSESSMENT_CONFIG.ZONES[zone].levels;
-      const zonePool = pool.filter(q => zoneLevels.includes(q.target_cefr) && q.skill.toLowerCase() === skill.toLowerCase());
+      const levels = ASSESSMENT_CONFIG.ZONES[zone].levels;
+      const zonePool = pool.filter(q => levels.includes(q.target_cefr || (q as any).level));
       const count = counts[zone];
       
       const shuffled = this.shuffle(zonePool);
       sampled.push(...shuffled.slice(0, count));
       
+      // Secondary fallback if specific level is dry
       if (sampled.length < count) {
-          const fallback = pool.filter(q => !sampled.includes(q)).slice(0, count - sampled.length);
-          sampled.push(...fallback);
+        const remaining = pool.filter(p => !sampled.includes(p));
+        sampled.push(...remaining.slice(0, count - sampled.length));
       }
     });
 
     return sampled;
   }
 
-  private findMasterStimulus(): { text: string } {
-    const readingQs = this.getPoolForSkill(['reading']);
-    const stimuli = readingQs.map(q => q.stimulus).filter(s => (s?.length || 0) > 200);
-    if (stimuli.length > 0) return { text: this.shuffle(stimuli)[0]! };
-    
-    return { 
-      text: "Global Business Trends: In the rapidly evolving landscape of the 21st century, the intersection of technology and commerce has created unprecedented opportunities. Remote work, once a peripheral concept, has become a cornerstone of modern organizational strategy. This shift requires not only digital literacy but also a high degree of cultural intelligence as teams become increasingly distributed across diverse time zones and linguistic backgrounds. Consequently, educational institutions are recalibrating their curricula to emphasize soft skills alongside technical expertise, preparing the next generation of leaders for an interconnected and fluid professional environment."
-    };
+  private static addBatch(battery: BatteryQuestion[], items: QuestionBankItem[], block: number) {
+    items.forEach(item => {
+      const level = item.target_cefr || (item as any).level || 'A1';
+      const zone = this.getZoneForLevel(level);
+      battery.push({
+        item,
+        block,
+        skill: item.skill,
+        zone,
+        globalIndex: battery.length,
+        pointValue: ASSESSMENT_CONFIG.ZONES[zone].pointsPerQuestion
+      });
+    });
   }
 
-  private getZoneForLevel(level: string): DifficultyZone {
+  private static getZoneForLevel(level: string): DifficultyZone {
     if (['A1', 'A2'].includes(level)) return 'EASY';
     if (['B1', 'B2'].includes(level)) return 'MEDIUM';
     return 'HARD';
   }
 
-  private shuffle<T>(array: T[]): T[] {
+  private static shuffle<T>(array: T[]): T[] {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -134,4 +162,3 @@ export class BatterySelector {
   }
 }
 
-export { BatterySelector as AdaptiveSelector };

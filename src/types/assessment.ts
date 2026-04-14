@@ -339,6 +339,7 @@ export type AssessmentQuestion = {
   // Backward compatibility
   skill?: AssessmentSkill;
   response_mode?: 'audio' | 'typed' | 'mcq';
+  stimulus?: string;
   rubricId?: string;
   discriminationValue?: number; // Legacy
 };
