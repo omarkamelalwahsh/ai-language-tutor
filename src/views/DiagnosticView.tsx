@@ -68,6 +68,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   // --- Engine ---
   const engineRef = useRef<AdaptiveAssessmentEngine | null>(null);
+  const isInitialized = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showQuitDialog, setShowQuitDialog] = useState(false);
@@ -129,14 +130,25 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     }
   }, [engine, navigate, onSaveComplete]);
 
+  // 🚀 BOOTSTRAP EFFECT: Runs once on mount
   useEffect(() => {
-    if (!currentTask) {
-      engine.getNextQuestion().then(q => {
-        if (q) setTaskWithReset(q);
-        else handleFinish();
-      });
-    }
-  }, [engine, currentTask, handleFinish, setTaskWithReset]);
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
+    console.log("[DiagnosticView] Initializing assessment bootstrap...");
+    
+    const bootstrap = async () => {
+      // Get the first question (might trigger fetch if no battery)
+      const q = await engine.getNextQuestion();
+      if (q) {
+        setTaskWithReset(q);
+      } else {
+        handleFinish();
+      }
+    };
+
+    bootstrap();
+  }, [engine, handleFinish, setTaskWithReset]);
 
   const handleNextTask = useCallback(async (answer: string, mode?: ResponseMode, meta?: SpeakingSubmissionMeta) => {
     if (!currentTask || isEvaluating) return;
@@ -186,7 +198,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
           <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
-            PROG: {progress.answered + 1} / 40
+            PROG: {progress.answered + 1} / {progress.total}
           </span>
         </div>
       </header>
@@ -391,7 +403,7 @@ const PreparingBatteryView = () => (
     </motion.div>
     <h2 className="text-2xl font-bold text-slate-900 mb-2">Architecting your proficiency scan</h2>
     <p className="text-slate-500 max-w-xs leading-relaxed text-sm">
-      We're selecting 40 questions from our hybrid zones to build your personalized assessment.
+      We're selecting specialized questions from our hybrid zones to build your personalized assessment.
     </p>
     <div className="mt-12 flex gap-1.5">
       {[0, 1, 2].map(i => (
@@ -411,7 +423,7 @@ const AnalyzingTransitionView = ({ isSaving, saveError }: any) => (
     <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center"><Brain color="white" size={40} /></motion.div>
     <div className="space-y-2">
       <h2 className="text-3xl font-black text-slate-900">Calculating precise profile...</h2>
-      <p className="text-slate-500">Aggregating 40 questions across hybrid zones.</p>
+      <p className="text-slate-500">Aggregating responses across hybrid zones.</p>
     </div>
   </div>
 );

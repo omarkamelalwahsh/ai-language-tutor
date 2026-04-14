@@ -261,7 +261,7 @@ export class AssessmentSaveService {
       if (!data?.evaluation_metadata) return null;
 
       const state = data.evaluation_metadata;
-      if (state.currentIndex >= 40 || !state.battery) {
+      if (!state.battery || state.currentIndex >= state.battery.length) {
         console.log("[AssessmentSaveService] ℹ️ Found state is either complete or invalid.");
         return null;
       }

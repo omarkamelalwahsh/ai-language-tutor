@@ -62,10 +62,10 @@ export class AdaptiveAssessmentEngine {
     
     this.STORAGE_KEY = `asmt_state_${this.userId || 'guest'}`;
 
-    if (initialBattery && initialBattery.length === 40) {
+    if (initialBattery && initialBattery.length > 0) {
       this.battery = initialBattery;
       this.isStaticBattery = true;
-      console.log("[Engine] Initialized with pre-fetched static battery.");
+      console.log(`[Engine] Initialized with pre-fetched static battery (${this.battery.length} questions).`);
     }
 
     const ALL_SKILLS = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
@@ -73,11 +73,25 @@ export class AdaptiveAssessmentEngine {
       this.skillScores[s] = { earned: 0, total: 20 };
     });
 
+    // Only recover if we don't have a static battery or if we need to resume
     this.tryRecoverState();
   }
 
   public hasBattery(): boolean {
-    return this.battery.length === 40;
+    return this.battery && this.battery.length > 0;
+  }
+
+  public getProgress(): BatteryProgress {
+    const total = this.battery.length || 40;
+    return {
+      answered: this.currentIndex,
+      total: total,
+      percentage: Math.min(100, Math.round((this.currentIndex / total) * 100)),
+      currentBlock: Math.floor(this.currentIndex / 10) + 1,
+      currentSkill: this.battery[this.currentIndex]?.item.skill || null,
+      currentZone: this.battery[this.currentIndex]?.zone || "MEDIUM",
+      completed: this.completed
+    };
   }
 
   private tryRecoverState() {
@@ -87,14 +101,15 @@ export class AdaptiveAssessmentEngine {
 
     try {
       const saved = JSON.parse(raw);
-      if (saved.battery && saved.currentIndex < 40) {
+      // Only recover if the saved session is later in progress or we have no battery
+      if (saved.battery && saved.battery.length > 0 && (saved.currentIndex > this.currentIndex || !this.battery.length)) {
         this.battery = saved.battery;
         this.currentIndex = saved.currentIndex;
         this.skillScores = saved.skillScores;
         this.answerHistory = saved.answerHistory;
         this.taskEvaluations = saved.taskEvaluations;
         this.assessmentId = saved.assessmentId;
-        console.log(`[Engine] Recovered assessment ${this.assessmentId} at Q${this.currentIndex + 1}`);
+        console.log(`[Engine] Recovered assessment ${this.assessmentId} at Q${this.currentIndex + 1}/${this.battery.length}`);
       }
     } catch (e) {
       console.warn("[Engine] Failed to recover state:", e);
@@ -207,7 +222,7 @@ export class AdaptiveAssessmentEngine {
     this.taskEvaluations.push(evaluation);
     this.currentIndex++;
     
-    if (this.currentIndex >= 40) {
+    if (this.currentIndex >= this.battery.length) {
       this.completed = true;
       this.clearState();
     } else {

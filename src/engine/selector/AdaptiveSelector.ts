@@ -41,90 +41,97 @@ export class BatterySelector {
     const battery: BatteryQuestion[] = [];
 
     // --- BLOCK 1: Listening & Language Use (10 Qs) ---
-    // Skills: listening, grammar, vocabulary
-    const block1Pool = await this.queryPool(['listening', 'grammar', 'vocabulary'], seenIds);
-    const block1Qs = this.sampleSequential(block1Pool, { EASY: 3, MEDIUM: 4, HARD: 3 });
+    // Skills: Listening, Grammar, Vocabulary (Aligned with DB Enums)
+    const block1Pool = await this.queryPool(['Listening', 'Grammar', 'Vocabulary'], seenIds);
+    const block1Qs = this.sampleSequential(block1Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 1');
     this.addBatch(battery, block1Qs, 1);
 
     // --- BLOCK 2 & 3: Reading & Writing (Shared Stimulus) ---
-    // We fetch questions that share the same stimulus text
     const sharedPool = await this.querySharedStimulusPool(seenIds);
-    if (sharedPool.reading.length >= 10 && sharedPool.writing.length >= 10) {
-      this.addBatch(battery, this.sampleSequential(sharedPool.reading, { EASY: 3, MEDIUM: 4, HARD: 3 }), 2);
-      this.addBatch(battery, this.sampleSequential(sharedPool.writing, { EASY: 3, MEDIUM: 4, HARD: 3 }), 3);
+    if (sharedPool.Reading.length >= 10 && sharedPool.Writing.length >= 10) {
+      this.addBatch(battery, this.sampleSequential(sharedPool.Reading, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Shared)'), 2);
+      this.addBatch(battery, this.sampleSequential(sharedPool.Writing, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Shared)'), 3);
     } else {
-      // Fallback if no shared stimulus found (unlikely with our generation)
-      const rPool = await this.queryPool(['reading'], seenIds);
-      const wPool = await this.queryPool(['writing'], seenIds);
-      this.addBatch(battery, this.sampleSequential(rPool, { EASY: 3, MEDIUM: 4, HARD: 3 }), 2);
-      this.addBatch(battery, this.sampleSequential(wPool, { EASY: 3, MEDIUM: 4, HARD: 3 }), 3);
+      console.warn("[Selector] Shared stimulus pool dry. Falling back to independent pools.");
+      const rPool = await this.queryPool(['Reading'], seenIds);
+      const wPool = await this.queryPool(['Writing'], seenIds);
+      this.addBatch(battery, this.sampleSequential(rPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Indep)'), 2);
+      this.addBatch(battery, this.sampleSequential(wPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Indep)'), 3);
     }
 
     // --- BLOCK 4: Speaking (10 Qs) ---
-    const block4Pool = await this.queryPool(['speaking'], seenIds);
-    const block4Qs = this.sampleSequential(block4Pool, { EASY: 3, MEDIUM: 4, HARD: 3 });
+    const block4Pool = await this.queryPool(['Speaking'], seenIds);
+    const block4Qs = this.sampleSequential(block4Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 4');
     this.addBatch(battery, block4Qs, 4);
 
-    console.log(`[Selector] Battery built with ${battery.length} questions.`);
+    // --- GLOBAL SAFETY CHECK: FILL TO 40 ---
+    if (battery.length < 40) {
+      console.warn(`[Selector] ⚠️ Battery incomplete (${battery.length}/40). Filling gaps...`);
+      const gapSize = 40 - battery.length;
+      const fillerPool = await this.queryPool(['Listening', 'Reading', 'Grammar', 'Vocabulary'], seenIds);
+      const fillerShuffled = this.shuffle(fillerPool.filter(f => !battery.some(b => b.item.id === f.id)));
+      this.addBatch(battery, fillerShuffled.slice(0, gapSize), 99); // Block 99 for filler
+    }
+
+    console.log(`[Selector] ✅ Final high-fidelity battery built with ${battery.length} questions.`);
     return battery;
   }
 
   private static async queryPool(skills: string[], seenIds: Set<string>): Promise<QuestionBankItem[]> {
-    // We fetch a buffer of 50 per skill to ensure we have enough even after filtering seen IDs
+    // Exact match (.in) for prioritized skills
     const { data, error } = await supabase
       .from('question_bank_items')
       .select('*')
       .in('skill', skills)
-      .limit(150);
+      .limit(200);
 
     if (error) throw error;
     return (data || []).filter(q => !seenIds.has(q.id)) as any;
   }
 
-  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ reading: QuestionBankItem[], writing: QuestionBankItem[] }> {
-    // 1. Find a stimulus that has multiple questions
+  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ Reading: QuestionBankItem[], Writing: QuestionBankItem[] }> {
     const { data: candidates } = await supabase
       .from('question_bank_items')
       .select('stimulus')
       .not('stimulus', 'is', null)
-      .eq('skill', 'reading')
+      .eq('skill', 'Reading')
       .limit(10);
     
-    if (!candidates || candidates.length === 0) return { reading: [], writing: [] };
+    if (!candidates || candidates.length === 0) return { Reading: [], Writing: [] };
 
-    // Pick the first candidate stimulus
     const stimulus = candidates[0].stimulus;
-
-    // 2. Fetch all reading and writing tasks for this stimulus
     const { data: tasks } = await supabase
       .from('question_bank_items')
       .select('*')
       .eq('stimulus', stimulus)
-      .in('skill', ['reading', 'writing']);
+      .in('skill', ['Reading', 'Writing']);
 
     const items = (tasks || []) as any[];
     return {
-      reading: items.filter(i => i.skill === 'reading' && !seenIds.has(i.id)),
-      writing: items.filter(i => i.skill === 'writing' && !seenIds.has(i.id))
+      Reading: items.filter(i => i.skill === 'Reading' && !seenIds.has(i.id)),
+      Writing: items.filter(i => i.skill === 'Writing' && !seenIds.has(i.id))
     };
   }
 
-  private static sampleSequential(pool: QuestionBankItem[], counts: Record<DifficultyZone, number>): QuestionBankItem[] {
+  private static sampleSequential(pool: QuestionBankItem[], counts: Record<DifficultyZone, number>, context: string): QuestionBankItem[] {
     const sampled: QuestionBankItem[] = [];
     const zones: DifficultyZone[] = ['EASY', 'MEDIUM', 'HARD'];
 
     zones.forEach(zone => {
       const levels = ASSESSMENT_CONFIG.ZONES[zone].levels;
       const zonePool = pool.filter(q => levels.includes(q.target_cefr || (q as any).level));
-      const count = counts[zone];
+      const requestedCount = counts[zone];
       
       const shuffled = this.shuffle(zonePool);
-      sampled.push(...shuffled.slice(0, count));
+      const zoneSelection = shuffled.slice(0, requestedCount);
+      sampled.push(...zoneSelection);
       
-      // Secondary fallback if specific level is dry
-      if (sampled.length < count) {
-        const remaining = pool.filter(p => !sampled.includes(p));
-        sampled.push(...remaining.slice(0, count - sampled.length));
+      if (zoneSelection.length < requestedCount) {
+        console.warn(`[Selector] [${context}] Requested ${requestedCount} for ${zone} but only found ${zoneSelection.length}.`);
+        // Intra-block fallback: grab from the broader pool ignoring specific level
+        const remainingNeeded = requestedCount - zoneSelection.length;
+        const fallbackPool = pool.filter(p => !sampled.some(s => s.id === p.id));
+        sampled.push(...this.shuffle(fallbackPool).slice(0, remainingNeeded));
       }
     });
 
@@ -133,7 +140,9 @@ export class BatterySelector {
 
   private static addBatch(battery: BatteryQuestion[], items: QuestionBankItem[], block: number) {
     items.forEach(item => {
-      const level = item.target_cefr || (item as any).level || 'A1';
+      const dbLevel = item.target_cefr || (item as any).level || 'B1';
+      // Ensure we handle potential lowercase/uppercase variation in the level string
+      const level = dbLevel.toUpperCase(); 
       const zone = this.getZoneForLevel(level);
       battery.push({
         item,
