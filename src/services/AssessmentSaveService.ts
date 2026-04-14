@@ -212,13 +212,49 @@ export class AssessmentSaveService {
   }
 
   /**
+   * IMMEDIATE PERSISTENCE: Creates the session as soon as battery is formed.
+   */
+  public static async createSession(assessmentId: string, userId: string | undefined | null, batterySize: number, contextData?: any) {
+    const finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
+    console.log('--- STARTING ASSESSMENT SAVE ---');
+    console.log(`[AssessmentSaveService] 🔄 Creating session record for ${assessmentId} (User: ${finalUserId})...`);
+    
+    try {
+      const { error } = await supabase
+        .from('assessments')
+        .upsert({
+          id: assessmentId,
+          user_id: finalUserId,
+          current_index: 0,
+          evaluation_metadata: { 
+            status: 'architected', 
+            size: batterySize,
+            context: contextData || null 
+          },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+      if (error) {
+        console.error('[AssessmentSaveService] ❌ Failed to create session:', error);
+        throw error;
+      }
+      
+      console.log(`[AssessmentSaveService] ✅ Session POST request successful.`);
+      return assessmentId;
+    } catch (err) {
+      console.error('[AssessmentSaveService] ❌ Session creation exception:', err);
+      return null;
+    }
+  }
+
+  /**
    * PERSISTENCE SYNC: Saves the entire engine state to the database.
    * This is triggered at block boundaries to ensure cross-device persistence.
    */
   public static async saveAssessmentState(assessmentId: string, state: any, userId?: string) {
     const finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
     
-    console.log(`[AssessmentSaveService] 🔄 Syncing state to remote for assessment: ${assessmentId}`);
+    console.log(`[AssessmentSaveService] 🔄 Syncing state to remote for assessment: ${assessmentId} (User: ${finalUserId})`);
     
     try {
       const { error } = await supabase
@@ -233,10 +269,7 @@ export class AssessmentSaveService {
 
       if (error) {
         console.error('[AssessmentSaveService] ❌ Remote state sync failed:', error);
-        throw error;
       }
-      
-      console.log(`[AssessmentSaveService] ✅ Remote state sync successful.`);
     } catch (err) {
       console.error('[AssessmentSaveService] ❌ Sync exception:', err);
     }

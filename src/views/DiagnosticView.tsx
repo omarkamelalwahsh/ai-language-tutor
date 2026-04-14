@@ -11,12 +11,13 @@ import {
   Pen,
   Mic,
   ArrowRight,
-  Zap,
-  AlertTriangle,
-  Shield,
-  TrendingUp,
-  Brain,
-  MessageSquare
+  Zap, 
+  AlertTriangle, 
+  Shield, 
+  TrendingUp, 
+  Brain, 
+  MessageSquare,
+  Play
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -48,10 +49,19 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
 
 // Block info
 const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: string }> = {
-  1: { label: 'Language Use', icon: <Zap size={16} />, color: 'text-sky-600' },
-  2: { label: 'Reading', icon: <BookOpen size={16} />, color: 'text-violet-600' },
-  3: { label: 'Writing', icon: <Pen size={16} />, color: 'text-emerald-600' },
-  4: { label: 'Speaking', icon: <Mic size={16} />, color: 'text-amber-600' },
+  1: { label: 'Foundations', icon: <Zap size={16} />, color: 'text-amber-500' },
+  2: { label: 'Bridge', icon: <TrendingUp size={16} />, color: 'text-blue-500' },
+  3: { label: 'Mastery', icon: <Brain size={16} />, color: 'text-indigo-600' },
+};
+
+// 🔊 Browser Speech Synthesis Utility
+const speakText = (text: string) => {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel(); // Stop current speech
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
 };
 
 // Zone badge config
@@ -239,6 +249,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col min-h-full">
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-2">
+                {/* 🔍 DEBUG BADGE (requested by user to verify AI alignment) */}
+                <div className="mr-2 px-2.5 py-1.5 bg-blue-50/80 border border-blue-100 rounded-lg flex items-center gap-1.5 shadow-sm">
+                   <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Debug:</span>
+                   <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.difficulty || '??'}</span>
+                   <span className="mx-1 w-px h-2 bg-blue-200" />
+                   <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.skill}</span>
+                </div>
+
                 <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${skillInfo.bg} ${skillInfo.color}`}>
                   {skillInfo.icon} {skillInfo.label}
                 </span>

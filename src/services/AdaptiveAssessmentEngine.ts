@@ -159,8 +159,26 @@ export class AdaptiveAssessmentEngine {
       if (this.battery.length === 0) {
         console.log("[Engine] No remote session found. Fetching brand new battery...");
         this.battery = await BatterySelector.fetchAndBuild(this.userId || "");
+        
+        if (this.battery.length === 0) {
+          console.error("[Engine] ❌ CRITICAL: BatterySelector returned 0 questions. Breaking initialization.");
+          throw new Error("Failed to generate assessment battery. Please check your internet connection or try again.");
+        }
+
+        console.log(`[Engine] ✅ Fresh battery fetched with ${this.battery.length} items. Preparing to sync session...`);
         this.saveState();
-        this.syncStateToRemote(); // Initial sync to secure the battery
+        
+        // 🚀 Immediate Sync: Call createSession BEFORE any complex logic
+        // Using a default B1 prediction context if not pre-evaluated, ensuring we don't look for 'ready: true'
+        await AssessmentSaveService.createSession(
+          this.assessmentId, 
+          this.userId, 
+          this.battery.length, 
+          { prediction: "B1", status: "architected", source: "engine_init" }
+        );
+        
+        // Remove await from syncStateToRemote so it doesn't block UI transition
+        this.syncStateToRemote();
       }
     }
 
@@ -266,6 +284,21 @@ export class AdaptiveAssessmentEngine {
     );
   }
 
+  /**
+   * Returns a snapshot of the current engine state for UI or testing.
+   */
+  public getState() {
+    return {
+      battery: this.battery,
+      currentIndex: this.currentIndex,
+      skillScores: this.skillScores,
+      answerHistory: this.answerHistory,
+      taskEvaluations: this.taskEvaluations,
+      assessmentId: this.assessmentId,
+      isStaticBattery: this.isStaticBattery
+    };
+  }
+
   private checkMCQ(item: QuestionBankItem, answer: string): boolean {
     const key = item.answer_key as any;
     if (key?.value?.options && typeof key.value.correct_index === 'number') {
@@ -338,7 +371,6 @@ export class AdaptiveAssessmentEngine {
 
   public getEvaluations(): TaskEvaluation[] { return this.taskEvaluations; }
   public getAnswerHistory(): AnswerRecord[] { return this.answerHistory; }
-  public getState() { return { currentIndex: this.currentIndex, completed: this.completed }; }
   
   public async finalizeAssessment(): Promise<boolean> { 
     this.completed = true; 
