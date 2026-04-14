@@ -359,11 +359,15 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
 
   // ═══════════════════════════════════════════════════════════════
-  // STRICT SKILL CLASSIFICATION
+  // STRICT RESPONSE MODE CLASSIFICATION (matches BatterySelector)
+  // MCQ  = grammar, vocabulary, reading, listening (32 questions)
+  // typed = writing (4 questions)
+  // audio = speaking (4 questions)
   // ═══════════════════════════════════════════════════════════════
-  const isMCQSkill = MCQ_SKILLS.includes(currentTask.skill);
-  const isWritingSkill = currentTask.skill === 'writing';
-  const isSpeakingSkill = currentTask.skill === 'speaking';
+  const responseMode = (currentTask.response_mode || 'mcq') as string;
+  const isMCQTask = responseMode === 'mcq';
+  const isWritingTask = responseMode === 'typed';
+  const isSpeakingTask = responseMode === 'audio';
   const hasOptions = currentTask.options && currentTask.options.length > 0;
 
   // Split Layout for reading tasks with a stimulus
@@ -493,8 +497,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 ═══════════════════════════════════════════════════════════ */}
             <div className="flex-1">
               
-              {/* ── MCQ SKILLS: Grammar, Vocabulary, Reading, Listening ── */}
-              {isMCQSkill && hasOptions ? (
+              {/* ── MCQ TASKS: Grammar, Vocabulary, Reading, Listening (response_mode=mcq) ── */}
+              {isMCQTask && hasOptions ? (
                 <div className="space-y-4">
                   {currentTask.options!.map((opt, i) => {
                     const optionId = `opt-${i}`;
@@ -529,8 +533,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                   })}
                 </div>
 
-              /* ── MCQ SKILL BUT NO OPTIONS → Warning + Skip ── */
-              ) : isMCQSkill && !hasOptions ? (
+              /* ── MCQ TASK BUT NO OPTIONS → Warning + Skip ── */
+              ) : isMCQTask && !hasOptions ? (
                 <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100 text-center shadow-xl shadow-amber-100/20">
                    <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
                    <p className="text-amber-900 font-black text-lg mb-2">Missing Options</p>
@@ -543,8 +547,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                    </button>
                 </div>
 
-              /* ── SPEAKING SKILL → Audio Recorder (SpeakingModule) ── */
-              ) : isSpeakingSkill && !useSpeakingFallback ? (
+              /* ── SPEAKING TASK (response_mode=audio) → Audio Recorder ── */
+              ) : isSpeakingTask && !useSpeakingFallback ? (
                 <div className="space-y-4">
                   <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">
                     <SpeakingModule 
@@ -565,14 +569,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                   </button>
                 </div>
 
-              /* ── WRITING SKILL or SPEAKING FALLBACK → Text Area ── */
+              /* ── WRITING TASK (response_mode=typed) or SPEAKING FALLBACK → Text Area ── */
               ) : (
                 <div className="space-y-6">
                   <div className="relative group">
                     <textarea 
                       value={textValue} 
                       onChange={e => setTextValue(e.target.value)} 
-                      placeholder={isWritingSkill ? "Write your answer here..." : "Type your spoken response here..."} 
+                      placeholder={isWritingTask ? "Write your answer here..." : "Type your spoken response here..."} 
                       className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-slate-700 text-xl font-medium" 
                     />
                     <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{textValue.length} characters</div>
@@ -586,7 +590,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                       <span className="flex items-center justify-center gap-2">
                         <RefreshCcw className="animate-spin" size={20} /> Evaluating...
                       </span>
-                    ) : isWritingSkill ? 'Submit Written Answer' : 'Submit Answer'}
+                    ) : isWritingTask ? 'Submit Written Answer' : 'Submit Answer'}
                   </button>
                 </div>
               )}

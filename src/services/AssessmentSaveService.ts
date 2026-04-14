@@ -179,10 +179,16 @@ export class AssessmentSaveService {
     const rawLevel = (task.difficulty || task.target_cefr || 'b1');
     const canonicalLevel = String(rawLevel).toLowerCase();
     const difficultyVal = task.difficulty_num || DIFF_MAP[canonicalLevel] || 0.4;
-    const answerStr = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+    const answerStr = typeof answer === 'object' ? JSON.stringify(answer) : String(answer || '');
     const questionText = task.prompt || '';
-    const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
     const skillStr = String(task.skill || "vocabulary").toLowerCase();
+    
+    // 🛡️ Production task awareness: writing/speaking use AI scores, not boolean MCQ checks
+    const responseMode = (task.response_mode || 'mcq') as string;
+    const isProductionTask = responseMode === 'typed' || responseMode === 'audio';
+    const isCorrect = evaluation.is_correct !== undefined 
+      ? evaluation.is_correct 
+      : (evaluation.score || 0) >= 0.5;
 
     try {
       // 1. ASSESSMENT_RESPONSES — Clean payload, only valid columns
@@ -211,8 +217,8 @@ export class AssessmentSaveService {
         question_id: String(task.id),
         question: questionText,
         question_text: questionText,
-        user_answer: answerStr,
-        correct_answer: task.correctAnswer || '',
+        user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
+        correct_answer: task.correctAnswer || (isProductionTask ? '[open_ended]' : ''),
         is_correct: isCorrect,
         skill: skillStr,
         question_level: canonicalLevel,

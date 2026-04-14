@@ -206,20 +206,37 @@ export class AdaptiveAssessmentEngine {
     
     let evaluation: any;
     
-    // MCQ Check — by response_mode OR by receptive skill classification
-    const isMCQTask = item.response_mode === 'mcq' || ['grammar', 'vocabulary', 'reading', 'listening'].includes(item.skill.toLowerCase());
+    // 🛡️ STRICT RESPONSE MODE CLASSIFICATION
+    // Use response_mode as the primary discriminator:
+    //   'mcq'   → deterministic MCQ check (grammar, vocab, reading, listening)
+    //   'typed' → AI evaluation (writing tasks)
+    //   'audio' → AI evaluation (speaking tasks)
+    const itemMode = (item.response_mode || 'mcq') as string;
+    const isProductionTask = itemMode === 'typed' || itemMode === 'audio';
+    const isMCQTask = !isProductionTask && item.options && item.options.length > 0;
     
-    if (isMCQTask && item.options && item.options.length > 0) {
+    if (isMCQTask) {
       const isCorrect = this.checkMCQ(item, answer);
       evaluation = { 
         score: isCorrect ? 1.0 : 0.0, 
         is_correct: isCorrect, 
         feedback: isCorrect ? "Correct!" : "Incorrect." 
       };
-    } else {
-      // AI check for Writing/Speaking/open-ended
-      console.log(`[Engine] Evaluating ${item.skill} via AI...`);
+    } else if (isProductionTask) {
+      // AI evaluation for Writing/Speaking (open-ended production tasks)
+      console.log(`[Engine] 🤖 Evaluating ${item.skill} (${itemMode}) via AI...`);
       evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
+      // Ensure is_correct is derived from score for production tasks
+      if (evaluation.is_correct === undefined) {
+        evaluation.is_correct = (evaluation.score || 0) >= 0.5;
+      }
+    } else {
+      // Fallback: MCQ skill without options — attempt AI evaluation
+      console.log(`[Engine] ⚠️ ${item.skill} MCQ missing options, falling back to AI evaluation...`);
+      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
+      if (evaluation.is_correct === undefined) {
+        evaluation.is_correct = (evaluation.score || 0) >= 0.5;
+      }
     }
 
     // 🏋️ WEIGHTED PROFICIENCY SCORING: score * difficulty
@@ -363,6 +380,12 @@ export class AdaptiveAssessmentEngine {
   }
 
   private getCorrectAnswer(item: any): string {
+    // Production tasks (writing/speaking) don't have a single "correct" answer
+    const mode = (item.response_mode || 'mcq') as string;
+    if (mode === 'typed' || mode === 'audio') {
+      // Return rubric hint or empty — AI evaluation handles scoring
+      return item.rubric || item.model_answer || '';
+    }
     const { options, correctIndex } = this.extractMCQData(item);
     if (!options || correctIndex === null || correctIndex === undefined) return "";
     return options[correctIndex] || "";

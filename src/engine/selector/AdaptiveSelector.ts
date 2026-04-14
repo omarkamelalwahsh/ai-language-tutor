@@ -67,10 +67,13 @@ export class BatterySelector {
       const pool = skillPools[quota.skill] || [];
       const sampled = this.sampleWithDifficulty(pool, quota);
 
-      // Enforce response_mode and hoist options
+      // Enforce response_mode and hoist options (MCQ only)
       sampled.forEach(item => {
         item.response_mode = quota.responseMode as any;
-        this.hoistOptions(item);
+        // Only hoist options for MCQ tasks — writing/speaking have no options
+        if (quota.responseMode === 'mcq') {
+          this.hoistOptions(item);
+        }
       });
 
       const batteryItems = sampled.map((item, i) => this.toBatteryQuestion(item, quota));
@@ -258,6 +261,13 @@ export class BatterySelector {
    * Also extracts correct_answer for the engine's MCQ check.
    */
   private static hoistOptions(item: QuestionBankItem) {
+    // 🛡️ Guard: Skip hoisting for non-MCQ response modes (writing=typed, speaking=audio)
+    const mode = (item.response_mode || '') as string;
+    if (mode === 'typed' || mode === 'audio') {
+      // Production tasks don't have MCQ options — this is expected, not a warning
+      return;
+    }
+
     if (item.options && item.options.length > 0) {
       // Already has top-level options, nothing to hoist
       return;
