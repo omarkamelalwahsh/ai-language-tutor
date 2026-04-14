@@ -29,7 +29,8 @@ export const supabase = createClient(
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'x-client-info': 'ai-language-tutor/' + Date.now()
       }
     }
   }

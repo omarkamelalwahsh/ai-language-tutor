@@ -179,53 +179,68 @@ export class AssessmentSaveService {
     const rawLevel = (task.difficulty || task.target_cefr || 'b1');
     const canonicalLevel = String(rawLevel).toLowerCase();
     const difficultyVal = task.difficulty_num || DIFF_MAP[canonicalLevel] || 0.4;
-
-    const payload = {
-      user_id: finalUserId,
-      question_id: String(task.id),
-      question_text: task.prompt,
-      user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
-      correct_answer: task.correctAnswer || '',
-      is_correct: evaluation.is_correct || evaluation.score >= 0.5,
-      skill: String(task.skill || "vocabulary").toLowerCase(),
-      question_level: canonicalLevel,
-      difficulty: difficultyVal,
-      score: (evaluation.score || 0) * difficultyVal,
-      time_spent_ms: timeSpentMs || 0,
-      evaluation_metadata: evaluation,
-      status: (evaluation as any).status || 'evaluated',
-      created_at: new Date().toISOString()
-    };
+    const answerStr = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+    const questionText = task.prompt || '';
+    const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
+    const skillStr = String(task.skill || "vocabulary").toLowerCase();
 
     try {
-      // 1. Log to assessment_responses (Historical record)
-      const { error: respError } = await supabase.from('assessment_responses').insert({
-        user_id: payload.user_id,
-        question_id: payload.question_id,
-        user_answer: payload.user_answer,
-        is_correct: payload.is_correct,
-        skill: payload.skill,
-        question_level: payload.question_level,
-        difficulty: payload.difficulty,
-        response_time_ms: payload.time_spent_ms
-      });
-      
-      if (respError) console.error("[AssessmentSaveService] ❌ assessment_responses error:", respError.message);
+      // 1. ASSESSMENT_RESPONSES — Clean payload, only valid columns
+      const responsesRow = {
+        user_id: finalUserId,
+        question_id: String(task.id),
+        user_answer: answerStr,
+        is_correct: isCorrect,
+        skill: skillStr,
+        question_level: canonicalLevel,
+        difficulty: difficultyVal,
+        response_time_ms: timeSpentMs || 0
+      };
 
-      // 2. Log to assessment_logs (Session trace)
-      const { error: logError } = await supabase.from('assessment_logs').insert(payload);
+      const { error: respError } = await supabase.from('assessment_responses').insert(responsesRow);
       
-      if (logError) {
-        console.error(`[AssessmentSaveService] ❌ Failed to log to assessment_logs:`, logError.message);
-        this.saveToLocalBuffer(payload);
+      if (respError) {
+        console.error("[AssessmentSaveService] ❌ assessment_responses error:", respError.message, respError);
       } else {
-        console.log(`[AssessmentSaveService] ✅ Double-logged question ${payload.question_id} successfully.`);
+        console.log(`[AssessmentSaveService] ✅ assessment_responses: saved ${responsesRow.question_id} (difficulty=${difficultyVal}, level=${canonicalLevel})`);
       }
 
-      return { success: true };
+      // 2. ASSESSMENT_LOGS — Clean payload, map to BOTH question AND question_text for safety
+      const logsRow = {
+        user_id: finalUserId,
+        question_id: String(task.id),
+        question: questionText,
+        question_text: questionText,
+        user_answer: answerStr,
+        correct_answer: task.correctAnswer || '',
+        is_correct: isCorrect,
+        skill: skillStr,
+        question_level: canonicalLevel,
+        difficulty: difficultyVal,
+        score: (evaluation.score || 0) * difficultyVal,
+        time_spent_ms: timeSpentMs || 0,
+        evaluation_metadata: evaluation,
+        status: (evaluation as any).status || 'evaluated',
+        created_at: new Date().toISOString()
+      };
+
+      const { error: logError } = await supabase.from('assessment_logs').insert(logsRow);
+      
+      if (logError) {
+        console.error(`[AssessmentSaveService] ❌ assessment_logs error:`, logError.message, logError);
+        this.saveToLocalBuffer(logsRow);
+      } else {
+        console.log(`[AssessmentSaveService] ✅ assessment_logs: saved ${logsRow.question_id} (difficulty=${difficultyVal}, level=${canonicalLevel})`);
+      }
+
+      // Summary
+      if (!respError && !logError) {
+        console.log(`[AssessmentSaveService] 🎯 Double-logged question ${String(task.id)} | difficulty=${difficultyVal} | level=${canonicalLevel} | skill=${skillStr}`);
+      }
+
+      return { success: !respError && !logError };
     } catch (err) {
       console.error('[AssessmentSaveService] ❌ Persistence error:', err);
-      this.saveToLocalBuffer(payload);
       return { success: false, error: err };
     }
   }
