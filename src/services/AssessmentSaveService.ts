@@ -205,7 +205,7 @@ export class AssessmentSaveService {
         user_answer: payload.user_answer,
         is_correct: payload.is_correct,
         skill: payload.skill,
-        level: payload.question_level,
+        question_level: payload.question_level,
         difficulty: payload.difficulty,
         response_time_ms: payload.time_spent_ms
       });
@@ -371,6 +371,8 @@ export class AssessmentSaveService {
         score: h.score !== undefined ? h.score : (h.isCorrect ? 1 : 0),
         is_correct: h.isCorrect ?? (h as any).correct,
         skill: this.toCanonicalSkill(h.skill),
+        difficulty: h.difficulty ?? 0.4,
+        question_level: h.level || 'b1',
         created_at: h.timestamp || new Date().toISOString()
       }));
 

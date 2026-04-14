@@ -371,7 +371,11 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   // Debug values
   const debugLevel = (currentTask as any)._battery?.item?.target_cefr || currentTask.difficulty || '??';
-  const debugDiff = (currentTask as any)._battery?.zone || '??';
+  const debugZone = (currentTask as any)._battery?.zone || '??';
+  const DIFF_MAP_DEBUG: Record<string, number> = { 'a1': 0.1, 'a2': 0.2, 'b1': 0.4, 'b2': 0.6, 'c1': 0.8, 'c2': 1.0 };
+  const debugNumeric = (currentTask as any)._battery?.item?.difficulty 
+    || DIFF_MAP_DEBUG[String(debugLevel).toLowerCase()] 
+    || 0.4;
 
   return (
     <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
@@ -437,8 +441,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 <div className="mr-2 px-2.5 py-1.5 bg-blue-50/80 border border-blue-100 rounded-lg flex items-center gap-1.5 shadow-sm">
                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Debug:</span>
                    <span className="text-[10px] font-black text-blue-700 uppercase">
-                     {debugLevel} ({debugDiff})
+                     {debugLevel} ({debugZone})
                    </span>
+                   <span className="mx-1 w-px h-2 bg-blue-200" />
+                   <span className="text-[10px] font-black text-emerald-600">d={debugNumeric}</span>
                    <span className="mx-1 w-px h-2 bg-blue-200" />
                    <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.skill}</span>
                    <span className="mx-1 w-px h-2 bg-blue-200" />

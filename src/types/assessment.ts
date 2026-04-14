@@ -368,6 +368,8 @@ export type AnswerRecord = {
   /** Model A Analysis */
   errorTag?: string;
   briefExplanation?: string;
+  /** CEFR level string (e.g. 'a1','b2') for question_level column */
+  level?: string;
   /** Legacy fallbacks */
   isCorrect?: boolean;
   timestamp?: string;
