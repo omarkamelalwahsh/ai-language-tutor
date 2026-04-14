@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A2_1776163198268_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer and their grandparents do in the garden?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [
+        "They played games",
+        "They had a picnic",
+        "They watched TV",
+        "They slept"
+      ],
+      "correct_index": 1,
+      "correct": "They had a picnic",
+      "explanation": "The passage states 'we decided to have a picnic in the garden'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_writing_1",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had a picnic with your family or friends. What did you eat and do?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the food, activities, and company, as well as some descriptive language to bring the scene to life."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer's grandfather bring to the picnic?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [
+        "Sandwiches and cakes",
+        "Juice and water",
+        "Games and toys",
+        "Blankets and pillows"
+      ],
+      "correct_index": 1,
+      "correct": "Juice and water",
+      "explanation": "The passage states 'my grandfather brought some juice and water'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_writing_3",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What are some advantages of spending time in the countryside? Use examples from the passage to support your answer.",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include some benefits of spending time in the countryside, such as enjoying nature, relaxing, and spending time with family, and use examples from the passage to illustrate these points."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where did the writer and their grandparents go for a walk after lunch?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [
+        "The park",
+        "The woods",
+        "The beach",
+        "The city"
+      ],
+      "correct_index": 1,
+      "correct": "The woods",
+      "explanation": "The passage states 'we went for a walk in the woods'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are the writer's grandfather. Write a letter to your grandchild describing your favorite part of the day and why it was special.",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include some details about the grandfather's favorite part of the day, such as the picnic or the walk, and explain why it was special, such as the quality time spent with family."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_reading_6",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer's grandmother make for the picnic?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [
+        "Sandwiches and cakes",
+        "Juice and water",
+        "Salads and fruits",
+        "Pizza and burgers"
+      ],
+      "correct_index": 0,
+      "correct": "Sandwiches and cakes",
+      "explanation": "The passage states 'my grandmother made some sandwiches and cakes'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a place that is special to you, such as a park, a beach, or a mountain. What makes it special and what activities do you enjoy doing there?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include some descriptive language to bring the place to life, as well as some details about what makes it special and what activities are enjoyed there."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_reading_8",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer and their grandparents pick after their walk?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [
+        "Wildflowers",
+        "Berries",
+        "Mushrooms",
+        "Seashells"
+      ],
+      "correct_index": 0,
+      "correct": "Wildflowers",
+      "explanation": "The passage states 'we picked some wildflowers'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163198268_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Write a diary entry about a happy memory you have of spending time with your family. What did you do and why was it special?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. The weather was nice and sunny, so we decided to have a picnic in the garden. My grandmother made some sandwiches and cakes, and my grandfather brought some juice and water. We sat under a big tree and talked for hours. After lunch, we went for a walk in the woods and picked some wildflowers. It was a lovely day and I was happy to spend time with my family.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include some details about the happy memory, such as what was done and why it was special, as well as some reflective language to show what was learned or felt."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where is Emily from?",
+    "stimulus": "Hello, my name is Emily. I am from London.",
+    "answer_key": {
+      "options": [
+        "London",
+        "Paris",
+        "Berlin",
+        "Rome"
+      ],
+      "correct_index": 0,
+      "correct": "London",
+      "explanation": "The correct answer is London because Emily explicitly states she is from London in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like doing?",
+    "stimulus": "I like reading books and watching movies.",
+    "answer_key": {
+      "options": [
+        "Playing sports",
+        "Reading books and watching movies",
+        "Listening to music",
+        "Cooking"
+      ],
+      "correct_index": 1,
+      "correct": "Reading books and watching movies",
+      "explanation": "The correct answer is reading books and watching movies because the speaker explicitly mentions these activities in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Why does the speaker like pizza?",
+    "stimulus": "My favorite food is pizza. I like it because it's tasty and easy to make.",
+    "answer_key": {
+      "options": [
+        "Because it's expensive",
+        "Because it's tasty and easy to make",
+        "Because it's healthy",
+        "Because it's spicy"
+      ],
+      "correct_index": 1,
+      "correct": "Because it's tasty and easy to make",
+      "explanation": "The correct answer is because it's tasty and easy to make because the speaker explicitly states these reasons in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What can be inferred about the speaker's siblings?",
+    "stimulus": "I have a brother and a sister. My brother is older than me, and my sister is younger than me.",
+    "answer_key": {
+      "options": [
+        "The speaker has two brothers",
+        "The speaker has two sisters",
+        "The speaker has an older brother and a younger sister",
+        "The speaker has no siblings"
+      ],
+      "correct_index": 2,
+      "correct": "The speaker has an older brother and a younger sister",
+      "explanation": "The correct answer is the speaker has an older brother and a younger sister because the speaker explicitly states this information in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker going to do tomorrow?",
+    "stimulus": "I am going to the beach tomorrow. I will pack my swimsuit, towel, and sunglasses.",
+    "answer_key": {
+      "options": [
+        "Go to the park",
+        "Go to the beach",
+        "Go to the movies",
+        "Go to the gym"
+      ],
+      "correct_index": 1,
+      "correct": "Go to the beach",
+      "explanation": "The correct answer is go to the beach because the speaker explicitly states this plan in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Why does the speaker like summer?",
+    "stimulus": "My favorite season is summer. I like it because it's warm and sunny.",
+    "answer_key": {
+      "options": [
+        "Because it's cold and rainy",
+        "Because it's warm and sunny",
+        "Because it's windy and cloudy",
+        "Because it's snowy and icy"
+      ],
+      "correct_index": 1,
+      "correct": "Because it's warm and sunny",
+      "explanation": "The correct answer is because it's warm and sunny because the speaker explicitly states these reasons in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What can be inferred about the speaker's pet?",
+    "stimulus": "I have a pet cat. Its name is Whiskers, and it's very friendly.",
+    "answer_key": {
+      "options": [
+        "The speaker has a pet dog",
+        "The speaker has a pet cat",
+        "The speaker has a pet bird",
+        "The speaker has no pets"
+      ],
+      "correct_index": 1,
+      "correct": "The speaker has a pet cat",
+      "explanation": "The correct answer is the speaker has a pet cat because the speaker explicitly states this information in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How often does the speaker play soccer?",
+    "stimulus": "I like playing soccer. I play it with my friends every weekend.",
+    "answer_key": {
+      "options": [
+        "Every day",
+        "Every weekend",
+        "Every month",
+        "Every year"
+      ],
+      "correct_index": 1,
+      "correct": "Every weekend",
+      "explanation": "The correct answer is every weekend because the speaker explicitly states this frequency in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Why does the speaker like math?",
+    "stimulus": "My favorite subject in school is math. I like it because it's challenging and fun.",
+    "answer_key": {
+      "options": [
+        "Because it's easy and boring",
+        "Because it's challenging and fun",
+        "Because it's useless and irrelevant",
+        "Because it's complicated and difficult"
+      ],
+      "correct_index": 1,
+      "correct": "Because it's challenging and fun",
+      "explanation": "The correct answer is because it's challenging and fun because the speaker explicitly states these reasons in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163203310_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker going to do tonight?",
+    "stimulus": "I am going to a party tonight. I will wear a dress and bring a gift.",
+    "answer_key": {
+      "options": [
+        "Go to a movie",
+        "Go to a party",
+        "Go to a restaurant",
+        "Go to a concert"
+      ],
+      "correct_index": 1,
+      "correct": "Go to a party",
+      "explanation": "The correct answer is go to a party because the speaker explicitly states this plan in the transcript."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I ________ you, I would tell you the truth.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "am",
+        "were",
+        "are",
+        "is"
+      ],
+      "correct_index": 1,
+      "correct": "were",
+      "explanation": "The correct answer is 'were' because it is the second conditional, used for hypothetical situations."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By the time I ________ my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "have finished",
+        "finish",
+        "was finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it is the past perfect tense, used for an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If it ________ yesterday, we would have gone to the park.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "didn't rain",
+        "hadn't rained",
+        "doesn't rain",
+        "won't rain"
+      ],
+      "correct_index": 1,
+      "correct": "hadn't rained",
+      "explanation": "The correct answer is 'hadn't rained' because it is the third conditional, used for past hypothetical situations."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I wish it ________ snow tomorrow.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will snow",
+        "would snow",
+        "snows",
+        "snowed"
+      ],
+      "correct_index": 1,
+      "correct": "would snow",
+      "explanation": "The correct answer is 'would snow' because it is used for polite or uncertain wishes about the future."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By next year, I ________ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have studied",
+        "am studying",
+        "study",
+        "have studied"
+      ],
+      "correct_index": 0,
+      "correct": "will have studied",
+      "explanation": "The correct answer is 'will have studied' because it is the future perfect tense, used for an action that will be completed before a specific time in the future."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "They ________ their car last year.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "sells",
+        "sold",
+        "have sold",
+        "was selling"
+      ],
+      "correct_index": 1,
+      "correct": "sold",
+      "explanation": "The correct answer is 'sold' because it is the simple past tense, used for completed actions in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I ________ to the gym three times a week.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "goes",
+        "am going",
+        "have gone",
+        "go"
+      ],
+      "correct_index": 3,
+      "correct": "go",
+      "explanation": "The correct answer is 'go' because it is the simple present tense, used for habits or routines."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I ________ more money, I would buy a house.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "have had"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "The correct answer is 'had' because it is the second conditional, used for hypothetical situations."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By the time I arrived, they ________ their lunch.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had eaten",
+        "eat",
+        "have eaten",
+        "were eating"
+      ],
+      "correct_index": 0,
+      "correct": "had eaten",
+      "explanation": "The correct answer is 'had eaten' because it is the past perfect tense, used for an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163208484_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I wish I ________ a million dollars.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "have had"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "The correct answer is 'had' because it is used for wishes about the past."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'big' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Small",
+        "Large",
+        "Happy",
+        "Angry"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'big' is an adjective used to describe something of a large size."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of the word 'fast'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Slow",
+        "Happy",
+        "Big",
+        "Cold"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'slow' is an adjective used to describe something that moves or happens at a lower speed."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'city' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A town",
+        "A village",
+        "A large human settlement",
+        "A farm"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word 'city' is a noun used to describe a large human settlement, usually with a fixed boundary and local government."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'friend'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A person you don't like",
+        "A person you like and who likes you",
+        "A person who is mean to you",
+        "A person who is sad"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'friend' is a noun used to describe a person with whom one has a strong bond of affection, loyalty, or sympathy."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'book' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A piece of paper",
+        "A bag",
+        "A written or printed work consisting of pages glued or sewn together",
+        "A chair"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word 'book' is a noun used to describe a written or printed work consisting of pages glued or sewn together."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of the word 'old'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "New",
+        "Big",
+        "Happy",
+        "Cold"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'new' is an adjective used to describe something that has been recently created, introduced, or discovered."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'dog' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A type of cat",
+        "A type of bird",
+        "A domesticated carnivorous mammal",
+        "A type of fish"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word 'dog' is a noun used to describe a domesticated carnivorous mammal."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'school'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you work",
+        "A place where you live",
+        "A place where you learn",
+        "A place where you play"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word 'school' is a noun used to describe an institution where people, especially children, go to learn."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'happy' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Feeling sad",
+        "Feeling angry",
+        "Feeling pleased or contented",
+        "Feeling tired"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word 'happy' is an adjective used to describe a feeling of pleasure or contentment."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163213616_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'family'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A group of friends",
+        "A group of people related by birth, marriage, or adoption",
+        "A group of people who work together",
+        "A group of people who live in the same city"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'family' is a noun used to describe a group of people related by birth, marriage, or adoption."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163216956_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is your favorite hobby and why do you enjoy it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should include basic descriptions and simple explanations, using common vocabulary and grammatical structures."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163216956_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a place you have visited and what you liked about it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The speaker should be able to provide a clear and concise description, using basic sentence structures and vocabulary related to the topic."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163216956_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Talk about a typical day in your life, including your daily routine and activities.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The speaker should be able to use present simple tense and basic vocabulary to describe their daily routine, and provide some details about their activities and interests."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163216956_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do with your friends, and why do you enjoy these activities?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should include basic comparisons and simple justifications, using common vocabulary and grammatical structures related to social interactions."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776163216956_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a food you really like, and explain how it is prepared and why you enjoy eating it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The speaker should be able to provide a clear description of the food, using basic vocabulary and sentence structures, and give some reasons why they like it, using simple justifications and explanations."
+    }
+  }
+]

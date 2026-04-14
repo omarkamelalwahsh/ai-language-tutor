@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C2_1776163315810_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.6,
+    "prompt": "What is the main argument of those who oppose a universal language?",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [
+        "That it would simplify international interactions",
+        "That it would lead to the erosion of cultural diversity",
+        "That it would enhance economic cooperation",
+        "That it would promote peace"
+      ],
+      "correct_index": 1,
+      "correct": "That it would lead to the erosion of cultural diversity",
+      "explanation": "The opponents of a universal language argue that it would result in the loss of unique perspectives and cultural diversity."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_writing_1",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "Discuss the potential impact of a universal language on cultural diversity, using examples from the passage to support your argument.",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, examples from the passage, and a well-structured argument about the potential effects of a universal language on cultural diversity."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the current role of English in global communication, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [
+        "A minority language",
+        "A local language",
+        "A global lingua franca",
+        "An obsolete language"
+      ],
+      "correct_index": 2,
+      "correct": "A global lingua franca",
+      "explanation": "The passage states that English has risen as a global lingua franca, sparking intense discussion about its role in shaping identity and community."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_writing_3",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "Consider the potential consequences of a universal language on language policies, and argue for or against the implementation of such a policy in a specific context.",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, a well-structured argument, and relevant examples to support the claim, demonstrating an understanding of the complexities involved in language policy decisions."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.4,
+    "prompt": "What is the relationship between the spread of English and local languages, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [
+        "The spread of English has led to an increase in local languages",
+        "The spread of English has no impact on local languages",
+        "The spread of English has been linked to the decline of local languages",
+        "The spread of English has resulted in the creation of new local languages"
+      ],
+      "correct_index": 2,
+      "correct": "The spread of English has been linked to the decline of local languages",
+      "explanation": "The passage states that the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.6,
+    "prompt": "Reflect on the importance of preserving cultural heritage in the face of globalization, using the passage as a starting point for your discussion.",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, relevant examples from the passage, and a well-structured argument about the significance of preserving cultural heritage in the context of globalization."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_reading_6",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "What is the potential consequence of a universal language on the diversity of human culture and experience, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [
+        "It would enhance cultural diversity",
+        "It would have no impact on cultural diversity",
+        "It would threaten the rich tapestry of human experience",
+        "It would promote peace and understanding"
+      ],
+      "correct_index": 2,
+      "correct": "It would threaten the rich tapestry of human experience",
+      "explanation": "The passage states that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Evaluate the argument that a universal language would simplify international interactions and enhance economic cooperation, considering both the potential benefits and drawbacks of such a language.",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, a well-structured argument, and relevant examples to support the claim, demonstrating an understanding of the complexities involved in the relationship between language and international interactions."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_reading_8",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the current state of the debate about a universal language, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [
+        "The debate is settled in favor of a universal language",
+        "The debate is ongoing and contentious",
+        "The debate is no longer relevant",
+        "The debate has resulted in the implementation of a universal language"
+      ],
+      "correct_index": 1,
+      "correct": "The debate is ongoing and contentious",
+      "explanation": "The passage states that the question of whether a universal language is desirable or feasible remains a complex and contentious issue."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163315810_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "Imagine a scenario in which a universal language has been implemented globally, and discuss the potential long-term consequences of such a language on human culture and society.",
+    "stimulus": "The concept of a universal language has been debated by scholars for centuries. While some argue that a single, universally spoken language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural diversity and the loss of unique perspectives. In recent years, the rise of English as a global lingua franca has sparked intense discussion about the role of language in shaping identity and community. Proponents of a universal language argue that it would simplify international interactions, enhance economic cooperation, and promote peace. However, critics counter that the dominance of a single language would marginalize minority languages and cultures, ultimately threatening the rich tapestry of human experience. Furthermore, the spread of English has been linked to the decline of local languages, as younger generations increasingly prefer to communicate in the global language. This phenomenon has significant implications for language policies, as governments must balance the need for global communication with the importance of preserving cultural heritage. Ultimately, the question of whether a universal language is desirable or feasible remains a complex and contentious issue, with proponents on both sides presenting compelling arguments. As the world becomes increasingly interconnected, it is essential to consider the potential consequences of a universal language on the diversity of human culture and experience.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, a well-structured argument, and relevant examples to support the claim, demonstrating an understanding of the potential consequences of a universal language on human culture and society."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What is the speaker's main concern regarding climate change?",
+    "stimulus": "The speaker is discussing the implications of climate change on global food security, emphasizing the need for sustainable farming practices to mitigate its effects.",
+    "answer_key": {
+      "options": [
+        "A) Economic instability",
+        "B) Global food security",
+        "C) Political unrest",
+        "D) Social inequality"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker's emphasis on sustainable farming practices to mitigate the effects of climate change on food security indicates their main concern is global food security."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What factor is driving the demand for eco-friendly packaging according to the expert?",
+    "stimulus": "The expert explains that the recent surge in e-commerce has led to an increase in demand for eco-friendly packaging solutions, citing consumer awareness and regulatory pressures as driving factors.",
+    "answer_key": {
+      "options": [
+        "A) Cost savings",
+        "B) Consumer awareness and regulatory pressures",
+        "C) Technological advancements",
+        "D) Market competition"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The expert explicitly mentions consumer awareness and regulatory pressures as the factors driving the demand for eco-friendly packaging."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Why is the company investing in renewable energy sources?",
+    "stimulus": "The company's CEO announced plans to invest heavily in renewable energy sources, aiming to power 80% of their operations with solar and wind power by the end of the decade.",
+    "answer_key": {
+      "options": [
+        "A) To reduce carbon emissions",
+        "B) To increase revenue",
+        "C) To expand product lines",
+        "D) To enter new markets"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The company's goal to power 80% of their operations with solar and wind power by the end of the decade implies their investment in renewable energy is aimed at reducing carbon emissions."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Why does the researcher think cultural heritage sites are important?",
+    "stimulus": "The researcher highlights the importance of preserving cultural heritage sites, noting that these locations not only attract tourism but also serve as educational resources for future generations.",
+    "answer_key": {
+      "options": [
+        "A) They attract tourism and serve as educational resources",
+        "B) They promote economic growth and political stability",
+        "C) They preserve historical artifacts and promote cultural diversity",
+        "D) They support environmental conservation and social justice"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The researcher explicitly states that cultural heritage sites are important because they attract tourism and serve as educational resources for future generations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What does the economist propose as an alternative to the current economic model?",
+    "stimulus": "The economist argues that the current economic model prioritizes growth over sustainability, leading to environmental degradation and social inequality, and suggests a shift towards a more circular economy.",
+    "answer_key": {
+      "options": [
+        "A) A linear economy",
+        "B) A circular economy",
+        "C) A mixed economy",
+        "D) A planned economy"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The economist explicitly suggests a shift towards a more circular economy as an alternative to the current economic model."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What is the environmentalist's proposed solution to the problem of single-use plastics?",
+    "stimulus": "The environmentalist warns that the excessive use of single-use plastics has severe consequences on marine life, advocating for a global ban on their production and distribution.",
+    "answer_key": {
+      "options": [
+        "A) Implementing a recycling program",
+        "B) Increasing public awareness campaigns",
+        "C) Advocating for a global ban on their production and distribution",
+        "D) Promoting the use of biodegradable plastics"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The environmentalist explicitly advocates for a global ban on the production and distribution of single-use plastics as a solution to the problem."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What skills are encompassed by the concept of emotional intelligence according to the professor?",
+    "stimulus": "The professor discusses the concept of emotional intelligence, explaining that it encompasses skills such as empathy, self-awareness, and social skills, which are essential for effective leadership and teamwork.",
+    "answer_key": {
+      "options": [
+        "A) Technical skills and knowledge",
+        "B) Empathy, self-awareness, and social skills",
+        "C) Communication skills and time management",
+        "D) Problem-solving skills and adaptability"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The professor explicitly states that emotional intelligence encompasses skills such as empathy, self-awareness, and social skills."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What benefits does the speaker associate with diversity and inclusion in the workplace?",
+    "stimulus": "The speaker emphasizes the importance of diversity and inclusion in the workplace, citing benefits such as increased creativity, improved decision-making, and enhanced reputation.",
+    "answer_key": {
+      "options": [
+        "A) Increased productivity and reduced costs",
+        "B) Improved communication and conflict resolution",
+        "C) Increased creativity, improved decision-making, and enhanced reputation",
+        "D) Better work-life balance and employee retention"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker explicitly mentions increased creativity, improved decision-making, and enhanced reputation as the benefits of diversity and inclusion in the workplace."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What is the result of recent advancements in artificial intelligence according to the expert?",
+    "stimulus": "The expert explains that the recent advancements in artificial intelligence have led to significant improvements in natural language processing, enabling machines to understand and generate human-like language.",
+    "answer_key": {
+      "options": [
+        "A) Improved data analysis and visualization",
+        "B) Enhanced cybersecurity and network protection",
+        "C) Significant improvements in natural language processing",
+        "D) Increased efficiency in manufacturing and logistics"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The expert explicitly states that the recent advancements in artificial intelligence have led to significant improvements in natural language processing."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163322360_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Why does the author think lifelong learning is important in today's work environment?",
+    "stimulus": "The author discusses the concept of lifelong learning, emphasizing its importance in today's fast-paced and ever-changing work environment, where employees need to continuously update their skills to remain relevant.",
+    "answer_key": {
+      "options": [
+        "A) To increase job security and stability",
+        "B) To enhance career advancement opportunities",
+        "C) To continuously update skills and remain relevant",
+        "D) To improve work-life balance and reduce stress"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The author explicitly states that lifelong learning is important because employees need to continuously update their skills to remain relevant in today's fast-paced and ever-changing work environment."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb in the sentence 'By the time I ______ my homework, it was midnight.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "finish",
+        "have finished",
+        "was finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it is the correct form of the past perfect verb in the sentence, indicating an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The play was written by Shakespeare.",
+        "Shakespeare has written the play.",
+        "The play is being written by Shakespeare.",
+        "The play writes Shakespeare."
+      ],
+      "correct_index": 0,
+      "correct": "The play was written by Shakespeare.",
+      "explanation": "The correct answer is 'The play was written by Shakespeare.' because it is the correct form of the passive voice, where the focus is on the action rather than the doer of the action."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the conditional sentence?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I will study, I will pass the exam.",
+        "If I studied, I would pass the exam.",
+        "If I study, I will pass the exam.",
+        "If I am studying, I will pass the exam."
+      ],
+      "correct_index": 1,
+      "correct": "If I studied, I would pass the exam.",
+      "explanation": "The correct answer is 'If I studied, I would pass the exam.' because it is the correct form of the second conditional sentence, which is used to describe a hypothetical or unlikely situation and its possible consequences."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the subjunctive mood?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "It is necessary that he takes a break.",
+        "It is necessary that he take a break.",
+        "It is necessary that he is taking a break.",
+        "It is necessary that he will take a break."
+      ],
+      "correct_index": 1,
+      "correct": "It is necessary that he take a break.",
+      "explanation": "The correct answer is 'It is necessary that he take a break.' because it is the correct form of the subjunctive mood, which is used to express doubt, uncertainty, or possibility about a situation."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb in the sentence 'I wish I ______ more time to finish my project.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had",
+        "have",
+        "has",
+        "having"
+      ],
+      "correct_index": 0,
+      "correct": "had",
+      "explanation": "The correct answer is 'had' because it is the correct form of the verb in the sentence, which is in the subjunctive mood and expresses a hypothetical or desired situation."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the passive voice with a prepositional phrase?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The package was delivered to the customer by the courier.",
+        "The package was delivered by the courier to the customer.",
+        "The customer was delivered the package by the courier.",
+        "The courier was delivered the package to the customer."
+      ],
+      "correct_index": 0,
+      "correct": "The package was delivered to the customer by the courier.",
+      "explanation": "The correct answer is 'The package was delivered to the customer by the courier.' because it is the correct form of the passive voice with a prepositional phrase, where the focus is on the action rather than the doer of the action."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb in the sentence 'By the time I ______ my degree, I will be 30 years old.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have graduated",
+        "graduate",
+        "have graduated",
+        "am graduating"
+      ],
+      "correct_index": 0,
+      "correct": "will have graduated",
+      "explanation": "The correct answer is 'will have graduated' because it is the correct form of the future perfect verb in the sentence, indicating an action that will be completed before another action in the future."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the causative verb?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I had my car washed by a mechanic.",
+        "I had washed my car by a mechanic.",
+        "I have my car washed by a mechanic.",
+        "I am having my car washed by a mechanic."
+      ],
+      "correct_index": 0,
+      "correct": "I had my car washed by a mechanic.",
+      "explanation": "The correct answer is 'I had my car washed by a mechanic.' because it is the correct form of the causative verb, where the subject causes another person to perform an action."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb in the sentence 'If I ______ the opportunity, I would invest in the company.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had",
+        "have",
+        "has",
+        "having"
+      ],
+      "correct_index": 0,
+      "correct": "had",
+      "explanation": "The correct answer is 'had' because it is the correct form of the verb in the sentence, which is in the second conditional mood and expresses a hypothetical or unlikely situation."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163328140_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the reported speech?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "He said that he will come to the party tonight.",
+        "He said that he would come to the party tonight.",
+        "He said that he comes to the party tonight.",
+        "He said that he came to the party tonight."
+      ],
+      "correct_index": 1,
+      "correct": "He said that he would come to the party tonight.",
+      "explanation": "The correct answer is 'He said that he would come to the party tonight.' because it is the correct form of the reported speech, where the verb tense is changed to reflect the time of the reporting."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a strong and unpleasant smell",
+        "Having a keen understanding and insight",
+        "Relating to the universe and stars",
+        "Characterized by a lack of energy"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perspicacious means having a keen understanding and insight; able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding in one's standards",
+        "Quick and efficient",
+        "Outgoing and sociable"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidious means meticulous and demanding in one's standards; having a strong attention to detail."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To weaken or deprive of energy",
+        "To strengthen or energize",
+        "To calm or soothe",
+        "To excite or stimulate"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Enervate means to weaken or deprive of energy; to reduce the strength or vitality of something."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'inscrutable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Difficult to understand or interpret",
+        "Easy to understand or interpret",
+        "Relating to the natural world",
+        "Characterized by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Inscrutable means difficult to understand or interpret; mysterious or obscure."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Loyal or faithful",
+        "Outgoing or sociable",
+        "Shy or introverted"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious means disloyal or treacherous; having a tendency to betray trust."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'heterogeneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Diverse or composed of different kinds of things",
+        "Uniform or composed of the same kind of things",
+        "Relating to the universe and stars",
+        "Characterized by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Heterogeneous means diverse or composed of different kinds of things; varied or mixed."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'malleable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Able to be shaped or molded",
+        "Unable to be shaped or molded",
+        "Relating to the natural world",
+        "Characterized by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Malleable means able to be shaped or molded; capable of being influenced or changed."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'nascent' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Recently formed or emerging",
+        "Fully developed or established",
+        "Relating to the universe and stars",
+        "Characterized by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Nascent means recently formed or emerging; in the early stages of development."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'obfuscate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To make something clear or transparent",
+        "To make something unclear or difficult to understand",
+        "To relate to the natural world",
+        "To characterize by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Obfuscate means to make something unclear or difficult to understand; to confuse or obscure."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163333435_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'sagacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having keen discernment and good judgment",
+        "Lacking discernment and good judgment",
+        "Relating to the universe and stars",
+        "Characterized by a strong smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Sagacious means having keen discernment and good judgment; farsighted and wise."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163338000_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Defend the notion that, despite its limitations, the concept of global citizenship is still a valuable idea in today's world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response at this level should demonstrate the ability to articulate a clear and well-supported argument, using nuanced language and a range of vocabulary to express complex ideas."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163338000_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "prompt": "Discuss the implications of a universal basic income on the economy and societal structures, considering both the potential benefits and drawbacks.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The speaker should provide a balanced discussion, presenting multiple perspectives and supporting their claims with relevant examples and logical reasoning, all while maintaining a high level of linguistic accuracy and complexity."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163338000_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.95,
+    "prompt": "Evaluate the role of social media in shaping public opinion and its potential impact on democratic processes, considering the interplay between freedom of speech and the spread of misinformation.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "An effective response will critically assess the complex relationships between social media, public opinion, and democracy, demonstrating an ability to think analytically and express sophisticated ideas with precision and clarity."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163338000_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.91,
+    "prompt": "Argue for or against the proposition that, in the face of climate change, individual actions are less significant than governmental policies in achieving substantial environmental improvements.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The speaker should construct a compelling argument, integrating a variety of linguistic structures and vocabulary to support their position, while also acknowledging counterarguments and demonstrating an understanding of the broader ethical implications."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776163338000_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.93,
+    "prompt": "Consider the ethical implications of advancements in artificial intelligence, particularly in terms of employment and privacy, and propose potential regulatory measures to mitigate adverse effects.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong response will exhibit the ability to engage with abstract concepts, propose thoughtful solutions, and articulate these ideas in a coherent, well-organized manner, showcasing advanced linguistic and critical thinking skills."
+    }
+  }
+]

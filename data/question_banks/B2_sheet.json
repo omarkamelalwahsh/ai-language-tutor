@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B2_1776163257068_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the predicted percentage of the world's population that will be living in urban areas by 2050?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [
+        "50%",
+        "55%",
+        "66%",
+        "75%"
+      ],
+      "correct_index": 2,
+      "correct": "66%",
+      "explanation": "According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is one of the challenges posed by the rapid expansion of cities?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [
+        "Increased access to education",
+        "Improved healthcare",
+        "Strained public services",
+        "Better job opportunities"
+      ],
+      "correct_index": 2,
+      "correct": "Strained public services",
+      "explanation": "The rapid expansion of cities poses significant challenges, including strained public services."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What was the outcome of the green roof initiative in Copenhagen?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [
+        "An increase in energy consumption",
+        "A rise in air pollution",
+        "A significant reduction in energy consumption and a decrease in air pollution",
+        "No impact on the environment"
+      ],
+      "correct_index": 2,
+      "correct": "A significant reduction in energy consumption and a decrease in air pollution",
+      "explanation": "The implementation of a green roof initiative in Copenhagen led to a significant reduction in energy consumption and a decrease in air pollution."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the primary driver of the trend towards urbanization?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [
+        "The prospect of better job opportunities",
+        "The desire for a rural lifestyle",
+        "The need for improved healthcare",
+        "The desire for access to education"
+      ],
+      "correct_index": 0,
+      "correct": "The prospect of better job opportunities",
+      "explanation": "The trend towards urbanization is largely driven by the prospect of better job opportunities."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the expected outcome of involving local residents in the urban planning process?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [
+        "A decrease in social cohesion",
+        "A rise in air pollution",
+        "A sense of community and social cohesion",
+        "A reduction in green spaces"
+      ],
+      "correct_index": 2,
+      "correct": "A sense of community and social cohesion",
+      "explanation": "The involvement of local residents in the planning process can foster a sense of community and promote social cohesion."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the importance of sustainable urban planning in the face of rapid urbanization. How can cities balance the need for growth with the need to protect the environment and promote social equity?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the benefits of sustainable urban planning, such as reducing pollution and promoting social cohesion, and provide examples of how cities can balance growth with environmental and social considerations."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What role do you think community engagement should play in urban planning? How can residents be effectively involved in the decision-making process to create more equitable and sustainable cities?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the importance of community engagement in urban planning, including the benefits of involving residents in the decision-making process, and provide examples of effective strategies for community engagement."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Compare and contrast the benefits and drawbacks of urbanization. How can cities mitigate the negative effects of urbanization, such as pollution and social inequality, while still providing opportunities for economic growth and development?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should weigh the benefits of urbanization, such as economic growth and access to education, against the drawbacks, such as pollution and social inequality, and discuss strategies for mitigating the negative effects."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are an urban planner tasked with designing a new city from scratch. What features would you include to make the city sustainable, equitable, and livable?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should describe a range of features, such as green spaces, renewable energy sources, and community facilities, and explain how these features would contribute to a sustainable, equitable, and livable city."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163257068_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Reflect on the statement 'the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.' What does this statement imply about the current state of urbanization, and what steps can be taken to create more sustainable and equitable cities?",
+    "stimulus": "The growth of cities has become a major issue in recent years. According to the United Nations, by 2050, around 66% of the world's population will be living in urban areas. This trend is largely driven by the prospect of better job opportunities, improved healthcare, and access to education. However, the rapid expansion of cities also poses significant challenges, including increased pollution, strained public services, and a rise in social inequality. One potential solution to these problems is the development of sustainable urban planning, which prioritizes green spaces, renewable energy, and community engagement. This approach not only helps to mitigate the negative effects of urbanization but also enhances the overall quality of life for city dwellers. For instance, a study in Copenhagen found that the implementation of a green roof initiative led to a significant reduction in energy consumption and a decrease in air pollution. Moreover, the involvement of local residents in the planning process can foster a sense of community and promote social cohesion. As the world continues to urbanize, it is essential that policymakers and urban planners work together to create cities that are not only environmentally sustainable but also equitable and just.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should interpret the statement, discussing the implications of rapid urbanization and the need for collaboration between policymakers and urban planners, and provide examples of steps that can be taken to create more sustainable and equitable cities."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the main topic of the discussion?",
+    "stimulus": "The manager is discussing the new marketing strategy with the team.",
+    "answer_key": {
+      "options": [
+        "Budget planning",
+        "Marketing strategy",
+        "Team building",
+        "Client meeting"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The manager mentions the new marketing strategy, which indicates that the main topic of the discussion is marketing strategy."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is expected to happen tomorrow according to the weather forecast?",
+    "stimulus": "The weather forecast says there will be heavy rain tomorrow.",
+    "answer_key": {
+      "options": [
+        "Sunny weather",
+        "Cloudy weather",
+        "Heavy rain",
+        "Snow"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The weather forecast explicitly states that there will be heavy rain tomorrow."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What are the opening hours of the tourist information office?",
+    "stimulus": "The tourist information office is open from 9 am to 5 pm.",
+    "answer_key": {
+      "options": [
+        "8 am to 6 pm",
+        "9 am to 5 pm",
+        "10 am to 4 pm",
+        "11 am to 3 pm"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus clearly states that the office is open from 9 am to 5 pm."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What challenge is the new employee facing?",
+    "stimulus": "The new employee is struggling to meet the sales targets.",
+    "answer_key": {
+      "options": [
+        "Meeting sales targets",
+        "Learning new skills",
+        "Working with the team",
+        "Managing time effectively"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The stimulus mentions that the new employee is struggling to meet the sales targets, which indicates that this is the challenge they are facing."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "When is the company planning to launch the new product?",
+    "stimulus": "The company is planning to launch a new product next quarter.",
+    "answer_key": {
+      "options": [
+        "This quarter",
+        "Next quarter",
+        "In six months",
+        "In a year"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus explicitly states that the company is planning to launch the new product next quarter."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the hotel receptionist suggest trying?",
+    "stimulus": "The hotel receptionist recommends trying the local cuisine.",
+    "answer_key": {
+      "options": [
+        "The hotel gym",
+        "The local park",
+        "The local cuisine",
+        "The city museum"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The hotel receptionist recommends trying the local cuisine."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What topic is the professor explaining?",
+    "stimulus": "The professor is explaining the concept of climate change.",
+    "answer_key": {
+      "options": [
+        "Renewable energy",
+        "Climate change",
+        "Biodiversity",
+        "Sustainable development"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus mentions that the professor is explaining the concept of climate change."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Why does the travel agent suggest booking the flight in advance?",
+    "stimulus": "The travel agent recommends booking the flight in advance to get the best price.",
+    "answer_key": {
+      "options": [
+        "To get the worst price",
+        "To get the best price",
+        "To avoid long queues",
+        "To get more luggage space"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The travel agent recommends booking the flight in advance to get the best price."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Why does the customer service representative apologize?",
+    "stimulus": "The customer service representative apologizes for the delay in responding to the customer's query.",
+    "answer_key": {
+      "options": [
+        "For the quick response",
+        "For the delay in responding",
+        "For the resolution of the issue",
+        "For the customer's feedback"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The customer service representative apologizes for the delay in responding to the customer's query."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163261972_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the researcher discussing?",
+    "stimulus": "The researcher is discussing the results of the experiment.",
+    "answer_key": {
+      "options": [
+        "The methodology of the experiment",
+        "The results of the experiment",
+        "The limitations of the study",
+        "The future directions of the research"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The researcher is discussing the results of the experiment."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By the time I ______ (finish) my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have finished",
+        "had finished",
+        "have finished",
+        "finish"
+      ],
+      "correct_index": 1,
+      "correct": "had finished",
+      "explanation": "The sentence describes an action that happened before another action in the past, so the correct form of the verb is the past perfect 'had finished'."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice: The manager wrote the report, The report was written by the manager, or The report is being written?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The manager wrote the report",
+        "The report was written by the manager",
+        "The report is being written",
+        "None of the above"
+      ],
+      "correct_index": 1,
+      "correct": "The report was written by the manager",
+      "explanation": "The passive voice is used when the focus is on the action rather than the doer, so 'The report was written by the manager' is the sentence in the passive voice."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: If I ______ (know) the answer, I would tell you.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "know",
+        "knew",
+        "had known",
+        "would know"
+      ],
+      "correct_index": 1,
+      "correct": "knew",
+      "explanation": "The sentence describes a hypothetical situation in the present, so the correct form of the verb is the past simple 'knew' in the if-clause."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is grammatically correct: Me and my friend are going to the movies, My friend and I are going to the movies, or My friend and me are going to the movies?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Me and my friend are going to the movies",
+        "My friend and I are going to the movies",
+        "My friend and me are going to the movies",
+        "All of the above"
+      ],
+      "correct_index": 1,
+      "correct": "My friend and I are going to the movies",
+      "explanation": "The subject of the sentence should be 'My friend and I' because 'I' is the subject and should come after 'my friend' for politeness."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By next year, I ______ (study) English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have studied",
+        "am studying",
+        "have been studying",
+        "will study"
+      ],
+      "correct_index": 0,
+      "correct": "will have studied",
+      "explanation": "The sentence describes an action that will be completed by a specific point in the future, so the correct form of the verb is the future perfect 'will have studied'."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is grammatically correct: The dog, which are very friendly, is sleeping, The dog, who are very friendly, is sleeping, or The dog, which is very friendly, is sleeping?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The dog, which are very friendly, is sleeping",
+        "The dog, who are very friendly, is sleeping",
+        "The dog, which is very friendly, is sleeping",
+        "None of the above"
+      ],
+      "correct_index": 2,
+      "correct": "The dog, which is very friendly, is sleeping",
+      "explanation": "The relative pronoun 'which' is used to describe things, and the verb 'is' agrees with the subject 'dog', so 'The dog, which is very friendly, is sleeping' is the correct sentence."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: If I had studied harder, I ______ (pass) the exam.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "would pass",
+        "will pass",
+        "passed",
+        "would have passed"
+      ],
+      "correct_index": 3,
+      "correct": "would have passed",
+      "explanation": "The sentence describes a hypothetical situation in the past and its potential outcome, so the correct form of the verb is the conditional perfect 'would have passed'."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the present perfect continuous: I have been studying for three hours, I am studying for three hours, or I study for three hours?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have been studying for three hours",
+        "I am studying for three hours",
+        "I study for three hours",
+        "None of the above"
+      ],
+      "correct_index": 0,
+      "correct": "I have been studying for three hours",
+      "explanation": "The present perfect continuous describes an action that started in the past and continues up to the present, so 'I have been studying for three hours' is the correct sentence."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By the time I arrived, they ______ (eat) all the food.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had eaten",
+        "were eating",
+        "have eaten",
+        "eat"
+      ],
+      "correct_index": 0,
+      "correct": "had eaten",
+      "explanation": "The sentence describes an action that happened before another action in the past, so the correct form of the verb is the past perfect 'had eaten'."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163267675_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is grammatically correct: The new policy, which affects many employees, are being reviewed, The new policy, which affects many employees, is being reviewed, or The new policy, which affects many employees, has been reviewed?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The new policy, which affects many employees, are being reviewed",
+        "The new policy, which affects many employees, is being reviewed",
+        "The new policy, which affects many employees, has been reviewed",
+        "All of the above"
+      ],
+      "correct_index": 1,
+      "correct": "The new policy, which affects many employees, is being reviewed",
+      "explanation": "The subject of the sentence is 'policy', which is a singular noun, so the verb 'is being reviewed' agrees with it."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'nuance' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A subtle difference or shade of meaning",
+        "B a loud and clear statement",
+        "C a type of fruit",
+        "D a form of exercise"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'nuance' refers to a subtle difference or shade of meaning, often used to describe complex or delicate distinctions."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'fastidious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A meticulous and demanding in one's standards",
+        "B careless and sloppy",
+        "C quick and efficient",
+        "D loud and boisterous"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'fastidious' means having a strong attention to detail and being meticulous and demanding in one's standards."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'mitigate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A to make a problem worse",
+        "B to reduce the severity of a problem",
+        "C to increase the severity of a problem",
+        "D to ignore a problem"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'mitigate' means to reduce the severity or unpleasantness of a problem or situation."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'perspicacious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A having a strong and unpleasant smell",
+        "B having a keen understanding and insight",
+        "C having a strong and loud voice",
+        "D having a large and heavy body"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'perspicacious' means having a keen understanding and insight, often used to describe someone who is perceptive and discerning."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A to give energy and strength to someone or something",
+        "B to weaken or deprive of energy",
+        "C to make someone or something more energetic",
+        "D to increase the speed of something"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'enervate' means to weaken or deprive of energy, often used to describe something that drains or exhausts someone or something."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'heterogeneous'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A composed of different kinds of things",
+        "B composed of the same kind of things",
+        "C having a strong and unpleasant smell",
+        "D having a large and heavy body"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'heterogeneous' means composed of different kinds of things, often used to describe a mixture or diverse group of people or things."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'inextricable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A able to be easily separated or freed",
+        "B unable to be separated or freed",
+        "C having a strong and unpleasant smell",
+        "D having a large and heavy body"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'inextricable' means unable to be separated or freed, often used to describe a complex or tangled situation."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'malleable'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A able to be shaped or changed",
+        "B unable to be shaped or changed",
+        "C having a strong and unpleasant smell",
+        "D having a large and heavy body"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'malleable' means able to be shaped or changed, often used to describe something that is flexible or adaptable."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'fastidious' mean in the context of a researcher?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A a researcher who is careless and sloppy",
+        "B a researcher who is meticulous and demanding in their standards",
+        "C a researcher who is quick and efficient",
+        "D a researcher who is loud and boisterous"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "In the context of a researcher, 'fastidious' means being meticulous and demanding in their standards, often used to describe someone who is thorough and precise in their work."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163273278_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'perfidious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A disloyal or treacherous",
+        "B loyal and faithful",
+        "C having a strong and unpleasant smell",
+        "D having a large and heavy body"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perfidious' means disloyal or treacherous, often used to describe someone who is untrustworthy or has betrayed someone's trust."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163276908_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to make a difficult decision, and explain how you approached it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should clearly describe the situation, explain the decision-making process, and use basic vocabulary related to decision-making, such as weighing options or considering consequences."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163276908_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Talk about a place you've visited that was particularly memorable. What did you see, and what made it stand out to you?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should effectively convey the learner's experience, using descriptive language to paint a picture of the place and its significance, and demonstrating an ability to engage the listener."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163276908_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you could switch lives with someone for a day. Who would it be, and what would you hope to learn or experience from the exchange?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate creative thinking, clearly explain the choice of person and the reasons behind it, and show an ability to speculate about potential experiences and outcomes."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163276908_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the importance of learning a new language. How can it benefit someone's personal and professional life?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should clearly outline the benefits of language learning, provide examples or evidence to support the argument, and demonstrate an ability to articulate complex ideas in a coherent manner."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776163276908_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "If you could go back in time and give advice to your younger self, what would it be, and why?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should reflect on past experiences, demonstrate an understanding of personal growth, and effectively communicate a meaningful message to a hypothetical younger self."
+    }
+  }
+]

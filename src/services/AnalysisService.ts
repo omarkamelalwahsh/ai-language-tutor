@@ -33,8 +33,12 @@ export class AssessmentAnalysisService {
     // 🛡️ Safety check: Ensure breakdown exists to prevent property access crash
     const breakdown = outcome?.skillBreakdown || {};
 
+    // Battery skills have 10 questions each; speaking/writing are bonus (0 questions)
+    const BATTERY_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary'];
+
     for (const skill of ALL_SKILLS) {
       const engineSkill = breakdown[skill as AssessmentSkill];
+      const isBatterySkill = BATTERY_SKILLS.includes(skill);
       
       if (!engineSkill) {
         // Safe fallback for untested skills
@@ -46,7 +50,7 @@ export class AssessmentAnalysisService {
           descriptors: [],
           strengths: [],
           weaknesses: [`No evidence collected for ${skill}`],
-          taskCoverage: { total: 5, completed: 0, valid: 0 },
+          taskCoverage: { total: isBatterySkill ? 10 : 0, completed: 0, valid: 0 },
           subscores: [],
           status: "insufficient_data"
         };
@@ -55,6 +59,26 @@ export class AssessmentAnalysisService {
 
       // Normalize BandLabel to CefrLevel
       const normalizedLevel = this.normalizeEngineBand(engineSkill.band || "A1");
+
+      // Battery scores are 0-100 (percentage), so masteryScore = score / 100
+      // Guard: if score is already 0-1 (legacy), don't double-divide
+      const rawScore = engineSkill.score || 0;
+      const masteryScore = rawScore > 1 ? rawScore / 100 : rawScore;
+
+      // Build weaknesses from cappedReason (foundational_gap) or missing descriptors
+      const weaknessList: string[] = [];
+      if (engineSkill.cappedReason) {
+        weaknessList.push(engineSkill.cappedReason);
+      }
+      if (engineSkill.missingDescriptors) {
+        for (const id of engineSkill.missingDescriptors.slice(0, 3)) {
+          const entry = getDescriptorById(id);
+          const parts = id.split('_');
+          const s = parts[0];
+          const l = parts[1];
+          weaknessList.push(entry?.canonicalTextEn || `Needs improvement in ${s} (${l})`);
+        }
+      }
 
       skillResults[skill] = {
         skill,
@@ -67,16 +91,10 @@ export class AssessmentAnalysisService {
         evidenceCount: engineSkill.evidenceCount,
         descriptors: engineSkill.matchedDescriptors,
         strengths: engineSkill.matchedDescriptors.slice(0, 3).map(d => d.descriptorText),
-        weaknesses: engineSkill.missingDescriptors.slice(0, 3).map(id => {
-          const entry = getDescriptorById(id);
-          const parts = id.split('_');
-          const s = parts[0];
-          const l = parts[1];
-          return entry?.canonicalTextEn || `Needs improvement in ${s} (${l})`;
-        }),
-        masteryScore: (engineSkill.score || 0) / 100,
+        weaknesses: weaknessList,
+        masteryScore,
         taskCoverage: {
-          total: 5,
+          total: isBatterySkill ? 10 : 0,
           completed: engineSkill.evidenceCount,
           valid: engineSkill.evidenceCount
         },
@@ -87,17 +105,22 @@ export class AssessmentAnalysisService {
       };
     }
 
+    // Use battery rationale directly if available, otherwise build from skills
+    const estimatedLevel = outcome.overallBand 
+      ? this.normalizeEngineBand(outcome.overallBand)
+      : this.inferOverallLevel(skillResults, outcome.overallConfidence);
+
+    const rationale = (outcome.overall?.rationale && outcome.overall.rationale.length > 0)
+      ? outcome.overall.rationale
+      : this.buildOverallRationale(skillResults, estimatedLevel);
+
     return {
       learnerId,
       sessionId,
       overall: {
-        estimatedLevel: outcome.overallBand 
-          ? this.normalizeEngineBand(outcome.overallBand)
-          : this.inferOverallLevel(skillResults, outcome.overallConfidence),
+        estimatedLevel,
         confidence: outcome.overallConfidence,
-        rationale: this.buildOverallRationale(skillResults, outcome.overallBand 
-          ? this.normalizeEngineBand(outcome.overallBand)
-          : this.inferOverallLevel(skillResults, outcome.overallConfidence))
+        rationale
       },
       skills: skillResults,
       behavioralProfile: {

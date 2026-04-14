@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B1_1776163226150_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is Copenhagen's goal regarding carbon neutrality?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [
+        "To become carbon neutral by 2030",
+        "To become carbon neutral by 2025",
+        "To reduce carbon emissions by 50% by 2025",
+        "To increase carbon emissions by 25% by 2025"
+      ],
+      "correct_index": 1,
+      "correct": "To become carbon neutral by 2025",
+      "explanation": "The passage explicitly states that Copenhagen aims to become carbon neutral by 2025."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What has the city done to make commuting by bicycle easier and safer?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [
+        "It has reduced the number of bike lanes",
+        "It has increased the number of bike lanes",
+        "It has created a network of bike lanes",
+        "It has removed all bike lanes"
+      ],
+      "correct_index": 2,
+      "correct": "It has created a network of bike lanes",
+      "explanation": "According to the passage, the city has established a network of bike lanes to make commuting by bicycle easier and safer."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What type of energy sources has the city invested in?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [
+        "Non-renewable energy sources",
+        "Renewable energy sources",
+        "Nuclear energy",
+        "Fossil fuels"
+      ],
+      "correct_index": 1,
+      "correct": "Renewable energy sources",
+      "explanation": "The passage states that the city has invested in renewable energy sources, such as wind turbines."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What has been done to the city's harbor?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [
+        "It has been left unchanged",
+        "It has been completely destroyed",
+        "It has undergone significant transformation",
+        "It has been abandoned"
+      ],
+      "correct_index": 2,
+      "correct": "It has undergone significant transformation",
+      "explanation": "The passage mentions that the city's harbor has undergone significant transformation, including the creation of artificial islands and the introduction of new, environmentally-friendly buildings."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the purpose of the green roof policy in Copenhagen?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [
+        "To increase stormwater runoff",
+        "To reduce air quality",
+        "To reduce stormwater runoff and improve air quality",
+        "To decrease the number of plants in the city"
+      ],
+      "correct_index": 2,
+      "correct": "To reduce stormwater runoff and improve air quality",
+      "explanation": "The passage states that the green roof policy, which requires all new buildings to have roofs covered with plants, helps to reduce stormwater runoff and improve air quality."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "How does the city of Copenhagen's efforts to become carbon neutral serve as a model for other cities? Provide examples from the passage to support your answer.",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should explain how Copenhagen's initiatives, such as investing in renewable energy sources and creating a network of bike lanes, can be replicated by other cities to achieve their own sustainability goals."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What role do you think individual citizens play in helping a city like Copenhagen achieve its goal of becoming carbon neutral? Use evidence from the passage to support your argument.",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss how individual citizens can contribute to a city's sustainability efforts, such as by using the bike lanes or supporting the green roof policy, and provide examples from the passage to illustrate these points."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Compare and contrast the city of Copenhagen's approach to becoming carbon neutral with that of another city you are familiar with. How do their strategies differ, and what can be learned from each other's approaches?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear comparison between Copenhagen's approach and that of another city, highlighting the similarities and differences in their strategies and discussing what can be learned from each other's approaches."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a city planner tasked with implementing a similar carbon neutrality plan in your own city. What initiatives from Copenhagen's plan would you prioritize, and how would you adapt them to fit the needs and context of your city?",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should identify the initiatives from Copenhagen's plan that would be most effective in the student's own city, and explain how they would be adapted to fit the local context, taking into account factors such as climate, infrastructure, and population density."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163226150_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What do you think are some potential challenges or limitations to implementing a carbon neutrality plan like Copenhagen's in other cities? Use evidence from the passage to support your argument, and suggest potential solutions to these challenges.",
+    "stimulus": "The city of Copenhagen is known for its efforts to become carbon neutral by 2025. To achieve this goal, the city has implemented various initiatives. One such initiative is the establishment of a network of bike lanes, making it easier and safer for people to commute by bicycle. Additionally, the city has invested in renewable energy sources, such as wind turbines, to reduce its reliance on fossil fuels. The city's harbor has also undergone significant transformation, with the creation of artificial islands and the introduction of new, environmentally-friendly buildings. Furthermore, the city has implemented a green roof policy, requiring all new buildings to have roofs covered with plants, which helps to reduce stormwater runoff and improve air quality. Copenhagen's efforts have made it a model for other cities to follow in their quest to become more sustainable.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss potential challenges or limitations to implementing a carbon neutrality plan, such as cost, infrastructure, or public resistance, and provide evidence from the passage to illustrate these points. The answer should also suggest potential solutions to these challenges, such as government incentives or public education campaigns."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker going to do?",
+    "stimulus": "I'm going to the store, do you want anything?",
+    "answer_key": {
+      "options": [
+        "A) Go to the cinema",
+        "B) Go to the store",
+        "C) Go to the gym",
+        "D) Go to the park"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly says they are going to the store."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker enjoy doing in their free time?",
+    "stimulus": "I love reading books in my free time.",
+    "answer_key": {
+      "options": [
+        "A) Watching movies",
+        "B) Reading books",
+        "C) Playing sports",
+        "D) Listening to music"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they love reading books in their free time."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What will they do if it rains tomorrow?",
+    "stimulus": "If it rains tomorrow, we will go to the museum.",
+    "answer_key": {
+      "options": [
+        "A) Go to the park",
+        "B) Go to the museum",
+        "C) Go to the beach",
+        "D) Go to the gym"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they will go to the museum if it rains."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker from?",
+    "stimulus": "My name is Emily, and I'm from London.",
+    "answer_key": {
+      "options": [
+        "A) Paris",
+        "B) London",
+        "C) New York",
+        "D) Sydney"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they are from London."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Why is the speaker going to bed early?",
+    "stimulus": "I'm feeling tired, so I'm going to bed early tonight.",
+    "answer_key": {
+      "options": [
+        "A) They have an early meeting",
+        "B) They are feeling tired",
+        "C) They want to watch TV",
+        "D) They want to read a book"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they are feeling tired."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What time should they arrive at the party?",
+    "stimulus": "The party starts at 7 o'clock, so we should arrive by 6:30.",
+    "answer_key": {
+      "options": [
+        "A) 6:00",
+        "B) 6:30",
+        "C) 7:00",
+        "D) 7:30"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they should arrive by 6:30."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker looking forward to?",
+    "stimulus": "I'm looking forward to my holiday next week.",
+    "answer_key": {
+      "options": [
+        "A) A new job",
+        "B) A holiday",
+        "C) A wedding",
+        "D) A birthday party"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they are looking forward to their holiday."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What would the speaker do if they won the lottery?",
+    "stimulus": "If I won the lottery, I would buy a house by the sea.",
+    "answer_key": {
+      "options": [
+        "A) Buy a car",
+        "B) Buy a house by the sea",
+        "C) Travel the world",
+        "D) Invest in stocks"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker says they would buy a house by the sea if they won the lottery."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Why is the speaker going to the doctor?",
+    "stimulus": "I'm not feeling well, so I'm going to the doctor.",
+    "answer_key": {
+      "options": [
+        "A) For a check-up",
+        "B) Because they are feeling well",
+        "C) Because they are not feeling well",
+        "D) To get a prescription"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker says they are not feeling well."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163230968_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What sport does the speaker enjoy playing?",
+    "stimulus": "I love playing tennis in my free time.",
+    "answer_key": {
+      "options": [
+        "A) Football",
+        "B) Basketball",
+        "C) Tennis",
+        "D) Golf"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker says they love playing tennis."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The chef is cooking dinner.",
+        "Dinner is being cooked by the chef.",
+        "The chef cooks dinner every night.",
+        "Dinner was cooked by the chef."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'Dinner is being cooked by the chef.' is in the passive voice because the focus is on the action (being cooked) rather than the doer (the chef)."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the present perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have went to the store.",
+        "I has gone to the store.",
+        "I have gone to the store.",
+        "I go to the store."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'I have gone to the store.' uses the present perfect tense correctly because it combines the present tense of 'have' with the past participle 'gone' to describe an action that started in the past and continues up to the present moment."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the first conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I win the lottery, I will buy a house.",
+        "If I won the lottery, I would buy a house.",
+        "If I had won the lottery, I would have bought a house.",
+        "If I win the lottery, I would buy a house."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'If I win the lottery, I will buy a house.' is in the first conditional because it describes a possible future situation and its likely result, using the present simple in the if-clause and the future simple in the main clause."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the past perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I had eaten dinner before I went to the movies.",
+        "I have eaten dinner before I went to the movies.",
+        "I eat dinner before I went to the movies.",
+        "I was eating dinner before I went to the movies."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I had eaten dinner before I went to the movies.' uses the past perfect tense correctly because it describes an action that occurred before another action in the past, using 'had' + past participle 'eaten'."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the second conditional correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I won the lottery, I will buy a house.",
+        "If I win the lottery, I would buy a house.",
+        "If I had won the lottery, I would have bought a house.",
+        "If I won the lottery, I would buy a house."
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The sentence 'If I won the lottery, I would buy a house.' uses the second conditional correctly because it describes an unlikely or hypothetical situation in the present or future and its probable result, using the past simple in the if-clause and the conditional simple in the main clause."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice with the present simple tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The play is being performed by the actors.",
+        "The play is performed by the actors.",
+        "The actors perform the play.",
+        "The play was performed by the actors."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'The play is performed by the actors.' is in the passive voice with the present simple tense because it focuses on the action (being performed) rather than the doer (the actors), using the present simple of 'be' + past participle 'performed'."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the past simple tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I go to the store yesterday.",
+        "I went to the store yesterday.",
+        "I have gone to the store yesterday.",
+        "I was going to the store yesterday."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I went to the store yesterday.' uses the past simple tense correctly because it describes a completed action in the past, using the past simple form of the verb 'go', which is 'went'."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the present continuous tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I am going to the store.",
+        "I go to the store.",
+        "I have gone to the store.",
+        "I went to the store."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I am going to the store.' uses the present continuous tense correctly because it describes an action that is in progress at the moment of speaking, using the present simple of 'be' + the -ing form of the verb 'go'."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the third conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I win the lottery, I will buy a house.",
+        "If I won the lottery, I would buy a house.",
+        "If I had won the lottery, I would have bought a house.",
+        "If I win the lottery, I would buy a house."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'If I had won the lottery, I would have bought a house.' is in the third conditional because it describes a past situation that did not occur and its probable past result, using the past perfect in the if-clause and the conditional perfect in the main clause."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163238171_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the future perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I will have eaten dinner by the time I go to the movies.",
+        "I will eat dinner by the time I go to the movies.",
+        "I have eaten dinner by the time I go to the movies.",
+        "I am eating dinner by the time I go to the movies."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I will have eaten dinner by the time I go to the movies.' uses the future perfect tense correctly because it describes an action that will be completed before a specific point in the future, using 'will have' + the past participle 'eaten'."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'nuance' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A subtle difference or shade of meaning",
+        "B a loud and clear statement",
+        "C a complex mathematical formula",
+        "D a type of musical instrument"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'nuance' refers to a subtle difference or shade of meaning, often used to describe complex or delicate situations."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'rigorous'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A strict and severe",
+        "B casual and relaxed",
+        "C happy and joyful",
+        "D slow and lazy"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'rigorous' means strict and severe, often used to describe rules, standards, or procedures that are strictly enforced."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'mitigate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A to make something worse",
+        "B to make something better",
+        "C to change something completely",
+        "D to leave something unchanged"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'mitigate' means to make something less severe or unpleasant, often used to describe actions taken to reduce the impact of a problem or difficulty."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'hypocrisy'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A the act of being honest and sincere",
+        "B the act of pretending to have virtues or moral principles that one does not actually have",
+        "C the act of being lazy and unmotivated",
+        "D the act of being generous and kind"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'hypocrisy' refers to the act of pretending to have virtues or moral principles that one does not actually have, often used to describe behavior that is insincere or dishonest."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A careless and sloppy",
+        "B meticulous and demanding in one's standards",
+        "C quick and efficient",
+        "D slow and lazy"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'fastidious' means meticulous and demanding in one's standards, often used to describe someone who is very careful and precise in their work or activities."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'enigma'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A a person or thing that is mysterious or difficult to understand",
+        "B a person or thing that is easy to understand",
+        "C a complex mathematical problem",
+        "D a type of puzzle or game"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'enigma' refers to a person or thing that is mysterious or difficult to understand, often used to describe something that is puzzling or perplexing."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'exacerbate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A to make something better",
+        "B to make something worse",
+        "C to change something completely",
+        "D to leave something unchanged"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'exacerbate' means to make something worse or more severe, often used to describe actions or circumstances that aggravate a problem or difficulty."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'inadvertent'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A intentional and deliberate",
+        "B unintentional and accidental",
+        "C careful and precise",
+        "D slow and lazy"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'inadvertent' means unintentional and accidental, often used to describe actions or events that occur without being planned or intended."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A disloyal or treacherous",
+        "B loyal and faithful",
+        "C honest and sincere",
+        "D kind and generous"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perfidious' means disloyal or treacherous, often used to describe behavior that is unfaithful or deceitful."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163244568_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'cacophony'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A a harmonious and pleasant sound",
+        "B a harsh and unpleasant sound",
+        "C a type of musical instrument",
+        "D a type of poetry or literature"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'cacophony' refers to a harsh and unpleasant sound, often used to describe a mixture of loud, discordant noises."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163248012_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to learn something new. How did you go about it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly describe a past experience, using basic vocabulary and grammatical structures to convey their message."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163248012_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Talk about a place you have visited that was very interesting. What did you see and do there?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to engage the listener by describing a place, using descriptive language and providing some details about their experience."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163248012_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do in your free time? Describe one of your hobbies and explain why you enjoy it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly describe a hobby or interest, using basic vocabulary and grammatical structures to convey their enthusiasm and reasons for enjoying the activity."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163248012_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are planning a trip with friends. Where would you go and what would you do?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a hypothetical situation, using conditional tenses and vocabulary related to travel and planning."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776163248012_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe a challenge you faced and how you overcame it. What did you learn from the experience?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a past challenge, using reflective language and providing some insight into what they learned from the experience."
+    }
+  }
+]

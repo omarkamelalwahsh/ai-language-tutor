@@ -24,6 +24,7 @@ export interface AnswerKeyObject {
 
 export interface QuestionBankItem {
   id: string;
+  external_id?: string; // External identifier from database
   skill: string; // primary skill
   task_type: string;
   target_cefr: CEFRLevel;

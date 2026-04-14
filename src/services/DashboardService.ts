@@ -28,12 +28,16 @@ export class DashboardService {
       },
       skillAnalytics: result?.skills 
         ? (Object.keys(result.skills) as SkillName[])
-            .filter(s => ['speaking', 'writing', 'listening', 'vocabulary'].includes(s))
+            .filter(s => ['reading', 'listening', 'grammar', 'vocabulary', 'writing', 'speaking'].includes(s))
             .map(skillId => {
               const res = result.skills[skillId];
+              // Battery masteryScore is already 0-1 (percentage/100)
+              // Guard: if masteryScore > 1, it's raw percentage — normalize
+              const rawMastery = res?.masteryScore ?? res?.confidence?.score ?? 0;
+              const normalizedScore = rawMastery > 1 ? rawMastery : rawMastery * 100;
               return {
                 skillId: skillId as any,
-                currentScore: Math.round(((res?.masteryScore ?? res?.confidence?.score) || 0) * 100),
+                currentScore: Math.round(normalizedScore),
                 progressDirection: 'up' as const,
                 stability: res?.status === 'stable' ? 'stable' : 'fragile',
                 isPriority: res?.status === 'fragile' || res?.status === 'insufficient_data',

@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C1_1776163286554_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "What was the primary motivation behind the creation of Esperanto?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [
+        "To create a language that is superior to all others",
+        "To facilitate communication between people from different linguistic backgrounds",
+        "To promote the use of English as a global lingua franca",
+        "To preserve endangered languages"
+      ],
+      "correct_index": 1,
+      "correct": "To facilitate communication between people from different linguistic backgrounds",
+      "explanation": "The passage states that Esperanto was designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "What has been a major challenge faced by Esperanto?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [
+        "It has been too successful and has become too dominant",
+        "It lacks the nuances and complexities of natural languages",
+        "It is too difficult to learn",
+        "It has no native speakers"
+      ],
+      "correct_index": 1,
+      "correct": "It lacks the nuances and complexities of natural languages",
+      "explanation": "The passage states that Esperanto has faced criticism that it lacks the nuances and complexities of natural languages."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What has led to a decrease in interest in Esperanto?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [
+        "The rise of the internet",
+        "The rise of English as a global lingua franca",
+        "The decline of international travel",
+        "The increase in language learning apps"
+      ],
+      "correct_index": 1,
+      "correct": "The rise of English as a global lingua franca",
+      "explanation": "The passage states that the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.4,
+    "prompt": "What is a current trend related to Esperanto?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [
+        "A decline in the number of speakers",
+        "A decrease in the number of language learning resources",
+        "A resurgence of interest among young people",
+        "A shift towards using Esperanto as a primary language"
+      ],
+      "correct_index": 2,
+      "correct": "A resurgence of interest among young people",
+      "explanation": "The passage states that there has been a resurgence of interest in Esperanto, particularly among young people."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "What can be inferred about the creator of Esperanto?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [
+        "He was a native English speaker",
+        "He was a polyglot",
+        "He was a linguist who wanted to create a simple language",
+        "He was a politician who wanted to promote international cooperation"
+      ],
+      "correct_index": 2,
+      "correct": "He was a linguist who wanted to create a simple language",
+      "explanation": "The passage states that L.L. Zamenhof devised Esperanto, and that it was designed to be simple, logical, and easy to learn, suggesting that he was a linguist who wanted to create a simple language."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.9,
+    "prompt": "Discuss the potential benefits and drawbacks of a universal language, using Esperanto as a case study. How might a universal language impact international communication and cultural exchange?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential benefits of a universal language, such as increased global understanding and cooperation, as well as the potential drawbacks, such as the loss of linguistic diversity and cultural homogenization. The answer should also provide specific examples from the passage, such as the design of Esperanto and its reception by the global community."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Imagine you are a linguist tasked with designing a new universal language. What features would you include, and how would you balance the need for simplicity with the need for nuance and complexity?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should demonstrate a clear understanding of the challenges of designing a universal language, and provide specific examples of features that would be included, such as a simple grammar system and a vocabulary that is easy to learn. The answer should also discuss the trade-offs between simplicity and complexity, and provide examples of how these trade-offs might be balanced."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "What role do you think Esperanto could play in promoting international cooperation and understanding? Provide specific examples of how it could be used in different contexts, such as education, business, or diplomacy.",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential role of Esperanto in promoting international cooperation and understanding, and provide specific examples of how it could be used in different contexts. The answer should also demonstrate a clear understanding of the challenges and limitations of using a planned language in these contexts."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "Reflect on the passage's statement that 'the world becomes increasingly interconnected.' What does this mean for the role of language in international communication, and how might a universal language like Esperanto contribute to this trend?",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the implications of increasing global interconnectedness for language use, and provide specific examples of how a universal language like Esperanto could contribute to this trend. The answer should also demonstrate a clear understanding of the potential benefits and drawbacks of increased global interconnectedness."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163286554_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a member of the Esperanto community. Write a letter to a friend who is interested in learning more about the language, explaining its history, its benefits, and its cultural significance.",
+    "stimulus": "The concept of a universal language has long fascinated scholars and scientists alike. With the advent of globalization, the need for a common tongue has become increasingly pressing. One such attempt at creating a universal language is Esperanto, devised by L.L. Zamenhof in the late 19th century. Esperanto is a planned language, designed to be simple, logical, and easy to learn, with the aim of facilitating communication between people from different linguistic backgrounds. Despite its noble intentions, Esperanto has faced numerous challenges, including criticism that it lacks the nuances and complexities of natural languages. Furthermore, the rise of English as a global lingua franca has led many to question the relevance of Esperanto in modern times. Nevertheless, Esperanto remains an important tool for international communication, with a dedicated community of speakers and a rich cultural heritage. In recent years, there has been a resurgence of interest in Esperanto, particularly among young people, who see it as a way to connect with others across linguistic and cultural boundaries. As the world becomes increasingly interconnected, the idea of a universal language remains an intriguing and thought-provoking concept, with Esperanto serving as a fascinating case study in the complexities of language and communication.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear and concise overview of the history and benefits of Esperanto, as well as its cultural significance. The answer should also demonstrate a enthusiasm and passion for the language, and provide specific examples of how it has been used in different contexts."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the manager's opinion on the future of physical bookstores?",
+    "stimulus": "The manager of a local bookstore is being interviewed about the impact of e-books on the industry.",
+    "answer_key": {
+      "options": [
+        "They will become obsolete",
+        "They will remain the same",
+        "They will evolve to incorporate e-books",
+        "They will only sell e-books"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The manager believes that physical bookstores need to adapt to the rise of e-books by finding ways to incorporate them into their business model."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "According to the professor, what is the primary cause of the current climate crisis?",
+    "stimulus": "A professor is lecturing on the history of climate change, discussing the role of human activities in exacerbating the issue.",
+    "answer_key": {
+      "options": [
+        "Natural disasters",
+        "Industrialization and pollution",
+        "Overpopulation",
+        "Solar flares"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The professor argues that human activities, such as industrialization and pollution, are the main drivers of the current climate crisis."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "What are the friends planning to do on New Year's Eve?",
+    "stimulus": "A group of friends are discussing their plans for the upcoming holiday season.",
+    "answer_key": {
+      "options": [
+        "Attend a concert",
+        "Host a party",
+        "Go on a trip",
+        "Stay home and watch TV"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The friends are making plans to host a party at one of their homes to celebrate New Year's Eve."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "What is the main consequence of the economic downturn on small businesses?",
+    "stimulus": "A news anchor is reporting on a recent economic downturn, discussing its effects on local businesses.",
+    "answer_key": {
+      "options": [
+        "Increased revenue",
+        "Decreased competition",
+        "Reduced consumer spending",
+        "Improved market share"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The news anchor explains that the economic downturn has led to reduced consumer spending, which is negatively impacting small businesses."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.9,
+    "prompt": "What is the primary advantage of using renewable energy sources?",
+    "stimulus": "A scientist is explaining the concept of renewable energy sources, such as solar and wind power.",
+    "answer_key": {
+      "options": [
+        "Lower upfront costs",
+        "Increased energy efficiency",
+        "Reduced carbon emissions",
+        "Improved energy storage"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The scientist argues that the main benefit of renewable energy sources is the reduction in carbon emissions, which contributes to climate change."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the landmark the tourist is trying to visit?",
+    "stimulus": "A tourist is asking a local for directions to a nearby landmark.",
+    "answer_key": {
+      "options": [
+        "The city museum",
+        "The central park",
+        "The historic castle",
+        "The beach"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The tourist is looking for directions to the historic castle, which is a popular tourist attraction in the area."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "What is the primary benefit of using social media for advertising?",
+    "stimulus": "A marketing expert is discussing the importance of social media in modern advertising campaigns.",
+    "answer_key": {
+      "options": [
+        "Increased brand awareness",
+        "Improved customer service",
+        "Reduced advertising costs",
+        "Enhanced data analysis"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The marketing expert argues that social media is effective for increasing brand awareness and reaching a wider audience."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "What is the main ingredient in the dish being prepared?",
+    "stimulus": "A chef is explaining the preparation of a traditional dish from a specific cultural heritage.",
+    "answer_key": {
+      "options": [
+        "Rice",
+        "Noodles",
+        "Meat",
+        "Vegetables"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The chef is preparing a traditional dish that features rice as the primary ingredient."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "What is the current trend in the stock's value?",
+    "stimulus": "A financial analyst is discussing the recent performance of a particular stock.",
+    "answer_key": {
+      "options": [
+        "Increasing",
+        "Decreasing",
+        "Stable",
+        "Unpredictable"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The financial analyst explains that the stock's value has been decreasing over the past quarter due to various market factors."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163292402_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.9,
+    "prompt": "What is the main goal of the activist's conservation efforts?",
+    "stimulus": "An environmental activist is giving a speech about the importance of conservation efforts.",
+    "answer_key": {
+      "options": [
+        "To protect endangered species",
+        "To preserve natural habitats",
+        "To reduce carbon emissions",
+        "To promote sustainable development"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The environmental activist is advocating for sustainable development as the primary goal of conservation efforts, which encompasses protecting species, habitats, and reducing emissions."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the conditional tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I will study, I will pass the exam.",
+        "If I studied, I would pass the exam.",
+        "If I study, I will pass the exam.",
+        "If I am studying, I will pass the exam."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'If I study, I will pass the exam.' uses the conditional tense correctly, with the present simple in the if-clause and the future simple in the main clause."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The manager wrote the report.",
+        "The report was written by the manager.",
+        "The manager is writing the report.",
+        "The report is being written by the manager."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'The report was written by the manager.' is in the passive voice, where the focus is on the report (the recipient of the action) rather than the manager (the doer of the action)."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the subjunctive mood correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "It is necessary that he attends the meeting.",
+        "It is necessary that he attend the meeting.",
+        "It is necessary that he will attend the meeting.",
+        "It is necessary that he can attend the meeting."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'It is necessary that he attend the meeting.' uses the subjunctive mood correctly, which is used to express necessity, desire, or possibility."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the present perfect continuous tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have been studying for three hours.",
+        "I have studied for three hours.",
+        "I am studying for three hours.",
+        "I study for three hours."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I have been studying for three hours.' uses the present perfect continuous tense correctly, which is used to describe an action that started in the past and continues up to the present moment."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the past perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I had eaten before I went to the movie.",
+        "I eat before I go to the movie.",
+        "I have eaten before I go to the movie.",
+        "I was eating before I went to the movie."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I had eaten before I went to the movie.' uses the past perfect tense correctly, which is used to describe an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the future perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I will have finished my project by next week.",
+        "I will finish my project by next week.",
+        "I have finished my project by next week.",
+        "I finish my project by next week."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I will have finished my project by next week.' uses the future perfect tense correctly, which is used to describe an action that will be completed before a specific point in the future."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the gerund correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I love to eat.",
+        "I love eating.",
+        "I love to eating.",
+        "I love that I eat."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I love eating.' uses the gerund correctly, which is a verb form ending in -ing that functions as a noun."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the infinitive correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I want that I eat.",
+        "I want to eat.",
+        "I want eat.",
+        "I want that I am eating."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I want to eat.' uses the infinitive correctly, which is a verb form that begins with to and functions as a noun, adjective, or adverb."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the relative clause correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The book, which is on the table, is mine.",
+        "The book, that is on the table, is mine.",
+        "The book who is on the table, is mine.",
+        "The book, what is on the table, is mine."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'The book, which is on the table, is mine.' uses the relative clause correctly, which is a clause that provides additional information about a noun in the sentence."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163297530_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the modal verb correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I can to speak English.",
+        "I can speak English.",
+        "I can speaking English.",
+        "I can that I speak English."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I can speak English.' uses the modal verb correctly, which is a verb that expresses ability, permission, or obligation."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding in one's standards",
+        "Quick and efficient",
+        "Outgoing and sociable"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'fastidious' means having a strong attention to detail and being demanding in one's standards."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'perfidious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Faithful and loyal",
+        " Wise and discerning",
+        "Happy and content"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perfidious' means disloyal or treacherous, often implying a breach of trust."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'enigmatic' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Mysterious and difficult to understand",
+        "Clear and easy to comprehend",
+        "Outgoing and sociable",
+        "Shy and introverted"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'enigmatic' means mysterious and difficult to understand, often implying that something is puzzling or ambiguous."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'finesse'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Delicacy and subtlety of performance or skill",
+        "Coarse and rough",
+        " Quick and efficient",
+        "Loud and obtrusive"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'finesse' means delicacy and subtlety of performance or skill, often implying a high level of refinement or elegance."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'heterogeneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Diverse and composed of different kinds of things",
+        "Uniform and composed of the same kind of things",
+        "Complex and difficult to understand",
+        "Simple and easy to comprehend"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'heterogeneous' means diverse and composed of different kinds of things, often implying a mixture of different elements or characteristics."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'inextricable'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Hopelessly tangled or intertwined",
+        "Easily separated or disconnected",
+        "Difficult to understand",
+        "Simple and straightforward"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'inextricable' means hopelessly tangled or intertwined, often implying that something is impossible to separate or disentangle."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'meritorious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Deserving of reward or praise",
+        "Undeserving of reward or praise",
+        "Neutral or impartial",
+        "Unimportant or insignificant"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'meritorious' means deserving of reward or praise, often implying that something has merit or value."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'nuance'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A subtle difference or shade of meaning",
+        "A obvious or striking difference",
+        "A lack of difference or distinction",
+        "A complete absence of meaning"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'nuance' means a subtle difference or shade of meaning, often implying a delicate or refined distinction."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a keen understanding and insight",
+        "Lacking in understanding and insight",
+        "Able to see into the future",
+        "Unable to make decisions"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perspicacious' means having a keen understanding and insight, often implying that someone is perceptive or discerning."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163302802_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'rigor'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A condition of being thoroughly and exhaustively tested",
+        "A lack of testing or examination",
+        "A state of being relaxed or casual",
+        "A feeling of being tired or exhausted"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'rigor' means a condition of being thoroughly and exhaustively tested, often implying a high level of scrutiny or examination."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163306788_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Describe the impact of social media on modern relationships and discuss the potential consequences for individuals and society.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to express complex ideas, support opinions with examples, and engage in a discussion, using a range of vocabulary and grammatical structures with a high degree of accuracy."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163306788_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Discuss the role of education in promoting social mobility and argue for or against the idea that university education is essential for career success.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to develop a clear argument, use relevant examples and supporting evidence, and demonstrate an awareness of different perspectives, using a range of vocabulary and grammatical structures with a high degree of accuracy and fluency."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163306788_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Imagine you are a policy maker and propose a solution to reduce traffic congestion in a large city, justifying your approach and addressing potential counterarguments.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to think critically, propose a well-structured solution, and anticipate potential objections, using a range of vocabulary and grammatical structures with a high degree of accuracy and fluency."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163306788_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Talk about a significant cultural or historical event that has shaped the identity of a particular nation or community, and discuss its ongoing impact on contemporary society.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to provide a clear and detailed account, analyze the event's significance, and discuss its relevance to current issues, using a range of vocabulary and grammatical structures with a high degree of accuracy and fluency."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776163306788_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Discuss the benefits and drawbacks of globalization, considering its effects on the environment, economy, and local cultures, and argue for or against the idea that its advantages outweigh its disadvantages.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to weigh up different perspectives, use relevant examples and supporting evidence, and demonstrate an awareness of the complexities of the issue, using a range of vocabulary and grammatical structures with a high degree of accuracy and fluency."
+    }
+  }
+]
