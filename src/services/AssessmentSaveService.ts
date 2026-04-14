@@ -182,15 +182,6 @@ export class AssessmentSaveService {
       return { success: false };
     }
 
-    // Difficulty mapping
-    const DIFF_MAP: Record<string, number> = {
-      'a1': 0.1, 'a2': 0.2,
-      'b1': 0.4, 'b2': 0.6,
-      'c1': 0.8, 'c2': 1.0
-    };
-    const rawLevel = (task.difficulty || task.target_cefr || 'b1');
-    const canonicalLevel = String(rawLevel).toLowerCase();
-    const difficultyVal = task.difficulty_num || DIFF_MAP[canonicalLevel] || 0.4;
     const answerStr = typeof answer === 'object' ? JSON.stringify(answer) : String(answer || '');
     const questionText = task.prompt || '';
     const skillStr = String(task.skill || "vocabulary").toLowerCase();
@@ -205,59 +196,58 @@ export class AssessmentSaveService {
     let respSuccess = false;
     let logSuccess = false;
 
-    // 1. ASSESSMENT_RESPONSES — Isolated try-catch
+    // 1. ASSESSMENT_RESPONSES — Sanitized Minimal Payload
     try {
-      const responsesRow = {
+      const responsesPayload = {
         user_id: finalUserId,
         question_id: String(task.id),
         user_answer: answerStr,
         is_correct: isCorrect,
-        skill: skillStr,
-        question_level: canonicalLevel,
-        difficulty: difficultyVal,
-        response_time_ms: timeSpentMs || 0
+        skill: skillStr
       };
 
-      const { error: respError } = await supabase.from('assessment_responses').insert(responsesRow);
+      const { error: respError } = await supabase.from('assessment_responses').insert(responsesPayload);
 
       if (respError) {
         console.warn("[AssessmentSaveService] ⚠️ assessment_responses error (non-blocking):", respError.message);
       } else {
         respSuccess = true;
-        console.log(`[AssessmentSaveService] ✅ assessment_responses: saved ${responsesRow.question_id}`);
+        console.log(`[AssessmentSaveService] ✅ assessment_responses saved: ${task.id}`);
       }
     } catch (err) {
       console.warn('[AssessmentSaveService] ⚠️ assessment_responses crashed (non-blocking):', err);
     }
 
-    // 2. ASSESSMENT_LOGS — Isolated try-catch
+    // 2. ASSESSMENT_LOGS — Sanitized Minimal Payload
     try {
-      const logsRow = {
+      const logsPayload = {
         user_id: finalUserId,
         question_id: String(task.id),
         question: questionText,
-        question_text: questionText,
         user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
         correct_answer: task.correctAnswer || (isProductionTask ? '[open_ended]' : ''),
         is_correct: isCorrect,
-        skill: skillStr,
-        question_level: canonicalLevel,
-        difficulty: difficultyVal,
-        score: (evaluation.score || 0) * difficultyVal,
-        time_spent_ms: timeSpentMs || 0,
-        evaluation_metadata: evaluation,
-        status: (evaluation as any).status || 'evaluated',
-        created_at: new Date().toISOString()
+        skill: skillStr
       };
 
-      const { error: logError } = await supabase.from('assessment_logs').insert(logsRow);
+      // Ensure no undefined values
+      const cleanPayload: Record<string, any> = {};
+      for (const [key, val] of Object.entries(logsPayload)) {
+        if (val !== undefined && val !== null) {
+          cleanPayload[key] = val;
+        }
+      }
+
+      console.log('🚀 CLEAN MINIMAL PAYLOAD:', JSON.stringify(cleanPayload, null, 2));
+
+      const { error: logError } = await supabase.from('assessment_logs').insert(cleanPayload);
 
       if (logError) {
         console.warn(`[AssessmentSaveService] ⚠️ assessment_logs error (non-blocking):`, logError.message);
-        this.saveToLocalBuffer(logsRow);
+        this.saveToLocalBuffer(cleanPayload);
       } else {
         logSuccess = true;
-        console.log(`[AssessmentSaveService] ✅ assessment_logs: saved ${logsRow.question_id}`);
+        console.log(`[AssessmentSaveService] ✅ assessment_logs saved: ${task.id}`);
       }
     } catch (err) {
       console.warn('[AssessmentSaveService] ⚠️ assessment_logs crashed (non-blocking):', err);
@@ -265,7 +255,7 @@ export class AssessmentSaveService {
 
     // Summary (never throws)
     if (respSuccess && logSuccess) {
-      console.log(`[AssessmentSaveService] 🎯 Double-logged question ${String(task.id)} | difficulty=${difficultyVal} | level=${canonicalLevel} | skill=${skillStr}`);
+      console.log(`[AssessmentSaveService] 🎯 Double-logged question ${String(task.id)} | skill=${skillStr}`);
     }
 
     return { success: respSuccess && logSuccess };
