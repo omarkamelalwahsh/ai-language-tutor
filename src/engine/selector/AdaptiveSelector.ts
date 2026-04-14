@@ -41,26 +41,26 @@ export class BatterySelector {
     const battery: BatteryQuestion[] = [];
 
     // --- BLOCK 1: Listening & Language Use (10 Qs) ---
-    // Skills: Listening, Grammar, Vocabulary (Aligned with DB Enums)
-    const block1Pool = await this.queryPool(['Listening', 'Grammar', 'Vocabulary'], seenIds);
+    // Skills: listening, grammar, vocabulary (Normalized to lowercase for Postgres Enum)
+    const block1Pool = await this.queryPool(['listening', 'grammar', 'vocabulary'], seenIds);
     const block1Qs = this.sampleSequential(block1Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 1');
     this.addBatch(battery, block1Qs, 1);
 
     // --- BLOCK 2 & 3: Reading & Writing (Shared Stimulus) ---
     const sharedPool = await this.querySharedStimulusPool(seenIds);
-    if (sharedPool.Reading.length >= 10 && sharedPool.Writing.length >= 10) {
-      this.addBatch(battery, this.sampleSequential(sharedPool.Reading, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Shared)'), 2);
-      this.addBatch(battery, this.sampleSequential(sharedPool.Writing, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Shared)'), 3);
+    if (sharedPool.reading.length >= 10 && sharedPool.writing.length >= 10) {
+      this.addBatch(battery, this.sampleSequential(sharedPool.reading, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Shared)'), 2);
+      this.addBatch(battery, this.sampleSequential(sharedPool.writing, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Shared)'), 3);
     } else {
       console.warn("[Selector] Shared stimulus pool dry. Falling back to independent pools.");
-      const rPool = await this.queryPool(['Reading'], seenIds);
-      const wPool = await this.queryPool(['Writing'], seenIds);
+      const rPool = await this.queryPool(['reading'], seenIds);
+      const wPool = await this.queryPool(['writing'], seenIds);
       this.addBatch(battery, this.sampleSequential(rPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Indep)'), 2);
       this.addBatch(battery, this.sampleSequential(wPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Indep)'), 3);
     }
 
     // --- BLOCK 4: Speaking (10 Qs) ---
-    const block4Pool = await this.queryPool(['Speaking'], seenIds);
+    const block4Pool = await this.queryPool(['speaking'], seenIds);
     const block4Qs = this.sampleSequential(block4Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 4');
     this.addBatch(battery, block4Qs, 4);
 
@@ -68,7 +68,7 @@ export class BatterySelector {
     if (battery.length < 40) {
       console.warn(`[Selector] ⚠️ Battery incomplete (${battery.length}/40). Filling gaps...`);
       const gapSize = 40 - battery.length;
-      const fillerPool = await this.queryPool(['Listening', 'Reading', 'Grammar', 'Vocabulary'], seenIds);
+      const fillerPool = await this.queryPool(['listening', 'reading', 'grammar', 'vocabulary'], seenIds);
       const fillerShuffled = this.shuffle(fillerPool.filter(f => !battery.some(b => b.item.id === f.id)));
       this.addBatch(battery, fillerShuffled.slice(0, gapSize), 99); // Block 99 for filler
     }
@@ -78,7 +78,7 @@ export class BatterySelector {
   }
 
   private static async queryPool(skills: string[], seenIds: Set<string>): Promise<QuestionBankItem[]> {
-    // Exact match (.in) for prioritized skills
+    // Exact match (.in) for prioritized skills (must be lowercase for Postgres Enum)
     const { data, error } = await supabase
       .from('question_bank_items')
       .select('*')
@@ -89,27 +89,27 @@ export class BatterySelector {
     return (data || []).filter(q => !seenIds.has(q.id)) as any;
   }
 
-  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ Reading: QuestionBankItem[], Writing: QuestionBankItem[] }> {
+  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ reading: QuestionBankItem[], writing: QuestionBankItem[] }> {
     const { data: candidates } = await supabase
       .from('question_bank_items')
       .select('stimulus')
       .not('stimulus', 'is', null)
-      .eq('skill', 'Reading')
+      .eq('skill', 'reading')
       .limit(10);
     
-    if (!candidates || candidates.length === 0) return { Reading: [], Writing: [] };
+    if (!candidates || candidates.length === 0) return { reading: [], writing: [] };
 
     const stimulus = candidates[0].stimulus;
     const { data: tasks } = await supabase
       .from('question_bank_items')
       .select('*')
       .eq('stimulus', stimulus)
-      .in('skill', ['Reading', 'Writing']);
+      .in('skill', ['reading', 'writing']);
 
     const items = (tasks || []) as any[];
     return {
-      Reading: items.filter(i => i.skill === 'Reading' && !seenIds.has(i.id)),
-      Writing: items.filter(i => i.skill === 'Writing' && !seenIds.has(i.id))
+      reading: items.filter(i => i.skill === 'reading' && !seenIds.has(i.id)),
+      writing: items.filter(i => i.skill === 'writing' && !seenIds.has(i.id))
     };
   }
 
@@ -118,17 +118,22 @@ export class BatterySelector {
     const zones: DifficultyZone[] = ['EASY', 'MEDIUM', 'HARD'];
 
     zones.forEach(zone => {
-      const levels = ASSESSMENT_CONFIG.ZONES[zone].levels;
-      const zonePool = pool.filter(q => levels.includes(q.target_cefr || (q as any).level));
-      const requestedCount = counts[zone];
+      // Postgres Enum cefr_level is lowercase (a1, b2, etc.)
+      const configLevels = ASSESSMENT_CONFIG.ZONES[zone].levels;
+      const targetLevels = configLevels.map(l => l.toLowerCase());
       
+      const zonePool = pool.filter(q => {
+        const itemLevel = (q.target_cefr || (q as any).level || '').toLowerCase();
+        return targetLevels.includes(itemLevel);
+      });
+      
+      const requestedCount = counts[zone];
       const shuffled = this.shuffle(zonePool);
       const zoneSelection = shuffled.slice(0, requestedCount);
       sampled.push(...zoneSelection);
       
       if (zoneSelection.length < requestedCount) {
         console.warn(`[Selector] [${context}] Requested ${requestedCount} for ${zone} but only found ${zoneSelection.length}.`);
-        // Intra-block fallback: grab from the broader pool ignoring specific level
         const remainingNeeded = requestedCount - zoneSelection.length;
         const fallbackPool = pool.filter(p => !sampled.some(s => s.id === p.id));
         sampled.push(...this.shuffle(fallbackPool).slice(0, remainingNeeded));
@@ -140,9 +145,9 @@ export class BatterySelector {
 
   private static addBatch(battery: BatteryQuestion[], items: QuestionBankItem[], block: number) {
     items.forEach(item => {
-      const dbLevel = item.target_cefr || (item as any).level || 'B1';
-      // Ensure we handle potential lowercase/uppercase variation in the level string
-      const level = dbLevel.toUpperCase(); 
+      const dbLevel = item.target_cefr || (item as any).level || 'b1';
+      // Normalize to lowercase for consistency with DB enum types
+      const level = dbLevel.toLowerCase(); 
       const zone = this.getZoneForLevel(level);
       battery.push({
         item,
@@ -156,8 +161,9 @@ export class BatterySelector {
   }
 
   private static getZoneForLevel(level: string): DifficultyZone {
-    if (['A1', 'A2'].includes(level)) return 'EASY';
-    if (['B1', 'B2'].includes(level)) return 'MEDIUM';
+    const l = level.toLowerCase();
+    if (['a1', 'a2'].includes(l)) return 'EASY';
+    if (['b1', 'b2'].includes(l)) return 'MEDIUM';
     return 'HARD';
   }
 
