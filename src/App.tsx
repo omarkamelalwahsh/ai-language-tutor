@@ -167,8 +167,8 @@ function AppRoutes() {
     // 1. Calculate local academic result immediately
     const computedSessionResult = AssessmentAnalysisService.fromAssessmentOutcome(
       outcome,
-      user?.id || 'anonymous',
-      'diagnostic_session',
+      user?.id || 'learner_temp_session',
+      outcome?.assessmentId || 'diagnostic_session',
     );
 
     // 2. OPTIMISTIC HYDRATION: Update local memory so pages aren't empty

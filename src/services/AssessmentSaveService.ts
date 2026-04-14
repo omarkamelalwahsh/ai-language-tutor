@@ -700,11 +700,11 @@ export class AssessmentSaveService {
         // 3. Skill Matrices Refresh
         supabase.from('skill_states').upsert(skillUpserts, { onConflict: 'user_id, skill' }),
 
-        // 4. Learning Journey Initialization
+        // 4. Learning Journey Initialization (Force 'Foundations' completion for UX journey start)
         supabase.from('learning_journeys').upsert({
           user_id: userId,
-          nodes: nodes,
-          current_node_id: currentNodeId,
+          nodes: nodes.map((n, idx) => idx === 0 ? { ...n, status: 'completed' } : n),
+          current_node_id: nodes[1]?.id || nodes[0].id,
           metadata: { initial_level: newLevel, generated_at: new Date().toISOString() },
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' }),

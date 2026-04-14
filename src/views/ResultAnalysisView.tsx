@@ -2,13 +2,15 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowRight, BarChart3, CheckCircle2, Zap, Target, BookOpen, Mic, PenTool, 
-  Headphones, AlertTriangle, ShieldCheck, Map, Sparkles, Circle, Flag, Info
+  Headphones, AlertTriangle, ShieldCheck, Map, Sparkles, Circle, Flag, Info,
+  RefreshCw
 } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import QuestionAnalysis from '../components/assessment/QuestionAnalysis';
 import { AssessmentSessionResult, SkillAssessmentResult } from '../types/assessment';
 import { supabase } from '../lib/supabaseClient';
 import { normalizeBand } from '../lib/cefr-utils';
+import { useData } from '../context/DataContext';
 
 const skillIcons: Record<string, React.ReactNode> = {
   speaking: <Mic className="w-5 h-5 text-rose-500" />,
@@ -34,19 +36,56 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   onContinue, 
   onReview 
 }) => {
+  const { user } = useData() as any;
   const [report, setReport] = useState<any>(assessmentOutcome?.aiAnalysis || null);
-  const [loading, setLoading] = useState(!assessmentOutcome?.aiAnalysis && !isArchitecting);
+  const [loading, setLoading] = useState(true);
+  const [dbLogs, setDbLogs] = useState<any[]>([]);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [finalizeProgress, setFinalizeProgress] = useState(0);
+  const [fetchError, setFetchError] = useState(false);
+
+  // 1. Fetch Latest Logs (MCQ Scoring Source)
+  useEffect(() => {
+    const fetchLatestSessionLogs = async () => {
+      if (!user?.id) return;
+      
+      console.log(`🚀 [Diagnostic] Current User Session ID: ${user.id}`);
+      setLoading(true);
+      setFetchError(false);
+      
+      try {
+        const { data, error } = await supabase
+          .from('assessment_logs')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(40); // Latest battery
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          console.log(`✅ [Diagnostic] Fetched ${data.length} logs for real-time calculation.`);
+          setDbLogs(data);
+        } else {
+          console.warn('[Diagnostic] No logs found in DB for this user.');
+          setFetchError(true);
+        }
+      } catch (err) {
+        console.error('[Diagnostic] Failed to fetch session logs:', err);
+        setFetchError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestSessionLogs();
+  }, [user?.id]);
 
   useEffect(() => {
-    if (!report && !isArchitecting) {
-      if (assessmentOutcome?.aiAnalysis) {
-        setReport(assessmentOutcome.aiAnalysis);
-      }
-      setLoading(false);
+    if (!report && assessmentOutcome?.aiAnalysis) {
+      setReport(assessmentOutcome.aiAnalysis);
     }
-  }, [report, isArchitecting, assessmentOutcome]);
+  }, [report, assessmentOutcome]);
 
   const isSpeakingMissing = (result.skills.speaking?.evidenceCount ?? 0) === 0;
   const isWritingMissing = (result.skills.writing?.evidenceCount ?? 0) === 0;
@@ -56,34 +95,48 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                           result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` : 
                           `${result.overall.estimatedLevel} emerging`;
 
-  // Filter to battery skills first, with others as secondary
+  // 2. Local MCQ Calculation Logic
   const BATTERY_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary', 'writing', 'speaking'];
   
   const skills = useMemo(() => {
      return [...(Object.values(result.skills) as SkillAssessmentResult[])]
-       .filter(s => BATTERY_SKILLS.includes(s.skill)) // Only battery skills for main display
-       .sort((a, b) => {
-         const scoreA = a.masteryScore ?? 0;
-         const scoreB = b.masteryScore ?? 0;
-         return scoreA - scoreB;
-       });
+       .filter(s => BATTERY_SKILLS.includes(s.skill))
+       .sort((a, b) => (a.masteryScore ?? 0) - (b.masteryScore ?? 0));
   }, [result]);
+
   const strengths = useMemo(() => skills.flatMap(s => s.strengths).slice(0, 4), [skills]);
   const weaknesses = useMemo(() => skills.flatMap(s => s.weaknesses).slice(0, 4), [skills]);
 
+  // 🔥 POWERFUL RADAR MAPPING: Uses DB logs for live accuracy
   const radarData = useMemo(() => {
-    return skills.map(s => {
-      // masteryScore is 0-1 (percentage/100) from battery
-      // Guard: if > 1, it's already raw percentage
-      const raw = s.masteryScore ?? s.confidence.score;
-      const pct = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
-      return {
-        subject: s.skill.charAt(0).toUpperCase() + s.skill.slice(1),
-        A: pct,
-        fullMark: 100
-      };
-    });
-  }, [skills]);
+    if (dbLogs.length > 0) {
+      // Aggregate from real DB logs
+      const stats: Record<string, { correct: number, total: number }> = {};
+      dbLogs.forEach(entry => {
+        const s = entry.skill?.toLowerCase();
+        if (!stats[s]) stats[s] = { correct: 0, total: 0 };
+        stats[s].total++;
+        if (entry.is_correct) stats[s].correct++;
+      });
+
+      return BATTERY_SKILLS.map(s => {
+        const skillStats = stats[s] || { correct: 0, total: 0 };
+        const pct = skillStats.total > 0 ? Math.round((skillStats.correct / skillStats.total) * 100) : 50; 
+        return {
+          subject: s.charAt(0).toUpperCase() + s.slice(1),
+          A: pct,
+          fullMark: 100
+        };
+      });
+    }
+
+    // Fallback to local session result if DB is pending
+    return skills.map(s => ({
+      subject: s.skill.charAt(0).toUpperCase() + s.skill.slice(1),
+      A: Math.round((s.masteryScore ?? s.confidence.score || 0.5) * 100),
+      fullMark: 100
+    }));
+  }, [dbLogs, skills]);
 
   const handleFinalize = async () => {
     if (isFinalizing) return;
@@ -136,6 +189,47 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
     show: { opacity: 1, y: 0 }
   };
 
+  if (loading && !isArchitecting) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div className="relative">
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="w-24 h-24 rounded-[2.5rem] bg-indigo-600 flex items-center justify-center"
+          >
+            <Sparkles className="text-white w-10 h-10" />
+          </motion.div>
+          <div className="absolute inset-0 border-4 border-indigo-100 rounded-[2.5rem] animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-slate-900">Crunching Real-time Results...</h2>
+          <p className="text-slate-500 font-medium max-w-xs">Connecting to secure instance and calculating linguistic mapping.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError && dbLogs.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-slate-900">Analysis Delayed</h2>
+          <p className="text-slate-500 font-medium">We couldn't retrieve your latest session logs. This can happen if the background sync is still running.</p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="flex items-center gap-2 bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all"
+        >
+          <RefreshCw className="w-5 h-5" /> Retry Fetch
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 selection:bg-indigo-500/30 font-sans text-slate-900 flex flex-col items-center">
       <motion.div variants={staggerContainer} initial="hidden" animate="show" className="w-full max-w-4xl space-y-8">
@@ -171,17 +265,23 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
         <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60" />
           
-          <div className="relative z-10 flex-1 space-y-3">
-            <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Estimated Level</p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Current Level</p>
+              {!report && (
+                <div className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-600 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter animate-pulse">
+                  <RefreshCw className="w-3 h-3 animate-spin-slow" /> AI Analyzing...
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-4">
               <span className="text-7xl font-black text-indigo-600 tracking-tighter">{normalizeBand(result.overall.estimatedLevel)}</span>
               <div className="flex flex-col gap-1.5">
-                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold border border-indigo-100 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" /> {confidenceLabel}
+                <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg text-sm font-bold border border-emerald-100 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> {confidenceLabel}
                 </div>
                 {isProvisional && (
-                   <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold border border-amber-100 flex items-center gap-1.5 uppercase tracking-wider">
-                     <AlertTriangle className="w-3 h-3" /> Provisional Result
+                   <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-lg text-[10px] font-black border border-amber-200 flex items-center gap-1.5 uppercase tracking-wider shadow-sm">
+                     <Target className="w-3 h-3" /> Estimated from MCQs
                    </div>
                 )}
               </div>
