@@ -133,7 +133,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
     // Fallback to local session result if DB is pending
     return skills.map(s => ({
       subject: s.skill.charAt(0).toUpperCase() + s.skill.slice(1),
-      A: Math.round((s.masteryScore ?? s.confidence.score || 0.5) * 100),
+      A: Math.round(((s.masteryScore ?? s.confidence.score) || 0.5) * 100),
       fullMark: 100
     }));
   }, [dbLogs, skills]);
@@ -265,6 +265,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
         <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60" />
           
+          <div className="relative z-10 flex-1 space-y-3">
             <div className="flex items-center gap-3">
               <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Current Level</p>
               {!report && (
