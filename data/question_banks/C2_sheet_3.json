@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C2_1776166022164_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the main argument of the passage regarding the relationship between literature and life?",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [
+        "Literature is a direct reflection of life",
+        "Literature is a product of the author's imagination, unconnected to reality",
+        "Literature is both a reflection of life and a product of the author's imagination",
+        "Literature has no connection to life"
+      ],
+      "correct_index": 2,
+      "correct": "Literature is both a reflection of life and a product of the author's imagination",
+      "explanation": "The passage suggests that literature can be seen as both a reflection of the world around us and a creation of a new, self-contained world, as exemplified in James Joyce's novel Ulysses."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.6,
+    "prompt": "What literary device is used by James Joyce in his novel Ulysses to reflect the chaos and disorder of modern life?",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [
+        "Stream-of-consciousness narrative",
+        "Symbolism",
+        "Imagery",
+        "Allusion"
+      ],
+      "correct_index": 0,
+      "correct": "Stream-of-consciousness narrative",
+      "explanation": "The passage states that the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "What is the concept of intertextuality, as referred to in the passage?",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [
+        "The use of allusions and references to other texts",
+        "The use of stream-of-consciousness narrative",
+        "The creation of a new, self-contained world",
+        "The reflection of reality in literature"
+      ],
+      "correct_index": 0,
+      "correct": "The use of allusions and references to other texts",
+      "explanation": "The passage defines intertextuality as the ways in which texts interact and influence one another, and states that this is achieved through the use of allusions, references, and quotes from other texts."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "What is the significance of the character of Leopold Bloom in the novel Ulysses?",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [
+        "He serves as a symbol of Irish nationalism",
+        "He represents the struggles of the working class",
+        "He is a microcosm for the human experience, navigating the complexities and mundanities of daily life",
+        "He is a reflection of the author's own life and experiences"
+      ],
+      "correct_index": 2,
+      "correct": "He is a microcosm for the human experience, navigating the complexities and mundanities of daily life",
+      "explanation": "The passage states that the character of Leopold Bloom serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "What is the author's view on the influence of modernist literature on contemporary writers?",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [
+        "It has a limited impact on contemporary writers",
+        "It has a significant influence on contemporary writers",
+        "It has no impact on contemporary writers",
+        "It is unclear what impact it has on contemporary writers"
+      ],
+      "correct_index": 1,
+      "correct": "It has a significant influence on contemporary writers",
+      "explanation": "The passage states that the tension between representation and creation, which is a hallmark of modernist literature, continues to influence writers to this day."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the concept of intertextuality in the context of James Joyce's Ulysses, and explore how it contributes to the novel's themes and meaning.",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear definition of intertextuality, and explain how Joyce uses allusions and references to other texts to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.6,
+    "prompt": "Analyze the character of Leopold Bloom as a microcosm for the human experience, and discuss how his thoughts and observations reflect the complexities and mundanities of daily life.",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a detailed analysis of Leopold Bloom's character, and explain how his thoughts and observations reflect the human experience, including the struggles and triumphs of everyday life."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "Explain the significance of the stream-of-consciousness narrative in Ulysses, and discuss how it contributes to the novel's themes of identity, nationality, and the search for meaning.",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear explanation of the stream-of-consciousness narrative, and discuss how it reflects the chaos and disorder of modern life, while also exploring the themes of identity, nationality, and the search for meaning."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "Discuss the tension between representation and creation in modernist literature, and explore how this tension is reflected in James Joyce's Ulysses.",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear discussion of the tension between representation and creation in modernist literature, and explain how Joyce's Ulysses reflects this tension, including the ways in which the novel both reflects reality and creates a new, self-contained world."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166022164_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Analyze the impact of modernist literature on contemporary writers, and discuss how the themes and techniques of modernist literature continue to influence writing today.",
+    "stimulus": "The notion that literature is a reflection of life has been a longstanding debate among scholars and literary critics. While some argue that literature is a direct reflection of the world around us, others contend that it is a product of the author's imagination, unencumbered by the constraints of reality. This dichotomy is perhaps best exemplified in the works of James Joyce, whose novel Ulysses is often regarded as a seminal work of modernist literature. On one hand, the novel's stream-of-consciousness narrative and experimental style can be seen as a reflection of the chaos and disorder of modern life. The character of Leopold Bloom, with his meandering thoughts and observations, serves as a microcosm for the human experience, navigating the complexities and mundanities of daily life in Dublin. On the other hand, the novel's use of mythological and historical allusions, as well as its overtly symbolic character names, suggests that Joyce is not merely reflecting reality, but rather creating a new, self-contained world, one that is at once familiar and yet utterly unique. This tension between representation and creation is a hallmark of modernist literature, and one that continues to influence writers to this day. Furthermore, the concept of intertextuality, which refers to the ways in which texts interact and influence one another, is also a key aspect of modernist literature. The use of allusions, references, and quotes from other texts serves to create a sense of continuity and shared cultural knowledge, while also highlighting the individual author's unique perspective and contribution to the literary canon. In the context of Ulysses, Joyce's use of intertextuality serves to underscore the novel's themes of identity, nationality, and the search for meaning in a post-traditional world. As such, the novel can be seen as both a reflection of the world around us, and a creation of a new, self-contained world, one that is at once a product of the author's imagination and a reflection of the broader cultural and historical context in which it was written.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear analysis of the impact of modernist literature on contemporary writers, and discuss how the themes and techniques of modernist literature, such as intertextuality and stream-of-consciousness narrative, continue to influence writing today."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "According to the lecturer, what is the primary advantage of social media in marketing?",
+    "stimulus": "The lecturer explains that the emergence of social media has significantly changed how companies approach marketing, as it allows for more targeted and personalized advertising.",
+    "answer_key": {
+      "options": [
+        "A) It allows for more general advertising",
+        "B) It enables companies to advertise during holidays",
+        "C) It allows for more targeted and personalized advertising",
+        "D) It increases the cost of marketing"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, is the primary advantage of social media in marketing as stated by the lecturer. The other options, A, B, and D, are incorrect as they do not align with the lecturer's explanation."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "What is the main topic discussed by the speaker?",
+    "stimulus": "The speaker discusses the impact of climate change on global food production, highlighting the need for sustainable farming practices to mitigate its effects.",
+    "answer_key": {
+      "options": [
+        "A) The benefits of organic farming",
+        "B) The impact of climate change on global food production",
+        "C) The economics of industrial farming",
+        "D) The role of government in agriculture"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer, B, is the main topic discussed by the speaker, as evidenced by the mention of climate change and its effects on global food production. Options A, C, and D are related but not the primary focus of the discussion."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "What material was primarily used to build the ancient city?",
+    "stimulus": "The tour guide explains that the ancient city was built using local limestone and features a complex system of canals and dams.",
+    "answer_key": {
+      "options": [
+        "A) Marble",
+        "B) Granite",
+        "C) Local limestone",
+        "D) Sandstone"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, is supported by the tour guide's explanation that local limestone was used to build the ancient city. The other options, A, B, and D, are incorrect as they are not mentioned as the primary building material."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "According to the professor, what is the significance of emotional intelligence?",
+    "stimulus": "The professor discusses the concept of emotional intelligence, emphasizing its importance in both personal and professional relationships.",
+    "answer_key": {
+      "options": [
+        "A) It is only important in personal relationships",
+        "B) It is crucial for professional success but not personal relationships",
+        "C) It is essential for both personal and professional relationships",
+        "D) It has no impact on relationships"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, reflects the professor's emphasis on the importance of emotional intelligence in both personal and professional contexts. Options A, B, and D are incorrect as they do not fully capture the significance of emotional intelligence as discussed."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "What is a key benefit of the new medication according to the researcher?",
+    "stimulus": "The researcher explains that the new medication has shown significant promise in treating a previously incurable disease, with minimal side effects reported.",
+    "answer_key": {
+      "options": [
+        "A) It is very expensive",
+        "B) It has significant side effects",
+        "C) It has shown promise with minimal side effects",
+        "D) It is only effective in a small percentage of cases"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, is supported by the researcher's explanation of the medication's benefits, including its promise in treating the disease and the minimal side effects. Options A, B, and D are incorrect as they contradict the researcher's positive assessment of the medication."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "What is a key component of the company's expansion strategy?",
+    "stimulus": "The manager outlines the company's strategy for expanding into new markets, focusing on innovative product lines and strategic partnerships.",
+    "answer_key": {
+      "options": [
+        "A) Reducing product lines",
+        "B) Forming strategic partnerships and introducing innovative products",
+        "C) Exiting current markets",
+        "D) Maintaining the status quo"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer, B, aligns with the manager's explanation of the company's strategy, emphasizing innovation and partnerships. Options A, C, and D are incorrect as they do not reflect the proactive and expansive approach outlined."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "According to the economist, what are the expected outcomes of a global economic downturn?",
+    "stimulus": "The economist discusses the implications of a global economic downturn, including higher unemployment rates and reduced consumer spending.",
+    "answer_key": {
+      "options": [
+        "A) Lower unemployment and increased consumer spending",
+        "B) Higher employment rates and stable consumer spending",
+        "C) Higher unemployment rates and reduced consumer spending",
+        "D) No impact on employment or consumer spending"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, reflects the economist's discussion on the negative impacts of an economic downturn, including higher unemployment and decreased consumer spending. Options A, B, and D are incorrect as they do not align with the economist's analysis of the situation."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.8,
+    "prompt": "What practices does the environmentalist recommend for addressing climate change?",
+    "stimulus": "The environmentalist explains that sustainable practices, such as recycling and using renewable energy sources, are crucial for mitigating the effects of climate change.",
+    "answer_key": {
+      "options": [
+        "A) Increasing the use of fossil fuels and reducing recycling",
+        "B) Implementing sustainable practices like recycling and renewable energy",
+        "C) Ignoring climate change and focusing on economic growth",
+        "D) Only focusing on recycling without considering energy sources"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer, B, is supported by the environmentalist's emphasis on the importance of sustainable practices for mitigating climate change. Options A, C, and D are incorrect as they either contradict the environmentalist's recommendations or do not fully address the issue."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.7,
+    "prompt": "What areas were significantly influenced by the Renaissance, according to the historian?",
+    "stimulus": "The historian discusses the significance of the Renaissance in European history, highlighting its impact on art, literature, and science.",
+    "answer_key": {
+      "options": [
+        "A) Only art and literature",
+        "B) Only science and philosophy",
+        "C) Art, literature, and science",
+        "D) Politics and economics exclusively"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, reflects the historian's discussion on the broad impact of the Renaissance, including art, literature, and science. Options A, B, and D are incorrect as they do not fully capture the range of areas influenced by the Renaissance as described by the historian."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166029808_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "According to the scientist, what is the term for the brain's ability to reorganize itself?",
+    "stimulus": "The scientist explains that the human brain's ability to reorganize itself in response to new experiences is known as neuroplasticity, and it plays a crucial role in learning and memory.",
+    "answer_key": {
+      "options": [
+        "A) Neurodegeneration",
+        "B) Neuroregeneration",
+        "C) Neuroplasticity",
+        "D) Neurogenesis"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer, C, is directly stated by the scientist as the term for the brain's reorganizational capability. Options A, B, and D are incorrect as they refer to different concepts related to the brain but do not match the definition provided."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "By the time I ______ my homework, it was already midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "was finishing",
+        "have finished",
+        "am finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it uses the past perfect tense, which is necessary to describe an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "If I ______ her, I would tell her about the surprise party.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "were",
+        "am",
+        "was",
+        "have been"
+      ],
+      "correct_index": 0,
+      "correct": "were",
+      "explanation": "The correct answer is 'were' because it is the correct form of the second conditional, which is used to describe hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "By next year, I ______ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have been studying",
+        "am studying",
+        "have studied",
+        "was studying"
+      ],
+      "correct_index": 0,
+      "correct": "will have been studying",
+      "explanation": "The correct answer is 'will have been studying' because it uses the future perfect continuous tense, which is necessary to describe an action that will be ongoing at a specific point in the future."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "If she ______ me, I would have called her back.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had given",
+        "gives",
+        "has given",
+        "give"
+      ],
+      "correct_index": 0,
+      "correct": "had given",
+      "explanation": "The correct answer is 'had given' because it is the correct form of the third conditional, which is used to describe past hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "I wish it ______ warmer today.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "was",
+        "was being",
+        "wasn't",
+        "wasn't being"
+      ],
+      "correct_index": 0,
+      "correct": "was",
+      "explanation": "The correct answer is 'was' because it is the correct form of the verb in a wish clause, which often uses the past simple tense to describe a present or future situation that is not real."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "I ______ to the gym every day if I had more time.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "am going",
+        "was going",
+        "would go"
+      ],
+      "correct_index": 3,
+      "correct": "would go",
+      "explanation": "The correct answer is 'would go' because it is the correct form of the second conditional, which is used to describe hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "If I won the lottery, I ______ a house on the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "would buy",
+        "will buy",
+        "am buying",
+        "was buying"
+      ],
+      "correct_index": 0,
+      "correct": "would buy",
+      "explanation": "The correct answer is 'would buy' because it is the correct form of the second conditional, which is used to describe hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "By the time they arrived, we ______ our project for three months.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had been working on",
+        "were working on",
+        "have been working on",
+        "are working on"
+      ],
+      "correct_index": 0,
+      "correct": "had been working on",
+      "explanation": "The correct answer is 'had been working on' because it uses the past perfect continuous tense, which is necessary to describe an action that started before another action in the past and continued up to that point."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "If I ______ the chance, I would travel around the world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "got",
+        "get",
+        "had gotten",
+        "would get"
+      ],
+      "correct_index": 0,
+      "correct": "got",
+      "explanation": "The correct answer is 'got' because it is the correct form of the second conditional, which is used to describe hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166035228_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "I ______ to the party if you ______ me.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "would go / invited",
+        "go / invite",
+        "went / invited",
+        "am going / invite"
+      ],
+      "correct_index": 0,
+      "correct": "would go / invited",
+      "explanation": "The correct answer is 'would go / invited' because it is the correct form of the third conditional, which is used to describe past hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a strong and unpleasant smell",
+        "Having a keen understanding and insight",
+        "Lacking energy and enthusiasm",
+        "Moving quickly and energetically"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perspicacious refers to having a keen understanding and insight, being able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To weaken or deprive of energy",
+        "To increase or enhance energy",
+        "To make something more interesting",
+        "To simplify a complex task"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Enervate means to weaken or deprive of energy, making someone or something less active or effective."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding in one's standards",
+        "Quick and efficient",
+        "Relaxed and casual"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidious refers to being meticulous and demanding in one's standards, having a strong attention to detail and a high level of precision."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'heterogeneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Composed of different kinds of things",
+        "Composed of the same kind of things",
+        "Relating to the study of the universe",
+        "Relating to the study of living organisms"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Heterogeneous refers to something that is composed of different kinds of things, being diverse and varied in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'inscrutable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Difficult to understand or interpret",
+        "Easy to understand or interpret",
+        "Relating to the study of languages",
+        "Relating to the study of cultures"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Inscrutable refers to something that is difficult to understand or interpret, being mysterious or obscure in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'malleable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Capable of being shaped or molded",
+        "Unwilling to change or adapt",
+        "Lacking flexibility or adaptability",
+        "Having a strong and unchanging shape"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Malleable refers to something that is capable of being shaped or molded, being flexible and adaptable in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'nascent' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "In the early stages of development",
+        "In the final stages of development",
+        "Relating to the study of the environment",
+        "Relating to the study of technology"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Nascent refers to something that is in the early stages of development, being newly formed or emerging."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Loyal and faithful",
+        "Honest and trustworthy",
+        "Reluctant and hesitant"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious refers to someone or something that is disloyal or treacherous, being unfaithful or deceitful in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'reclusive' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Preferring to be alone or avoid social contact",
+        "Preferring to be around others and socialize",
+        "Relating to the study of psychology",
+        "Relating to the study of sociology"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Reclusive refers to someone who prefers to be alone or avoid social contact, being solitary and withdrawn in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166043987_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'sage' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having or showing wisdom and discernment",
+        "Lacking wisdom and discernment",
+        "Relating to the study of philosophy",
+        "Relating to the study of history"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Sage refers to someone who has or shows wisdom and discernment, being wise and perceptive in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166049804_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Defend the notion that technological advancements have improved the overall quality of life, considering both the positive and negative impacts.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to articulate a clear and well-supported argument, acknowledging potential counterarguments and addressing them effectively, with a high degree of linguistic complexity and accuracy."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166049804_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Discuss the implications of globalization on local cultures, considering the potential for cultural homogenization versus the preservation of unique cultural identities.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong response should exhibit nuanced thinking, recognizing the multifaceted nature of the issue, and express ideas with sophistication and precision, utilizing advanced vocabulary and grammatical structures."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166049804_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Argue for or against the proposition that higher education should be entirely subsidized by governments, considering economic, social, and individual factors.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The ability to construct a cogent argument, incorporating a range of relevant points and evidence, and to express this argument fluently and cohesively, is key to a successful response at this level."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166049804_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Examine the role of social media in shaping public opinion, including its potential to both inform and misinform, and discuss the responsibilities of both the platforms and the users.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "Effective responses should display a high level of critical thinking, analyzing complex issues from various angles, and communicate insights clearly and persuasively, with a command of complex linguistic forms."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776166049804_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Consider the concept of universal basic income as a potential solution to poverty and inequality; evaluate its feasibility and potential outcomes in different economic systems.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "At this level, a good response is characterized by its depth of analysis, the ability to weigh different perspectives, and the capacity to articulate a well-structured and logically coherent argument, using language with a high degree of flexibility and precision."
+    }
+  }
+]

@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A2_1776165897674_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where did the writer stay during their summer holiday?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [
+        "A big hotel in the city",
+        "A small hotel near the sea",
+        "A tent on the beach",
+        "A friend's house"
+      ],
+      "correct_index": 1,
+      "correct": "A small hotel near the sea",
+      "explanation": "The writer mentions that they stayed in a small hotel near the sea, which was simple but clean and had friendly staff."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer do every day during their holiday?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [
+        "They went to the city to shop",
+        "They stayed in the hotel and watched TV",
+        "They went to the beach and swam in the sea",
+        "They went to the mountains to hike"
+      ],
+      "correct_index": 2,
+      "correct": "They went to the beach and swam in the sea",
+      "explanation": "The writer states that every day, they went to the beach and swam in the sea, and also built sandcastles and collected seashells."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What type of trip did the writer take to a nearby island?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [
+        "A car trip",
+        "A bike trip",
+        "A boat trip",
+        "A train trip"
+      ],
+      "correct_index": 2,
+      "correct": "A boat trip",
+      "explanation": "The writer mentions that they took a boat trip to a nearby island, where they saw many birds and fish."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How did the writer feel at the end of their holiday?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [
+        "Tired and unhappy",
+        "Tired but happy",
+        "Happy but not tired",
+        "Unhappy but not tired"
+      ],
+      "correct_index": 1,
+      "correct": "Tired but happy",
+      "explanation": "The writer states that when they got back to the hotel, they were all very tired but happy, after having a great time on the island."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the writer have after getting back to the hotel from the island?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [
+        "A snack",
+        "A drink",
+        "A lovely dinner",
+        "A shower"
+      ],
+      "correct_index": 2,
+      "correct": "A lovely dinner",
+      "explanation": "The writer mentions that after getting back to the hotel, they had a lovely dinner and then went to bed early."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you went on a holiday with your family. What did you do and what were some of the highlights of the trip?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the holiday, such as the destination, activities, and memorable experiences. The writer should also use descriptive language to bring the story to life."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are the writer of the passage. Write a postcard to a friend describing your holiday and the things you have been doing.",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should be written in an informal tone and include details about the holiday, such as the location, activities, and experiences. The writer should also include a personal message to the friend."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What are some of the benefits of taking a holiday by the sea? Use examples from the passage to support your answer.",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include some of the benefits of taking a holiday by the sea, such as relaxation, opportunities for swimming and water sports, and the chance to see marine life. The writer should use examples from the passage to support their answer."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Write a diary entry about a day when you did something new and exciting. What did you do and how did you feel?",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the new experience, such as what it was, how it felt, and what was learned from it. The writer should also use descriptive language to bring the story to life."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165897674_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are planning a holiday for your family. Where would you go and what activities would you do? Write a short essay describing your ideal holiday.",
+    "stimulus": "Last summer, I went to the beach with my family. We stayed in a small hotel near the sea. The hotel was simple, but it was clean and the staff were very friendly. Every day, we went to the beach and swam in the sea. The water was warm and clear. We also built sandcastles and collected seashells. One day, we took a boat trip to a nearby island. The island was beautiful and we saw many birds and fish. We had a great time on the island and didn't want to leave. When we got back to the hotel, we were all very tired but happy. We had a lovely dinner and then went to bed early because we were going home the next day.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the destination, activities, and experiences that would make the holiday enjoyable for the whole family. The writer should also use descriptive language to bring the story to life and make the holiday sound appealing."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker from?",
+    "stimulus": "Hello, my name is John and I am from the United States. I am here on holiday.",
+    "answer_key": {
+      "options": [
+        "The United Kingdom",
+        "The United States",
+        "Canada",
+        "Australia"
+      ],
+      "correct_index": 1,
+      "correct": "The United States",
+      "explanation": "The speaker explicitly states they are from the United States."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite sport?",
+    "stimulus": "I love playing football. It's my favorite sport.",
+    "answer_key": {
+      "options": [
+        "Basketball",
+        "Tennis",
+        "Football",
+        "Volleyball"
+      ],
+      "correct_index": 2,
+      "correct": "Football",
+      "explanation": "The speaker states that football is their favorite sport."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker plan to do tomorrow?",
+    "stimulus": "The weather forecast says it will rain tomorrow. I should take an umbrella.",
+    "answer_key": {
+      "options": [
+        "Go to the beach",
+        "Have a picnic",
+        "Take an umbrella",
+        "Go for a run"
+      ],
+      "correct_index": 2,
+      "correct": "Take an umbrella",
+      "explanation": "The speaker decides to take an umbrella due to the forecast of rain."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker going?",
+    "stimulus": "I am going to the store to buy some milk. Do you want anything?",
+    "answer_key": {
+      "options": [
+        "The park",
+        "The store",
+        "The cinema",
+        "The restaurant"
+      ],
+      "correct_index": 1,
+      "correct": "The store",
+      "explanation": "The speaker explicitly states they are going to the store."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite food?",
+    "stimulus": "My favorite food is pizza. I could eat it every day.",
+    "answer_key": {
+      "options": [
+        "Sushi",
+        "Pizza",
+        "Tacos",
+        "Salad"
+      ],
+      "correct_index": 1,
+      "correct": "Pizza",
+      "explanation": "The speaker states that pizza is their favorite food."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What pet does the speaker have?",
+    "stimulus": "I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "A cat",
+        "A dog",
+        "A bird",
+        "A fish"
+      ],
+      "correct_index": 1,
+      "correct": "A dog",
+      "explanation": "The speaker states that they have a dog named Max."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How old is the speaker?",
+    "stimulus": "I am 25 years old. I was born in 1997.",
+    "answer_key": {
+      "options": [
+        "20 years old",
+        "25 years old",
+        "30 years old",
+        "35 years old"
+      ],
+      "correct_index": 1,
+      "correct": "25 years old",
+      "explanation": "The speaker explicitly states their age as 25 years old."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Who is the speaker's favorite author?",
+    "stimulus": "I love reading books. My favorite author is J.K. Rowling.",
+    "answer_key": {
+      "options": [
+        "J.R.R. Tolkien",
+        "J.K. Rowling",
+        "Stephen King",
+        "Jane Austen"
+      ],
+      "correct_index": 1,
+      "correct": "J.K. Rowling",
+      "explanation": "The speaker states that J.K. Rowling is their favorite author."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Why is the speaker going to the gym?",
+    "stimulus": "I am going to the gym to exercise. I want to be healthy.",
+    "answer_key": {
+      "options": [
+        "To meet friends",
+        "To watch TV",
+        "To exercise",
+        "To eat"
+      ],
+      "correct_index": 2,
+      "correct": "To exercise",
+      "explanation": "The speaker states that they are going to the gym to exercise and be healthy."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165902421_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How old is the speaker's sister?",
+    "stimulus": "I have a sister. She is 10 years old.",
+    "answer_key": {
+      "options": [
+        "5 years old",
+        "10 years old",
+        "15 years old",
+        "20 years old"
+      ],
+      "correct_index": 1,
+      "correct": "10 years old",
+      "explanation": "The speaker states that their sister is 10 years old."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I __________ (not/be) so tired, I would go to the party tonight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "weren't",
+        "am not",
+        "haven't been",
+        "hadn't been"
+      ],
+      "correct_index": 0,
+      "correct": "weren't",
+      "explanation": "The correct answer is 'weren't' because the sentence is in the second conditional form, which is used for hypothetical situations. 'Were' is the plural form of 'was' and is used with 'I', 'you', 'we', and 'they'. In this case, 'weren't' is the correct form to use because it is the past tense of 'are' in the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By the time I __________ (finish) my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will finish",
+        "finish",
+        "have finished",
+        "had finished"
+      ],
+      "correct_index": 3,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because the sentence is in the past perfect tense, which is used to describe an action that occurred before another action in the past. In this case, the action of finishing homework occurred before the time it was midnight."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If it __________ (rain) yesterday, we would have gone to the park.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "rains",
+        "rained",
+        "will rain",
+        "is raining"
+      ],
+      "correct_index": 1,
+      "correct": "rained",
+      "explanation": "The correct answer is 'rained' because the sentence is in the third conditional form, which is used for past hypothetical situations. 'Rained' is the past simple form of 'rain' and is used in this case to describe the hypothetical situation that did not occur."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I wish I __________ (know) the answer to that question.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "know",
+        "knew",
+        "will know",
+        "have known"
+      ],
+      "correct_index": 1,
+      "correct": "knew",
+      "explanation": "The correct answer is 'knew' because the sentence is in the form of a wish for something that is not true in the present. 'Knew' is the past tense of 'know' and is used in this case to describe something that the speaker wishes were true but is not."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By next year, I __________ (study) English for three years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have studied",
+        "am studying",
+        "have studied",
+        "study"
+      ],
+      "correct_index": 0,
+      "correct": "will have studied",
+      "explanation": "The correct answer is 'will have studied' because the sentence is in the future perfect tense, which is used to describe an action that will be completed at a specific point in the future. In this case, the action of studying English will be completed by next year."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I won the lottery, I __________ (travel) around the world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will travel",
+        "would travel",
+        "am traveling",
+        "have traveled"
+      ],
+      "correct_index": 1,
+      "correct": "would travel",
+      "explanation": "The correct answer is 'would travel' because the sentence is in the second conditional form, which is used for hypothetical situations. 'Would travel' is the conditional form of 'travel' and is used in this case to describe what the speaker would do if they won the lottery."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I have been studying English __________ (I/was) a child.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "since",
+        "for",
+        "when",
+        "because"
+      ],
+      "correct_index": 0,
+      "correct": "since",
+      "explanation": "The correct answer is 'since' because it is used to indicate the starting point of an action that continues up to the present. In this case, 'since' is used to describe when the speaker started studying English, which was when they were a child."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I __________ (not/be) so busy, I would help you with your project.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "weren't",
+        "am not",
+        "have not been",
+        "had not been"
+      ],
+      "correct_index": 0,
+      "correct": "weren't",
+      "explanation": "The correct answer is 'weren't' because the sentence is in the second conditional form, which is used for hypothetical situations. 'Were' is the plural form of 'was' and is used with 'I', 'you', 'we', and 'they'. In this case, 'weren't' is the correct form to use because it is the past tense of 'are' in the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By the time I arrived, they __________ (eat) all the food.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "ate",
+        "have eaten",
+        "had eaten",
+        "will eat"
+      ],
+      "correct_index": 2,
+      "correct": "had eaten",
+      "explanation": "The correct answer is 'had eaten' because the sentence is in the past perfect tense, which is used to describe an action that occurred before another action in the past. In this case, the action of eating all the food occurred before the speaker arrived."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165908794_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I wish it __________ (snow) yesterday so we could go skiing.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "snows",
+        "snowed",
+        "will snow",
+        "is snowing"
+      ],
+      "correct_index": 1,
+      "correct": "snowed",
+      "explanation": "The correct answer is 'snowed' because the sentence is in the form of a wish for something that did not happen in the past. 'Snowed' is the past tense of 'snow' and is used in this case to describe something that the speaker wishes had happened but did not."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'big' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Small",
+        "Large",
+        "Happy",
+        "City"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Big means something is large in size."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of 'fast'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Slow",
+        "Big",
+        "Happy",
+        "Cold"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The opposite of fast is slow."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'friend' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Family member",
+        "Person you know well",
+        "Person you don't know",
+        "Animal"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "A friend is someone you know well and like."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'book' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Something you read",
+        "Something you write",
+        "Something you eat",
+        "Something you wear"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "A book is something you read."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'city' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A big town",
+        "A small village",
+        "A river",
+        "A mountain"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "A city is a big town."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'school' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you work",
+        "A place where you learn",
+        "A place where you play",
+        "A place where you sleep"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "A school is a place where you learn."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'dog' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A type of cat",
+        "A type of bird",
+        "A type of animal that is often a pet",
+        "A type of fish"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A dog is a type of animal that is often a pet."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'house' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you live",
+        "A place where you work",
+        "A place where you learn",
+        "A place where you play"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "A house is a place where you live."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'happy' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Feeling sad",
+        "Feeling angry",
+        "Feeling pleased or joyful",
+        "Feeling tired"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Happy means feeling pleased or joyful."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165913299_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does 'food' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Something you drink",
+        "Something you wear",
+        "Something you eat",
+        "Something you play with"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Food is something you eat."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165917311_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you did something you really enjoyed. What was it and why did you like it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a personal experience in a simple way, using basic vocabulary and grammar."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165917311_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Tell me about a place you have visited. What did you see and do there?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should be able to talk about a place they have been to, using simple language to describe what they saw and did."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165917311_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do in your free time? Why do you enjoy these activities?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response should be able to list a few activities they enjoy, giving simple reasons why they like them."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165917311_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a friend or family member you are close to. What are they like and what do you like about them?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should be able to describe someone they know well, using basic adjectives to talk about their personality and appearance."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776165917311_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What are your plans for the future? What do you want to achieve?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to talk about their future plans in a simple way, using basic vocabulary and grammar to describe their goals."
+    }
+  }
+]

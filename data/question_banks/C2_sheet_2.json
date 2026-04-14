@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C2_1776165827678_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What was the main proposal of Gottfried Wilhelm Leibniz regarding language?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [
+        "He proposed the creation of a universal language based on logical symbols and rules",
+        "He argued that languages should be simplified to facilitate international communication",
+        "He suggested that languages should be based on cultural and historical contexts",
+        "He believed that machine translation tools would replace human languages"
+      ],
+      "correct_index": 0,
+      "correct": "He proposed the creation of a universal language based on logical symbols and rules",
+      "explanation": "The passage states that Leibniz proposed a universal language based on a system of logical symbols and rules."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_writing_1",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the potential benefits and drawbacks of a universal language, using examples from the passage to support your argument.",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should consider both the potential benefits (e.g. facilitated global communication and cooperation) and drawbacks (e.g. loss of cultural diversity and suppression of minority languages) of a universal language, using specific examples from the passage to support the argument."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is one of the main challenges in creating a universal language, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [
+        "The lack of technological advancements",
+        "The complexity of human language, which is deeply rooted in culture, history, and context",
+        "The lack of interest in international communication",
+        "The presence of too many languages"
+      ],
+      "correct_index": 1,
+      "correct": "The complexity of human language, which is deeply rooted in culture, history, and context",
+      "explanation": "The passage states that one of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_writing_3",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Consider the example of Esperanto, mentioned in the passage. What lessons can be learned from its creation and use, and how might these lessons inform the development of a universal language?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the creation and use of Esperanto, and consider what lessons can be learned from its example, including its successes and limitations, and how these lessons might inform the development of a universal language."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "According to the passage, what has led to the development of machine translation tools and language-learning apps?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [
+        "The creation of a universal language",
+        "The rise of technology",
+        "The increased interest in language learning",
+        "The decline of cultural diversity"
+      ],
+      "correct_index": 1,
+      "correct": "The rise of technology",
+      "explanation": "The passage states that the rise of technology has led to the development of machine translation tools and language-learning apps."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Imagine a scenario in which a universal language is widely adopted. What might be the potential consequences for linguistic and cultural diversity, and how might these consequences be mitigated?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should consider the potential consequences of a universal language on linguistic and cultural diversity, including the potential loss of minority languages and cultural homogenization, and discuss potential strategies for mitigating these consequences, such as language preservation efforts and cultural exchange programs."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_reading_6",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the author's stance on the idea of a universal language, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [
+        "The author strongly supports the idea of a universal language",
+        "The author is neutral on the idea of a universal language",
+        "The author argues that a universal language is not desirable or feasible",
+        "The author believes that a universal language is already in use"
+      ],
+      "correct_index": 1,
+      "correct": "The author is neutral on the idea of a universal language",
+      "explanation": "The passage presents both potential benefits and drawbacks of a universal language, without taking a clear stance on the issue."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the relationship between language and culture, using examples from the passage to support your argument. How might a universal language impact this relationship?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the complex relationship between language and culture, using examples from the passage to illustrate how language reflects and shapes cultural identity, and consider how a universal language might impact this relationship, including potential consequences for cultural diversity and exchange."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_reading_8",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is one of the alternatives to a universal language mentioned in the passage?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [
+        "Machine translation tools",
+        "Language-learning apps",
+        "Cultural exchange programs",
+        "Language preservation efforts"
+      ],
+      "correct_index": 0,
+      "correct": "Machine translation tools",
+      "explanation": "The passage mentions machine translation tools as one of the alternatives to a universal language, which can facilitate international communication without requiring a single universal language."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165827678_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Consider the potential role of technology in facilitating international communication and cooperation. How might technology be used to support linguistic and cultural diversity, rather than promoting a universal language?",
+    "stimulus": "The concept of a universal language has been debated by scholars and linguists for centuries. While some argue that a universal language would facilitate global communication and understanding, others claim that it would lead to the erosion of cultural identities and the homogenization of languages. The idea of a universal language is not new, and it has been explored in various forms throughout history. For instance, in the 17th century, the German philosopher Gottfried Wilhelm Leibniz proposed a universal language that would be based on a system of logical symbols and rules. Similarly, in the 20th century, the language Esperanto was created as a simplified and neutral language that could be used for international communication. However, despite these efforts, a universal language has yet to be widely adopted. One of the main challenges in creating a universal language is the complexity of human language, which is deeply rooted in culture, history, and context. Moreover, the diversity of languages is not only a reflection of cultural differences but also a source of creativity, innovation, and progress. In recent years, the rise of technology has led to the development of machine translation tools and language-learning apps, which have made it easier for people to communicate across languages. Nevertheless, these tools are not a substitute for a universal language, and they often rely on existing languages and cultural norms. Ultimately, the question of whether a universal language is desirable or feasible remains a topic of debate. On one hand, a universal language could facilitate global understanding and cooperation, but on the other hand, it could also lead to the loss of cultural diversity and the suppression of minority languages. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to explore alternative solutions that promote linguistic and cultural diversity.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential role of technology in supporting linguistic and cultural diversity, including the development of machine translation tools, language-learning apps, and other digital resources that can facilitate international communication and cooperation without requiring a universal language."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the expected outcome of the new policy?",
+    "stimulus": "The speaker describes a new policy that allows employees to work from home two days a week. The speaker believes this will increase productivity and employee satisfaction.",
+    "answer_key": {
+      "options": [
+        "A) Increased productivity and employee satisfaction",
+        "B) Decreased productivity and employee satisfaction",
+        "C) No change in productivity and employee satisfaction",
+        "D) Increased employee turnover"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the new policy is expected to increase productivity and employee satisfaction, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker think about the new restaurant?",
+    "stimulus": "The speaker talks about a new restaurant in town, saying it has a unique atmosphere and a wide variety of dishes. The speaker recommends trying the restaurant, especially the signature dish.",
+    "answer_key": {
+      "options": [
+        "A) It has a great atmosphere and good food",
+        "B) It has a bad atmosphere and bad food",
+        "C) It has a unique atmosphere but limited options",
+        "D) It is too expensive"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker describes the restaurant as having a unique atmosphere and a wide variety of dishes, and recommends trying it, which indicates a positive opinion."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the purpose of the company's restructuring process?",
+    "stimulus": "The speaker explains that the company is going through a restructuring process, which will involve some layoffs and changes to the organizational chart. The speaker emphasizes that the goal is to make the company more efficient and competitive.",
+    "answer_key": {
+      "options": [
+        "A) To reduce costs and increase efficiency",
+        "B) To expand the company and hire more employees",
+        "C) To change the company's mission and values",
+        "D) To acquire a new company"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker states that the goal of the restructuring process is to make the company more efficient and competitive, which implies reducing costs and increasing efficiency."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the potential impact of the new technology?",
+    "stimulus": "The speaker describes a new technology that allows for faster and more secure data transfer. The speaker explains that this technology has the potential to revolutionize the way companies communicate and share information.",
+    "answer_key": {
+      "options": [
+        "A) It will revolutionize the way companies communicate and share information",
+        "B) It will have no impact on the way companies communicate and share information",
+        "C) It will make data transfer slower and less secure",
+        "D) It will only be used for personal purposes"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the new technology has the potential to revolutionize the way companies communicate and share information, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the main goal of the new project?",
+    "stimulus": "The speaker talks about a new project that aims to reduce carbon emissions and promote sustainable energy. The speaker explains that the project will involve collaboration with local communities and businesses.",
+    "answer_key": {
+      "options": [
+        "A) To reduce carbon emissions and promote sustainable energy",
+        "B) To increase carbon emissions and promote non-renewable energy",
+        "C) To create jobs and stimulate economic growth",
+        "D) To improve public transportation"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the main goal of the project is to reduce carbon emissions and promote sustainable energy, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the primary objective of the new marketing strategy?",
+    "stimulus": "The speaker describes a new marketing strategy that focuses on social media and influencer partnerships. The speaker explains that the goal is to increase brand awareness and reach a younger demographic.",
+    "answer_key": {
+      "options": [
+        "A) To increase sales and revenue",
+        "B) To increase brand awareness and reach a younger demographic",
+        "C) To reduce costs and improve efficiency",
+        "D) To expand into new markets"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly states that the goal of the new marketing strategy is to increase brand awareness and reach a younger demographic, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the purpose of the new policy?",
+    "stimulus": "The speaker talks about a new policy that requires companies to disclose their environmental impact. The speaker explains that the goal is to promote transparency and accountability.",
+    "answer_key": {
+      "options": [
+        "A) To reduce regulatory burdens on companies",
+        "B) To promote transparency and accountability",
+        "C) To increase taxes on companies",
+        "D) To reduce public awareness of environmental issues"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly states that the goal of the new policy is to promote transparency and accountability, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the main focus of the new educational program?",
+    "stimulus": "The speaker describes a new educational program that focuses on developing skills in emerging technologies. The speaker explains that the program will provide students with hands-on experience and mentorship.",
+    "answer_key": {
+      "options": [
+        "A) To develop skills in emerging technologies",
+        "B) To provide theoretical knowledge in emerging technologies",
+        "C) To prepare students for traditional industries",
+        "D) To promote entrepreneurship"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the program focuses on developing skills in emerging technologies, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the predicted outcome according to the economic report?",
+    "stimulus": "The speaker talks about a new economic report that predicts a slowdown in growth. The speaker explains that the report attributes the slowdown to factors such as trade tensions and geopolitical uncertainty.",
+    "answer_key": {
+      "options": [
+        "A) A slowdown in economic growth",
+        "B) An increase in economic growth",
+        "C) A stable economy with no changes",
+        "D) A recession"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the report predicts a slowdown in growth, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165833840_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What is the main goal of the new initiative?",
+    "stimulus": "The speaker describes a new initiative that aims to promote diversity and inclusion in the workplace. The speaker explains that the initiative will include training programs and policies to support underrepresented groups.",
+    "answer_key": {
+      "options": [
+        "A) To promote diversity and inclusion in the workplace",
+        "B) To reduce diversity and inclusion in the workplace",
+        "C) To improve employee benefits and compensation",
+        "D) To increase productivity and efficiency"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly states that the initiative aims to promote diversity and inclusion in the workplace, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The manager wrote the report.",
+        "The report was written by the manager.",
+        "The report is writing by the manager.",
+        "The report writes the manager."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'The report was written by the manager' is in the passive voice because the focus is on the report (the recipient of the action) rather than the manager (the doer of the action)."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the subjunctive mood correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I suggest that he goes to the meeting.",
+        "I suggest that he go to the meeting.",
+        "I suggest that he going to the meeting.",
+        "I suggest that he will go to the meeting."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I suggest that he go to the meeting' uses the subjunctive mood correctly because it expresses a suggestion or recommendation, which is one of the typical uses of the subjunctive mood."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the present perfect continuous tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have been studying English for three years.",
+        "I have studied English for three years.",
+        "I am studying English for three years.",
+        "I study English for three years."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I have been studying English for three years' uses the present perfect continuous tense correctly because it describes an action that started in the past and continues up to the present moment."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the past perfect tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I had eaten breakfast before I went to school.",
+        "I eat breakfast before I go to school.",
+        "I have eaten breakfast before I go to school.",
+        "I was eating breakfast before I went to school."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'I had eaten breakfast before I went to school' uses the past perfect tense correctly because it describes an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the conditional mood correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I won the lottery, I will buy a house.",
+        "If I win the lottery, I will buy a house.",
+        "If I won the lottery, I would buy a house.",
+        "If I win the lottery, I would buy a house."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'If I won the lottery, I would buy a house' uses the conditional mood correctly because it describes a hypothetical or uncertain situation and its potential consequences."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the gerund correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I enjoy to read books.",
+        "I enjoy reading books.",
+        "I enjoy that I read books.",
+        "I enjoy reading to books."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I enjoy reading books' uses the gerund correctly because it functions as a noun, serving as the object of the verb 'enjoy'."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the infinitive correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I want that I eat a sandwich.",
+        "I want to eat a sandwich.",
+        "I want eat a sandwich.",
+        "I want to eating a sandwich."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The sentence 'I want to eat a sandwich' uses the infinitive correctly because it functions as a noun, serving as the object of the verb 'want'."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the modal verb 'must' correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I can go to the party because I have an invitation.",
+        "I should go to the party because I have an invitation.",
+        "I must go to the party because I have an invitation.",
+        "I will go to the party because I have an invitation."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'I must go to the party because I have an invitation' uses the modal verb 'must' correctly because it expresses obligation or necessity."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the relative clause correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The book, that is on the table, is mine.",
+        "The book, what is on the table, is mine.",
+        "The book, which is on the table, is mine.",
+        "The book, who is on the table, is mine."
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The sentence 'The book, which is on the table, is mine' uses the relative clause correctly because it provides additional information about the noun 'book'."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165839223_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the participle adjective correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The exciting book is on the table.",
+        "The excited book is on the table.",
+        "The excite book is on the table.",
+        "The excitedly book is on the table."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The sentence 'The exciting book is on the table' uses the participle adjective correctly because it describes the book as causing excitement, rather than being excited itself."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a strong and unpleasant smell",
+        "Having a keen understanding and insight",
+        "Relating to the universe and stars",
+        "Having a strong and bitter taste"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perspicacious means having a keen understanding and insight; able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To weaken or deprive of energy",
+        "To increase energy and enthusiasm",
+        "To make something more efficient",
+        "To reduce the importance of something"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Enervate means to weaken or deprive of energy; to reduce the strength or vitality of something."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding in one's standards",
+        "Quick and efficient",
+        "Outgoing and sociable"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidious means meticulous and demanding in one's standards; having a strong attention to detail and a desire for precision."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'heterogeneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Composed of different kinds of things",
+        "Composed of identical things",
+        "Relating to the study of the universe",
+        "Having a strong and unpleasant smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Heterogeneous means composed of different kinds of things; diverse or varied in nature."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'inscrutable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Difficult to understand or interpret",
+        "Easy to understand or interpret",
+        "Relating to the study of the universe",
+        "Having a strong and bitter taste"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Inscrutable means difficult to understand or interpret; mysterious or obscure."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'malleable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Capable of being shaped or molded",
+        "Incapable of being shaped or molded",
+        "Relating to the study of the universe",
+        "Having a strong and unpleasant smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Malleable means capable of being shaped or molded; able to be influenced or changed."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Loyal and trustworthy",
+        "Relating to the study of the universe",
+        "Having a strong and bitter taste"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious means disloyal or treacherous; having a tendency to betray trust."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'reclusive' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Preferring to be alone or avoiding social contact",
+        "Preferring to be with others and seeking social contact",
+        "Relating to the study of the universe",
+        "Having a strong and unpleasant smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Reclusive means preferring to be alone or avoiding social contact; solitary or withdrawn."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'sagacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having keen discernment and good judgment",
+        "Lacking discernment and good judgment",
+        "Relating to the study of the universe",
+        "Having a strong and bitter taste"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Sagacious means having keen discernment and good judgment; wise or astute."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165844804_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C2",
+    "difficulty": 0.5,
+    "prompt": "What does 'vacillate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To hesitate or waver in one's decisions",
+        "To be decisive and firm in one's decisions",
+        "Relating to the study of the universe",
+        "Having a strong and unpleasant smell"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Vacillate means to hesitate or waver in one's decisions; to be indecisive or uncertain."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165849033_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.9,
+    "prompt": "Defend the notion that advanced technologies, such as artificial intelligence and robotics, will ultimately lead to a utopian society.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response should demonstrate the ability to articulate a clear and nuanced argument, supported by relevant examples and evidence, while also addressing potential counterarguments in a sophisticated manner."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165849033_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.92,
+    "prompt": "Discuss the implications of climate change on global food systems and propose a set of policies to mitigate its effects.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should showcase a high level of fluency, vocabulary, and grammatical accuracy, as well as the ability to engage in a sophisticated discussion of a complex topic, incorporating both general knowledge and specialized terminology."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165849033_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.85,
+    "prompt": "Analyze the role of social media in shaping public opinion and influencing political outcomes, considering both the benefits and drawbacks of this phenomenon.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should demonstrate a strong ability to think critically and express complex ideas clearly, using a range of vocabulary and grammatical structures to convey nuanced arguments and support them with relevant examples."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165849033_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.88,
+    "prompt": "Evaluate the impact of globalization on local cultures, considering the tensions between cultural homogenization and diversity, and propose strategies for preserving cultural heritage in the face of globalization.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response should exhibit a high degree of linguistic accuracy, coherence, and fluency, as well as the ability to engage in a sophisticated discussion of a complex and multifaceted issue, incorporating both theoretical perspectives and practical examples."
+    }
+  },
+  {
+    "external_id": "GEN_C2_1776165849033_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C2",
+    "difficulty": 0.95,
+    "prompt": "Argue for or against the idea that a universal basic income is a viable solution to poverty and economic inequality in the 21st century, considering both the ethical and economic implications of such a policy.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should demonstrate an exceptional ability to articulate a clear and well-supported argument, using a wide range of vocabulary, grammatical structures, and rhetorical devices to persuade the listener, while also addressing potential counterarguments in a thoughtful and nuanced manner."
+    }
+  }
+]

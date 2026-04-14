@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B2_1776165766370_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What percentage of the world's population is expected to live in urban areas by 2050?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [
+        "50%",
+        "60%",
+        "68%",
+        "70%"
+      ],
+      "correct_index": 2,
+      "correct": "68%",
+      "explanation": "The passage states that according to the United Nations, by 2050, around 68% of the world's population will live in urban areas."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is one of the factors driving the shift towards urbanization?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [
+        "Lack of job opportunities",
+        "Limited access to education",
+        "Economic opportunities",
+        "Rural development"
+      ],
+      "correct_index": 2,
+      "correct": "Economic opportunities",
+      "explanation": "The passage mentions that one of the factors driving urbanization is economic opportunities."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is a challenge posed by the rapid expansion of cities?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [
+        "Increased job opportunities",
+        "Improved air quality",
+        "Increased congestion",
+        "Reduced strain on resources"
+      ],
+      "correct_index": 2,
+      "correct": "Increased congestion",
+      "explanation": "The passage states that the rapid expansion of cities poses several challenges, including increased congestion."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "How are cities incorporating sustainable development into their planning?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [
+        "By reducing green spaces",
+        "By increasing pollution",
+        "By incorporating green spaces and renewable energy sources",
+        "By decreasing public transportation"
+      ],
+      "correct_index": 2,
+      "correct": "By incorporating green spaces and renewable energy sources",
+      "explanation": "The passage mentions that cities are focusing on sustainable development by incorporating green spaces and renewable energy sources into their planning."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the role of technology in enhancing the quality of life in urban areas?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [
+        "It has no impact",
+        "It only increases pollution",
+        "It enhances the quality of life through innovations",
+        "It only benefits the wealthy"
+      ],
+      "correct_index": 2,
+      "correct": "It enhances the quality of life through innovations",
+      "explanation": "The passage states that technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the benefits and drawbacks of urbanization, using examples from the passage to support your arguments.",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear discussion of both the benefits (e.g., economic opportunities, access to education and healthcare) and drawbacks (e.g., increased congestion, pollution) of urbanization, using specific examples from the passage to illustrate these points."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "How can cities balance the need for economic growth with the need to protect the environment and ensure a high quality of life for residents? Use the passage to inform your answer.",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the importance of sustainable development and provide examples of how cities can balance economic growth with environmental protection and quality of life, drawing on the passage's discussion of green spaces, renewable energy, and smart technology."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a city planner tasked with designing a new urban development. What features would you include to make the city sustainable, livable, and equitable for all residents? Use the passage as inspiration for your design.",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should describe a well-designed urban development that incorporates features such as green spaces, renewable energy, efficient public transportation, and smart technology, with a focus on creating a livable, sustainable, and equitable community for all residents."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What role do you think technology will play in shaping the future of urban development? Use the passage to support your arguments and provide examples of how technology can enhance the quality of life in cities.",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential of technology to improve urban living, using examples from the passage such as smart traffic management and intelligent waste disposal systems, and provide a clear argument about the role of technology in future urban development."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165766370_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Reflect on your own experiences of living in or visiting a city. What did you like or dislike about the urban environment? How do your experiences relate to the issues discussed in the passage, and what suggestions would you make to improve the quality of life in cities?",
+    "stimulus": "The growth of cities has become a significant trend in recent years. According to the United Nations, by 2050, around 68% of the world's population will live in urban areas. This shift towards urbanization is driven by various factors, including economic opportunities, improved access to education and healthcare, and a wider range of cultural and entertainment options. However, the rapid expansion of cities also poses several challenges, such as increased congestion, pollution, and strain on resources. To mitigate these issues, many cities are now focusing on sustainable development, incorporating green spaces, renewable energy sources, and efficient public transportation systems into their planning. Moreover, technology is playing a crucial role in enhancing the quality of life in urban areas, with innovations like smart traffic management and intelligent waste disposal systems. Despite these efforts, there is still a need for effective urban planning and management to ensure that cities are livable, sustainable, and equitable for all residents.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a thoughtful reflection on personal experiences of urban living, relate these experiences to the issues discussed in the passage (e.g., congestion, pollution, access to amenities), and offer constructive suggestions for improving the quality of life in cities."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the main topic of the conversation between the manager and the customer?",
+    "stimulus": "The manager of the local store is talking to a customer about the new policy of returning items.",
+    "answer_key": {
+      "options": [
+        "New store location",
+        "Returning items policy",
+        "Employee hiring process",
+        "Customer complaint"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The manager and the customer are discussing the new policy of returning items, which indicates that the main topic is about returning items."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the professor doing in the class?",
+    "stimulus": "A professor is explaining the historical context of a particular novel to the class.",
+    "answer_key": {
+      "options": [
+        "Teaching mathematics",
+        "Discussing a scientific theory",
+        "Explaining the historical context of a novel",
+        "Conducting a science experiment"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The professor is explaining the historical context of a novel, which means the professor is teaching literature."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the travel agent's role in the conversation?",
+    "stimulus": "A travel agent is recommending a hotel to a customer based on their preferences.",
+    "answer_key": {
+      "options": [
+        "Customer",
+        "Travel agent",
+        "Hotel manager",
+        "Tour guide"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The travel agent is providing recommendations to the customer, which is the primary role of a travel agent."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What are the friends talking about?",
+    "stimulus": "A group of friends are discussing their plans for the weekend.",
+    "answer_key": {
+      "options": [
+        "Their jobs",
+        "Their weekend plans",
+        "Their favorite sports teams",
+        "Their families"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The friends are discussing their plans for the weekend, which is the main topic of their conversation."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the doctor's role in the conversation?",
+    "stimulus": "A doctor is explaining a patient's diagnosis and treatment options to them.",
+    "answer_key": {
+      "options": [
+        "Patient",
+        "Nurse",
+        "Doctor",
+        "Pharmacist"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The doctor is explaining the diagnosis and treatment options, which is the primary role of a doctor."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the teacher doing in the classroom?",
+    "stimulus": "A teacher is giving instructions to the students for their homework assignment.",
+    "answer_key": {
+      "options": [
+        "Teaching a lesson",
+        "Giving a quiz",
+        "Assigning homework",
+        "Supervising a test"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The teacher is providing instructions for the homework assignment, which indicates that the teacher is assigning homework."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the customer service representative's role in the conversation?",
+    "stimulus": "A customer service representative is resolving a customer's issue with their order.",
+    "answer_key": {
+      "options": [
+        "Customer",
+        "Manager",
+        "Customer service representative",
+        "Salesperson"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The customer service representative is resolving the customer's issue, which is the primary role of a customer service representative."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the tour guide doing?",
+    "stimulus": "A tour guide is explaining the history of a particular landmark to a group of tourists.",
+    "answer_key": {
+      "options": [
+        "Providing directions",
+        "Selling souvenirs",
+        "Explaining the history of a landmark",
+        "Collecting tickets"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The tour guide is explaining the history of the landmark, which is the primary role of a tour guide."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the purpose of the conversation?",
+    "stimulus": "A job interviewer is asking a candidate questions about their qualifications and experience.",
+    "answer_key": {
+      "options": [
+        "To make a sale",
+        "To provide customer support",
+        "To conduct a job interview",
+        "To resolve a complaint"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The interviewer is asking questions about the candidate's qualifications and experience, which indicates that the purpose of the conversation is to conduct a job interview."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165771841_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the financial advisor's role in the conversation?",
+    "stimulus": "A financial advisor is discussing investment options with a client.",
+    "answer_key": {
+      "options": [
+        "Client",
+        "Financial analyst",
+        "Financial advisor",
+        "Accountant"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The financial advisor is discussing investment options with the client, which is the primary role of a financial advisor."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the present perfect continuous tense correctly?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have been studying English for five years.",
+        "I have studied English for five years.",
+        "I am studying English for five years.",
+        "I study English for five years."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The present perfect continuous tense is used to describe an action that started in the past and continues up to the present moment, which is correctly expressed in option A."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The manager wrote the report.",
+        "The report was written by the manager.",
+        "The manager is writing the report.",
+        "The report is being written by the manager."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The passive voice is used when the focus is on the action rather than the doer, which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the possessive adjective 'my'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "That is my book.",
+        "That is mine book.",
+        "That is mys book.",
+        "That is myes book."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The correct form of the possessive adjective 'my' is used to describe something that belongs to the speaker, which is correctly expressed in option A."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to be' in the present tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I is a student.",
+        "I am a student.",
+        "I are a student.",
+        "I be a student."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to be' in the present tense for the first person singular is 'am', which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to have' in the present perfect tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have ate breakfast.",
+        "I have eaten breakfast.",
+        "I have eating breakfast.",
+        "I have eat breakfast."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to have' in the present perfect tense is 'have' + past participle, which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the conditional tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I will study hard, I will pass the exam.",
+        "If I study hard, I will pass the exam.",
+        "If I studied hard, I will pass the exam.",
+        "If I am studying hard, I will pass the exam."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the conditional tense is used to describe a hypothetical situation and its possible outcome, which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to go' in the present continuous tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I go to the store now.",
+        "I am going to the store now.",
+        "I going to the store now.",
+        "I goes to the store now."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to go' in the present continuous tense is 'am' + gerund, which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to make' in the past simple tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I make a cake yesterday.",
+        "I made a cake yesterday.",
+        "I making a cake yesterday.",
+        "I makes a cake yesterday."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to make' in the past simple tense is 'made', which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to take' in the present perfect tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have take a shower.",
+        "I have taken a shower.",
+        "I have taking a shower.",
+        "I have takes a shower."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to take' in the present perfect tense is 'have' + past participle, which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165777168_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the verb 'to give' in the past simple tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I give a gift to my friend yesterday.",
+        "I gave a gift to my friend yesterday.",
+        "I giving a gift to my friend yesterday.",
+        "I gives a gift to my friend yesterday."
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct form of the verb 'to give' in the past simple tense is 'gave', which is correctly expressed in option B."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to thrive' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to fail",
+        "to succeed",
+        "to be average",
+        "to be poor"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To thrive means to prosper or flourish."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to mitigate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to increase",
+        "to reduce",
+        "to maintain",
+        "to ignore"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To mitigate means to reduce the severity or impact of something."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to encompass' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to exclude",
+        "to include",
+        "to narrow",
+        "to broaden"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To encompass means to include or cover something."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to fluctuate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to remain steady",
+        "to increase",
+        "to decrease",
+        "to vary"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "To fluctuate means to vary or change repeatedly."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to alleviate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to worsen",
+        "to improve",
+        "to relieve",
+        "to ignore"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "To alleviate means to relieve or make something less severe."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to augment' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to decrease",
+        "to increase",
+        "to maintain",
+        "to reduce"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To augment means to increase or add to something."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to deteriorate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to improve",
+        "to worsen",
+        "to remain steady",
+        "to fluctuate"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To deteriorate means to become worse or less good."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to rectify' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to make worse",
+        "to improve",
+        "to correct",
+        "to ignore"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "To rectify means to correct or make something right."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to stagnate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to grow",
+        "to develop",
+        "to remain steady",
+        "to show no progress"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "To stagnate means to show no progress or development."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165784703_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'to exacerbate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "to relieve",
+        "to worsen",
+        "to improve",
+        "to maintain"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "To exacerbate means to make something worse or more severe."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165788599_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to learn something new and how you went about it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "At the B2 level, a good spoken response should demonstrate the ability to clearly describe a past experience, use basic vocabulary related to learning, and provide some details about the learning process."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165788599_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Talk about a book or movie that you found particularly interesting and explain why you liked it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response at this level should be able to provide a brief summary of the book or movie, express a personal opinion, and give some reasons to support that opinion using basic sentence structures."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165788599_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are planning a trip with friends. Describe where you would like to go and what you would like to do.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "At the B2 level, a good response should demonstrate the ability to express future plans, use conditional structures, and provide some details about the trip, including destinations and activities."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165788599_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the advantages and disadvantages of living in a big city compared to living in a small town.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response at this level should be able to identify and explain some basic advantages and disadvantages of each option, using connecting words and phrases to link ideas."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165788599_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Tell a story about a time when you had to make a difficult decision and what you learned from the experience.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "At the B2 level, a good spoken response should demonstrate the ability to tell a coherent story, use vocabulary related to decision-making, and reflect on what was learned from the experience, using basic causative and reflective language."
+    }
+  }
+]

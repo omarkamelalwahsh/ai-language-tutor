@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C1_1776165797803_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What has the rise of social media led to according to the passage?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [
+        "A decline in face-to-face communication",
+        "B An increase in social isolation",
+        "C A revolution in the way we communicate",
+        "D A decrease in the use of traditional media"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The passage states that the rise of social media has 'revolutionized the way we communicate'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "According to some researchers, what is a potential negative effect of excessive social media use?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [
+        "A Increased self-esteem",
+        "B Improved mental health",
+        "C Increased feelings of loneliness, anxiety, and depression",
+        "D Enhanced attention span"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The passage states that excessive social media use can lead to 'increased feelings of loneliness, anxiety, and depression'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is one of the benefits of social media mentioned in the passage?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [
+        "A It allows people to connect with others who share similar interests",
+        "B It provides a platform for people to share their thoughts and ideas",
+        "C It allows people to mobilize around social causes",
+        "D All of the above"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The passage mentions that social media has been hailed as a powerful tool for social change, allowing people to connect with others and mobilize around social causes."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is a potential consequence of the constant stream of information and notifications on social media?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [
+        "A Improved attention span",
+        "B Increased productivity",
+        "C A state of continuous distraction and decreased attention span",
+        "D Enhanced critical thinking skills"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The passage states that the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is essential to develop according to the passage as we move forward in the digital age?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [
+        "A A critical understanding of the role of social media in our lives",
+        "B A greater reliance on traditional media",
+        "C A decrease in social media use",
+        "D An increase in face-to-face communication"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The passage states that it is essential to develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Do you think social media has a net positive or negative impact on society? Support your argument with evidence from the passage and your own experiences.",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear thesis statement, evidence from the passage, and personal experiences to support the argument. The answer should also demonstrate critical thinking and analysis of the topic."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "How can individuals mitigate the potential negative effects of social media on their mental and emotional well-being? Use evidence from the passage to support your suggestions.",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide specific suggestions for mitigating the negative effects of social media, supported by evidence from the passage. The answer should also demonstrate an understanding of the potential risks associated with social media use."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What role do you think social media should play in promoting social change? Use examples from the passage to support your argument.",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a clear argument for the role of social media in promoting social change, supported by examples from the passage. The answer should also demonstrate an understanding of the potential benefits and limitations of social media in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Compare and contrast the benefits and drawbacks of social media as presented in the passage. How do you think the benefits can be maximized and the drawbacks minimized?",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a balanced analysis of the benefits and drawbacks of social media, supported by evidence from the passage. The answer should also demonstrate critical thinking and problem-solving skills in suggesting ways to maximize the benefits and minimize the drawbacks."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165797803_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a policy-maker tasked with regulating social media use. What measures would you implement to promote healthy social media use and mitigate its negative effects? Use evidence from the passage to support your suggestions.",
+    "stimulus": "The advent of the digital age has brought about a plethora of changes in the way we live, work, and interact with one another. The rise of social media, in particular, has revolutionized the way we communicate, with billions of people around the world using platforms like Facebook, Twitter, and Instagram to share their thoughts, ideas, and experiences. However, this increased connectivity has also raised important questions about the impact of social media on our mental and emotional well-being. Some researchers have suggested that excessive social media use can lead to increased feelings of loneliness, anxiety, and depression, as individuals compare their lives to the curated and often unrealistic portrayals of others online. Moreover, the constant stream of information and notifications can be overwhelming, leading to a state of continuous distraction and decreased attention span. On the other hand, social media has also been hailed as a powerful tool for social change, allowing people to connect with others across geographical boundaries and mobilize around social causes. As we move forward in this digital age, it is essential that we develop a critical understanding of the role of social media in our lives and work to harness its potential while mitigating its negative effects.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide specific and well-supported suggestions for regulating social media use, demonstrating an understanding of the potential risks and benefits associated with social media use. The answer should also demonstrate critical thinking and problem-solving skills in proposing effective solutions."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the main goal of the new marketing strategy?",
+    "stimulus": "The manager is discussing the new marketing strategy with the team. 'We need to focus on social media to reach a wider audience,' she says.",
+    "answer_key": {
+      "options": [
+        "To increase sales",
+        "To reduce costs",
+        "To focus on social media",
+        "To expand the product line"
+      ],
+      "correct_index": 2,
+      "correct": "To focus on social media",
+      "explanation": "The manager explicitly mentions focusing on social media, indicating it's the main goal."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the CEO's attitude towards the proposal?",
+    "stimulus": "'I'm not sure I agree with the proposal,' says the CEO. 'We need to consider the potential risks and benefits before making a decision.'",
+    "answer_key": {
+      "options": [
+        "Supportive",
+        "Neutral",
+        "Skeptical",
+        "Opposed"
+      ],
+      "correct_index": 2,
+      "correct": "Skeptical",
+      "explanation": "The CEO expresses uncertainty and highlights the need for careful consideration, indicating a skeptical attitude."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "When was the museum building constructed?",
+    "stimulus": "The tour guide is explaining the history of the museum. 'The building was constructed in the 19th century and has undergone several renovations since then.'",
+    "answer_key": {
+      "options": [
+        "18th century",
+        "19th century",
+        "20th century",
+        "21st century"
+      ],
+      "correct_index": 1,
+      "correct": "19th century",
+      "explanation": "The tour guide explicitly states that the building was constructed in the 19th century."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is a consequence of rising temperatures?",
+    "stimulus": "The professor is discussing the importance of climate change. 'Rising temperatures are causing melting of polar ice caps, leading to sea-level rise.'",
+    "answer_key": {
+      "options": [
+        "Decrease in sea levels",
+        "Increase in sea levels",
+        "No effect on sea levels",
+        "Uncertain impact on sea levels"
+      ],
+      "correct_index": 1,
+      "correct": "Increase in sea levels",
+      "explanation": "The professor explicitly states that rising temperatures cause sea-level rise due to the melting of polar ice caps."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Where is John going?",
+    "stimulus": "'I'm going to the store to buy some milk,' says John. 'Do you need anything?'",
+    "answer_key": {
+      "options": [
+        "To the park",
+        "To the store",
+        "To the office",
+        "To the gym"
+      ],
+      "correct_index": 1,
+      "correct": "To the store",
+      "explanation": "John explicitly states that he is going to the store to buy milk."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What type of weather can be expected?",
+    "stimulus": "The weather forecast says, 'A low-pressure system is moving into the area, bringing heavy rain and strong winds.'",
+    "answer_key": {
+      "options": [
+        "Sunny and calm",
+        "Cloudy with light rain",
+        "Heavy rain and strong winds",
+        "Snow and freezing temperatures"
+      ],
+      "correct_index": 2,
+      "correct": "Heavy rain and strong winds",
+      "explanation": "The forecast explicitly mentions heavy rain and strong winds due to the low-pressure system."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the purpose of the technique being discussed?",
+    "stimulus": "The instructor is explaining a new concept. 'This technique is used to improve the efficiency of the production process.'",
+    "answer_key": {
+      "options": [
+        "To reduce costs",
+        "To improve efficiency",
+        "To increase production time",
+        "To decrease quality"
+      ],
+      "correct_index": 1,
+      "correct": "To improve efficiency",
+      "explanation": "The instructor explicitly states that the technique is used to improve the efficiency of the production process."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the student's challenge?",
+    "stimulus": "'I've been studying English for three years,' says the student. 'I still have difficulty understanding native speakers.'",
+    "answer_key": {
+      "options": [
+        "Speaking fluently",
+        "Understanding native speakers",
+        "Writing grammatically correct sentences",
+        "Reading comprehension"
+      ],
+      "correct_index": 1,
+      "correct": "Understanding native speakers",
+      "explanation": "The student explicitly mentions having difficulty understanding native speakers despite studying English for three years."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the expected outcome of the company's announcement?",
+    "stimulus": "The news anchor says, 'The company has announced a major expansion plan, which is expected to create hundreds of new jobs.'",
+    "answer_key": {
+      "options": [
+        "Job losses",
+        "No impact on employment",
+        "Creation of new jobs",
+        "Decrease in company profits"
+      ],
+      "correct_index": 2,
+      "correct": "Creation of new jobs",
+      "explanation": "The news anchor explicitly states that the expansion plan is expected to create hundreds of new jobs."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165803354_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the status of the project deadline?",
+    "stimulus": "'We need to finish the project by the end of the month,' says the project manager. 'The deadline is non-negotiable.'",
+    "answer_key": {
+      "options": [
+        "Flexible",
+        "Negotiable",
+        "Non-negotiable",
+        "Already missed"
+      ],
+      "correct_index": 2,
+      "correct": "Non-negotiable",
+      "explanation": "The project manager explicitly states that the deadline is non-negotiable, indicating it cannot be changed."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the present perfect continuous tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have been studying English for three years.",
+        "I am studying English for three years.",
+        "I study English for three years.",
+        "I have studied English for three years."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The present perfect continuous tense is used to describe an action that started in the past and continues up to the present moment, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The play was written by Shakespeare.",
+        "The play is writing by Shakespeare.",
+        "The play was write by Shakespeare.",
+        "The play is written by Shakespeare."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The passive voice is used to emphasize the action rather than the doer, and option A is the correct form of the passive voice in the simple past tense."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is an example of the first conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I win the lottery, I will travel around the world.",
+        "If I won the lottery, I would travel around the world.",
+        "If I had won the lottery, I would have traveled around the world.",
+        "If I were to win the lottery, I would travel around the world."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The first conditional is used to describe a possible future situation and its consequence, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the past perfect tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I had eaten breakfast before I went to school.",
+        "I have eaten breakfast before I went to school.",
+        "I eat breakfast before I went to school.",
+        "I was eating breakfast before I went to school."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The past perfect tense is used to describe an action that occurred before another action in the past, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is an example of the third conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I had studied harder, I would have passed the exam.",
+        "If I study harder, I will pass the exam.",
+        "If I were to study harder, I would pass the exam.",
+        "If I had studied harder, I can pass the exam."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The third conditional is used to describe a past situation and its hypothetical consequence, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the present simple tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I go to the gym every day.",
+        "I am going to the gym every day.",
+        "I going to the gym every day.",
+        "I goes to the gym every day."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The present simple tense is used to describe habits or routines, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is an example of the second conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "If I won the lottery, I would buy a house.",
+        "If I win the lottery, I will buy a house.",
+        "If I had won the lottery, I would have bought a house.",
+        "If I were to win the lottery, I would buy a house."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The second conditional is used to describe a hypothetical or unlikely situation and its consequence, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the past continuous tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I was studying English at 8pm last night.",
+        "I study English at 8pm last night.",
+        "I studied English at 8pm last night.",
+        "I have studied English at 8pm last night."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The past continuous tense is used to describe an action that was in progress at a specific time in the past, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is an example of the zero conditional?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Water freezes at 0 degrees Celsius.",
+        "If I win the lottery, I will buy a house.",
+        "If I had won the lottery, I would have bought a house.",
+        "If it rains, I will take an umbrella."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The zero conditional is used to describe a universal truth or a scientific fact, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165808731_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the future perfect tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I will have finished my project by next Friday.",
+        "I will finish my project by next Friday.",
+        "I am finishing my project by next Friday.",
+        "I finish my project by next Friday."
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The future perfect tense is used to describe an action that will be completed at a specific time in the future, which is correctly expressed by option A."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Very careful and demanding in one's standards",
+        "Lacking in detail and precision",
+        "Having a strong and unpleasant smell",
+        "Tending to talk a lot"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Fastidious refers to having a strong attention to detail and high standards, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Faithful and loyal",
+        "Quick to adapt to new situations",
+        "Having a strong sense of justice"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious refers to being disloyal or treacherous, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To weaken or deprive of energy",
+        "To strengthen or energize",
+        "To make something more efficient",
+        "To increase productivity"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Enervate means to weaken or deprive of energy, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a keen understanding and insight",
+        "Lacking in intelligence or common sense",
+        "Having a strong physical presence",
+        "Being quick to anger"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perspicacious refers to having a keen understanding and insight, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'vacillate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To hesitate or be indecisive",
+        "To be firm and resolute",
+        "To move quickly and with purpose",
+        "To be completely still"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Vacillate means to hesitate or be indecisive, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'malleable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Capable of being shaped or molded",
+        "Unwilling to change or adapt",
+        "Having a strong and unyielding personality",
+        "Being completely rigid"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Malleable refers to being capable of being shaped or molded, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'ebullient' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Full of enthusiasm and energy",
+        "Lacking in excitement or passion",
+        "Having a calm and reserved demeanor",
+        "Being completely serious"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Ebullient refers to being full of enthusiasm and energy, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'inscrutable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Difficult to understand or interpret",
+        "Easy to comprehend or analyze",
+        "Having a clear and transparent meaning",
+        "Being completely obvious"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Inscrutable refers to being difficult to understand or interpret, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidious' not mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding",
+        "Quick to make decisions",
+        "Having a strong sense of humor"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Fastidious does not mean being careless and sloppy, making option A the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165814045_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does 'perfidy' imply?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A strong sense of loyalty and duty",
+        "A tendency to be dishonest or deceitful",
+        "A lack of intelligence or common sense",
+        "A strong physical presence"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perfidy implies a tendency to be dishonest or deceitful, making option B the correct choice."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165817914_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Compare and contrast two different cultural festivals you have attended, highlighting their unique customs and traditions.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to clearly describe and compare complex cultural phenomena, using vocabulary such as 'customs', 'traditions', and 'celebrations'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165817914_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Discuss the impact of social media on modern relationships, considering both the benefits and drawbacks of online communication.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong spoken response should exhibit the ability to engage in a nuanced discussion, weighing the advantages and disadvantages of social media in relationships, and using phrases such as 'on the one hand' and 'on the other hand'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165817914_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Describe a challenging project you managed, explaining the obstacles you faced and how you overcame them.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A competent spoken response should demonstrate the capacity to recount a complex experience, using vocabulary related to project management, such as 'objectives', 'deadlines', and 'teamwork'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165817914_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Imagine you are a representative of a non-governmental organization, and argue for or against the implementation of a universal basic income.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A proficient spoken response should showcase the ability to articulate a clear argument, supporting it with logical reasoning and evidence, and using phrases such as 'in my opinion' and 'nevertheless'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165817914_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Discuss the role of education in promoting social mobility, considering the interplay between socioeconomic factors and access to quality education.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A skilled spoken response should display the ability to engage in a thoughtful discussion, examining the complex relationships between education, social mobility, and socioeconomic status, and using vocabulary such as 'socioeconomic disparities' and 'educational inequality'."
+    }
+  }
+]

@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B1_1776165927269_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is one way Copenhagen achieves its goal of being environmentally friendly?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [
+        "By building more roads for cars",
+        "Through its extensive network of bike lanes",
+        "By increasing the use of fossil fuels",
+        "By reducing the number of parks and green spaces"
+      ],
+      "correct_index": 1,
+      "correct": "Through its extensive network of bike lanes",
+      "explanation": "This is correct because the passage states that Copenhagen has an extensive network of bike lanes, which makes it easy for residents to get around without using cars."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What percentage of Copenhagen's residents commute to work or school by bike?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [
+        "More than 30%",
+        "More than 40%",
+        "More than 60%",
+        "Less than 20%"
+      ],
+      "correct_index": 2,
+      "correct": "More than 60%",
+      "explanation": "This is correct because the passage states that more than 60% of Copenhagen's residents commute to work or school by bike."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is Copenhagen's goal for reducing its carbon emissions?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [
+        "To reduce emissions by 20% by 2025",
+        "To be carbon neutral by 2025",
+        "To increase emissions by 10% by 2025",
+        "To reduce emissions by 50% by 2030"
+      ],
+      "correct_index": 1,
+      "correct": "To be carbon neutral by 2025",
+      "explanation": "This is correct because the passage states that Copenhagen has a goal of being carbon neutral by 2025."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What has Copenhagen implemented to help reduce waste?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [
+        "A city-wide ban on recycling",
+        "A city-wide recycling program",
+        "A reduction in the number of parks and green spaces",
+        "An increase in the use of non-biodegradable plastics"
+      ],
+      "correct_index": 1,
+      "correct": "A city-wide recycling program",
+      "explanation": "This is correct because the passage states that Copenhagen has implemented a city-wide recycling program to help reduce waste."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Why does Copenhagen's bike network help reduce traffic congestion?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [
+        "Because it increases the number of cars on the road",
+        "Because it provides an alternative mode of transportation",
+        "Because it reduces the number of bike paths",
+        "Because it increases the amount of parking available"
+      ],
+      "correct_index": 1,
+      "correct": "Because it provides an alternative mode of transportation",
+      "explanation": "This is correct because the passage states that Copenhagen's bike network provides an alternative mode of transportation, which helps reduce traffic congestion."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe the benefits of having an extensive network of bike lanes in a city. Use examples from the passage to support your answer.",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the benefits of having an extensive network of bike lanes, such as reducing traffic congestion and lowering carbon emissions, and provide examples from the passage to support these points."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What do you think are some challenges that Copenhagen may face in achieving its goal of being carbon neutral by 2025? Use evidence from the passage to support your answer.",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss potential challenges that Copenhagen may face, such as implementing effective recycling programs or reducing the use of non-biodegradable plastics, and provide evidence from the passage to support these points."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Compare and contrast Copenhagen's approach to reducing carbon emissions with that of your own city or town. What can your city or town learn from Copenhagen's example?",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the similarities and differences between Copenhagen's approach and that of the student's own city or town, and provide suggestions for how the student's city or town can learn from Copenhagen's example."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a resident of Copenhagen. Write a letter to the mayor expressing your support for the city's initiatives to reduce waste and increase recycling. Provide specific examples from the passage to support your argument.",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should express the student's support for the city's initiatives, provide specific examples from the passage, and discuss the benefits of these initiatives."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165927269_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Discuss the role that individual citizens can play in helping a city achieve its environmental goals. Use examples from the passage to support your argument.",
+    "stimulus": "The city of Copenhagen is known for its efforts to be environmentally friendly. One of the ways it achieves this is through its extensive network of bike lanes. The city has over 350 kilometers of bike paths, making it easy for residents to get around without using cars. In fact, more than 60% of Copenhagen's residents commute to work or school by bike. This not only reduces traffic congestion but also helps lower the city's carbon emissions. Additionally, Copenhagen has implemented a range of initiatives to reduce waste and increase recycling. For example, the city has a goal of being carbon neutral by 2025 and has implemented a number of programs to help achieve this goal, including a city-wide recycling program and a ban on non-biodegradable plastics.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the ways in which individual citizens can contribute to a city's environmental goals, such as by using public transportation or recycling, and provide examples from the passage to support these points."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the caller trying to do?",
+    "stimulus": "I'm calling to book a table for tonight. Can you tell me if you have any availability?",
+    "answer_key": {
+      "options": [
+        "Make a complaint",
+        "Book a room",
+        "Order food",
+        "Book a table"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The caller mentions booking a table, which is an action typically associated with making a reservation at a restaurant."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker asking the listener to do?",
+    "stimulus": "If you could travel anywhere in the world, where would you go and why?",
+    "answer_key": {
+      "options": [
+        "Tell a story",
+        "Discuss the weather",
+        "Talk about their job",
+        "Share their travel aspirations"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The speaker is inquiring about the listener's dream travel destination and the reasoning behind their choice."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker looking for?",
+    "stimulus": "I'm looking for a new job. Do you know of any companies that are hiring?",
+    "answer_key": {
+      "options": [
+        "A new apartment",
+        "A new job",
+        "A new car",
+        "A new phone"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly states they are looking for a new job and inquires about potential hiring companies."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "How much does it cost to enter the museum?",
+    "stimulus": "The museum is open from 9 am to 5 pm, and the entrance fee is 10 dollars.",
+    "answer_key": {
+      "options": [
+        "5 dollars",
+        "10 dollars",
+        "15 dollars",
+        "20 dollars"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker clearly states that the entrance fee to the museum is 10 dollars."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the recommended way to improve English skills?",
+    "stimulus": "If you want to improve your English, I recommend watching English movies with subtitles.",
+    "answer_key": {
+      "options": [
+        "Reading books",
+        "Watching English movies with subtitles",
+        "Practicing with a language exchange partner",
+        "Taking a class"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker suggests watching English movies with subtitles as a method for improving English skills."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Where is the bus stop located?",
+    "stimulus": "The best way to get to the city center is by taking the bus. The bus stop is just outside the hotel.",
+    "answer_key": {
+      "options": [
+        "In front of the hotel",
+        "Next to the hotel",
+        "Just outside the hotel",
+        "Across the street from the hotel"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker states that the bus stop is located just outside the hotel."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What will they do if it's sunny?",
+    "stimulus": "If it rains, we will have a picnic indoors. If it's sunny, we'll have it in the park.",
+    "answer_key": {
+      "options": [
+        "Have a picnic indoors",
+        "Go to the beach",
+        "Have a picnic in the park",
+        "Go to the movies"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker explicitly states that if it's sunny, they will have the picnic in the park."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When will the new policy take effect?",
+    "stimulus": "The new policy will come into effect on the first of January. All employees are required to attend a meeting to discuss the changes.",
+    "answer_key": {
+      "options": [
+        "On the first of June",
+        "On the first of January",
+        "On the fifteenth of March",
+        "On the twenty-first of December"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker clearly states that the new policy will come into effect on the first of January."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "At what time is the meeting now scheduled?",
+    "stimulus": "The meeting has been rescheduled for 2 pm. Please make sure to update your calendars.",
+    "answer_key": {
+      "options": [
+        "10 am",
+        "12 pm",
+        "2 pm",
+        "4 pm"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker states that the meeting has been rescheduled for 2 pm."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165932807_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "On which days is the library closed?",
+    "stimulus": "The library is closed on Sundays and Mondays. It's open from 9 am to 6 pm on weekdays and from 10 am to 5 pm on Saturdays.",
+    "answer_key": {
+      "options": [
+        "Tuesdays and Wednesdays",
+        "Sundays and Mondays",
+        "Thursdays and Fridays",
+        "Saturdays and Sundays"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly states that the library is closed on Sundays and Mondays."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "By the time I ______ my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "finish",
+        "have finished",
+        "was finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The sentence requires the past perfect tense to indicate an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If I won the lottery, I ______ a house by the sea.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will buy",
+        "would buy",
+        "can buy",
+        "am buying"
+      ],
+      "correct_index": 1,
+      "correct": "would buy",
+      "explanation": "The sentence requires the use of the second conditional to express a hypothetical situation and its likely outcome."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "By next year, I ______ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have been studying",
+        "am studying",
+        "have studied",
+        "study"
+      ],
+      "correct_index": 0,
+      "correct": "will have been studying",
+      "explanation": "The sentence requires the future perfect continuous tense to indicate an action that will continue up to a point in the future."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "They ______ to Paris last year, but I'm not sure.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "went",
+        "have gone",
+        "go",
+        "were going"
+      ],
+      "correct_index": 0,
+      "correct": "went",
+      "explanation": "The sentence requires the past simple tense to indicate a completed action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If it ______ rain, we would have a picnic.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "doesn't",
+        "didn't",
+        "won't",
+        "hadn't"
+      ],
+      "correct_index": 0,
+      "correct": "doesn't",
+      "explanation": "The sentence requires the use of the second conditional to express a hypothetical situation and its likely outcome."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "I wish I ______ more time to finish the project.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "have had"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "The sentence requires the use of the past simple tense in the subordinate clause to express a past wish."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "They ______ their car for ten years before they sold it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had owned",
+        "own",
+        "have owned",
+        "owned"
+      ],
+      "correct_index": 0,
+      "correct": "had owned",
+      "explanation": "The sentence requires the past perfect tense to indicate an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "I ______ to the gym three times a week.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "am going",
+        "go",
+        "have gone",
+        "went"
+      ],
+      "correct_index": 1,
+      "correct": "go",
+      "explanation": "The sentence requires the present simple tense to indicate a habitual or routine action."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "They ______ me their phone number, but I forgot it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "give",
+        "gave",
+        "have given",
+        "are giving"
+      ],
+      "correct_index": 1,
+      "correct": "gave",
+      "explanation": "The sentence requires the past simple tense to indicate a completed action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165937880_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If I ______ the chance, I would travel around the world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "have had"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "The sentence requires the use of the second conditional to express a hypothetical situation and its likely outcome."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'nuance' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A subtle difference or shade of meaning",
+        "B a loud and clear expression",
+        "C a complex mathematical formula",
+        "D a type of rare disease"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'nuance' refers to a subtle difference or shade of meaning, often used to describe complex ideas or feelings."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'fastidious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A meticulous and demanding in one's standards",
+        "B careless and lazy",
+        "C quick and efficient",
+        "D weak and fragile"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'fastidious' means having a strong attention to detail and being demanding in one's standards, often to the point of being perfectionistic."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'mitigate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A to make something worse",
+        "B to make something better",
+        "C to completely eliminate something",
+        "D to ignore something"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'mitigate' means to reduce the severity or unpleasantness of something, often by taking action to alleviate its effects."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'enigma'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A a person or thing that is mysterious or difficult to understand",
+        "B a simple and straightforward problem",
+        "C a type of mathematical equation",
+        "D a common everyday object"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'enigma' refers to a person or thing that is mysterious or difficult to understand, often because they are complex or contradictory."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A having a keen understanding and insight",
+        "B lacking in intelligence or common sense",
+        "C having a strong physical presence",
+        "D being completely unaware of one's surroundings"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perspicacious' means having a keen understanding and insight, often to the point of being able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'heterogeneous'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A diverse and composed of different kinds of things",
+        "B uniform and composed of the same kind of things",
+        "C completely random and unpredictable",
+        "D extremely simple and straightforward"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'heterogeneous' refers to something that is diverse and composed of different kinds of things, often to the point of being complex or multifaceted."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'inextricable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A hopelessly entangled or complicated",
+        "B completely straightforward and simple",
+        "C easily solvable or resolvable",
+        "D utterly insignificant or unimportant"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'inextricable' means hopelessly entangled or complicated, often to the point of being impossible to understand or resolve."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'fastidiousness'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A a quality of being meticulous and demanding in one's standards",
+        "B a lack of attention to detail or carelessness",
+        "C a tendency to be quick and efficient",
+        "D a weakness or fragility"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'fastidiousness' refers to a quality of being meticulous and demanding in one's standards, often to the point of being perfectionistic."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'diligent' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A careful and conscientious in one's work or duties",
+        "B careless and lazy",
+        "C quick and efficient",
+        "D weak and fragile"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'diligent' means careful and conscientious in one's work or duties, often to the point of being meticulous or thorough."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165943687_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'pragmatic'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A practical and sensible in one's approach or decisions",
+        "B idealistic and unrealistic",
+        "C completely random and unpredictable",
+        "D extremely rigid and inflexible"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'pragmatic' refers to being practical and sensible in one's approach or decisions, often to the point of being flexible or adaptable."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165947981_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to make a difficult decision. What was the situation and how did you decide what to do?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly describe a past experience, using basic vocabulary and grammar to convey their message."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165947981_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Talk about a place you have visited that was very interesting to you. What did you see and do there?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should be able to engage the listener by providing some details about the place, using basic descriptive language to paint a picture in the listener's mind."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165947981_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do in your free time and why do you enjoy it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should be able to express their opinion, giving some reasons why they enjoy a particular activity, using basic language to communicate their thoughts and feelings."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165947981_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are planning a trip with some friends. Where would you like to go and what would you like to do when you get there?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly express a simple plan or idea, using basic vocabulary and grammar to convey their message."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165947981_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe something you own that is very important to you. What is it and why is it so special?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should be able to provide some details about the object, explaining its significance and using basic language to convey their feelings and thoughts about it."
+    }
+  }
+]

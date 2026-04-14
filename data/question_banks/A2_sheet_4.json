@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A2_1776166137635_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where did I visit my grandparents?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [
+        "In the city",
+        "In the countryside",
+        "At the beach",
+        "In the mountains"
+      ],
+      "correct_index": 1,
+      "correct": "In the countryside",
+      "explanation": "The passage states that the grandparents live in a small village in the countryside."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did we make on Saturday?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [
+        "A cake",
+        "An apple pie",
+        "A salad",
+        "A sandwich"
+      ],
+      "correct_index": 1,
+      "correct": "An apple pie",
+      "explanation": "The passage mentions that they picked apples and made a delicious apple pie."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did we see on our walk on Sunday?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [
+        "Many cars and buses",
+        "Many birds and squirrels",
+        "Many trees and flowers",
+        "Many people and houses"
+      ],
+      "correct_index": 1,
+      "correct": "Many birds and squirrels",
+      "explanation": "The passage states that they saw many birds and squirrels during their walk."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How would you describe the village where my grandparents live?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [
+        "Big and noisy",
+        "Small and quiet",
+        "Old and dirty",
+        "New and modern"
+      ],
+      "correct_index": 1,
+      "correct": "Small and quiet",
+      "explanation": "The passage describes the village as very quiet and beautiful."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do my grandparents grow in their garden?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [
+        "Only flowers",
+        "Only vegetables",
+        "Fruits and vegetables",
+        "Nothing"
+      ],
+      "correct_index": 2,
+      "correct": "Fruits and vegetables",
+      "explanation": "The passage mentions that they have a big garden with many vegetables and fruits."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you visited your grandparents or another family member in the countryside. What did you do and what did you enjoy about the visit?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The answer should include details about the visit, such as activities and feelings. It should be a short paragraph or essay."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are my grandparents and you are writing a letter to me after my visit. What would you write about and what memories would you share?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The answer should be a short letter or essay from the perspective of the grandparents, including memories and feelings about the visit."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What are some benefits of living in the countryside compared to living in the city? Use examples from the passage to support your answer.",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The answer should include a discussion of the benefits of living in the countryside, using examples from the passage such as the quiet and beautiful environment and the ability to grow one's own food."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a typical day in the life of my grandparents based on the information in the passage. What activities do they do and what do they enjoy about their daily routine?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The answer should include details about the daily routine of the grandparents, such as gardening and cooking, and what they enjoy about their daily activities."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166137635_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If you could visit my grandparents' village, what would you like to do and see? What would you be looking forward to about the visit?",
+    "stimulus": "Last weekend, I visited my grandparents in the countryside. They live in a small village. The village is very quiet and beautiful. There are many trees and flowers. My grandparents have a big garden with many vegetables and fruits. They grow their own food, which is very tasty. On Saturday, we picked some apples from the trees and made a delicious apple pie. On Sunday, we went for a walk in the woods and saw many birds and squirrels. I had a great time with my grandparents and I am looking forward to visiting them again soon.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The answer should include details about what the student would like to do and see in the village, such as visiting the garden or going for a walk in the woods, and what they would be looking forward to about the visit."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like to do?",
+    "stimulus": "I love playing football with my friends.",
+    "answer_key": {
+      "options": [
+        "Play football",
+        "Watch movies",
+        "Read books",
+        "Listen to music"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker explicitly mentions playing football."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What did the speaker do yesterday?",
+    "stimulus": "Yesterday, I went to the park and had a picnic.",
+    "answer_key": {
+      "options": [
+        "Go to school",
+        "Have a picnic",
+        "Watch TV",
+        "Play video games"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions having a picnic."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite food?",
+    "stimulus": "My favorite food is pizza.",
+    "answer_key": {
+      "options": [
+        "Sushi",
+        "Pizza",
+        "Tacos",
+        "Burgers"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly mentions pizza as their favorite food."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker going for vacation?",
+    "stimulus": "I am going to the beach for my vacation.",
+    "answer_key": {
+      "options": [
+        "The mountains",
+        "The city",
+        "The beach",
+        "The forest"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions going to the beach."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "How many pets does the speaker have?",
+    "stimulus": "I have two pets, a dog and a cat.",
+    "answer_key": {
+      "options": [
+        "One",
+        "Two",
+        "Three",
+        "Four"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions having two pets."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like to do in their free time?",
+    "stimulus": "I love reading books in my free time.",
+    "answer_key": {
+      "options": [
+        "Watching movies",
+        "Playing sports",
+        "Reading books",
+        "Listening to music"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions reading books."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "When is the speaker's birthday?",
+    "stimulus": "My birthday is on December 25th.",
+    "answer_key": {
+      "options": [
+        "January 1st",
+        "June 15th",
+        "December 25th",
+        "July 4th"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions December 25th as their birthday."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Why is the speaker studying English?",
+    "stimulus": "I am studying English because I want to travel.",
+    "answer_key": {
+      "options": [
+        "To get a job",
+        "To travel",
+        "To make friends",
+        "To watch movies"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions wanting to travel as the reason for studying English."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite season?",
+    "stimulus": "My favorite season is summer.",
+    "answer_key": {
+      "options": [
+        "Spring",
+        "Summer",
+        "Autumn",
+        "Winter"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker explicitly mentions summer as their favorite season."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166141973_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Where does the speaker live?",
+    "stimulus": "I live with my family in a small house.",
+    "answer_key": {
+      "options": [
+        "In a big city",
+        "In a small house",
+        "In an apartment",
+        "In a hotel"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions living in a small house."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I __________ you, I would buy a car.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "am",
+        "were",
+        "are",
+        "is"
+      ],
+      "correct_index": 1,
+      "correct": "were",
+      "explanation": "This is an example of the second conditional, which is used to talk about hypothetical situations. The correct answer is 'were' because it is the correct form of the verb 'to be' in the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By the time I __________ my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "finish",
+        "had finished",
+        "have finished",
+        "was finishing"
+      ],
+      "correct_index": 1,
+      "correct": "had finished",
+      "explanation": "This is an example of the past perfect tense, which is used to talk about an action that happened before another action in the past. The correct answer is 'had finished' because it is the correct form of the verb 'to finish' in the past perfect tense."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If it __________ rain, we will go to the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "doesn't",
+        "won't",
+        "doesn't rain",
+        "not rain"
+      ],
+      "correct_index": 0,
+      "correct": "doesn't",
+      "explanation": "This is an example of the first conditional, which is used to talk about real and possible situations. The correct answer is 'doesn't' because it is the correct form of the verb 'to rain' in the first conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I wish I __________ a million dollars.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "having"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "This is an example of the third conditional, which is used to talk about past situations that are contrary to reality. The correct answer is 'had' because it is the correct form of the verb 'to have' in the third conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "By next year, I __________ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have been studying",
+        "am studying",
+        "have studied",
+        "study"
+      ],
+      "correct_index": 0,
+      "correct": "will have been studying",
+      "explanation": "This is an example of the future perfect continuous tense, which is used to talk about an action that will be in progress at a specific time in the future. The correct answer is 'will have been studying' because it is the correct form of the verb 'to study' in the future perfect continuous tense."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If I won the lottery, I __________ a house on the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will buy",
+        "would buy",
+        "am buying",
+        "have bought"
+      ],
+      "correct_index": 1,
+      "correct": "would buy",
+      "explanation": "This is an example of the second conditional, which is used to talk about hypothetical situations. The correct answer is 'would buy' because it is the correct form of the verb 'to buy' in the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I __________ to the gym three times a week.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "goes",
+        "going",
+        "go",
+        "went"
+      ],
+      "correct_index": 2,
+      "correct": "go",
+      "explanation": "This is an example of the present simple tense, which is used to talk about habits and routines. The correct answer is 'go' because it is the correct form of the verb 'to go' in the present simple tense."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "When I __________ to the store, I saw my friend.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "was going",
+        "went",
+        "have gone"
+      ],
+      "correct_index": 2,
+      "correct": "went",
+      "explanation": "This is an example of the past simple tense, which is used to talk about completed actions in the past. The correct answer is 'went' because it is the correct form of the verb 'to go' in the past simple tense."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "If it __________ yesterday, we would have gone to the park.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "doesn't rain",
+        "didn't rain",
+        "won't rain",
+        "doesn't rain"
+      ],
+      "correct_index": 1,
+      "correct": "didn't rain",
+      "explanation": "This is an example of the third conditional, which is used to talk about past situations that are contrary to reality. The correct answer is 'didn't rain' because it is the correct form of the verb 'to rain' in the third conditional."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166147567_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "I __________ my homework before I went to bed.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "does",
+        "do",
+        "did",
+        "am doing"
+      ],
+      "correct_index": 2,
+      "correct": "did",
+      "explanation": "This is an example of the past simple tense, which is used to talk about completed actions in the past. The correct answer is 'did' because it is the correct form of the verb 'to do' in the past simple tense."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of 'big'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Happy",
+        "Small",
+        "Fast",
+        "Cold"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The opposite of 'big' is 'small'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who travels to a place for pleasure?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Tourist",
+        "Student",
+        "Teacher",
+        "Doctor"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "A person who travels to a place for pleasure is called a 'tourist'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is another word for 'happy'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Sad",
+        "Angry",
+        "Joyful",
+        "Tired"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Another word for 'happy' is 'joyful'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who works in a hospital to help people who are sick or hurt?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Nurse",
+        "Doctor",
+        "Teacher",
+        "Lawyer"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "A person who works in a hospital to help people who are sick or hurt is called a 'nurse' or 'doctor', but 'nurse' is the more general term."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the word for a place where you can buy things?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Park",
+        "Shop",
+        "Restaurant",
+        "Hotel"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word for a place where you can buy things is 'shop'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is another word for 'friend'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Family",
+        "Colleague",
+        "Neighbour",
+        "Pal"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "Another word for 'friend' is 'pal'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the word for something that is very good or of high quality?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Bad",
+        "Good",
+        "Excellent",
+        "Big"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The word for something that is very good or of high quality is 'excellent'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who teaches people, especially children?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Doctor",
+        "Lawyer",
+        "Teacher",
+        "Engineer"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A person who teaches people, especially children, is called a 'teacher'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is another word for 'start'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Stop",
+        "Begin",
+        "Finish",
+        "Run"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Another word for 'start' is 'begin'."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166151963_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "What is the word for a person who lives in a house or flat?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Guest",
+        "Visitor",
+        "Tenant",
+        "Owner"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A person who lives in a house or flat is called a 'tenant' or 'owner', but 'tenant' is the more general term for someone who pays to live in a property."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166155798_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Talk about a hobby you enjoy and why you like it.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly describe a hobby, explain why it is enjoyable, and possibly mention how often it is done, using basic sentence structures and vocabulary related to leisure activities."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166155798_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a place you have visited and what you saw there.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe the location, mention some of the sights or activities experienced, and possibly compare it to other places, using simple descriptive language and basic comparative forms."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166155798_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Tell me about a friend or family member you are close to.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to introduce the person, describe their relationship with the speaker, and mention some of the person's characteristics or activities they enjoy together, using basic vocabulary related to family and friends."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166155798_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Talk about what you usually do on weekends.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to list some regular weekend activities, explain why they are done, and possibly compare weekends to weekdays, using basic present simple tense and vocabulary related to daily routines."
+    }
+  },
+  {
+    "external_id": "GEN_A2_1776166155798_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A2",
+    "difficulty": 0.5,
+    "prompt": "Describe a typical day at work or school.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to outline the daily schedule, mention some of the main tasks or activities, and possibly talk about what is liked or disliked about the daily routine, using basic vocabulary related to work or education and simple time expressions."
+    }
+  }
+]

@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_C1_1776165987607_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "What is one of the potential benefits of a universal language, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [
+        "It would lead to the creation of new languages",
+        "It would facilitate global communication and understanding",
+        "It would result in the dominance of minority languages",
+        "It would hinder international cooperation and economic development"
+      ],
+      "correct_index": 1,
+      "correct": "It would facilitate global communication and understanding",
+      "explanation": "The passage states that proponents of a universal language argue that it would enable people from different countries to communicate more effectively."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "What is one of the potential drawbacks of a universal language, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [
+        "It would lead to the preservation of minority languages",
+        "It would result in the erosion of cultural diversity",
+        "It would facilitate the creation of new languages",
+        "It would have no impact on linguistic diversity"
+      ],
+      "correct_index": 1,
+      "correct": "It would result in the erosion of cultural diversity",
+      "explanation": "The passage states that critics counter that the dominance of a single language would threaten the survival of minority languages and cultures."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is the relationship between language and identity, according to the passage?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [
+        "Language has no impact on identity",
+        "Language is the sole determinant of identity",
+        "Language is one aspect of identity, among others",
+        "The passage does not discuss the relationship between language and identity"
+      ],
+      "correct_index": 3,
+      "correct": "The passage does not discuss the relationship between language and identity",
+      "explanation": "The passage mentions that the idea of a universal language raises important questions about the relationship between language and identity, but it does not provide a clear answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "What is the author's tone in the passage?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [
+        "The author is strongly in favor of a universal language",
+        "The author is strongly opposed to a universal language",
+        "The author presents a balanced view of the debate",
+        "The author does not take a clear stance on the issue"
+      ],
+      "correct_index": 2,
+      "correct": "The author presents a balanced view of the debate",
+      "explanation": "The passage presents both the potential benefits and drawbacks of a universal language, indicating a balanced view."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.4,
+    "prompt": "What is the main topic of the passage?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [
+        "The importance of language in shaping identity",
+        "The potential benefits and drawbacks of a universal language",
+        "The history of language development",
+        "The impact of technology on language use"
+      ],
+      "correct_index": 1,
+      "correct": "The potential benefits and drawbacks of a universal language",
+      "explanation": "The passage discusses the pros and cons of a universal language, making it the main topic."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "Discuss the potential consequences of a universal language on cultural diversity. How might the dominance of a single language impact the survival of minority languages and cultures?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential consequences of a universal language on cultural diversity, including the potential for linguistic homogenization and the erosion of minority languages and cultures."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "Argue for or against the idea of a universal language. What are the potential benefits and drawbacks of such a language, and how might they impact global communication and understanding?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should present a clear argument for or against the idea of a universal language, discussing the potential benefits and drawbacks and their impact on global communication and understanding."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "How might the concept of a universal language relate to the idea of linguistic imperialism? What are the potential implications of a single language dominating global communication, and how might this impact language use and cultural identity?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential relationship between a universal language and linguistic imperialism, including the implications of a single language dominating global communication and its impact on language use and cultural identity."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Imagine a scenario in which a universal language has been implemented globally. What are the potential benefits and drawbacks of this scenario, and how might it impact different aspects of society, such as education, business, and international relations?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the potential benefits and drawbacks of a universal language in a global scenario, including its impact on education, business, and international relations."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165987607_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "C1",
+    "difficulty": 0.4,
+    "prompt": "Reflect on the importance of language in shaping identity and culture. How might the use of a universal language impact individual and collective identity, and what are the potential implications for cultural diversity and exchange?",
+    "stimulus": "The concept of a universal language has been debated for centuries, with some arguing that it would facilitate global communication and understanding, while others claim that it would lead to the erosion of cultural diversity. In recent years, the rise of English as a global language has sparked intense discussion about the potential consequences of linguistic homogenization. Proponents of a universal language argue that it would enable people from different countries to communicate more effectively, fostering international cooperation and economic development. However, critics counter that the dominance of a single language would threaten the survival of minority languages and cultures, as people may be less inclined to maintain their native languages in the face of a more widely spoken alternative. Furthermore, the idea of a universal language raises important questions about the relationship between language and identity, as well as the potential for linguistic imperialism. As the world becomes increasingly interconnected, it is essential to consider the implications of a universal language and to weigh the potential benefits against the potential costs.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the importance of language in shaping identity and culture, including the potential impact of a universal language on individual and collective identity and its implications for cultural diversity and exchange."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What is expected to happen to the company's operations next month?",
+    "stimulus": "The new policy will come into effect next month, and it is expected to bring about significant changes to the company's operations.",
+    "answer_key": {
+      "options": [
+        "They will remain the same",
+        "They will be significantly changed",
+        "They will be slightly improved",
+        "They will be reduced"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus clearly states that the new policy is expected to bring about significant changes to the company's operations, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What did the researcher study?",
+    "stimulus": "The researcher spent years studying the effects of climate change on local ecosystems, and her findings have been published in a renowned scientific journal.",
+    "answer_key": {
+      "options": [
+        "The benefits of climate change",
+        "The effects of climate change on local ecosystems",
+        "The causes of climate change",
+        "The impact of climate change on global economies"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus explicitly mentions that the researcher studied the effects of climate change on local ecosystems, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Where is the company planning to expand its operations?",
+    "stimulus": "The company is planning to expand its operations to Asia, and a team of executives will be traveling to the region next week to explore potential business opportunities.",
+    "answer_key": {
+      "options": [
+        "Europe",
+        "Asia",
+        "Africa",
+        "South America"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus clearly states that the company is planning to expand its operations to Asia, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "How did the new employee's colleagues treat him on his first day?",
+    "stimulus": "The new employee was very nervous on his first day, but his colleagues made an effort to make him feel welcome and included.",
+    "answer_key": {
+      "options": [
+        "They ignored him",
+        "They made fun of him",
+        "They made an effort to make him feel welcome and included",
+        "They were indifferent to him"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The stimulus states that the new employee's colleagues made an effort to make him feel welcome and included, making option C the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "Why did the tourist get lost in the city?",
+    "stimulus": "The tourist got lost in the city because she didn't bring a map, and she had to ask for directions from a local resident.",
+    "answer_key": {
+      "options": [
+        "She didn't bring a map",
+        "She didn't speak the local language",
+        "She was tired and needed to rest",
+        "She was following a guidebook"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The stimulus explicitly states that the tourist got lost because she didn't bring a map, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What did the professor emphasize the importance of?",
+    "stimulus": "The professor emphasized the importance of critical thinking in academic research, and encouraged students to question established theories and assumptions.",
+    "answer_key": {
+      "options": [
+        "Memorization",
+        "Critical thinking",
+        "Creativity",
+        "Conformity"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus clearly states that the professor emphasized the importance of critical thinking, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What did the company's financial report show?",
+    "stimulus": "The company's financial report showed a significant increase in profits, but the CEO warned that the company still faces significant challenges in the coming year.",
+    "answer_key": {
+      "options": [
+        "A significant decrease in profits",
+        "A significant increase in profits",
+        "No change in profits",
+        "A slight decrease in profits"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus states that the company's financial report showed a significant increase in profits, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What did the artist's use of color and light create in the painting?",
+    "stimulus": "The artist's use of color and light in the painting created a sense of depth and emotion, and the viewer couldn't help but feel drawn into the scene.",
+    "answer_key": {
+      "options": [
+        "A sense of flatness and detachment",
+        "A sense of depth and emotion",
+        "A sense of chaos and disorder",
+        "A sense of simplicity and minimalism"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The stimulus states that the artist's use of color and light created a sense of depth and emotion, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "How did the teacher ask the students to complete the project?",
+    "stimulus": "The teacher asked the students to work in groups to complete the project, and encouraged them to share their ideas and collaborate with each other.",
+    "answer_key": {
+      "options": [
+        "Individually",
+        "In pairs",
+        "In groups",
+        "With the teacher's guidance"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The stimulus states that the teacher asked the students to work in groups, making option C the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165994340_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What did the traveler do while waiting at the airport?",
+    "stimulus": "The traveler had to wait for several hours at the airport due to a flight delay, and she used the time to catch up on some reading and respond to emails.",
+    "answer_key": {
+      "options": [
+        "She went shopping",
+        "She slept",
+        "She caught up on reading and responded to emails",
+        "She watched a movie"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The stimulus states that the traveler used the time to catch up on reading and respond to emails, making option C the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By the time I ______ (finish) my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have finished",
+        "had finished",
+        "have finished",
+        "was finishing"
+      ],
+      "correct_index": 1,
+      "correct": "had finished",
+      "explanation": "The sentence is in the past perfect tense, indicating an action that occurred before another action in the past. 'Had finished' is the correct form of the verb to use in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Which of the following sentences is in the passive voice?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "The manager wrote the report.",
+        "The report was written by the manager.",
+        "The manager is writing the report.",
+        "The report is being written."
+      ],
+      "correct_index": 1,
+      "correct": "The report was written by the manager.",
+      "explanation": "In the passive voice, the subject of the sentence receives the action of the verb. In this case, 'The report' is the subject receiving the action of 'was written'."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.9,
+    "prompt": "Complete the sentence with the correct form of the verb in brackets: If I ______ (know) the answer, I would tell you.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "know",
+        "knew",
+        "have known",
+        "had known"
+      ],
+      "correct_index": 1,
+      "correct": "knew",
+      "explanation": "The sentence is in the second conditional, which is used for hypothetical or uncertain situations. 'Knew' is the correct form of the verb to use in the if-clause of the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By next year, I ______ (study) English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have studied",
+        "am studying",
+        "have studied",
+        "will study"
+      ],
+      "correct_index": 0,
+      "correct": "will have studied",
+      "explanation": "The sentence is in the future perfect tense, indicating an action that will be completed at a specific point in the future. 'Will have studied' is the correct form of the verb to use in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "Complete the sentence with the correct form of the verb in brackets: If I ______ (not/be) so tired, I would go to the party.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "were",
+        "am",
+        "have been",
+        "had been"
+      ],
+      "correct_index": 0,
+      "correct": "were",
+      "explanation": "The sentence is in the second conditional, which is used for hypothetical or uncertain situations. 'Were' is the correct form of the verb to use in the if-clause of the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: By the time I arrived, they ______ (eat) all the food.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had eaten",
+        "were eating",
+        "have eaten",
+        "eat"
+      ],
+      "correct_index": 0,
+      "correct": "had eaten",
+      "explanation": "The sentence is in the past perfect tense, indicating an action that occurred before another action in the past. 'Had eaten' is the correct form of the verb to use in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.6,
+    "prompt": "Complete the sentence with the correct form of the verb in brackets: If it ______ (rain), we will stay at home.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "rains",
+        "will rain",
+        "is raining",
+        "rained"
+      ],
+      "correct_index": 0,
+      "correct": "rains",
+      "explanation": "The sentence is in the first conditional, which is used for real or possible situations. 'Rains' is the correct form of the verb to use in the if-clause of the first conditional."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.9,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: I wish I ______ (can) speak French fluently.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "can",
+        "could",
+        "am able to",
+        "have been able to"
+      ],
+      "correct_index": 1,
+      "correct": "could",
+      "explanation": "The sentence is in the subjunctive mood, which is used to express wishes or hypothetical situations. 'Could' is the correct form of the verb to use in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.7,
+    "prompt": "Complete the sentence with the correct form of the verb in brackets: By the time I graduated, I ______ (study) for seven years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had studied",
+        "was studying",
+        "have studied",
+        "will study"
+      ],
+      "correct_index": 0,
+      "correct": "had studied",
+      "explanation": "The sentence is in the past perfect tense, indicating an action that occurred before another action in the past. 'Had studied' is the correct form of the verb to use in this context."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776165999784_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Choose the correct form of the verb in brackets to complete the sentence: If I won the lottery, I ______ (travel) around the world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will travel",
+        "would travel",
+        "am traveling",
+        "have traveled"
+      ],
+      "correct_index": 1,
+      "correct": "would travel",
+      "explanation": "The sentence is in the second conditional, which is used for hypothetical or uncertain situations. 'Would travel' is the correct form of the verb to use in the main clause of the second conditional."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a strong and unpleasant smell",
+        "Having a keen understanding and insight",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perspicacious means having a keen understanding and insight; able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless and sloppy",
+        "Meticulous and demanding in one's standards",
+        "Quick and efficient",
+        "Lazy and indifferent"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidious means meticulous and demanding in one's standards; having a strong attention to detail."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'enervate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To weaken or deprive of energy",
+        "To strengthen or energize",
+        "To calm or soothe",
+        "To excite or stimulate"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Enervate means to weaken or deprive of energy; to reduce the strength or vitality of something."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'ebullient' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Full of energy and enthusiasm",
+        "Lacking energy and enthusiasm",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Ebullient means full of energy and enthusiasm; lively and vivacious."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perspicacious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a strong and unpleasant smell",
+        "Having a keen understanding and insight",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Perspicacious means having a keen understanding and insight; able to notice and understand things that are not immediately apparent."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'garrulous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Talkative and loquacious",
+        " Reserved and taciturn",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Garrulous means talkative and loquacious; fond of talking a lot."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'intransigent' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Unwilling to compromise or cooperate",
+        "Willing to compromise and cooperate",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Intransigent means unwilling to compromise or cooperate; stubborn and unyielding."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'malleable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Capable of being shaped or molded",
+        "Unwilling to change or adapt",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Malleable means capable of being shaped or molded; able to be changed or influenced."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal or treacherous",
+        "Loyal and trustworthy",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious means disloyal or treacherous; having a tendency to betray trust."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166005237_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "C1",
+    "difficulty": 0.5,
+    "prompt": "What does the word 'heterogeneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Composed of different kinds of things",
+        "Composed of the same kind of things",
+        "Characterized by a strong and bitter taste",
+        "Having a smooth and slippery surface"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Heterogeneous means composed of different kinds of things; diverse and varied."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166009766_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Compare and contrast two different cultural practices you have experienced, explaining their significance and relevance to your life.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to express complex ideas, use vocabulary accurately and engage in a discussion, providing relevant examples and supporting their points of view."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166009766_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Discuss the potential consequences of climate change on global food production, suggesting possible solutions to mitigate its effects.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should show the ability to discuss abstract ideas, use specialized vocabulary and engage in a formal discussion, presenting clear arguments and supporting their points of view with evidence."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166009766_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Describe a challenging project you managed, explaining the obstacles you faced, the strategies you used to overcome them and what you learned from the experience.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to narrate a complex story, use vocabulary accurately and reflect on the experience, providing insights and supporting their points of view."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166009766_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Explain the concept of globalization, discussing its impact on local communities and economies, and suggesting ways to balance global and local interests.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should show the ability to explain complex ideas, use specialized vocabulary and engage in a formal discussion, presenting clear arguments and supporting their points of view with evidence."
+    }
+  },
+  {
+    "external_id": "GEN_C1_1776166009766_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "C1",
+    "difficulty": 0.8,
+    "prompt": "Imagine you are a policy maker, propose a solution to reduce traffic congestion in a large city, justifying your proposal and anticipating potential challenges.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should demonstrate the ability to think critically, use specialized vocabulary and engage in a formal discussion, presenting clear arguments and supporting their points of view with evidence."
+    }
+  }
+]

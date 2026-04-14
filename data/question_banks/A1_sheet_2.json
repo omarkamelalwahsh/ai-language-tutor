@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A1_1776165683380_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is Anna from?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy"
+      ],
+      "correct_index": 1,
+      "correct": "Spain",
+      "explanation": "Anna says she is from Spain in the passage."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is Anna's favourite colour?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "correct_index": 1,
+      "correct": "Blue",
+      "explanation": "Anna states her favourite colour is blue in the passage."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the name of Anna's pet?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [
+        "Lucky",
+        "Max",
+        "Sam",
+        "Buddy"
+      ],
+      "correct_index": 1,
+      "correct": "Max",
+      "explanation": "Anna mentions that her pet cat is called Max."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What sport does Anna like playing?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [
+        "Basketball",
+        "Football",
+        "Tennis",
+        "Volleyball"
+      ],
+      "correct_index": 1,
+      "correct": "Football",
+      "explanation": "Anna says she likes playing football."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What food does Anna like eating?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [
+        "Sushi",
+        "Pizza",
+        "Tacos",
+        "Burgers"
+      ],
+      "correct_index": 1,
+      "correct": "Pizza",
+      "explanation": "Anna mentions that she likes eating pizza."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write a paragraph about your favourite hobby. What do you like about it?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should describe a hobby, explain why it is enjoyed, and possibly compare it to Anna's hobbies."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are Anna's friend. Write a letter to her, asking about her pet cat Max.",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good answer should be a short letter that asks questions about Max, such as what Max looks like or what Max likes to do."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write about a time when you ate your favourite food. What was it and why did you enjoy it?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should describe the food, the occasion, and why it was enjoyed, possibly comparing it to Anna's love of pizza."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If you could play a sport with Anna, which one would you choose and why?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good answer should choose a sport, explain why it was chosen, and possibly mention what it would be like to play with Anna."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165683380_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write a short paragraph about what you have in common with Anna. Do you like the same things?",
+    "stimulus": "My name is Anna. I am from Spain. I like playing football and eating pizza. My favourite colour is blue. I have a pet cat called Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should identify common interests or hobbies with Anna and describe them, or explain what would be liked about Anna's hobbies."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "How does the speaker greet the listener?",
+    "stimulus": "Hello, how are you?",
+    "answer_key": {
+      "options": [
+        "By shaking hands",
+        "By saying hello",
+        "By waving goodbye",
+        "By making a phone call"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker greets the listener by saying hello, which is a common way to start a conversation."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker asking the listener?",
+    "stimulus": "What's your name?",
+    "answer_key": {
+      "options": [
+        "Their age",
+        "Their name",
+        "Their job",
+        "Their favorite food"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker is asking the listener for their name, which is a common question when meeting someone new."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What sport does the speaker enjoy playing?",
+    "stimulus": "I like playing football.",
+    "answer_key": {
+      "options": [
+        "Basketball",
+        "Tennis",
+        "Football",
+        "Volleyball"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions that they like playing football, which is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is the book located?",
+    "stimulus": "The book is on the table.",
+    "answer_key": {
+      "options": [
+        "On the chair",
+        "On the table",
+        "On the floor",
+        "On the shelf"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker states that the book is on the table, which is the correct location."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker from?",
+    "stimulus": "I'm from London.",
+    "answer_key": {
+      "options": [
+        "Paris",
+        "London",
+        "New York",
+        "Tokyo"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions that they are from London, which is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What food does the speaker enjoy eating?",
+    "stimulus": "I like eating pizza.",
+    "answer_key": {
+      "options": [
+        "Sushi",
+        "Tacos",
+        "Pizza",
+        "Salad"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions that they like eating pizza, which is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What time does the movie start?",
+    "stimulus": "The movie starts at 8 o'clock.",
+    "answer_key": {
+      "options": [
+        "6 o'clock",
+        "7 o'clock",
+        "8 o'clock",
+        "9 o'clock"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker states that the movie starts at 8 o'clock, which is the correct time."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "How many siblings does the speaker have?",
+    "stimulus": "I have a brother and a sister.",
+    "answer_key": {
+      "options": [
+        "One",
+        "Two",
+        "Three",
+        "Four"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions that they have a brother and a sister, which means they have two siblings."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite color?",
+    "stimulus": "My favorite color is blue.",
+    "answer_key": {
+      "options": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker states that their favorite color is blue, which is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165687954_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker going?",
+    "stimulus": "I'm going to the park.",
+    "answer_key": {
+      "options": [
+        "The beach",
+        "The park",
+        "The mall",
+        "The museum"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions that they are going to the park, which is the correct destination."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I ______ to the cinema yesterday.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "went",
+        "going",
+        "goes"
+      ],
+      "correct_index": 1,
+      "correct": "went",
+      "explanation": "The correct answer is 'went' because it is the past tense of 'go', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If I ______ my keys, I would be in trouble.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "lose",
+        "lost",
+        "losing",
+        "will lose"
+      ],
+      "correct_index": 0,
+      "correct": "lose",
+      "explanation": "The correct answer is 'lose' because it is in the correct form to be used in a conditional sentence."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "By the time I arrived, they ______ their homework.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "do",
+        "does",
+        "did",
+        "have done"
+      ],
+      "correct_index": 2,
+      "correct": "did",
+      "explanation": "The correct answer is 'did' because it is the past tense of 'do', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I wish it ______ snow tomorrow.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will",
+        "would",
+        "can",
+        "may"
+      ],
+      "correct_index": 1,
+      "correct": "would",
+      "explanation": "The correct answer is 'would' because it is used to express a hypothetical or uncertain situation in the future."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If I had studied harder, I ______ the exam.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "pass",
+        "passed",
+        "would pass",
+        "will pass"
+      ],
+      "correct_index": 2,
+      "correct": "would pass",
+      "explanation": "The correct answer is 'would pass' because it is in the correct form to be used in a conditional sentence."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "By next year, I ______ English for three years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "study",
+        "will study",
+        "am studying",
+        "will have studied"
+      ],
+      "correct_index": 3,
+      "correct": "will have studied",
+      "explanation": "The correct answer is 'will have studied' because it is in the correct form to describe an action that will be completed by a certain time in the future."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I ______ to bed at 10 pm last night.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "went",
+        "going",
+        "have gone"
+      ],
+      "correct_index": 1,
+      "correct": "went",
+      "explanation": "The correct answer is 'went' because it is the past tense of 'go', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If it ______ yesterday, we would have gone to the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "doesn't rain",
+        "didn't rain",
+        "won't rain",
+        "hasn't rained"
+      ],
+      "correct_index": 1,
+      "correct": "didn't rain",
+      "explanation": "The correct answer is 'didn't rain' because it is in the correct form to be used in a conditional sentence."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I ______ my car last year.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "buy",
+        "buys",
+        "bought",
+        "have bought"
+      ],
+      "correct_index": 2,
+      "correct": "bought",
+      "explanation": "The correct answer is 'bought' because it is the past tense of 'buy', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165693851_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "They ______ me their phone number yesterday.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "give",
+        "gives",
+        "gave",
+        "have given"
+      ],
+      "correct_index": 2,
+      "correct": "gave",
+      "explanation": "The correct answer is 'gave' because it is the past tense of 'give', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of 'big'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Small",
+        "Happy",
+        "Fast",
+        "Cold"
+      ],
+      "correct_index": 0,
+      "correct": "Small",
+      "explanation": "Small is the opposite of big, while happy, fast, and cold describe different qualities."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who travels to a place for pleasure?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Tourist",
+        "Student",
+        "Doctor",
+        "Teacher"
+      ],
+      "correct_index": 0,
+      "correct": "Tourist",
+      "explanation": "A tourist is someone who travels for pleasure, while a student, doctor, and teacher have different occupations."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is something you can read to learn new things?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Book",
+        "Chair",
+        "Table",
+        "Phone"
+      ],
+      "correct_index": 0,
+      "correct": "Book",
+      "explanation": "A book is a common source of information, while a chair, table, and phone serve different purposes."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you call a group of cows?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Herd",
+        "Flock",
+        "School",
+        "Pack"
+      ],
+      "correct_index": 0,
+      "correct": "Herd",
+      "explanation": "A herd refers to a group of cows, while a flock is for birds, a school is for fish, and a pack is for wolves or dogs."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the word for a person who sells things in a store?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Customer",
+        "Shopkeeper",
+        "Manager",
+        "Employee"
+      ],
+      "correct_index": 1,
+      "correct": "Shopkeeper",
+      "explanation": "A shopkeeper is someone who sells things in a store, while a customer buys things, and a manager or employee may have different roles."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you call a place where people live?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "City",
+        "Town",
+        "Village",
+        "All of the above"
+      ],
+      "correct_index": 3,
+      "correct": "All of the above",
+      "explanation": "A city, town, and village are all places where people live, each with its own characteristics."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the word for something that is not expensive?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Cheap",
+        "Expensive",
+        "Big",
+        "Happy"
+      ],
+      "correct_index": 0,
+      "correct": "Cheap",
+      "explanation": "Cheap refers to something that is not expensive, while expensive is the opposite, and big and happy describe different qualities."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who teaches students?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Teacher",
+        "Student",
+        "Parent",
+        "Principal"
+      ],
+      "correct_index": 0,
+      "correct": "Teacher",
+      "explanation": "A teacher is someone who teaches students, while a student learns, a parent has a family role, and a principal is a school administrator."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the word for a thing that you can use to write with?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Pen",
+        "Pencil",
+        "Book",
+        "Chair"
+      ],
+      "correct_index": 0,
+      "correct": "Pen",
+      "explanation": "A pen is a common writing instrument, while a pencil is also used for writing, and a book and chair serve different purposes."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165699052_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you call a person who works in a hospital to help people feel better?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Doctor",
+        "Nurse",
+        "Teacher",
+        "Engineer"
+      ],
+      "correct_index": 0,
+      "correct": "Doctor",
+      "explanation": "A doctor is a medical professional who helps people feel better, while a nurse assists doctors, and a teacher and engineer have different occupations."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165702379_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is your name and where are you from?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level can include a clear and correct introduction of oneself, with basic pronunciation and intonation."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165702379_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do in your free time?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should include simple vocabulary related to hobbies and interests, with a basic sentence structure."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165702379_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Read the following sentence aloud: 'Hello, my name is John.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level includes accurate pronunciation of individual sounds and clear enunciation of the sentence."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165702379_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is your favorite food and why do you like it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should demonstrate basic vocabulary related to food, with simple sentence structures to express likes and dislikes."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165702379_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Describe a picture of a sunny day.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should include basic vocabulary related to the weather and simple sentence structures to describe a visual scene."
+    }
+  }
+]

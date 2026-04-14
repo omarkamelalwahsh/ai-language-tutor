@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A1_1776166111534_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the name of the pet cat?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [
+        "Tom",
+        "Max",
+        "John",
+        "Peter"
+      ],
+      "correct_index": 1,
+      "correct": "Max",
+      "explanation": "The passage states 'His name is Max'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What color is the cat?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [
+        "Only black",
+        "Only white",
+        "Black and white",
+        "Brown"
+      ],
+      "correct_index": 2,
+      "correct": "Black and white",
+      "explanation": "The passage states 'Max is black and white'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does the cat like to do?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [
+        "Only sleep",
+        "Only eat",
+        "Sleep and eat",
+        "Play with dogs"
+      ],
+      "correct_index": 2,
+      "correct": "Sleep and eat",
+      "explanation": "The passage states 'He likes to sleep and eat'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Why is the cat funny?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [
+        "Because he is big",
+        "Because he is black and white",
+        "Because he likes to play with balls",
+        "Because he likes to sleep"
+      ],
+      "correct_index": 2,
+      "correct": "Because he likes to play with balls",
+      "explanation": "The passage states 'He likes to play with balls' which implies this is why he is funny."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What type of pet does the speaker have?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [
+        "Dog",
+        "Cat",
+        "Fish",
+        "Bird"
+      ],
+      "correct_index": 1,
+      "correct": "Cat",
+      "explanation": "The passage starts with 'I have a pet cat'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Describe your favorite pet and why you like them. Make sure to include what they like to do.",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a description of the pet, its favorite activities, and why the student likes them."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you have a pet like Max. What would you name it and why?",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a name for the pet and a clear explanation of why the student chose that name."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you think makes Max a funny cat? Use evidence from the passage to support your answer.",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a clear explanation of why Max is funny, using evidence from the passage such as his love of playing with balls."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write a short story about a day in the life of Max the cat.",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a clear and engaging narrative about Max's daily activities, using imagination and creativity."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166111534_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Do you think it's a good idea to have a pet like Max? Why or why not? Use examples from the passage to support your answer.",
+    "stimulus": "I have a pet cat. His name is Max. Max is black and white. He likes to sleep and eat. Max is very funny. He likes to play with balls.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a clear argument for or against having a pet like Max, using evidence from the passage to support the student's opinion."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where does the speaker live?",
+    "stimulus": "Hello, I'm John. I live in London.",
+    "answer_key": {
+      "options": [
+        "Paris",
+        "London",
+        "Berlin",
+        "Rome"
+      ],
+      "correct_index": 1,
+      "correct": "London",
+      "explanation": "The speaker says 'I live in London', which means London is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's name?",
+    "stimulus": "What's your name? My name is Emily.",
+    "answer_key": {
+      "options": [
+        "Emily",
+        "John",
+        "Michael",
+        "Sarah"
+      ],
+      "correct_index": 0,
+      "correct": "Emily",
+      "explanation": "The speaker says 'My name is Emily', which means Emily is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like to do?",
+    "stimulus": "I like reading books and watching TV.",
+    "answer_key": {
+      "options": [
+        "Playing football",
+        "Reading books and watching TV",
+        "Listening to music",
+        "Playing video games"
+      ],
+      "correct_index": 1,
+      "correct": "Reading books and watching TV",
+      "explanation": "The speaker says 'I like reading books and watching TV', which means this is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker from?",
+    "stimulus": "I'm from France. I speak French.",
+    "answer_key": {
+      "options": [
+        "Germany",
+        "France",
+        "Italy",
+        "Spain"
+      ],
+      "correct_index": 1,
+      "correct": "France",
+      "explanation": "The speaker says 'I'm from France', which means France is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favorite color?",
+    "stimulus": "What's your favorite color? My favorite color is blue.",
+    "answer_key": {
+      "options": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "correct_index": 1,
+      "correct": "Blue",
+      "explanation": "The speaker says 'My favorite color is blue', which means blue is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the name of the speaker's dog?",
+    "stimulus": "I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Buddy",
+        "Max",
+        "Charlie",
+        "Buster"
+      ],
+      "correct_index": 1,
+      "correct": "Max",
+      "explanation": "The speaker says 'His name is Max', which means Max is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like to eat?",
+    "stimulus": "I like eating pizza and ice cream.",
+    "answer_key": {
+      "options": [
+        "Sushi and salad",
+        "Pizza and ice cream",
+        "Tacos and burgers",
+        "Steak and fish"
+      ],
+      "correct_index": 1,
+      "correct": "Pizza and ice cream",
+      "explanation": "The speaker says 'I like eating pizza and ice cream', which means this is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "How old is the speaker?",
+    "stimulus": "I'm 25 years old. I'm a student.",
+    "answer_key": {
+      "options": [
+        "20",
+        "25",
+        "30",
+        "35"
+      ],
+      "correct_index": 1,
+      "correct": "25",
+      "explanation": "The speaker says 'I'm 25 years old', which means 25 is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Who does the speaker live with?",
+    "stimulus": "I live with my family. I have a brother and a sister.",
+    "answer_key": {
+      "options": [
+        "Friends",
+        "Family",
+        "Roommates",
+        "Alone"
+      ],
+      "correct_index": 1,
+      "correct": "Family",
+      "explanation": "The speaker says 'I live with my family', which means family is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166116119_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What sports does the speaker like to play?",
+    "stimulus": "I like playing football and basketball.",
+    "answer_key": {
+      "options": [
+        "Tennis and volleyball",
+        "Football and basketball",
+        "Baseball and hockey",
+        "Golf and rugby"
+      ],
+      "correct_index": 1,
+      "correct": "Football and basketball",
+      "explanation": "The speaker says 'I like playing football and basketball', which means this is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the correct form of the verb 'to be' in the present tense for 'I'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "am",
+        "is",
+        "are",
+        "be"
+      ],
+      "correct_index": 0,
+      "correct": "am",
+      "explanation": "The correct form of the verb 'to be' in the present tense for 'I' is 'am' because it is the first person singular form."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the possessive adjective 'my' in the sentence '____ book is red'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "my",
+        "mine",
+        "mys",
+        "myes"
+      ],
+      "correct_index": 0,
+      "correct": "my",
+      "explanation": "The correct form of the possessive adjective is 'my' because it is used before a noun to show possession."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the present simple tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I go to the store.",
+        "I goes to the store.",
+        "I going to the store.",
+        "I go to the store yesterday."
+      ],
+      "correct_index": 0,
+      "correct": "I go to the store.",
+      "explanation": "The correct form of the present simple tense is 'I go to the store' because it uses the base form of the verb 'go' with the subject 'I'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb 'to have' in the present tense for 'they'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "has",
+        "have",
+        "having",
+        "had"
+      ],
+      "correct_index": 1,
+      "correct": "have",
+      "explanation": "The correct form of the verb 'to have' in the present tense for 'they' is 'have' because it is the third person plural form."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the indefinite article 'a'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I have a book.",
+        "I have an book.",
+        "I have a's book.",
+        "I have an's book."
+      ],
+      "correct_index": 0,
+      "correct": "I have a book.",
+      "explanation": "The correct form of the indefinite article 'a' is used before a noun that starts with a consonant sound."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb 'to be' in the present tense for 'he'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "am",
+        "is",
+        "are",
+        "be"
+      ],
+      "correct_index": 1,
+      "correct": "is",
+      "explanation": "The correct form of the verb 'to be' in the present tense for 'he' is 'is' because it is the third person singular form."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences is in the correct form of the present continuous tense?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I am go to the store.",
+        "I am going to the store.",
+        "I going to the store.",
+        "I go to the store."
+      ],
+      "correct_index": 1,
+      "correct": "I am going to the store.",
+      "explanation": "The correct form of the present continuous tense is 'I am going to the store' because it uses the auxiliary verb 'am' with the present participle 'going'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the possessive adjective 'your' in the sentence '____ book is red'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "your",
+        "yours",
+        "yours'",
+        "youres"
+      ],
+      "correct_index": 0,
+      "correct": "your",
+      "explanation": "The correct form of the possessive adjective is 'your' because it is used before a noun to show possession."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following sentences uses the correct form of the definite article 'the'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "I am reading book.",
+        "I am reading a book.",
+        "I am reading the book.",
+        "I am reading the's book."
+      ],
+      "correct_index": 2,
+      "correct": "I am reading the book.",
+      "explanation": "The correct form of the definite article 'the' is used before a noun to refer to a specific thing."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166121144_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Which of the following is the correct form of the verb 'to have' in the present tense for 'I'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "has",
+        "have",
+        "having",
+        "had"
+      ],
+      "correct_index": 1,
+      "correct": "have",
+      "explanation": "The correct form of the verb 'to have' in the present tense for 'I' is 'have' because it is the first person singular form."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does 'big' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Small",
+        "Happy",
+        "Large",
+        "Cold"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Big means something is large in size."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of 'fast'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Slow",
+        "Happy",
+        "Big",
+        "Hot"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The opposite of fast is slow, which means something is moving at a lower speed."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does 'friend' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Family member",
+        "Person you know and like",
+        "Place you live",
+        "Thing you own"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "A friend is someone you know and like, often someone you spend time with."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is a 'book'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A type of food",
+        "A type of animal",
+        "A thing you read",
+        "A type of car"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A book is something you read, often containing stories or information."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does 'city' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A small town",
+        "A big town with many buildings",
+        "A type of car",
+        "A type of food"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "A city is a big town with many buildings, often where many people live and work."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is a 'park'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you live",
+        "A place where you work",
+        "A place with grass and trees",
+        "A type of food"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A park is a place with grass and trees, often where people go to relax or play."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does 'tall' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Short",
+        "Happy",
+        "Big and high",
+        "Fast"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Tall means something or someone is big and high, often above average height."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'dog'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A type of cat",
+        "A type of bird",
+        "A common household pet",
+        "A type of car"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A dog is a common household pet, often kept for companionship or protection."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does 'hot' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Cold",
+        "Happy",
+        "Warm or having a high temperature",
+        "Big"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "Hot means something is warm or has a high temperature, often uncomfortable to touch."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166126025_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is a 'school'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you work",
+        "A place where you live",
+        "A place where you learn",
+        "A type of food"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "A school is a place where you learn, often where children and adults go to study and gain knowledge."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166129222_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is your name and where are you from?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should include basic personal details, such as name and place of origin, pronounced clearly and correctly."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166129222_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you like to do in your free time?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should be simple, using basic vocabulary and grammar related to everyday activities, and should be easy to understand."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166129222_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Read the following sentence aloud: 'Hello, my name is John.'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The sentence should be read clearly and correctly, with proper pronunciation and intonation."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166129222_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Tell me about a typical day in your life.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should include simple descriptions of daily routines and activities, using basic vocabulary and grammar, and should be easy to follow."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776166129222_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is your favorite food and why do you like it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The response should be simple, using basic vocabulary and grammar related to food preferences, and should include a basic reason for the preference."
+    }
+  }
+]

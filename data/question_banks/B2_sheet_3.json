@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B2_1776165958628_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the primary idea behind the concept of Universal Basic Income (UBI)?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [
+        "To provide financial assistance only to the unemployed",
+        "To give every citizen a regular sum of money to cover basic needs",
+        "To simplify the tax system",
+        "To increase the minimum wage"
+      ],
+      "correct_index": 1,
+      "correct": "To give every citizen a regular sum of money to cover basic needs",
+      "explanation": "The stimulus clearly states that UBI is about providing every citizen with a regular, unconditional sum of money to cover their basic needs."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "According to the text, what was a significant outcome of the UBI experiment in Finland?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [
+        "A significant increase in employment rates",
+        "A reduction in the national budget",
+        "An improvement in recipients' well-being and life satisfaction",
+        "A decrease in trust in institutions"
+      ],
+      "correct_index": 2,
+      "correct": "An improvement in recipients' well-being and life satisfaction",
+      "explanation": "The text mentions that although the experiment did not impact employment rates, it showed that recipients reported better well-being and life satisfaction."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is one of the criticisms of implementing UBI, as per the text?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [
+        "It could lead to an increase in economic inequality",
+        "It might reduce the incentive for people to work",
+        "It could lead to a significant decrease in the national budget",
+        "It would simplify the tax system"
+      ],
+      "correct_index": 1,
+      "correct": "It might reduce the incentive for people to work",
+      "explanation": "Critics argue that UBI could reduce the incentive for people to work, as mentioned in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "In which countries has the concept of UBI been experimented with, according to the text?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [
+        "Finland and Alaska",
+        "Kenya and the United States",
+        "Finland, Alaska, and Kenya",
+        "Sweden and Denmark"
+      ],
+      "correct_index": 2,
+      "correct": "Finland, Alaska, and Kenya",
+      "explanation": "The text specifically mentions these three countries as places where UBI has been experimented with."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What was the duration of the UBI experiment in Finland, as mentioned in the text?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [
+        "One year",
+        "Two years",
+        "Five years",
+        "Ten years"
+      ],
+      "correct_index": 1,
+      "correct": "Two years",
+      "explanation": "The experiment in Finland was conducted from 2017 to 2019, which is a period of two years."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the potential benefits and drawbacks of implementing a Universal Basic Income. How could it impact individuals and society as a whole?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should weigh the pros and cons of UBI, considering its potential to reduce poverty and inequality, simplify welfare systems, and impact work incentives and economic stability."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a policy maker considering the implementation of UBI in your country. What factors would you consider before making a decision, and how would you design the program to maximize its benefits?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should demonstrate an understanding of the complexities involved in implementing UBI, including funding, eligibility criteria, and potential impacts on the workforce and economy."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Reflect on the experiment conducted in Finland. What do the results suggest about the potential effectiveness of UBI, and what lessons could be learned for future experiments or implementations?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should analyze the outcomes of the Finnish experiment, discussing what the results indicate about the potential benefits and limitations of UBI, and suggesting how these insights could inform future policy decisions."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Consider the argument that UBI could give people the financial security to pursue meaningful work. How might this impact individuals, communities, and the broader economy, and what are the implications for education and workforce development?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should explore the potential for UBI to enable people to choose work that is fulfilling, discussing how this could lead to personal growth, community development, and economic innovation, as well as the challenges and opportunities for education and training programs."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165958628_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Discuss the relevance of UBI in the context of automation and economic inequality. How might UBI serve as a tool to mitigate the negative impacts of these trends, and what other strategies could be considered in conjunction with UBI?",
+    "stimulus": "The concept of a universal basic income (UBI) has been debated for several years. The idea behind UBI is that every citizen should receive a regular, unconditional sum of money from the government to cover their basic needs. This concept has been experimented with in various countries, including Finland, Alaska, and Kenya, with mixed results. Proponents of UBI argue that it could simplify welfare systems, reduce poverty and inequality, and give people the financial security to pursue meaningful work. On the other hand, critics argue that UBI could be too expensive, inefficient, and might reduce the incentive for people to work. In Finland, a two-year UBI experiment was conducted from 2017 to 2019, where 2,000 unemployed individuals received a monthly stipend of €560. Although the experiment did not have a significant impact on employment rates, it showed that recipients reported better well-being, life satisfaction, and trust in institutions. As the world grapples with the challenges of automation, climate change, and economic inequality, the idea of UBI continues to gain traction as a potential solution to mitigate these issues.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should examine the potential role of UBI in addressing the challenges posed by automation and inequality, considering how UBI could be part of a broader policy approach that includes education, retraining programs, and social welfare reforms."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What type of holiday is the woman looking for?",
+    "stimulus": "A woman is talking to a travel agent. She says, \"I am looking for a beach holiday in July.\"",
+    "answer_key": {
+      "options": [
+        "A city break",
+        "B a beach holiday",
+        "C a mountain holiday",
+        "D a road trip"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The woman explicitly mentions she is looking for a beach holiday."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does the teacher instruct the students to include in their presentation?",
+    "stimulus": "A teacher says, \"For the presentation, you need to include an introduction, two main points, and a conclusion.\"",
+    "answer_key": {
+      "options": [
+        "A an introduction and a conclusion",
+        "B two main points and a conclusion",
+        "C an introduction, two main points, and a conclusion",
+        "D a conclusion only"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The teacher lists all three components: an introduction, two main points, and a conclusion."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the first thing the man does in the morning?",
+    "stimulus": "A man is talking about his daily routine. He says, \"Every morning, I wake up at 6:00 AM and go for a run.\"",
+    "answer_key": {
+      "options": [
+        "A He checks his phone",
+        "B He goes for a run",
+        "C He has breakfast",
+        "D He watches TV"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The man states that he goes for a run as soon as he wakes up."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the minimum number of references required for the essay?",
+    "stimulus": "A professor says, \"The essay should be 500 words long and include at least three references.\"",
+    "answer_key": {
+      "options": [
+        "A one",
+        "B two",
+        "C three",
+        "D four"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The professor explicitly mentions that the essay should include at least three references."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the friend inviting the other person to do?",
+    "stimulus": "A friend says, \"I am going to the movies tonight. Do you want to join me?\"",
+    "answer_key": {
+      "options": [
+        "A go to the theater",
+        "B go to the movies",
+        "C go to a restaurant",
+        "D go to a party"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The friend explicitly mentions going to the movies."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the forecast for the next day?",
+    "stimulus": "A weather forecast says, \"There is a high chance of rain tomorrow. Make sure to carry an umbrella.\"",
+    "answer_key": {
+      "options": [
+        "A sunny",
+        "B cloudy",
+        "C rainy",
+        "D windy"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The forecast mentions a high chance of rain."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What are the opening hours of the museum?",
+    "stimulus": "A tour guide says, \"The museum is open from 9:00 AM to 5:00 PM, Monday to Friday.\"",
+    "answer_key": {
+      "options": [
+        "A 9:00 AM to 5:00 PM, Monday to Friday",
+        "B 10:00 AM to 6:00 PM, Tuesday to Saturday",
+        "C 11:00 AM to 7:00 PM, Wednesday to Sunday",
+        "D 12:00 PM to 8:00 PM, Thursday to Monday"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The tour guide explicitly mentions the opening hours."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the discount being offered at the store?",
+    "stimulus": "A store owner says, \"We are having a sale this weekend. Everything is 20% off.\"",
+    "answer_key": {
+      "options": [
+        "A 10% off",
+        "B 15% off",
+        "C 20% off",
+        "D 25% off"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The store owner mentions that everything is 20% off."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "How long should the dish be baked in the oven?",
+    "stimulus": "A chef says, \"To make this dish, you need to mix the ingredients and then bake it in the oven for 20 minutes.\"",
+    "answer_key": {
+      "options": [
+        "A 10 minutes",
+        "B 15 minutes",
+        "C 20 minutes",
+        "D 25 minutes"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The chef explicitly mentions baking the dish for 20 minutes."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165964072_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "When is the deadline for the project?",
+    "stimulus": "An instructor says, \"The deadline for the project is next Friday. Make sure to submit it on time.\"",
+    "answer_key": {
+      "options": [
+        "A this Friday",
+        "B next Friday",
+        "C the Friday after next",
+        "D the following month"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The instructor explicitly mentions that the deadline is next Friday."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "By the time I ______ the bus, it had already left the station.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "missed",
+        "have missed",
+        "had missed",
+        "was missing"
+      ],
+      "correct_index": 2,
+      "correct": "had missed",
+      "explanation": "The correct answer is 'had missed' because it is in the past perfect tense, indicating an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "If I won the lottery, I ______ a house by the sea.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will buy",
+        "would buy",
+        "can buy",
+        "am buying"
+      ],
+      "correct_index": 1,
+      "correct": "would buy",
+      "explanation": "The correct answer is 'would buy' because it is in the conditional tense, used for hypothetical or uncertain situations."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "By next year, I ______ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have been studying",
+        "am studying",
+        "study",
+        "have studied"
+      ],
+      "correct_index": 0,
+      "correct": "will have been studying",
+      "explanation": "The correct answer is 'will have been studying' because it is in the future perfect continuous tense, indicating an action that will continue up to a point in the future."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "I wish I ______ more time to finish the project.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "have had"
+      ],
+      "correct_index": 1,
+      "correct": "had",
+      "explanation": "The correct answer is 'had' because it is in the past tense, used to express a regret or a wish about the past."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "If I ______ the instructions, I wouldn't have broken the machine.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "follow",
+        "followed",
+        "have followed",
+        "was following"
+      ],
+      "correct_index": -1,
+      "correct": "had followed",
+      "explanation": "The correct answer is 'had followed' because it is in the past perfect tense, used for a hypothetical past condition."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "I ______ to the gym three times a week.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "am going",
+        "have gone",
+        "was going"
+      ],
+      "correct_index": 0,
+      "correct": "go",
+      "explanation": "The correct answer is 'go' because it is in the present simple tense, used for habits or routines."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "By the time I arrived, they ______ their homework.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "finish",
+        "have finished",
+        "had finished",
+        "were finishing"
+      ],
+      "correct_index": 2,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it is in the past perfect tense, indicating an action that occurred before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "If it ______ yesterday, we would have gone to the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "doesn't rain",
+        "didn't rain",
+        "hasn't rained",
+        "hadn't rained"
+      ],
+      "correct_index": 3,
+      "correct": "hadn't rained",
+      "explanation": "The correct answer is 'hadn't rained' because it is in the past perfect tense, used for a hypothetical past condition."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "I ______ my car for five years now.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "has",
+        "had",
+        "have had"
+      ],
+      "correct_index": 3,
+      "correct": "have had",
+      "explanation": "The correct answer is 'have had' because it is in the present perfect tense, indicating an action that started in the past and continues up to the present."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165969688_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "If I won the contest, I ______ a trip around the world.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will take",
+        "would take",
+        "can take",
+        "am taking"
+      ],
+      "correct_index": 1,
+      "correct": "would take",
+      "explanation": "The correct answer is 'would take' because it is in the conditional tense, used for hypothetical or uncertain situations."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Careless",
+        "Meticulous",
+        "Quick",
+        "Strong"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidious means having a strong attention to detail and being meticulous, so option B is correct."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'nuance'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A subtle difference or shade of meaning",
+        "A loud and clear statement",
+        "A complicated situation",
+        "A type of art"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'nuance' refers to a subtle difference or shade of meaning, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'perfidious' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Disloyal",
+        "Loyal",
+        "Happy",
+        "Sad"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Perfidious means disloyal or treacherous, so option A is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'enigmatic'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Mysterious or difficult to understand",
+        "Easy to understand",
+        "Happy and cheerful",
+        "Sad and depressing"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'enigmatic' means mysterious or difficult to understand, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'exacerbate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To make a problem worse",
+        "To make a problem better",
+        "To ignore a problem",
+        "To solve a problem"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Exacerbate means to make a problem worse, so option A is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'mitigate'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To make a problem worse",
+        "To make a problem better",
+        "To ignore a problem",
+        "To solve a problem"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The word 'mitigate' means to make a problem less severe or serious, making option B the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'cacophony' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A harsh, discordant sound",
+        "A pleasant, harmonious sound",
+        "A loud, clear sound",
+        "A soft, quiet sound"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Cacophony refers to a harsh, discordant sound, so option A is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'ephemeral'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Lasting for a very short time",
+        "Lasting for a very long time",
+        "Lasting forever",
+        "Never ending"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'ephemeral' means lasting for a very short time, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What does 'fastidiously' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Carelessly and quickly",
+        "Meticulously and with attention to detail",
+        "Quickly and efficiently",
+        "Slowly and carefully"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Fastidiously means meticulously and with attention to detail, so option B is the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165974792_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of the word 'perspicacious'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Having a keen understanding and insight",
+        "Having a poor understanding and insight",
+        "Having no understanding or insight",
+        "Having a neutral understanding and insight"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The word 'perspicacious' means having a keen understanding and insight, making option A the correct answer."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165978260_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to work with someone you didn't get along with.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to narrate a clear story, use basic vocabulary related to relationships and work, and express a personal opinion."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165978260_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Talk about a book or film that had a significant impact on you.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The candidate should be able to explain the plot, characters, and their personal feelings about the story, using vocabulary related to emotions and opinions."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165978260_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "What do you think are the most important qualities for a person to be successful in their career?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good response should be able to give a clear opinion, provide some examples, and use vocabulary related to professional development and skills."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165978260_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Describe a place you have visited that was particularly interesting or beautiful.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The candidate should be able to describe the location, its features, and what made it special, using geographical vocabulary and basic descriptive language."
+    }
+  },
+  {
+    "external_id": "GEN_B2_1776165978260_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B2",
+    "difficulty": 0.5,
+    "prompt": "Imagine you could switch lives with someone for a day. Who would it be and what would you do?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly explain the choice, describe the activities and use basic vocabulary related to hypothetical situations and daily routines."
+    }
+  }
+]

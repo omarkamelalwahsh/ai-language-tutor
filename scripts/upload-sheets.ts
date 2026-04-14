@@ -30,7 +30,7 @@ async function uploadSheets() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('_sheet.json'));
+  const files = fs.readdirSync(DATA_DIR).filter(f => f.includes('_sheet') && f.endsWith('.json'));
   if (files.length === 0) {
     console.log("❌ No sheets found to upload.");
     process.exit(0);

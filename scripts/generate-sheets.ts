@@ -187,9 +187,9 @@ function buildDatabasePayload(level: string, rawData: any, stimulus?: string) {
   return finalItems;
 }
 
-async function generateSheetForLevel(level: string) {
+async function generateSheetForLevel(level: string, batchNumber: number) {
   console.log(`\n===========================================`);
-  console.log(`🚀 Starting Generation for Level: ${level}`);
+  console.log(`🚀 Starting Generation for Level: ${level} [BATCH ${batchNumber}]`);
   console.log(`===========================================`);
   
   const sheetItems: any[] = [];
@@ -255,7 +255,7 @@ async function generateSheetForLevel(level: string) {
   }
 
   // Save the sheet
-  const filename = path.join(OUTPUT_DIR, `${level}_sheet.json`);
+  const filename = path.join(OUTPUT_DIR, `${level}_sheet_${batchNumber}.json`);
   fs.writeFileSync(filename, JSON.stringify(sheetItems, null, 2));
   console.log(`✅ Saved ${sheetItems.length} questions to ${filename}`);
   return sheetItems.length;
@@ -263,13 +263,18 @@ async function generateSheetForLevel(level: string) {
 
 async function main() {
   let total = 0;
-  for (const level of LEVELS) {
-    const count = await generateSheetForLevel(level);
-    total += count;
-    console.log(`Waiting 5s before next level to prevent rate limits...`);
-    await delay(5000);
+  for (let batch = 2; batch <= 5; batch++) {
+    console.log(`\n\n🌟🌟🌟 STARTING MASSIVE BATCH ${batch} OF 5 🌟🌟🌟`);
+    for (const level of LEVELS) {
+      const count = await generateSheetForLevel(level, batch);
+      total += count;
+      console.log(`Waiting 5s before next level to prevent rate limits...`);
+      await delay(5000);
+    }
+    console.log(`Waiting 15s between batches to cool down Groq API limits...`);
+    await delay(15000);
   }
-  console.log(`\n🎉 Generation Complete! Total questions wrapped in sheets: ${total}`);
+  console.log(`\n🎉 Full Mass-Generation Complete! Total new questions wrapped: ${total}`);
 }
 
 main().catch(console.error);

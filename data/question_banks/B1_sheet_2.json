@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_B1_1776165737333_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Who designed the Sagrada Familia?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [
+        "Antoni Gaudí",
+        "Leonardo da Vinci",
+        "Michelangelo",
+        "Pablo Picasso"
+      ],
+      "correct_index": 0,
+      "correct": "Antoni Gaudí",
+      "explanation": "The passage states that the Sagrada Familia was designed by Antoni Gaudí."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When did the construction of the Sagrada Familia begin?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [
+        "1850",
+        "1882",
+        "1900",
+        "1920"
+      ],
+      "correct_index": 1,
+      "correct": "1882",
+      "explanation": "The passage mentions that the construction of the Sagrada Familia began in 1882."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What style of architecture is the Sagrada Familia known for?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [
+        "Gothic",
+        "Art Nouveau",
+        "A combination of Gothic and Art Nouveau",
+        "Modern"
+      ],
+      "correct_index": 2,
+      "correct": "A combination of Gothic and Art Nouveau",
+      "explanation": "The passage describes the Sagrada Familia's style as a combination of Gothic and Art Nouveau."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the Sagrada Familia a symbol of for the people of Barcelona?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [
+        "The city's wealth and prosperity",
+        "The city's proud history and resilience",
+        "The city's cultural diversity",
+        "The city's geographical location"
+      ],
+      "correct_index": 1,
+      "correct": "The city's proud history and resilience",
+      "explanation": "The passage states that the Sagrada Familia is a symbol of the city's proud history and its resilience in the face of adversity."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What has happened to the Sagrada Familia over the years?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [
+        "It has been abandoned and left to decay",
+        "It has undergone several restorations and renovations",
+        "It has been destroyed and rebuilt",
+        "It has remained completely unchanged"
+      ],
+      "correct_index": 1,
+      "correct": "It has undergone several restorations and renovations",
+      "explanation": "The passage mentions that the Sagrada Familia has undergone several restorations and renovations over the years."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe the cultural significance of the Sagrada Familia to the people of Barcelona.",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the Sagrada Familia's importance as a symbol of the city's history and resilience, as well as its role in promoting cultural heritage and tourism."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "How does the Sagrada Familia's unique architecture reflect the style of its designer, Antoni Gaudí?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should describe the distinctive features of Gaudí's style, such as the combination of Gothic and Art Nouveau elements, and explain how these features are evident in the Sagrada Familia's design."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What do you think is the most fascinating aspect of the Sagrada Familia, and why?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should identify a specific aspect of the Sagrada Familia, such as its intricate stone carvings or stunning stained-glass windows, and provide a clear explanation of why this aspect is fascinating."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are a tourist visiting the Sagrada Familia for the first time. Describe your experience and what you find most impressive about the cathedral.",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should provide a vivid description of the tourist's experience, including their initial impressions and what they find most impressive about the cathedral's architecture and atmosphere."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165737333_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "How do you think the Sagrada Familia contributes to Barcelona's reputation as a culturally rich and vibrant city?",
+    "stimulus": "The city of Barcelona is known for its unique architecture and rich cultural heritage. One of its most famous landmarks is the Sagrada Familia, a cathedral designed by Antoni Gaudí. The construction of the Sagrada Familia began in 1882 and is still ongoing. Gaudí's distinctive style, which combines elements of Gothic and Art Nouveau, has made the cathedral a popular tourist destination. Visitors can explore the cathedral's intricate stone carvings, stunning stained-glass windows, and towering spires. In addition to its architectural significance, the Sagrada Familia also holds important spiritual and historical value for the people of Barcelona. It is a symbol of the city's proud history and its resilience in the face of adversity. The cathedral has undergone several restorations and renovations over the years, but its original charm and character have been preserved. As a result, the Sagrada Familia remains one of the most fascinating and awe-inspiring landmarks in the world.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should discuss the ways in which the Sagrada Familia enhances Barcelona's cultural scene, such as by attracting tourists and promoting artistic expression."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker asking the listener to do?",
+    "stimulus": "I'm going to the store, do you want to come with me?",
+    "answer_key": {
+      "options": [
+        "Go to the store",
+        "Stay home",
+        "Watch TV",
+        "Read a book"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The speaker is asking the listener to accompany them to the store."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker advising the listener to bring?",
+    "stimulus": "The weather forecast says it's going to rain tomorrow, so don't forget your umbrella.",
+    "answer_key": {
+      "options": [
+        "A coat",
+        "An umbrella",
+        "A hat",
+        "Gloves"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker is warning about rain and suggests bringing an umbrella."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When will the new policy start?",
+    "stimulus": "The new policy will be implemented starting from next month.",
+    "answer_key": {
+      "options": [
+        "This month",
+        "Next month",
+        "In two months",
+        "In three months"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions that the policy will start next month."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Who can the listener ask for help?",
+    "stimulus": "If you need help with your project, you can ask John or Emily.",
+    "answer_key": {
+      "options": [
+        "John only",
+        "Emily only",
+        "John or Emily",
+        "Neither John nor Emily"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker mentions both John and Emily as options for help."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When is the meeting now scheduled for?",
+    "stimulus": "The meeting has been rescheduled for Friday at 2 PM.",
+    "answer_key": {
+      "options": [
+        "Thursday at 1 PM",
+        "Friday at 2 PM",
+        "Monday at 3 PM",
+        "Tuesday at 4 PM"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker states the meeting is rescheduled for Friday at 2 PM."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "How early should the listener arrive for the interview?",
+    "stimulus": "You should arrive at least 15 minutes before the interview.",
+    "answer_key": {
+      "options": [
+        "5 minutes",
+        "10 minutes",
+        "15 minutes",
+        "30 minutes"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker advises arriving at least 15 minutes before the interview."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When is the museum closed?",
+    "stimulus": "The museum is open from 9 AM to 5 PM, but it's closed on Mondays.",
+    "answer_key": {
+      "options": [
+        "On Sundays",
+        "On Mondays",
+        "On Tuesdays",
+        "On Wednesdays"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker mentions the museum is closed on Mondays."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Which team will the new employee be working on?",
+    "stimulus": "The new employee will be working on the marketing team.",
+    "answer_key": {
+      "options": [
+        "Sales team",
+        "Marketing team",
+        "IT team",
+        "HR team"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The speaker states the new employee will work on the marketing team."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker encouraging the listener to do if they have questions?",
+    "stimulus": "If you have any questions, please don't hesitate to contact us.",
+    "answer_key": {
+      "options": [
+        "Ignore the questions",
+        "Ask someone else",
+        "Contact us",
+        "Look it up online"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker is encouraging the listener to contact them with any questions."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165742280_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "When is the deadline for the project?",
+    "stimulus": "The deadline for the project is the end of the week.",
+    "answer_key": {
+      "options": [
+        "The beginning of the week",
+        "The middle of the week",
+        "The end of the week",
+        "Next week"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The speaker states the deadline is at the end of the week."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "By the time I ______ my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "finish",
+        "have finished",
+        "was finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it is in the past perfect tense, which is used to describe an action that happened before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If I ______ you, I would not have bought this expensive watch.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "was",
+        "am",
+        "were",
+        "had been"
+      ],
+      "correct_index": 2,
+      "correct": "were",
+      "explanation": "The correct answer is 'were' because it is in the second conditional, which is used to describe a hypothetical or unlikely situation in the present or future."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "By next year, I ______ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will have been studying",
+        "am studying",
+        "have studied",
+        "study"
+      ],
+      "correct_index": 0,
+      "correct": "will have been studying",
+      "explanation": "The correct answer is 'will have been studying' because it is in the future perfect continuous tense, which is used to describe an action that starts before a specific time in the future and continues up to that time."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If it ______ yesterday, we would have gone to the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had not rained",
+        "does not rain",
+        "rained",
+        "did not rain"
+      ],
+      "correct_index": 0,
+      "correct": "had not rained",
+      "explanation": "The correct answer is 'had not rained' because it is in the third conditional, which is used to describe a past condition and its past consequence."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "I wish it ______ less noisy here.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "was",
+        "was being",
+        "wasn't",
+        "wasn't being"
+      ],
+      "correct_index": 0,
+      "correct": "was",
+      "explanation": "The correct answer is 'was' because it is in the subjunctive mood, which is used to express a wish or a hypothetical situation."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "By the time I arrived, they ______ their homework.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "had finished",
+        "finish",
+        "have finished",
+        "were finishing"
+      ],
+      "correct_index": 0,
+      "correct": "had finished",
+      "explanation": "The correct answer is 'had finished' because it is in the past perfect tense, which is used to describe an action that happened before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "I ______ to the gym every day if I had more time.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "am going",
+        "was going",
+        "would go"
+      ],
+      "correct_index": 3,
+      "correct": "would go",
+      "explanation": "The correct answer is 'would go' because it is in the second conditional, which is used to describe a hypothetical or unlikely situation in the present or future."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If I had studied harder, I ______ the exam.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "pass",
+        "am passing",
+        "was passing",
+        "would have passed"
+      ],
+      "correct_index": 3,
+      "correct": "would have passed",
+      "explanation": "The correct answer is 'would have passed' because it is in the third conditional, which is used to describe a past condition and its past consequence."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "I ______ my car if I won the lottery.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will buy",
+        "am buying",
+        "was buying",
+        "would buy"
+      ],
+      "correct_index": 3,
+      "correct": "would buy",
+      "explanation": "The correct answer is 'would buy' because it is in the second conditional, which is used to describe a hypothetical or unlikely situation in the present or future."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165747898_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If it ______ yesterday, we would have gone to the movies.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "did not rain",
+        "rained",
+        "had rained",
+        "had not rained"
+      ],
+      "correct_index": 3,
+      "correct": "had not rained",
+      "explanation": "The correct answer is 'had not rained' because it is in the third conditional, which is used to describe a past condition and its past consequence."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does 'accommodate' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To provide someone with a place to stay",
+        "To make someone feel uncomfortable",
+        "To refuse someone's request",
+        "To ignore someone's needs"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Accommodate means to provide someone with a place to stay or to fulfill their needs."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'coincidence'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "An event that is planned",
+        "A surprising event in which two or more things happen at the same time",
+        "A situation that is unpleasant",
+        "A decision that is difficult to make"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "A coincidence is a surprising event in which two or more things happen at the same time."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does 'prioritize' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "To do tasks in any order",
+        "To focus on the most important tasks first",
+        "To ignore tasks that are difficult",
+        "To do tasks that are easy first"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Prioritize means to focus on the most important tasks first."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'hesitant'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Uncertain or unwilling to take action",
+        "Confident and willing to take action",
+        "Angry and unwilling to listen",
+        "Happy and eager to help"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "Hesitant means uncertain or unwilling to take action."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does 'vulnerable' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Strong and able to protect oneself",
+        "Weak and easily harmed or influenced",
+        "Happy and carefree",
+        "Angry and aggressive"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Vulnerable means weak and easily harmed or influenced."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'persistent'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Giving up easily",
+        "Continuing to try hard despite difficulties",
+        "Ignoring problems",
+        "Refusing to help"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Persistent means continuing to try hard despite difficulties."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does 'spontaneous' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Planned and organized",
+        "Done without planning or preparation",
+        "Done with the help of others",
+        "Done alone"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Spontaneous means done without planning or preparation."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'necessity'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Something that is wanted but not needed",
+        "Something that is needed in order to survive",
+        "Something that is nice to have but not essential",
+        "Something that is useless"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Necessity means something that is needed in order to survive."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What does 'flexible' mean?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Unable to change or adapt",
+        "Able to change or adapt easily",
+        "Unwilling to listen to others",
+        "Unable to make decisions"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Flexible means able to change or adapt easily."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165753548_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'reliable'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Untrustworthy and unpredictable",
+        "Trustworthy and consistent",
+        "Unfriendly and unhelpful",
+        "Unimportant and insignificant"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "Reliable means trustworthy and consistent."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165756993_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe a time when you had to make a difficult decision. What was the situation and how did you decide what to do?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to clearly describe a past experience, using basic vocabulary and grammar, and provide some justification for their decision."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165756993_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Can you compare and contrast two different types of music or movies that you enjoy? What do you like about each one?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to compare and contrast two things, using basic vocabulary and grammar, and provide some reasons for their preferences."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165756993_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are planning a trip to a new city. What would you do on the first day and why?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a simple plan, using basic vocabulary and grammar, and provide some justification for their choices."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165756993_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "Describe a place that is special to you, such as your hometown or a favorite park. What do you like about it?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a place, using basic vocabulary and grammar, and provide some reasons for its significance."
+    }
+  },
+  {
+    "external_id": "GEN_B1_1776165756993_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "B1",
+    "difficulty": 0.5,
+    "prompt": "If you could switch lives with someone for a day, who would it be and what would you do?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should be able to describe a hypothetical situation, using basic vocabulary and grammar, and provide some justification for their choice."
+    }
+  }
+]

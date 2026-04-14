@@ -1,0 +1,852 @@
+[
+  {
+    "external_id": "GEN_A1_1776165871739_reading_0",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is John from?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Paris",
+        "London",
+        "Berlin",
+        "Rome"
+      ],
+      "correct_index": 1,
+      "correct": "London",
+      "explanation": "The passage states 'I am from London'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_reading_1",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is John's favourite team?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Chelsea",
+        "Manchester United",
+        "Arsenal",
+        "Liverpool"
+      ],
+      "correct_index": 1,
+      "correct": "Manchester United",
+      "explanation": "The passage states 'My favourite team is Manchester United'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_reading_2",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the name of John's dog?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Sam",
+        "Max",
+        "Leo",
+        "Buddy"
+      ],
+      "correct_index": 1,
+      "correct": "Max",
+      "explanation": "The passage states 'His name is Max'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_reading_3",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does John like playing?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Basketball",
+        "Tennis",
+        "Football",
+        "Volleyball"
+      ],
+      "correct_index": 2,
+      "correct": "Football",
+      "explanation": "The passage states 'I like playing football'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_reading_4",
+    "skill": "reading",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is John's name?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [
+        "Tom",
+        "John",
+        "Alex",
+        "Jack"
+      ],
+      "correct_index": 1,
+      "correct": "John",
+      "explanation": "The passage states 'My name is John'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_writing_5",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write about your favourite sport and why you enjoy it.",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include the student's favourite sport, a brief description of the sport, and reasons why they enjoy playing or watching it."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_writing_6",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Imagine you are John's dog, Max. Write a short paragraph about your day.",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about Max's daily activities, such as playing with John, going for walks, and interacting with his environment."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_writing_7",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write a letter to John introducing yourself and asking about his interests.",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include a brief introduction, questions about John's interests, and a polite closing."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_writing_8",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Describe a place you have visited that is similar to London.",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the place, such as its location, landmarks, and cultural attractions, and explain how it is similar to London."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165871739_writing_9",
+    "skill": "writing",
+    "task_type": "open_ended",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Write about a time when you played a sport with a team. What was your role, and how did you contribute to the team's success?",
+    "stimulus": "My name is John. I am from London. I like playing football. My favourite team is Manchester United. I have a dog. His name is Max.",
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A strong answer should include details about the sport, the student's role, and their contributions to the team's success, as well as reflections on what they learned from the experience."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_0",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where is the speaker from?",
+    "stimulus": "Hello, my name is John. I am from London.",
+    "answer_key": {
+      "options": [
+        "Paris",
+        "London",
+        "Berlin",
+        "Rome"
+      ],
+      "correct_index": 1,
+      "correct": "London",
+      "explanation": "The speaker says 'I am from London' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_1",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What sports does the speaker like playing?",
+    "stimulus": "I like playing football and basketball.",
+    "answer_key": {
+      "options": [
+        "Tennis and volleyball",
+        "Football and basketball",
+        "Golf and rugby",
+        "Swimming and cycling"
+      ],
+      "correct_index": 1,
+      "correct": "Football and basketball",
+      "explanation": "The speaker says 'I like playing football and basketball' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_2",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favourite food?",
+    "stimulus": "My favourite food is pizza.",
+    "answer_key": {
+      "options": [
+        "Sushi",
+        "Pizza",
+        "Tacos",
+        "Burgers"
+      ],
+      "correct_index": 1,
+      "correct": "Pizza",
+      "explanation": "The speaker says 'My favourite food is pizza' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_3",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "How many siblings does the speaker have?",
+    "stimulus": "I have a brother and a sister.",
+    "answer_key": {
+      "options": [
+        "One",
+        "Two",
+        "Three",
+        "Four"
+      ],
+      "correct_index": 1,
+      "correct": "Two",
+      "explanation": "The speaker says 'I have a brother and a sister' in the stimulus, which means two siblings."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_4",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "How old is the speaker?",
+    "stimulus": "I am 25 years old.",
+    "answer_key": {
+      "options": [
+        "20",
+        "25",
+        "30",
+        "35"
+      ],
+      "correct_index": 1,
+      "correct": "25",
+      "explanation": "The speaker says 'I am 25 years old' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_5",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Where does the speaker live?",
+    "stimulus": "I live in a flat.",
+    "answer_key": {
+      "options": [
+        "A house",
+        "A flat",
+        "A hotel",
+        "A hostel"
+      ],
+      "correct_index": 1,
+      "correct": "A flat",
+      "explanation": "The speaker says 'I live in a flat' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_6",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What does the speaker like doing in their free time?",
+    "stimulus": "I like reading books and watching TV.",
+    "answer_key": {
+      "options": [
+        "Playing sports and listening to music",
+        "Reading books and watching TV",
+        "Eating out and traveling",
+        "Shopping and dancing"
+      ],
+      "correct_index": 1,
+      "correct": "Reading books and watching TV",
+      "explanation": "The speaker says 'I like reading books and watching TV' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_7",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's favourite colour?",
+    "stimulus": "My favourite colour is blue.",
+    "answer_key": {
+      "options": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "correct_index": 1,
+      "correct": "Blue",
+      "explanation": "The speaker says 'My favourite colour is blue' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_8",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What kind of pet does the speaker have?",
+    "stimulus": "I have a pet cat.",
+    "answer_key": {
+      "options": [
+        "Dog",
+        "Cat",
+        "Bird",
+        "Fish"
+      ],
+      "correct_index": 1,
+      "correct": "Cat",
+      "explanation": "The speaker says 'I have a pet cat' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165875949_listening_9",
+    "skill": "listening",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the speaker's occupation?",
+    "stimulus": "I am a student.",
+    "answer_key": {
+      "options": [
+        "Teacher",
+        "Student",
+        "Engineer",
+        "Lawyer"
+      ],
+      "correct_index": 1,
+      "correct": "Student",
+      "explanation": "The speaker says 'I am a student' in the stimulus."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_0",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I __________ to the cinema yesterday.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "go",
+        "went",
+        "going",
+        "goes"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer is 'went' because it is the past tense of the verb 'go', which is needed to describe an action that happened in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_1",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If I __________ a million dollars, I would buy a house.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "will have"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer is 'had' because it is the second conditional tense, used for hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_2",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "By the time I __________ my homework, it was midnight.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "finish",
+        "finished",
+        "was finishing",
+        "had finished"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The correct answer is 'had finished' because it is the past perfect tense, used to describe an action that happened before another action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_3",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I __________ English for three years now.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "study",
+        "studies",
+        "studied",
+        "have been studying"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The correct answer is 'have been studying' because it is the present perfect continuous tense, used to describe an action that started in the past and continues up to the present."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_4",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If it __________ tomorrow, we will go to the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "rains",
+        "rain",
+        "will rain",
+        "is raining"
+      ],
+      "correct_index": -1,
+      "correct": "A",
+      "explanation": "The correct answer is 'rains' because it is the first conditional tense, used for likely or possible situations in the future."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_5",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "By next year, I __________ English for five years.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "will study",
+        "study",
+        "will have studied",
+        "am studying"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer is 'will have studied' because it is the future perfect tense, used to describe an action that will be completed at a specific point in the future."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_6",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I wish I __________ a better job.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "have",
+        "had",
+        "has",
+        "will have"
+      ],
+      "correct_index": -1,
+      "correct": "B",
+      "explanation": "The correct answer is 'had' because it is the second conditional tense, used for hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_7",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "When I was a child, my parents __________ me to bed early.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "put",
+        "puts",
+        "putting",
+        "used to put"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The correct answer is 'used to put' because it is the used to tense, used to describe a habitual or repeated action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_8",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "If I won the lottery, I __________ a house on the beach.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "buy",
+        "buys",
+        "will buy",
+        "would buy"
+      ],
+      "correct_index": -1,
+      "correct": "D",
+      "explanation": "The correct answer is 'would buy' because it is the second conditional tense, used for hypothetical or unlikely situations."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165880795_grammar_9",
+    "skill": "grammar",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "I __________ my car last week.",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "wash",
+        "washes",
+        "washed",
+        "have washed"
+      ],
+      "correct_index": -1,
+      "correct": "C",
+      "explanation": "The correct answer is 'washed' because it is the past simple tense, used to describe a completed action in the past."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_0",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the opposite of 'big'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Happy",
+        "Small",
+        "Cold",
+        "Hot"
+      ],
+      "correct_index": 1,
+      "correct": "Small",
+      "explanation": "The opposite of 'big' is 'small'."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_1",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'cloudy'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Sunny",
+        "Rainy",
+        "Windy",
+        "There are clouds in the sky"
+      ],
+      "correct_index": 3,
+      "correct": "There are clouds in the sky",
+      "explanation": "'Cloudy' means that you can see clouds in the sky."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_2",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'fast'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Slow",
+        "Quick",
+        "Big",
+        "Happy"
+      ],
+      "correct_index": 1,
+      "correct": "Quick",
+      "explanation": "'Fast' means something or someone is moving quickly."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_3",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'friend'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Family member",
+        "Someone you like and know well",
+        "Someone you don't like",
+        "Someone you have never met"
+      ],
+      "correct_index": 1,
+      "correct": "Someone you like and know well",
+      "explanation": "A 'friend' is someone you like and know well."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_4",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'beach'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place with sand and sea",
+        "A place with mountains and snow",
+        "A place with city and cars",
+        "A place with forest and trees"
+      ],
+      "correct_index": 0,
+      "correct": "A place with sand and sea",
+      "explanation": "A 'beach' is a place where you can find sand and sea."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_5",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'tired'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Happy and full of energy",
+        "Sad and sleepy",
+        "Hungry and thirsty",
+        "Need to rest or sleep"
+      ],
+      "correct_index": 3,
+      "correct": "Need to rest or sleep",
+      "explanation": "'Tired' means you need to rest or sleep."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_6",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'book'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Something you read",
+        "Something you write with",
+        "Something you wear",
+        "Something you eat"
+      ],
+      "correct_index": 0,
+      "correct": "Something you read",
+      "explanation": "A 'book' is something you can read."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_7",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'city'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A big town with many buildings",
+        "A small village with few people",
+        "A place with no people",
+        "A place with only one house"
+      ],
+      "correct_index": 0,
+      "correct": "A big town with many buildings",
+      "explanation": "A 'city' is a big town with many buildings and people."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_8",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'pencil'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "Something you use to write or draw",
+        "Something you use to eat",
+        "Something you use to wear",
+        "Something you use to sleep"
+      ],
+      "correct_index": 0,
+      "correct": "Something you use to write or draw",
+      "explanation": "A 'pencil' is something you use to write or draw."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165885419_vocabulary_9",
+    "skill": "vocabulary",
+    "task_type": "mcq",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is the meaning of 'school'?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [
+        "A place where you learn and study",
+        "A place where you work and earn money",
+        "A place where you play and have fun",
+        "A place where you sleep and rest"
+      ],
+      "correct_index": 0,
+      "correct": "A place where you learn and study",
+      "explanation": "'School' is a place where you learn and study."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165888719_speaking_0",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What is your name and where are you from?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should clearly state their name and place of origin."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165888719_speaking_1",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Read the following sentence out loud: 'Hello, how are you?'",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should read the sentence correctly, with clear pronunciation and intonation."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165888719_speaking_2",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Describe a picture of a cat",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should use basic vocabulary to describe the cat's appearance and surroundings."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165888719_speaking_3",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "What do you like to eat for breakfast?",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "The learner should respond with a simple sentence or phrase stating their breakfast preference, using basic vocabulary."
+    }
+  },
+  {
+    "external_id": "GEN_A1_1776165888719_speaking_4",
+    "skill": "speaking",
+    "task_type": "audio",
+    "target_cefr": "A1",
+    "difficulty": 0.5,
+    "prompt": "Introduce yourself and say what you like to do in your free time",
+    "stimulus": null,
+    "answer_key": {
+      "options": [],
+      "correct_index": -1,
+      "correct": "",
+      "explanation": "A good spoken response at this level should clearly state their name and a simple sentence or phrase about their hobby or interest."
+    }
+  }
+]
