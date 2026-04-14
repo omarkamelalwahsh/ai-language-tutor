@@ -206,8 +206,10 @@ export class AdaptiveAssessmentEngine {
     
     let evaluation: any;
     
-    // MCQ Check
-    if (item.response_mode === 'mcq') {
+    // MCQ Check — by response_mode OR by receptive skill classification
+    const isMCQTask = item.response_mode === 'mcq' || ['grammar', 'vocabulary', 'reading', 'listening'].includes(item.skill.toLowerCase());
+    
+    if (isMCQTask && item.options && item.options.length > 0) {
       const isCorrect = this.checkMCQ(item, answer);
       evaluation = { 
         score: isCorrect ? 1.0 : 0.0, 
@@ -215,7 +217,7 @@ export class AdaptiveAssessmentEngine {
         feedback: isCorrect ? "Correct!" : "Incorrect." 
       };
     } else {
-      // AI check for Writing/Speaking
+      // AI check for Writing/Speaking/open-ended
       console.log(`[Engine] Evaluating ${item.skill} via AI...`);
       evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
     }
@@ -352,21 +354,55 @@ export class AdaptiveAssessmentEngine {
     };
   }
 
-  private checkMCQ(item: QuestionBankItem, answer: string): boolean {
-    const key = item.answer_key as any;
-    if (key?.value?.options && typeof key.value.correct_index === 'number') {
-      const correctText = key.value.options[key.value.correct_index];
-      return answer.trim() === correctText?.trim();
-    }
-    return false;
+  private checkMCQ(item: any, answer: string): boolean {
+    const { options, correctIndex } = this.extractMCQData(item);
+    if (!options || correctIndex === null || correctIndex === undefined) return false;
+    const correctText = options[correctIndex];
+    return answer.trim() === correctText?.trim();
   }
 
-  private getCorrectAnswer(item: QuestionBankItem): string {
-    const key = item.answer_key as any;
-    if (key?.value?.options && typeof key.value.correct_index === 'number') {
-      return key.value.options[key.value.correct_index];
+  private getCorrectAnswer(item: any): string {
+    const { options, correctIndex } = this.extractMCQData(item);
+    if (!options || correctIndex === null || correctIndex === undefined) return "";
+    return options[correctIndex] || "";
+  }
+
+  /**
+   * Exhaustively extracts MCQ options and correct_index from any answer_key structure.
+   */
+  private extractMCQData(item: any): { options: string[] | null; correctIndex: number | null } {
+    // First check top-level options (hoisted by BatterySelector)
+    if (item.options && item.options.length > 0) {
+      // Find correct_index from answer_key
+      let correctIndex: number | null = null;
+      const ak = item.answer_key as any;
+      if (ak) {
+        let parsed = typeof ak === 'string' ? (() => { try { return JSON.parse(ak); } catch { return null; } })() : ak;
+        if (parsed?.value?.correct_index !== undefined) correctIndex = parsed.value.correct_index;
+        else if (parsed?.correct_index !== undefined) correctIndex = parsed.correct_index;
+      }
+      return { options: item.options, correctIndex };
     }
-    return "";
+
+    // Fallback: extract from answer_key directly
+    const ak = item.answer_key as any;
+    if (!ak) return { options: null, correctIndex: null };
+
+    let parsed = ak;
+    if (typeof ak === 'string') {
+      try { parsed = JSON.parse(ak); } catch { return { options: null, correctIndex: null }; }
+    }
+
+    // Path 1: answer_key.value.options
+    if (parsed?.value && typeof parsed.value === 'object' && Array.isArray(parsed.value.options)) {
+      return { options: parsed.value.options, correctIndex: parsed.value.correct_index ?? null };
+    }
+    // Path 2: answer_key.options
+    if (Array.isArray(parsed?.options)) {
+      return { options: parsed.options, correctIndex: parsed.correct_index ?? null };
+    }
+
+    return { options: null, correctIndex: null };
   }
 
   public getOutcome(): AssessmentOutcome {
@@ -446,6 +482,10 @@ export class AdaptiveAssessmentEngine {
 
   private buildQuestionObject(batteryQ: BatteryQuestion): AssessmentQuestion {
     const item = batteryQ.item;
+    
+    // For listening tasks: stimulus is the audio URL
+    const audioSource = item.audio_url || (item.skill === 'listening' ? item.stimulus : undefined);
+    
     return {
       id: item.id, 
       prompt: item.prompt, 
@@ -455,8 +495,8 @@ export class AdaptiveAssessmentEngine {
       response_mode: item.response_mode as any, 
       stimulus: item.stimulus,
       options: item.options, 
+      audioUrl: audioSource,
       _battery: batteryQ,
-      audioUrl: item.audio_url
     } as any;
   }
 }

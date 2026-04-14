@@ -17,7 +17,10 @@ import {
   TrendingUp, 
   Brain, 
   MessageSquare,
-  Play
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -27,7 +30,6 @@ import { AdaptiveAssessmentEngine, BatteryProgress } from '../services/AdaptiveA
 import { AssessmentSaveService } from '../services/AssessmentSaveService';
 import { TaskResult, OnboardingState } from '../types/app';
 import { DifficultyZone } from '../config/assessment-config';
-import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
 import { SpeakingModule } from '../components/runtime/modules/SpeakingModule';
 
 // --- Types ---
@@ -36,6 +38,12 @@ interface DiagnosticViewProps {
   taskResults?: TaskEvaluation[]; 
   onSaveComplete: (results: TaskResult[], outcome: AssessmentOutcome, evaluations: TaskEvaluation[]) => void;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// PRODUCTION vs RECEPTIVE SKILL CLASSIFICATION
+// ═══════════════════════════════════════════════════════════════
+const MCQ_SKILLS = ['grammar', 'vocabulary', 'reading', 'listening'];
+const PRODUCTION_SKILLS = ['writing', 'speaking'];
 
 // Skill badge config
 const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string; label: string }> = {
@@ -54,14 +62,157 @@ const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: 
   3: { label: 'Mastery', icon: <Brain size={16} />, color: 'text-indigo-600' },
 };
 
-// 🔊 Browser Speech Synthesis Utility
-const speakText = (text: string) => {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel(); // Stop current speech
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-  window.speechSynthesis.speak(utterance);
+// ═══════════════════════════════════════════════════════════════
+// 🔊 ROBUST AUDIO PLAYER COMPONENT
+// ═══════════════════════════════════════════════════════════════
+const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; prompt: string }> = ({ audioUrl, stimulus, prompt }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [useTTS, setUseTTS] = useState(false);
+
+  // Determine audio source
+  const audioSrc = audioUrl || (stimulus?.startsWith('http') ? stimulus : null);
+
+  useEffect(() => {
+    // If no real audio URL, default to TTS mode
+    if (!audioSrc) {
+      setUseTTS(true);
+    }
+  }, [audioSrc]);
+
+  const handlePlayPause = () => {
+    if (useTTS) {
+      if (isPlaying) {
+        window.speechSynthesis?.cancel();
+        setIsPlaying(false);
+      } else {
+        const text = stimulus || prompt;
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.85;
+        utterance.pitch = 1.0;
+        utterance.lang = 'en-US';
+        utterance.onend = () => setIsPlaying(false);
+        window.speechSynthesis.speak(utterance);
+        setIsPlaying(true);
+      }
+      return;
+    }
+
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().catch(() => {
+        // Fallback to TTS if audio fails
+        setUseTTS(true);
+        handlePlayPause();
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  const handleRestart = () => {
+    if (useTTS) {
+      window.speechSynthesis?.cancel();
+      setIsPlaying(false);
+      setTimeout(() => handlePlayPause(), 100);
+      return;
+    }
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play();
+    setIsPlaying(true);
+  };
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="mb-10 p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col items-center gap-6 text-center">
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-indigo-600 shadow-inner">
+        <Headphones size={40} />
+      </div>
+      
+      <div className="space-y-2">
+        <h3 className="text-xl font-bold text-slate-800">Listening Task</h3>
+        <p className="text-slate-500 text-sm">Listen carefully, then select the best answer below.</p>
+      </div>
+
+      {/* Hidden native audio element for real audio files */}
+      {audioSrc && (
+        <audio 
+          ref={audioRef}
+          src={audioSrc}
+          onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+          onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+          onEnded={() => setIsPlaying(false)}
+          onError={() => setUseTTS(true)}
+          preload="auto"
+        />
+      )}
+
+      {/* Custom Audio Controls */}
+      <div className="w-full max-w-md">
+        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          {/* Play/Pause Button */}
+          <button
+            onClick={handlePlayPause}
+            className="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-200 transition-all active:scale-95 flex-shrink-0"
+          >
+            {isPlaying ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" className="ml-0.5" />}
+          </button>
+
+          {/* Progress / Info */}
+          <div className="flex-1 min-w-0">
+            {useTTS ? (
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">AI Text-to-Speech</p>
+                <p className="text-[10px] text-slate-400">{isPlaying ? '🔊 Speaking...' : 'Press play to listen'}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                    style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] font-bold text-slate-400 tabular-nums">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Restart Button */}
+          <button
+            onClick={handleRestart}
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all flex-shrink-0"
+            title="Replay"
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
+
+        {/* Audio mode indicator */}
+        <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <Volume2 size={10} />
+          {useTTS ? 'Browser TTS Engine' : 'Audio Track'}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Zone badge config
@@ -107,6 +258,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   const setTaskWithReset = useCallback((task: AssessmentQuestion | null) => {
     if (task) {
+      // Stop any ongoing TTS when moving to next question
+      window.speechSynthesis?.cancel();
+      
       startTimeRef.current = Date.now();
       setTextValue("");
       setSelectedOption(null);
@@ -148,7 +302,6 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     console.log("[DiagnosticView] Initializing assessment bootstrap...");
     
     const bootstrap = async () => {
-      // Get the first question (might trigger fetch if no battery)
       const q = await engine.getNextQuestion();
       if (q) {
         setTaskWithReset(q);
@@ -192,6 +345,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const handleSkip = useCallback(async () => {
     if (!currentTask || isEvaluating) return;
     setIsEvaluating(true);
+    window.speechSynthesis?.cancel(); // Stop TTS on skip
     const next = await engine.skipQuestion(currentTask.id);
     if (next) setTaskWithReset(next);
     else await handleFinish();
@@ -204,8 +358,20 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const skillInfo = SKILL_CONFIG[currentTask.skill] || SKILL_CONFIG.reading;
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
 
+  // ═══════════════════════════════════════════════════════════════
+  // STRICT SKILL CLASSIFICATION
+  // ═══════════════════════════════════════════════════════════════
+  const isMCQSkill = MCQ_SKILLS.includes(currentTask.skill);
+  const isWritingSkill = currentTask.skill === 'writing';
+  const isSpeakingSkill = currentTask.skill === 'speaking';
+  const hasOptions = currentTask.options && currentTask.options.length > 0;
+
   // Split Layout for reading tasks with a stimulus
-  const isSplitLayout = !!currentTask.stimulus && ['reading'].includes(currentTask.skill);
+  const isSplitLayout = !!currentTask.stimulus && currentTask.skill === 'reading';
+
+  // Debug values
+  const debugLevel = (currentTask as any)._battery?.item?.target_cefr || currentTask.difficulty || '??';
+  const debugDiff = (currentTask as any)._battery?.zone || '??';
 
   return (
     <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
@@ -218,9 +384,17 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
           <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
-            PROG: {progress.answered + 1} / {progress.total}
+            {progress.answered + 1} / {progress.total}
           </span>
         </div>
+        {/* SKIP BUTTON */}
+        <button 
+          onClick={handleSkip}
+          disabled={isEvaluating}
+          className="flex items-center gap-1.5 px-4 py-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
+        >
+          <SkipForward size={14} /> Skip
+        </button>
       </header>
 
       <AnimatePresence mode="wait">
@@ -246,7 +420,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           <aside className="w-5/12 overflow-y-auto p-12 bg-white border-r border-slate-100 shadow-[inset_-10px_0_30px_-20px_rgba(0,0,0,0.05)]">
             <div className="max-w-xl ml-auto">
               <label className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
-                <BookOpen size={14} /> Passage {progress.currentBlock === 3 ? '(Remains)' : ''}
+                <BookOpen size={14} /> Reading Passage
               </label>
               <div className="text-xl text-slate-600 leading-[1.8] font-medium selection:bg-indigo-100">
                 {currentTask.stimulus}
@@ -259,14 +433,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col min-h-full">
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {/* 🔍 DEBUG BADGE (requested by user to verify AI alignment) */}
+                {/* 🔍 DEBUG BADGE */}
                 <div className="mr-2 px-2.5 py-1.5 bg-blue-50/80 border border-blue-100 rounded-lg flex items-center gap-1.5 shadow-sm">
                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Debug:</span>
                    <span className="text-[10px] font-black text-blue-700 uppercase">
-                     {currentTask.difficulty || '??'} ({((currentTask as any)._battery?.item?.target_cefr || '??')})
+                     {debugLevel} ({debugDiff})
                    </span>
                    <span className="mx-1 w-px h-2 bg-blue-200" />
                    <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.skill}</span>
+                   <span className="mx-1 w-px h-2 bg-blue-200" />
+                   <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.response_mode}</span>
                 </div>
 
                 <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${skillInfo.bg} ${skillInfo.color}`}>
@@ -283,66 +459,38 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </div>
             </div>
 
+            {/* NON-LISTENING STIMULUS (Reading without split, or grammar context) */}
             {!isSplitLayout && currentTask.stimulus && currentTask.skill !== 'listening' && (
               <div className="mb-10 p-7 bg-white rounded-[2rem] border border-slate-200/60 shadow-sm text-lg italic text-slate-600 leading-relaxed">
                 {currentTask.stimulus}
               </div>
             )}
 
+            {/* 🔊 LISTENING: Robust Audio Player */}
             {currentTask.skill === 'listening' && (
-              <div className="mb-10 p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col items-center gap-6 text-center">
-                <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
-                   <Headphones size={40} />
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-800">Listening Task</h3>
-                  <p className="text-slate-500 text-sm">Listen carefully and select the best answer.</p>
-                </div>
-
-                {/* 🔊 MANDATORY AUDIO PLAYER (Source from stimulus context) */}
-                <div className="w-full max-w-md p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <audio 
-                    controls 
-                    className="w-full h-10"
-                    src={currentTask.audioUrl || currentTask.stimulus} // Fallback to stimulus if URL is stored there
-                    onError={(e) => console.warn("Audio load failed:", e)}
-                  />
-                  {!currentTask.audioUrl && !currentTask.stimulus?.startsWith('http') && (
-                    <button 
-                      onClick={() => speakText(currentTask.stimulus || currentTask.prompt)}
-                      className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold"
-                    >
-                      <Play size={14} fill="currentColor" /> Play AI Text-to-Speech
-                    </button>
-                  )}
-                </div>
-              </div>
+              <ListeningAudioPlayer 
+                audioUrl={currentTask.audioUrl}
+                stimulus={currentTask.stimulus}
+                prompt={currentTask.prompt}
+              />
             )}
 
+            {/* QUESTION PROMPT */}
             <div className="mb-10">
               <h1 className="text-4xl font-black text-slate-900 leading-[1.15] tracking-tight">
                 {currentTask.prompt}
               </h1>
             </div>
 
+            {/* ═══════════════════════════════════════════════════════════
+                RESPONSE INPUT AREA — STRICT SKILL-BASED ROUTING
+                ═══════════════════════════════════════════════════════════ */}
             <div className="flex-1">
-              {/* STRICT ROUTING: MCQ skills get radio buttons, production skills get text/audio */}
-              {(currentTask.response_mode === 'mcq' || ['grammar', 'vocabulary', 'reading', 'listening'].includes(currentTask.skill)) && currentTask.options && currentTask.options.length > 0 ? (
+              
+              {/* ── MCQ SKILLS: Grammar, Vocabulary, Reading, Listening ── */}
+              {isMCQSkill && hasOptions ? (
                 <div className="space-y-4">
-                  {(!currentTask.options || currentTask.options.length === 0) ? (
-                    <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100 text-center shadow-xl shadow-amber-100/20">
-                       <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-                       <p className="text-amber-900 font-black text-lg mb-2">Configuration Warning</p>
-                       <p className="text-amber-800 font-medium leading-relaxed mb-6">We couldn't load the options for this question. You can skip it to continue the assessment.</p>
-                       <button 
-                         className="px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-amber-200 active:scale-95" 
-                         onClick={handleSkip}
-                       >
-                         Skip Question
-                       </button>
-                    </div>
-                  ) : currentTask.options.map((opt, i) => {
+                  {currentTask.options!.map((opt, i) => {
                     const optionId = `opt-${i}`;
                     return (
                       <label 
@@ -374,25 +522,51 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                     );
                   })}
                 </div>
-              ) : currentTask.response_mode === 'audio' && !useSpeakingFallback ? (
-                <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">
-                  <SpeakingModule 
-                    userId={user?.id}
-                    assessmentId={engine.assessmentId}
-                    task={currentTask as any} 
-                    isEvaluating={isEvaluating} 
-                    feedback={null} 
-                    retryCount={0} 
-                    onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)} 
-                  />
+
+              /* ── MCQ SKILL BUT NO OPTIONS → Warning + Skip ── */
+              ) : isMCQSkill && !hasOptions ? (
+                <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100 text-center shadow-xl shadow-amber-100/20">
+                   <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                   <p className="text-amber-900 font-black text-lg mb-2">Missing Options</p>
+                   <p className="text-amber-800 font-medium leading-relaxed mb-6">This question's options couldn't be loaded. Skip to continue.</p>
+                   <button 
+                     className="px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-amber-200 active:scale-95" 
+                     onClick={handleSkip}
+                   >
+                     Skip Question
+                   </button>
                 </div>
+
+              /* ── SPEAKING SKILL → Audio Recorder (SpeakingModule) ── */
+              ) : isSpeakingSkill && !useSpeakingFallback ? (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">
+                    <SpeakingModule 
+                      userId={user?.id}
+                      assessmentId={engine.assessmentId}
+                      task={currentTask as any} 
+                      isEvaluating={isEvaluating} 
+                      feedback={null} 
+                      retryCount={0} 
+                      onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)} 
+                    />
+                  </div>
+                  <button 
+                    onClick={() => setUseSpeakingFallback(true)}
+                    className="w-full py-3 text-slate-400 hover:text-slate-600 text-xs font-bold transition-all"
+                  >
+                    Can't use microphone? Switch to typing
+                  </button>
+                </div>
+
+              /* ── WRITING SKILL or SPEAKING FALLBACK → Text Area ── */
               ) : (
                 <div className="space-y-6">
                   <div className="relative group">
                     <textarea 
                       value={textValue} 
                       onChange={e => setTextValue(e.target.value)} 
-                      placeholder="Type your response here..." 
+                      placeholder={isWritingSkill ? "Write your answer here..." : "Type your spoken response here..."} 
                       className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none text-slate-700 text-xl font-medium" 
                     />
                     <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{textValue.length} characters</div>
@@ -404,9 +578,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                   >
                     {isEvaluating ? (
                       <span className="flex items-center justify-center gap-2">
-                        <RefreshCcw className="animate-spin" size={20} /> Analyzing Consistency...
+                        <RefreshCcw className="animate-spin" size={20} /> Evaluating...
                       </span>
-                    ) : 'Submit Phase Answer'}
+                    ) : isWritingSkill ? 'Submit Written Answer' : 'Submit Answer'}
                   </button>
                 </div>
               )}
@@ -417,10 +591,11 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 <Shield size={14} /> Encrypted Session
               </div>
               <button 
-                onClick={() => setShowQuitDialog(true)} 
-                className="px-4 py-2 text-slate-400 font-black text-xs hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                onClick={handleSkip}
+                disabled={isEvaluating}
+                className="px-4 py-2 text-slate-400 font-black text-xs hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-30"
               >
-                End Session
+                <SkipForward size={12} /> Skip Question
               </button>
             </div>
           </div>
@@ -445,8 +620,6 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   );
 };
 
-const LoadingSkeleton = () => <div className="h-screen flex items-center justify-center bg-[#F7F8FC]"><div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent animate-spin rounded-full" /></div>;
-
 const PreparingBatteryView = () => (
   <div className="h-screen bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
     <motion.div 
@@ -457,9 +630,9 @@ const PreparingBatteryView = () => (
       <div className="absolute inset-0 bg-blue-600/10 animate-ping rounded-[2rem]" />
       <Zap className="text-blue-600" size={40} fill="currentColor" />
     </motion.div>
-    <h2 className="text-2xl font-bold text-slate-900 mb-2">Architecting your proficiency scan</h2>
+    <h2 className="text-2xl font-bold text-slate-900 mb-2">Building your 40-question assessment</h2>
     <p className="text-slate-500 max-w-xs leading-relaxed text-sm">
-      We're selecting specialized questions from our hybrid zones to build your personalized assessment.
+      We're selecting specialized questions across 6 skills to build your personalized IELTS-style diagnostic.
     </p>
     <div className="mt-12 flex gap-1.5">
       {[0, 1, 2].map(i => (
@@ -479,7 +652,7 @@ const AnalyzingTransitionView = ({ isSaving, saveError }: any) => (
     <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center"><Brain color="white" size={40} /></motion.div>
     <div className="space-y-2">
       <h2 className="text-3xl font-black text-slate-900">Calculating precise profile...</h2>
-      <p className="text-slate-500">Aggregating responses across hybrid zones.</p>
+      <p className="text-slate-500">Aggregating 40-question responses across all skills.</p>
     </div>
   </div>
 );

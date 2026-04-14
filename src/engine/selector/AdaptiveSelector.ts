@@ -249,15 +249,59 @@ export class BatterySelector {
   // ═══════════════════════════════════════════════════════════════
 
   /**
-   * 🛡️ DATA HOISTING: Ensure UI always has top-level options for MCQ tasks.
-   * Pulls nested `options` from `answer_key.value.options` to item.options.
+   * 🛡️ EXHAUSTIVE DATA HOISTING: Extract options from answer_key regardless of nesting.
+   * Checks ALL possible structures:
+   *   1. answer_key.value.options  (canonical AnswerKeyObject)
+   *   2. answer_key.options        (flat structure)
+   *   3. answer_key (as string → parsed JSON)
+   *   4. answer_key.value (as string → parsed JSON)
+   * Also extracts correct_answer for the engine's MCQ check.
    */
   private static hoistOptions(item: QuestionBankItem) {
-    if (!item.options && typeof item.answer_key === 'object' && item.answer_key !== null) {
-      const val = (item.answer_key as any).value;
-      if (val && typeof val === 'object' && (val as any).options) {
-        item.options = (val as any).options;
-      }
+    if (item.options && item.options.length > 0) {
+      // Already has top-level options, nothing to hoist
+      return;
+    }
+
+    const ak = item.answer_key as any;
+    if (!ak) return;
+
+    let parsed = ak;
+
+    // If answer_key is a JSON string, parse it
+    if (typeof ak === 'string') {
+      try { parsed = JSON.parse(ak); } catch { return; }
+    }
+
+    let options: string[] | null = null;
+    let correctIndex: number | null = null;
+
+    // Path 1: answer_key.value.options (canonical)
+    if (parsed?.value && typeof parsed.value === 'object' && Array.isArray(parsed.value.options)) {
+      options = parsed.value.options;
+      correctIndex = parsed.value.correct_index;
+    }
+    // Path 2: answer_key.options (flat)
+    else if (Array.isArray(parsed?.options)) {
+      options = parsed.options;
+      correctIndex = parsed.correct_index;
+    }
+    // Path 3: answer_key.value is a string (possibly JSON)
+    else if (parsed?.value && typeof parsed.value === 'string') {
+      try {
+        const innerParsed = JSON.parse(parsed.value);
+        if (Array.isArray(innerParsed?.options)) {
+          options = innerParsed.options;
+          correctIndex = innerParsed.correct_index;
+        }
+      } catch { /* not JSON */ }
+    }
+
+    if (options && options.length > 0) {
+      item.options = options;
+      console.log(`[Hoist] ✅ ${item.id} (${item.skill}): Hoisted ${options.length} options`);
+    } else {
+      console.warn(`[Hoist] ⚠️ ${item.id} (${item.skill}): No options found in answer_key:`, JSON.stringify(ak).slice(0, 200));
     }
   }
 
