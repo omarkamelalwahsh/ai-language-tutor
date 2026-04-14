@@ -167,10 +167,22 @@ export class AssessmentSaveService {
   /**
    * LIGHTNING LOGGER: Non-blocking Fire-and-Forget orchestration.
    */
-  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string, timeSpentMs?: number) {
-    const finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
-    
-    // Logic for difficulty mapping
+  /**
+   * 🔥 FIRE-AND-FORGET LOGGER: Fully crash-proof — never throws, never blocks UI.
+   * Each insert is independently try-caught. Auth failures are swallowed.
+   * Failed logs are buffered locally for background sync.
+   */
+  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string, timeSpentMs?: number): Promise<{ success: boolean }> {
+    // 🛡️ Crash-proof auth resolution
+    let finalUserId: string;
+    try {
+      finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
+    } catch (authErr) {
+      console.warn('[AssessmentSaveService] ⚠️ Auth resolution failed (non-blocking):', authErr);
+      return { success: false };
+    }
+
+    // Difficulty mapping
     const DIFF_MAP: Record<string, number> = {
       'a1': 0.1, 'a2': 0.2,
       'b1': 0.4, 'b2': 0.6,
@@ -182,16 +194,19 @@ export class AssessmentSaveService {
     const answerStr = typeof answer === 'object' ? JSON.stringify(answer) : String(answer || '');
     const questionText = task.prompt || '';
     const skillStr = String(task.skill || "vocabulary").toLowerCase();
-    
-    // 🛡️ Production task awareness: writing/speaking use AI scores, not boolean MCQ checks
+
+    // Production task awareness: writing/speaking use AI scores, not boolean MCQ checks
     const responseMode = (task.response_mode || 'mcq') as string;
     const isProductionTask = responseMode === 'typed' || responseMode === 'audio';
-    const isCorrect = evaluation.is_correct !== undefined 
-      ? evaluation.is_correct 
+    const isCorrect = evaluation.is_correct !== undefined
+      ? evaluation.is_correct
       : (evaluation.score || 0) >= 0.5;
 
+    let respSuccess = false;
+    let logSuccess = false;
+
+    // 1. ASSESSMENT_RESPONSES — Isolated try-catch
     try {
-      // 1. ASSESSMENT_RESPONSES — Clean payload, only valid columns
       const responsesRow = {
         user_id: finalUserId,
         question_id: String(task.id),
@@ -204,14 +219,19 @@ export class AssessmentSaveService {
       };
 
       const { error: respError } = await supabase.from('assessment_responses').insert(responsesRow);
-      
-      if (respError) {
-        console.error("[AssessmentSaveService] ❌ assessment_responses error:", respError.message, respError);
-      } else {
-        console.log(`[AssessmentSaveService] ✅ assessment_responses: saved ${responsesRow.question_id} (difficulty=${difficultyVal}, level=${canonicalLevel})`);
-      }
 
-      // 2. ASSESSMENT_LOGS — Clean payload, map to BOTH question AND question_text for safety
+      if (respError) {
+        console.warn("[AssessmentSaveService] ⚠️ assessment_responses error (non-blocking):", respError.message);
+      } else {
+        respSuccess = true;
+        console.log(`[AssessmentSaveService] ✅ assessment_responses: saved ${responsesRow.question_id}`);
+      }
+    } catch (err) {
+      console.warn('[AssessmentSaveService] ⚠️ assessment_responses crashed (non-blocking):', err);
+    }
+
+    // 2. ASSESSMENT_LOGS — Isolated try-catch
+    try {
       const logsRow = {
         user_id: finalUserId,
         question_id: String(task.id),
@@ -231,24 +251,24 @@ export class AssessmentSaveService {
       };
 
       const { error: logError } = await supabase.from('assessment_logs').insert(logsRow);
-      
+
       if (logError) {
-        console.error(`[AssessmentSaveService] ❌ assessment_logs error:`, logError.message, logError);
+        console.warn(`[AssessmentSaveService] ⚠️ assessment_logs error (non-blocking):`, logError.message);
         this.saveToLocalBuffer(logsRow);
       } else {
-        console.log(`[AssessmentSaveService] ✅ assessment_logs: saved ${logsRow.question_id} (difficulty=${difficultyVal}, level=${canonicalLevel})`);
+        logSuccess = true;
+        console.log(`[AssessmentSaveService] ✅ assessment_logs: saved ${logsRow.question_id}`);
       }
-
-      // Summary
-      if (!respError && !logError) {
-        console.log(`[AssessmentSaveService] 🎯 Double-logged question ${String(task.id)} | difficulty=${difficultyVal} | level=${canonicalLevel} | skill=${skillStr}`);
-      }
-
-      return { success: !respError && !logError };
     } catch (err) {
-      console.error('[AssessmentSaveService] ❌ Persistence error:', err);
-      return { success: false, error: err };
+      console.warn('[AssessmentSaveService] ⚠️ assessment_logs crashed (non-blocking):', err);
     }
+
+    // Summary (never throws)
+    if (respSuccess && logSuccess) {
+      console.log(`[AssessmentSaveService] 🎯 Double-logged question ${String(task.id)} | difficulty=${difficultyVal} | level=${canonicalLevel} | skill=${skillStr}`);
+    }
+
+    return { success: respSuccess && logSuccess };
   }
 
   /**

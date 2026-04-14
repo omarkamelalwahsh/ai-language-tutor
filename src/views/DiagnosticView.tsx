@@ -320,15 +320,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     try {
       const { evaluation } = await engine.submitAnswer(currentTask, answer, time, mode, meta);
       
-      // 🚀 AWAIT PERSISTENCE: Ensure logs hit Supabase before transitioning
-      await AssessmentSaveService.log_and_update_assessment(
+      // 🔥 FIRE-AND-FORGET: Log to Supabase in background — never block UI transition
+      AssessmentSaveService.log_and_update_assessment(
         currentTask, 
         evaluation, 
         answer, 
         user?.id, 
         time
-      );
+      ).catch(err => console.warn("[DiagnosticView] Background save failed (non-blocking):", err));
       
+      // 🚀 IMMEDIATE TRANSITION: Move to next question regardless of save status
       const next = await engine.getNextQuestion();
       if (next) setTaskWithReset(next);
       else await handleFinish();
