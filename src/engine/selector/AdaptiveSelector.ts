@@ -1,11 +1,11 @@
 /**
- * BatterySelector — Sequential Hybrid Battery Builder
+ * BatterySelector — 40-Question IELTS-Inspired Hybrid Battery Builder
  * 
- * Implements the 4-Block Sequential Flow:
- * 1. Listening & Language Use (10 Qs)
- * 2. Reading (10 Qs - Shared Stimulus)
- * 3. Writing (10 Qs - Same Stimulus)
- * 4. Speaking (10 Qs - Audio)
+ * Enforces strict skill quotas with balanced difficulty distribution:
+ *   Grammar: 12 | Listening: 8 | Reading: 8 | Vocabulary: 4 | Writing: 4 | Speaking: 4
+ * 
+ * Difficulty split per skill group follows a balanced Easy/Medium/Hard pattern.
+ * Production tasks (Writing/Speaking) are interleaved every ~5 questions.
  */
 
 import { CEFRLevel, QuestionBankItem } from '../../types/efset';
@@ -21,7 +21,92 @@ export interface BatteryQuestion {
   pointValue: number;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// IELTS-Inspired Skill Quota Configuration
+// ═══════════════════════════════════════════════════════════════════
+
+interface SkillQuota {
+  skill: string;
+  total: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  responseMode: 'mcq' | 'typed' | 'audio';
+  isProduction: boolean;
+}
+
+const SKILL_QUOTAS: SkillQuota[] = [
+  { skill: 'grammar',    total: 12, easy: 4, medium: 4, hard: 4, responseMode: 'mcq',   isProduction: false },
+  { skill: 'listening',  total: 8,  easy: 2, medium: 4, hard: 2, responseMode: 'mcq',   isProduction: false },
+  { skill: 'reading',    total: 8,  easy: 2, medium: 4, hard: 2, responseMode: 'mcq',   isProduction: false },
+  { skill: 'vocabulary', total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'mcq',   isProduction: false },
+  { skill: 'writing',    total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'typed',  isProduction: true },
+  { skill: 'speaking',   total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'audio',  isProduction: true },
+];
+
+const BATTERY_SIZE = 40;
+
 export class BatterySelector {
+
+  // ═══════════════════════════════════════════════════════════════
+  // PUBLIC API
+  // ═══════════════════════════════════════════════════════════════
+
+  public static async fetchAndBuild(userId: string): Promise<BatteryQuestion[]> {
+    console.log("[Selector] 🏗️ Initializing 40-Question IELTS Battery...");
+    const seenIds = userId ? await this.getSeenIds(userId) : new Set<string>();
+
+    // 1. Fetch per-skill pools from database
+    const skillPools = await this.fetchPerSkillPools(seenIds);
+
+    // 2. Sample each skill quota with difficulty distribution
+    const receptiveItems: BatteryQuestion[] = [];
+    const productionItems: BatteryQuestion[] = [];
+
+    for (const quota of SKILL_QUOTAS) {
+      const pool = skillPools[quota.skill] || [];
+      const sampled = this.sampleWithDifficulty(pool, quota);
+
+      // Enforce response_mode and hoist options
+      sampled.forEach(item => {
+        item.response_mode = quota.responseMode as any;
+        this.hoistOptions(item);
+      });
+
+      const batteryItems = sampled.map((item, i) => this.toBatteryQuestion(item, quota));
+
+      if (quota.isProduction) {
+        productionItems.push(...batteryItems);
+      } else {
+        receptiveItems.push(...batteryItems);
+      }
+
+      console.log(`[Selector]   ✅ ${quota.skill}: ${sampled.length}/${quota.total} (E:${quota.easy} M:${quota.medium} H:${quota.hard})`);
+    }
+
+    // 3. Shuffle receptive items
+    const shuffledReceptive = this.shuffle(receptiveItems);
+
+    // 4. Interleave production tasks every ~5 questions
+    const battery = this.interleaveProduction(shuffledReceptive, this.shuffle(productionItems));
+
+    // 5. Assign final indices and blocks
+    battery.forEach((q, i) => {
+      q.globalIndex = i;
+      q.block = i < 13 ? 1 : i < 27 ? 2 : 3;
+    });
+
+    // 6. Validation
+    this.validateBattery(battery);
+
+    console.log(`[Selector] ✅ 40-Question IELTS Battery Assembled (${battery.length} items).`);
+    return battery;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FETCHING
+  // ═══════════════════════════════════════════════════════════════
+
   private static async getSeenIds(userId: string): Promise<Set<string>> {
     try {
       const { data } = await supabase
@@ -35,129 +120,156 @@ export class BatterySelector {
     }
   }
 
-  public static async fetchAndBuild(userId: string): Promise<BatteryQuestion[]> {
-    console.log("[Selector] Initializing Smart Pull for battery...");
-    const seenIds = userId ? await this.getSeenIds(userId) : new Set<string>();
+  /**
+   * Fetches a generous pool for each skill independently.
+   * This ensures we have enough items to satisfy each quota.
+   */
+  private static async fetchPerSkillPools(seenIds: Set<string>): Promise<Record<string, QuestionBankItem[]>> {
+    const pools: Record<string, QuestionBankItem[]> = {};
+
+    const fetchPromises = SKILL_QUOTAS.map(async (quota) => {
+      // Fetch 3x the quota to have enough for difficulty sampling
+      const limit = Math.max(quota.total * 3, 30);
+      const { data, error } = await supabase
+        .from('question_bank_items')
+        .select('*')
+        .eq('skill', quota.skill)
+        .limit(limit);
+
+      if (error) {
+        console.error(`[Selector] ❌ Failed to fetch ${quota.skill}:`, error.message);
+        pools[quota.skill] = [];
+        return;
+      }
+
+      pools[quota.skill] = (data || []).filter(q => !seenIds.has(q.id)) as QuestionBankItem[];
+    });
+
+    await Promise.all(fetchPromises);
+    return pools;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // DIFFICULTY SAMPLING
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Samples items from a pool matching the Easy/Medium/Hard quota.
+   * Falls back to filling from remaining items if a difficulty band is short.
+   */
+  private static sampleWithDifficulty(pool: QuestionBankItem[], quota: SkillQuota): QuestionBankItem[] {
+    const easyPool = pool.filter(q => this.getDifficultyZone(q) === 'EASY');
+    const mediumPool = pool.filter(q => this.getDifficultyZone(q) === 'MEDIUM');
+    const hardPool = pool.filter(q => this.getDifficultyZone(q) === 'HARD');
+
+    const sampledEasy = this.shuffle(easyPool).slice(0, quota.easy);
+    const sampledMedium = this.shuffle(mediumPool).slice(0, quota.medium);
+    const sampledHard = this.shuffle(hardPool).slice(0, quota.hard);
+
+    let result = [...sampledEasy, ...sampledMedium, ...sampledHard];
+
+    // Fallback: If we're short, fill from the remaining pool
+    if (result.length < quota.total) {
+      const usedIds = new Set(result.map(q => q.id));
+      const remaining = this.shuffle(pool.filter(q => !usedIds.has(q.id)));
+      const deficit = quota.total - result.length;
+      result = [...result, ...remaining.slice(0, deficit)];
+      
+      if (result.length < quota.total) {
+        console.warn(`[Selector] ⚠️ ${quota.skill}: Only found ${result.length}/${quota.total} items. Battery may be smaller.`);
+      }
+    }
+
+    return result;
+  }
+
+  private static getDifficultyZone(item: QuestionBankItem): DifficultyZone {
+    const diff = item.difficulty || this.getFallbackDifficulty(item.target_cefr || (item as any).level);
+    if (diff <= 0.3) return 'EASY';
+    if (diff <= 0.6) return 'MEDIUM';
+    return 'HARD';
+  }
+
+  private static getFallbackDifficulty(level?: string): number {
+    const l = (level || 'b1').toLowerCase();
+    const map: Record<string, number> = {
+      'a1': 0.1, 'a2': 0.2,
+      'b1': 0.4, 'b2': 0.6,
+      'c1': 0.8, 'c2': 1.0
+    };
+    return map[l] || 0.4;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTERLEAVING ALGORITHM
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * Distributes production tasks (Writing/Speaking) evenly throughout the battery.
+   * Target: one production task every ~5 questions.
+   */
+  private static interleaveProduction(
+    receptive: BatteryQuestion[], 
+    production: BatteryQuestion[]
+  ): BatteryQuestion[] {
+    if (production.length === 0) return receptive;
+
     const battery: BatteryQuestion[] = [];
+    const receptiveQueue = [...receptive];
+    const productionQueue = [...production];
 
-    // --- BLOCK 1: Listening & Language Use (10 Qs) ---
-    // Skills: listening, grammar, vocabulary (Normalized to lowercase for Postgres Enum)
-    const block1Pool = await this.queryPool(['listening', 'grammar', 'vocabulary'], seenIds);
-    const block1Qs = this.sampleSequential(block1Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 1');
-    this.addBatch(battery, block1Qs, 1);
+    // Total slots = receptive + production
+    const totalSlots = receptiveQueue.length + productionQueue.length;
+    // Calculate interval: place a production task every N questions
+    const interval = productionQueue.length > 0
+      ? Math.floor(totalSlots / (productionQueue.length + 1))
+      : totalSlots;
 
-    // --- BLOCK 2 & 3: Reading & Writing (Shared Stimulus) ---
-    const sharedPool = await this.querySharedStimulusPool(seenIds);
-    if (sharedPool.reading.length >= 10 && sharedPool.writing.length >= 10) {
-      this.addBatch(battery, this.sampleSequential(sharedPool.reading, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Shared)'), 2);
-      this.addBatch(battery, this.sampleSequential(sharedPool.writing, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Shared)'), 3);
-    } else {
-      console.warn("[Selector] Shared stimulus pool dry. Falling back to independent pools.");
-      const rPool = await this.queryPool(['reading'], seenIds);
-      const wPool = await this.queryPool(['writing'], seenIds);
-      this.addBatch(battery, this.sampleSequential(rPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 2 (Indep)'), 2);
-      this.addBatch(battery, this.sampleSequential(wPool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 3 (Indep)'), 3);
+    let questionCount = 0;
+    let nextProductionSlot = interval; // First production task after 'interval' receptive items
+
+    while (receptiveQueue.length > 0 || productionQueue.length > 0) {
+      questionCount++;
+
+      if (questionCount >= nextProductionSlot && productionQueue.length > 0) {
+        battery.push(productionQueue.shift()!);
+        nextProductionSlot = questionCount + interval;
+      } else if (receptiveQueue.length > 0) {
+        battery.push(receptiveQueue.shift()!);
+      } else if (productionQueue.length > 0) {
+        battery.push(productionQueue.shift()!);
+      }
     }
 
-    // --- BLOCK 4: Speaking (10 Qs) ---
-    const block4Pool = await this.queryPool(['speaking'], seenIds);
-    const block4Qs = this.sampleSequential(block4Pool, { EASY: 3, MEDIUM: 4, HARD: 3 }, 'Block 4');
-    this.addBatch(battery, block4Qs, 4);
-
-    // --- GLOBAL SAFETY CHECK: FILL TO 40 ---
-    if (battery.length < 40) {
-      console.warn(`[Selector] ⚠️ Battery incomplete (${battery.length}/40). Filling gaps...`);
-      const gapSize = 40 - battery.length;
-      const fillerPool = await this.queryPool(['listening', 'reading', 'grammar', 'vocabulary'], seenIds);
-      const fillerShuffled = this.shuffle(fillerPool.filter(f => !battery.some(b => b.item.id === f.id)));
-      this.addBatch(battery, fillerShuffled.slice(0, gapSize), 99); // Block 99 for filler
-    }
-
-    console.log(`[Selector] ✅ Final high-fidelity battery built with ${battery.length} questions.`);
     return battery;
   }
 
-  private static async queryPool(skills: string[], seenIds: Set<string>): Promise<QuestionBankItem[]> {
-    // Exact match (.in) for prioritized skills (must be lowercase for Postgres Enum)
-    const { data, error } = await supabase
-      .from('question_bank_items')
-      .select('*')
-      .in('skill', skills)
-      .limit(200);
+  // ═══════════════════════════════════════════════════════════════
+  // DATA HOISTING & UTILITIES
+  // ═══════════════════════════════════════════════════════════════
 
-    if (error) throw error;
-    return (data || []).filter(q => !seenIds.has(q.id)) as any;
-  }
-
-  private static async querySharedStimulusPool(seenIds: Set<string>): Promise<{ reading: QuestionBankItem[], writing: QuestionBankItem[] }> {
-    const { data: candidates } = await supabase
-      .from('question_bank_items')
-      .select('stimulus')
-      .not('stimulus', 'is', null)
-      .eq('skill', 'reading')
-      .limit(10);
-    
-    if (!candidates || candidates.length === 0) return { reading: [], writing: [] };
-
-    const stimulus = candidates[0].stimulus;
-    const { data: tasks } = await supabase
-      .from('question_bank_items')
-      .select('*')
-      .eq('stimulus', stimulus)
-      .in('skill', ['reading', 'writing']);
-
-    const items = (tasks || []) as any[];
-    return {
-      reading: items.filter(i => i.skill === 'reading' && !seenIds.has(i.id)),
-      writing: items.filter(i => i.skill === 'writing' && !seenIds.has(i.id))
-    };
-  }
-
-  private static sampleSequential(pool: QuestionBankItem[], counts: Record<DifficultyZone, number>, context: string): QuestionBankItem[] {
-    const sampled: QuestionBankItem[] = [];
-    const zones: DifficultyZone[] = ['EASY', 'MEDIUM', 'HARD'];
-
-    zones.forEach(zone => {
-      // Postgres Enum cefr_level is lowercase (a1, b2, etc.)
-      const configLevels = ASSESSMENT_CONFIG.ZONES[zone].levels;
-      const targetLevels = configLevels.map(l => l.toLowerCase());
-      
-      const zonePool = pool.filter(q => {
-        const itemLevel = (q.target_cefr || (q as any).level || '').toLowerCase();
-        return targetLevels.includes(itemLevel);
-      });
-      
-      const requestedCount = counts[zone];
-      const shuffled = this.shuffle(zonePool);
-      const zoneSelection = shuffled.slice(0, requestedCount);
-      sampled.push(...zoneSelection);
-      
-      if (zoneSelection.length < requestedCount) {
-        console.warn(`[Selector] [${context}] Requested ${requestedCount} for ${zone} but only found ${zoneSelection.length}.`);
-        const remainingNeeded = requestedCount - zoneSelection.length;
-        const fallbackPool = pool.filter(p => !sampled.some(s => s.id === p.id));
-        sampled.push(...this.shuffle(fallbackPool).slice(0, remainingNeeded));
+  /**
+   * 🛡️ DATA HOISTING: Ensure UI always has top-level options for MCQ tasks.
+   * Pulls nested `options` from `answer_key.value.options` to item.options.
+   */
+  private static hoistOptions(item: QuestionBankItem) {
+    if (!item.options && typeof item.answer_key === 'object' && item.answer_key !== null) {
+      const val = (item.answer_key as any).value;
+      if (val && typeof val === 'object' && (val as any).options) {
+        item.options = (val as any).options;
       }
-    });
-
-    return sampled;
+    }
   }
 
-  private static addBatch(battery: BatteryQuestion[], items: QuestionBankItem[], block: number) {
-    items.forEach(item => {
-      const dbLevel = item.target_cefr || (item as any).level || 'b1';
-      // Normalize to lowercase for consistency with DB enum types
-      const level = dbLevel.toLowerCase(); 
-      const zone = this.getZoneForLevel(level);
-      battery.push({
-        item,
-        block,
-        skill: item.skill,
-        zone,
-        globalIndex: battery.length,
-        pointValue: ASSESSMENT_CONFIG.ZONES[zone].pointsPerQuestion
-      });
-    });
+  private static toBatteryQuestion(item: QuestionBankItem, quota: SkillQuota): BatteryQuestion {
+    return {
+      item,
+      block: 1, // Will be reassigned after interleaving
+      skill: item.skill,
+      zone: this.getDifficultyZone(item),
+      globalIndex: 0, // Will be reassigned after interleaving
+      pointValue: 0,   // Dynamic based on difficulty in Engine
+    };
   }
 
   private static getZoneForLevel(level: string): DifficultyZone {
@@ -165,6 +277,34 @@ export class BatterySelector {
     if (['a1', 'a2'].includes(l)) return 'EASY';
     if (['b1', 'b2'].includes(l)) return 'MEDIUM';
     return 'HARD';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // VALIDATION
+  // ═══════════════════════════════════════════════════════════════
+
+  private static validateBattery(battery: BatteryQuestion[]) {
+    const skillCounts: Record<string, number> = {};
+    const zoneCounts: Record<string, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const modeCounts: Record<string, number> = {};
+
+    battery.forEach(q => {
+      const skill = q.skill.toLowerCase();
+      skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+      zoneCounts[q.zone] = (zoneCounts[q.zone] || 0) + 1;
+      const mode = q.item.response_mode || 'unknown';
+      modeCounts[mode] = (modeCounts[mode] || 0) + 1;
+    });
+
+    console.log(`[Selector] 📊 Battery Composition:`);
+    console.log(`  Skills:`, JSON.stringify(skillCounts));
+    console.log(`  Zones:`, JSON.stringify(zoneCounts));
+    console.log(`  Modes:`, JSON.stringify(modeCounts));
+    console.log(`  Total:`, battery.length);
+
+    if (battery.length < BATTERY_SIZE) {
+      console.warn(`[Selector] ⚠️ Battery is undersized: ${battery.length}/${BATTERY_SIZE}. Some skills may have insufficient items in the question bank.`);
+    }
   }
 
   private static shuffle<T>(array: T[]): T[] {
@@ -176,4 +316,3 @@ export class BatterySelector {
     return arr;
   }
 }
-

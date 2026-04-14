@@ -1,6 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * Progressive 40-Question Hybrid Ordered Architecture Engine
+ * 40-Question IELTS-Inspired Adaptive Assessment Engine
+ * Skill Quotas: Grammar(12) Listening(8) Reading(8) Vocab(4) Writing(4) Speaking(4)
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -16,7 +17,7 @@ import {
 } from '../types/assessment';
 import { supabase } from '../lib/supabaseClient';
 import { GroqScoringService } from './GroqScoringService';
-import { 
+import {
   CEFRLevel, 
   QuestionBankItem, 
 } from '../types/efset';
@@ -24,6 +25,13 @@ import { BatterySelector, BatteryQuestion } from '../engine/selector/AdaptiveSel
 import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { ASSESSMENT_CONFIG, DifficultyZone } from '../config/assessment-config';
 import { AssessmentSaveService } from './AssessmentSaveService';
+
+// Fallback Difficulty Constants
+const DIFF_MAP: Record<string, number> = {
+  'a1': 0.1, 'a2': 0.2,
+  'b1': 0.4, 'b2': 0.6,
+  'c1': 0.8, 'c2': 1.0
+};
 
 export interface BatteryProgress {
   answered: number;
@@ -68,9 +76,12 @@ export class AdaptiveAssessmentEngine {
       console.log(`[Engine] Initialized with pre-fetched static battery (${this.battery.length} questions).`);
     }
 
-    const ALL_SKILLS = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
-    ALL_SKILLS.forEach(s => {
-      this.skillScores[s] = { earned: 0, total: 20 };
+    // IELTS quotas: grammar=12, listening=8, reading=8, vocab=4, writing=4, speaking=4
+    const SKILL_TOTALS: Record<string, number> = {
+      grammar: 12, listening: 8, reading: 8, vocabulary: 4, writing: 4, speaking: 4
+    };
+    Object.entries(SKILL_TOTALS).forEach(([s, total]) => {
+      this.skillScores[s] = { earned: 0, total };
     });
 
     // Only recover if we don't have a static battery or if we need to resume
@@ -79,19 +90,6 @@ export class AdaptiveAssessmentEngine {
 
   public hasBattery(): boolean {
     return this.battery && this.battery.length > 0;
-  }
-
-  public getProgress(): BatteryProgress {
-    const total = this.battery.length || 40;
-    return {
-      answered: this.currentIndex,
-      total: total,
-      percentage: Math.min(100, Math.round((this.currentIndex / total) * 100)),
-      currentBlock: Math.floor(this.currentIndex / 10) + 1,
-      currentSkill: this.battery[this.currentIndex]?.item.skill || null,
-      currentZone: this.battery[this.currentIndex]?.zone || "MEDIUM",
-      completed: this.completed
-    };
   }
 
   private tryRecoverState() {
@@ -201,6 +199,11 @@ export class AdaptiveAssessmentEngine {
     const batteryQ = (question as any)._battery as BatteryQuestion;
     const item = batteryQ.item;
     
+    // Determine numerical difficulty and level (strictly lowercase)
+    const levelOrDiff = item.target_cefr || (item as any).level || 'b1';
+    const canonicalLevel = String(levelOrDiff).toLowerCase();
+    const difficultyVal = item.difficulty || DIFF_MAP[canonicalLevel] || 0.4;
+    
     let evaluation: any;
     
     // MCQ Check
@@ -214,22 +217,43 @@ export class AdaptiveAssessmentEngine {
     } else {
       // AI check for Writing/Speaking
       console.log(`[Engine] Evaluating ${item.skill} via AI...`);
-      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, item.target_cefr);
+      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
     }
 
-    const earnedPoints = (evaluation.score || 0) * batteryQ.pointValue;
+    // 🏋️ WEIGHTED PROFICIENCY SCORING: score * difficulty
+    const earnedPoints = (evaluation.score || 0) * difficultyVal;
     const skill = item.skill.toLowerCase();
     
     if (this.skillScores[skill]) {
       this.skillScores[skill].earned += earnedPoints;
+      this.skillScores[skill].total += difficultyVal; // Maintain relative total
+    }
+
+    // 🔍 INCONSISTENT DETECTION
+    // Flag if: This is HARD, correct, and last 2 EASY questions were failed.
+    const isHard = difficultyVal >= 0.7;
+    const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
+    
+    let is_inconsistent = false;
+    if (isHard && isCorrect) {
+      const easyFailures = this.answerHistory
+        .filter(a => a.difficulty <= 0.3)
+        .slice(-2)
+        .filter(a => !a.correct);
+      
+      if (easyFailures.length >= 2) {
+        is_inconsistent = true;
+        evaluation.inconsistent = true;
+        evaluation.evaluation_metadata = { ...evaluation.evaluation_metadata, flagged_as: 'inconsistent' };
+      }
     }
 
     this.answerHistory.push({
       taskId: item.id, 
       questionId: item.id, 
       skill: item.skill as any,
-      difficulty: batteryQ.pointValue, 
-      correct: evaluation.is_correct || evaluation.score >= 0.5,
+      difficulty: difficultyVal, 
+      correct: isCorrect,
       score: evaluation.score, 
       answer, 
       correctAnswer: this.getCorrectAnswer(item),
@@ -244,19 +268,48 @@ export class AdaptiveAssessmentEngine {
       this.completed = true;
       this.clearState();
     } else {
-      this.saveState();
-      
-      // 🚀 SMART SYNC: Trigger remote save at block boundaries (e.g. Q10, Q20, Q30)
-      if (this.currentIndex % 10 === 0) {
-        this.syncStateToRemote();
+      // 🚀 ADAPTIVITY SPEED (Re-ordering battery)
+      // If the user got it right, move harder questions of this skill/level earlier
+      if (isCorrect) {
+        this.reorderRemainingBattery(difficultyVal);
       }
+      this.saveState();
     }
 
     return { 
-      correct: evaluation.is_correct || evaluation.score >= 0.5, 
+      correct: isCorrect, 
       score: evaluation.score, 
       evaluation 
     };
+  }
+
+  private reorderRemainingBattery(currentDifficulty: number) {
+    const remaining = this.battery.slice(this.currentIndex);
+    // Separate production and receptive to preserve interleaving
+    const production = remaining.filter(q => ['writing', 'speaking'].includes(q.skill.toLowerCase()));
+    const receptive = remaining.filter(q => !['writing', 'speaking'].includes(q.skill.toLowerCase()));
+    
+    // Sort receptive items so that higher difficulty comes first if we are doing well
+    receptive.sort((a, b) => {
+      const diffA = a.item.difficulty || DIFF_MAP[a.item.target_cefr?.toLowerCase() || 'b1'] || 0.4;
+      const diffB = b.item.difficulty || DIFF_MAP[b.item.target_cefr?.toLowerCase() || 'b1'] || 0.4;
+      return diffB - diffA;
+    });
+    
+    // Re-interleave: insert production tasks at regular intervals
+    const reinterleaved: typeof remaining = [];
+    const interval = production.length > 0 ? Math.floor(receptive.length / (production.length + 1)) : receptive.length;
+    let pIdx = 0;
+    receptive.forEach((q, i) => {
+      reinterleaved.push(q);
+      if ((i + 1) % interval === 0 && pIdx < production.length) {
+        reinterleaved.push(production[pIdx++]);
+      }
+    });
+    // Push any remaining production tasks
+    while (pIdx < production.length) reinterleaved.push(production[pIdx++]);
+    
+    this.battery = [...this.battery.slice(0, this.currentIndex), ...reinterleaved];
   }
 
   /**
@@ -317,20 +370,26 @@ export class AdaptiveAssessmentEngine {
   }
 
   public getOutcome(): AssessmentOutcome {
-    let totalPoints = 0;
-    Object.values(this.skillScores).forEach(s => totalPoints += s.earned);
+    let totalScore = 0;
+    let maxBasePoints = 0;
     
-    const percentage = Math.round((totalPoints / 80) * 100);
+    Object.values(this.skillScores).forEach(s => {
+      totalScore += s.earned;
+      maxBasePoints += s.total;
+    });
+    
+    // Calculate percentage based on weighted difficulty potential
+    const percentage = maxBasePoints > 0 ? Math.round((totalScore / maxBasePoints) * 100) : 0;
     const cefr = CEFREngine.mapPercentageToLevel(percentage);
 
     const breakdown: any = {};
     Object.entries(this.skillScores).forEach(([skill, data]) => {
-      const skillPct = Math.round((data.earned / 20) * 100);
+      const skillPct = data.total > 0 ? Math.round((data.earned / data.total) * 100) : 0;
       breakdown[skill] = {
         band: CEFREngine.mapPercentageToLevel(skillPct),
         score: skillPct,
         confidence: 0.9,
-        evidenceCount: 10,
+        evidenceCount: this.answerHistory.filter(a => a.skill === skill).length,
         status: 'stable'
       };
     });
@@ -339,7 +398,7 @@ export class AdaptiveAssessmentEngine {
       overall: {
         estimatedLevel: cefr as CefrLevel,
         confidence: 0.9,
-        rationale: [`Total Score: ${totalPoints.toFixed(1)}/80 (${percentage}%)`]
+        rationale: [`Weighted Score: ${totalScore.toFixed(2)}/ ${maxBasePoints.toFixed(2)} (${percentage}%)`]
       },
       overallBand: cefr as any,
       overallConfidence: 0.9,
@@ -350,7 +409,7 @@ export class AdaptiveAssessmentEngine {
       stopReason: 'max_reached',
       speakingAudit: { 
         micCheckPassed: true, voiceRecordingsAttempted: 0, voiceRecordingsValid: 0,
-        typedFallbacksUsed: 0, speakingTasksTotal: 10, hasAnySpeakingEvidence: true,
+        typedFallbacksUsed: 0, speakingTasksTotal: 4, hasAnySpeakingEvidence: true,
         speakingFallbackApplied: false
       }
     };
@@ -358,10 +417,11 @@ export class AdaptiveAssessmentEngine {
 
   public getProgress(): BatteryProgress {
     const q = this.battery[this.currentIndex];
+    const total = this.battery.length || 40;
     return {
       answered: this.currentIndex,
-      total: 40,
-      percentage: (this.currentIndex / 40) * 100,
+      total: total,
+      percentage: (this.currentIndex / total) * 100,
       currentBlock: q?.block || 1,
       currentSkill: q?.skill || null,
       currentZone: q?.zone || null,

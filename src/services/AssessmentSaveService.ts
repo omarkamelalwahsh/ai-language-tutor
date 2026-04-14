@@ -167,48 +167,67 @@ export class AssessmentSaveService {
   /**
    * LIGHTNING LOGGER: Non-blocking Fire-and-Forget orchestration.
    */
-  public static log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string) {
-    const finalUserId = userId || this.cachedUserId;
+  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string, timeSpentMs?: number) {
+    const finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
     
+    // Logic for difficulty mapping
+    const DIFF_MAP: Record<string, number> = {
+      'a1': 0.1, 'a2': 0.2,
+      'b1': 0.4, 'b2': 0.6,
+      'c1': 0.8, 'c2': 1.0
+    };
+    const rawLevel = (task.difficulty || task.target_cefr || 'b1');
+    const canonicalLevel = String(rawLevel).toLowerCase();
+    const difficultyVal = task.difficulty_num || DIFF_MAP[canonicalLevel] || 0.4;
+
     const payload = {
       user_id: finalUserId,
       question_id: String(task.id),
-      question: task.prompt,
+      question_text: task.prompt,
       user_answer: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
       correct_answer: task.correctAnswer || '',
-      is_correct: evaluation.is_correct || false,
-      category: task.skill || "vocabulary",
-      score: evaluation.score || 0,
+      is_correct: evaluation.is_correct || evaluation.score >= 0.5,
+      skill: String(task.skill || "vocabulary").toLowerCase(),
+      question_level: canonicalLevel,
+      difficulty: difficultyVal,
+      score: (evaluation.score || 0) * difficultyVal,
+      time_spent_ms: timeSpentMs || 0,
       evaluation_metadata: evaluation,
-      audio_url: (evaluation as any).audioUrl || (task as any).audioUrl || null,
       status: (evaluation as any).status || 'evaluated',
       created_at: new Date().toISOString()
     };
 
-    // 🚀 FIRE AND FORGET: Clear the path for the next question instantly
-    (async () => {
-      try {
-        if (!payload.user_id) {
-          const resolvedId = await this.getAuthenticatedUserIdSafe();
-          payload.user_id = resolvedId;
-        }
+    try {
+      // 1. Log to assessment_responses (Historical record)
+      const { error: respError } = await supabase.from('assessment_responses').insert({
+        user_id: payload.user_id,
+        question_id: payload.question_id,
+        user_answer: payload.user_answer,
+        is_correct: payload.is_correct,
+        skill: payload.skill,
+        level: payload.question_level,
+        difficulty: payload.difficulty,
+        response_time_ms: payload.time_spent_ms
+      });
+      
+      if (respError) console.error("[AssessmentSaveService] ❌ assessment_responses error:", respError.message);
 
-        const { error } = await supabase.from('assessment_logs').insert(payload);
-        
-        if (error) {
-          console.error(`[AssessmentSaveService] ❌ Failed to log question ${payload.question_id}:`, error.message);
-          this.saveToLocalBuffer(payload);
-        } else {
-          console.log(`[AssessmentSaveService] ✅ Successfully logged question ${payload.question_id} to assessment_logs.`);
-        }
-      } catch (err) {
-        console.error('[AssessmentSaveService] ❌ Background logging error:', err);
+      // 2. Log to assessment_logs (Session trace)
+      const { error: logError } = await supabase.from('assessment_logs').insert(payload);
+      
+      if (logError) {
+        console.error(`[AssessmentSaveService] ❌ Failed to log to assessment_logs:`, logError.message);
         this.saveToLocalBuffer(payload);
+      } else {
+        console.log(`[AssessmentSaveService] ✅ Double-logged question ${payload.question_id} successfully.`);
       }
-    })();
 
-    // ⚡ RETURN INSTANTLY
-    return { status: 'background_submitted' };
+      return { success: true };
+    } catch (err) {
+      console.error('[AssessmentSaveService] ❌ Persistence error:', err);
+      this.saveToLocalBuffer(payload);
+      return { success: false, error: err };
+    }
   }
 
   /**

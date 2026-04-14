@@ -21,6 +21,7 @@ export type SpeakingSubmissionMeta = {
   audioDurationSec?: number;
   micCheckPassed?: boolean;
   transcriptionAvailable?: boolean;
+  audioUrl?: string;
 };
 
 /** Session-level audit trail for speaking evidence integrity */

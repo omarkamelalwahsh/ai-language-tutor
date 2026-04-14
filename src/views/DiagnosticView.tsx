@@ -47,10 +47,10 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
   grammar:    { icon: <BookOpen size={14} />,    color: 'text-indigo-600',  bg: 'bg-indigo-50 border-indigo-200',  label: 'Grammar' },
 };
 
-// Block info
+// Block info - 3 phases across 40 questions
 const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: string }> = {
   1: { label: 'Foundations', icon: <Zap size={16} />, color: 'text-amber-500' },
-  2: { label: 'Bridge', icon: <TrendingUp size={16} />, color: 'text-blue-500' },
+  2: { label: 'Deep Dive', icon: <TrendingUp size={16} />, color: 'text-blue-500' },
   3: { label: 'Mastery', icon: <Brain size={16} />, color: 'text-indigo-600' },
 };
 
@@ -166,11 +166,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsEvaluating(true);
     try {
       const { evaluation } = await engine.submitAnswer(currentTask, answer, time, mode, meta);
-      AssessmentSaveService.log_and_update_assessment(currentTask, evaluation, answer, user?.id);
+      
+      // 🚀 AWAIT PERSISTENCE: Ensure logs hit Supabase before transitioning
+      await AssessmentSaveService.log_and_update_assessment(
+        currentTask, 
+        evaluation, 
+        answer, 
+        user?.id, 
+        time
+      );
+      
       const next = await engine.getNextQuestion();
       if (next) setTaskWithReset(next);
       else await handleFinish();
     } catch (err) {
+      console.error("[DiagnosticView] Error during task transition:", err);
       const next = await engine.getNextQuestion();
       if (next) setTaskWithReset(next);
       else await handleFinish();
@@ -194,8 +204,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const skillInfo = SKILL_CONFIG[currentTask.skill] || SKILL_CONFIG.reading;
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
 
-  // Split Layout if in Block 2 or 3 AND has a stimulus
-  const isSplitLayout = (progress.currentBlock === 2 || progress.currentBlock === 3) && !!currentTask.stimulus;
+  // Split Layout for reading tasks with a stimulus
+  const isSplitLayout = !!currentTask.stimulus && ['reading'].includes(currentTask.skill);
 
   return (
     <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
@@ -252,7 +262,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 {/* 🔍 DEBUG BADGE (requested by user to verify AI alignment) */}
                 <div className="mr-2 px-2.5 py-1.5 bg-blue-50/80 border border-blue-100 rounded-lg flex items-center gap-1.5 shadow-sm">
                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Debug:</span>
-                   <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.difficulty || '??'}</span>
+                   <span className="text-[10px] font-black text-blue-700 uppercase">
+                     {currentTask.difficulty || '??'} ({((currentTask as any)._battery?.item?.target_cefr || '??')})
+                   </span>
                    <span className="mx-1 w-px h-2 bg-blue-200" />
                    <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.skill}</span>
                 </div>
@@ -280,28 +292,31 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             {currentTask.skill === 'listening' && (
               <div className="mb-10 p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col items-center gap-6 text-center">
                 <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
-                  <Headphones size={40} />
+                   <Headphones size={40} />
                 </div>
                 
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold text-slate-800">Listening Task</h3>
-                  <p className="text-slate-500 text-sm">Listen carefully to the audio and answer the question below.</p>
+                  <p className="text-slate-500 text-sm">Listen carefully and select the best answer.</p>
                 </div>
 
-                {currentTask.audioUrl ? (
+                {/* 🔊 MANDATORY AUDIO PLAYER (Source from stimulus context) */}
+                <div className="w-full max-w-md p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <audio 
                     controls 
-                    src={currentTask.audioUrl} 
-                    className="w-full max-w-md h-12"
+                    className="w-full h-10"
+                    src={currentTask.audioUrl || currentTask.stimulus} // Fallback to stimulus if URL is stored there
+                    onError={(e) => console.warn("Audio load failed:", e)}
                   />
-                ) : (
-                  <button 
-                    onClick={() => speakText(currentTask.stimulus || currentTask.prompt)}
-                    className="flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-indigo-200"
-                  >
-                    <Play size={20} fill="currentColor" /> Play AI Voice
-                  </button>
-                )}
+                  {!currentTask.audioUrl && !currentTask.stimulus?.startsWith('http') && (
+                    <button 
+                      onClick={() => speakText(currentTask.stimulus || currentTask.prompt)}
+                      className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold"
+                    >
+                      <Play size={14} fill="currentColor" /> Play AI Text-to-Speech
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -312,29 +327,52 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             </div>
 
             <div className="flex-1">
-              {currentTask.response_mode === 'mcq' ? (
-                <div className="space-y-3.5">
-                  {currentTask.options?.map((opt, i) => (
-                    <button 
-                      key={i} 
-                      onClick={() => { setSelectedOption(opt); setTimeout(() => handleNextTask(opt), 350); }} 
-                      disabled={isEvaluating}
-                      className={`w-full p-6 rounded-[1.5rem] border-2 text-left transition-all group relative overflow-hidden ${
-                        selectedOption === opt 
-                          ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-50 shadow-md' 
-                          : 'bg-white border-slate-200/70 hover:border-indigo-300 hover:shadow-lg hover:shadow-slate-200/50 active:scale-[0.98]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center font-black text-sm transition-colors ${
-                          selectedOption === opt ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'
-                        }`}>
-                          {String.fromCharCode(65 + i)}
+              {/* STRICT ROUTING: MCQ skills get radio buttons, production skills get text/audio */}
+              {(currentTask.response_mode === 'mcq' || ['grammar', 'vocabulary', 'reading', 'listening'].includes(currentTask.skill)) && currentTask.options && currentTask.options.length > 0 ? (
+                <div className="space-y-4">
+                  {(!currentTask.options || currentTask.options.length === 0) ? (
+                    <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100 text-center shadow-xl shadow-amber-100/20">
+                       <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                       <p className="text-amber-900 font-black text-lg mb-2">Configuration Warning</p>
+                       <p className="text-amber-800 font-medium leading-relaxed mb-6">We couldn't load the options for this question. You can skip it to continue the assessment.</p>
+                       <button 
+                         className="px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-amber-200 active:scale-95" 
+                         onClick={handleSkip}
+                       >
+                         Skip Question
+                       </button>
+                    </div>
+                  ) : currentTask.options.map((opt, i) => {
+                    const optionId = `opt-${i}`;
+                    return (
+                      <label 
+                        key={i} 
+                        htmlFor={optionId}
+                        className={`block w-full p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                          selectedOption === opt 
+                            ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-50' 
+                            : 'bg-white border-slate-100 hover:border-indigo-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <input 
+                            type="radio"
+                            id={optionId}
+                            name="mcq-option"
+                            value={opt}
+                            checked={selectedOption === opt}
+                            onChange={() => {
+                              setSelectedOption(opt);
+                              setTimeout(() => handleNextTask(opt), 400);
+                            }}
+                            className="w-5 h-5 accent-indigo-600"
+                            disabled={isEvaluating}
+                          />
+                          <span className="text-lg font-bold text-slate-700">{opt}</span>
                         </div>
-                        <span className="text-lg font-bold text-slate-700">{opt}</span>
-                      </div>
-                    </button>
-                  ))}
+                      </label>
+                    );
+                  })}
                 </div>
               ) : currentTask.response_mode === 'audio' && !useSpeakingFallback ? (
                 <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">

@@ -186,9 +186,18 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                 )}
               </div>
             </div>
-            <p className="text-slate-600 leading-relaxed max-w-md pt-2">
-              {result.overall.rationale[0] || 'You successfully completed the diagnostic evaluation.'}
-            </p>
+            <div className="space-y-2 pt-2">
+              {result.overall.rationale.map((r, i) => (
+                <p key={i} className={`text-slate-600 leading-relaxed max-w-md ${i === 0 ? 'font-semibold' : 'text-sm'}`}>
+                  {r}
+                </p>
+              ))}
+              {result.overall.rationale.length === 0 && (
+                <p className="text-slate-600 leading-relaxed max-w-md">
+                  You successfully completed the diagnostic evaluation.
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="relative z-10 w-full md:w-auto flex-shrink-0 flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-100">
