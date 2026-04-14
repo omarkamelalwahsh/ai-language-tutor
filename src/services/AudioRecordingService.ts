@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabaseClient';
+
 export type MicCheckResult = {
   status: 'granted' | 'denied' | 'no_device' | 'error';
   deviceLabel?: string;
@@ -241,5 +243,41 @@ export class AudioRecordingService {
     }
     this.mediaRecorder = null;
     this.chunks = [];
+  }
+
+  /**
+   * Uploads a recorded blob to Supabase Storage.
+   * Path: recordings/{userId}/{assessmentId}/{questionId}.webm
+   */
+  public async uploadAudio(
+    blob: Blob, 
+    userId: string, 
+    assessmentId: string, 
+    questionId: string
+  ): Promise<string> {
+    const fileName = `${questionId}_${Date.now()}.webm`;
+    const filePath = `${userId}/${assessmentId}/${fileName}`;
+
+    console.log(`[AudioRecordingService] 📤 Uploading audio to storage: ${filePath}`);
+
+    const { data, error } = await supabase.storage
+      .from('assessment-audio')
+      .upload(filePath, blob, {
+        contentType: blob.type || 'audio/webm',
+        upsert: true
+      });
+
+    if (error) {
+      console.error('[AudioRecordingService] ❌ Upload failed:', error);
+      throw new Error(`Audio upload failed: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('assessment-audio')
+      .getPublicUrl(data.path);
+
+    console.log(`[AudioRecordingService] ✅ Upload successful: ${publicUrl}`);
+    return publicUrl;
   }
 }

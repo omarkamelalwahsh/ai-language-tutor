@@ -180,6 +180,8 @@ export class AssessmentSaveService {
       category: task.skill || "vocabulary",
       score: evaluation.score || 0,
       evaluation_metadata: evaluation,
+      audio_url: (evaluation as any).audioUrl || (task as any).audioUrl || null,
+      status: (evaluation as any).status || 'evaluated',
       created_at: new Date().toISOString()
     };
 
@@ -207,6 +209,69 @@ export class AssessmentSaveService {
 
     // ⚡ RETURN INSTANTLY
     return { status: 'background_submitted' };
+  }
+
+  /**
+   * PERSISTENCE SYNC: Saves the entire engine state to the database.
+   * This is triggered at block boundaries to ensure cross-device persistence.
+   */
+  public static async saveAssessmentState(assessmentId: string, state: any, userId?: string) {
+    const finalUserId = userId || this.cachedUserId || await this.getAuthenticatedUserIdSafe();
+    
+    console.log(`[AssessmentSaveService] 🔄 Syncing state to remote for assessment: ${assessmentId}`);
+    
+    try {
+      const { error } = await supabase
+        .from('assessments')
+        .upsert({
+          id: assessmentId,
+          user_id: finalUserId,
+          current_index: state.currentIndex,
+          evaluation_metadata: state, // Store full state blob for recovery
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+      if (error) {
+        console.error('[AssessmentSaveService] ❌ Remote state sync failed:', error);
+        throw error;
+      }
+      
+      console.log(`[AssessmentSaveService] ✅ Remote state sync successful.`);
+    } catch (err) {
+      console.error('[AssessmentSaveService] ❌ Sync exception:', err);
+    }
+  }
+
+  /**
+   * RECOVERY ENGINE: Fetches the most recent pending assessment state for a user.
+   */
+  public static async getLatestAssessmentState(userId: string): Promise<any | null> {
+    console.log(`[AssessmentSaveService] 🔍 Searching for remote state for user: ${userId}`);
+    
+    try {
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('evaluation_metadata')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data?.evaluation_metadata) return null;
+
+      const state = data.evaluation_metadata;
+      if (state.currentIndex >= 40 || !state.battery) {
+        console.log("[AssessmentSaveService] ℹ️ Found state is either complete or invalid.");
+        return null;
+      }
+
+      console.log(`[AssessmentSaveService] ✅ Remote state found: ${state.assessmentId} at Q${state.currentIndex + 1}`);
+      return state;
+    } catch (err) {
+      console.error('[AssessmentSaveService] ❌ Remote recovery failed:', err);
+      return null;
+    }
   }
 
 

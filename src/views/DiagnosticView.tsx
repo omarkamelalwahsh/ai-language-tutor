@@ -18,7 +18,7 @@ import {
   Brain,
   MessageSquare
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 
 import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile, TaskEvaluation } from '../types/assessment';
@@ -63,6 +63,7 @@ const ZONE_CONFIG: Record<DifficultyZone, { label: string; color: string; bg: st
 
 export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, onboardingState, taskResults }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { refreshData: refreshUserProfile, user } = useData() as any;
 
   // --- Engine ---
@@ -74,10 +75,11 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const prevBlockRef = useRef<number | null>(null);
 
   if (!engineRef.current) {
+    const preFetched = (location.state as any)?.preFetchedBattery;
     const engine = new AdaptiveAssessmentEngine('B1', onboardingState ? {
       goal: onboardingState.goal || undefined,
       preferredTopics: (onboardingState.topics || []) as string[],
-    } : undefined, user?.id);
+    } : undefined, user?.id, preFetched);
     engineRef.current = engine;
   }
 
@@ -165,7 +167,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   }, [currentTask, isEvaluating, engine, handleFinish, setTaskWithReset]);
 
   if (isCompleting) return <AnalyzingTransitionView isSaving={isSaving} saveError={saveError} />;
-  if (!currentTask) return <LoadingSkeleton />;
+  if (!engine.hasBattery() || !currentTask) return <PreparingBatteryView />;
 
   const skillInfo = SKILL_CONFIG[currentTask.skill] || SKILL_CONFIG.reading;
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
@@ -245,6 +247,34 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </div>
             )}
 
+            {currentTask.skill === 'listening' && (
+              <div className="mb-10 p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/20 flex flex-col items-center gap-6 text-center">
+                <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
+                  <Headphones size={40} />
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-slate-800">Listening Task</h3>
+                  <p className="text-slate-500 text-sm">Listen carefully to the audio and answer the question below.</p>
+                </div>
+
+                {currentTask.audioUrl ? (
+                  <audio 
+                    controls 
+                    src={currentTask.audioUrl} 
+                    className="w-full max-w-md h-12"
+                  />
+                ) : (
+                  <button 
+                    onClick={() => speakText(currentTask.stimulus || currentTask.prompt)}
+                    className="flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-indigo-200"
+                  >
+                    <Play size={20} fill="currentColor" /> Play AI Voice
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="mb-10">
               <h1 className="text-4xl font-black text-slate-900 leading-[1.15] tracking-tight">
                 {currentTask.prompt}
@@ -279,6 +309,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               ) : currentTask.response_mode === 'audio' && !useSpeakingFallback ? (
                 <div className="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-xl shadow-slate-200/30">
                   <SpeakingModule 
+                    userId={user?.id}
+                    assessmentId={engine.assessmentId}
                     task={currentTask as any} 
                     isEvaluating={isEvaluating} 
                     feedback={null} 
@@ -346,6 +378,33 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 };
 
 const LoadingSkeleton = () => <div className="h-screen flex items-center justify-center bg-[#F7F8FC]"><div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent animate-spin rounded-full" /></div>;
+
+const PreparingBatteryView = () => (
+  <div className="h-screen bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
+    <motion.div 
+      initial={{ scale: 0.8, opacity: 0 }} 
+      animate={{ scale: 1, opacity: 1 }}
+      className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mb-8 relative"
+    >
+      <div className="absolute inset-0 bg-blue-600/10 animate-ping rounded-[2rem]" />
+      <Zap className="text-blue-600" size={40} fill="currentColor" />
+    </motion.div>
+    <h2 className="text-2xl font-bold text-slate-900 mb-2">Architecting your proficiency scan</h2>
+    <p className="text-slate-500 max-w-xs leading-relaxed text-sm">
+      We're selecting 40 questions from our hybrid zones to build your personalized assessment.
+    </p>
+    <div className="mt-12 flex gap-1.5">
+      {[0, 1, 2].map(i => (
+        <motion.div
+          key={i}
+          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+          className="w-2 h-2 bg-blue-600 rounded-full"
+        />
+      ))}
+    </div>
+  </div>
+);
 
 const AnalyzingTransitionView = ({ isSaving, saveError }: any) => (
   <div className="h-screen bg-white flex flex-col items-center justify-center space-y-8 p-12 text-center">

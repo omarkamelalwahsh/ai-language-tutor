@@ -9,7 +9,7 @@ import { supabase } from './lib/supabaseClient';
 // Views
 import { AuthView } from './views/AuthView';
 import { OnboardingView } from './views/OnboardingView';
-import { PreAssessmentIntroView } from './views/PreAssessmentIntroView';
+import { PlacementOnboarding } from './components/onboarding/PlacementOnboarding';
 import { DiagnosticView } from './views/DiagnosticView';
 import { LandingView } from './views/LandingView';
 import { FadeTransition } from './lib/animations';
@@ -251,7 +251,7 @@ function AppRoutes() {
           {/* Diagnostic */}
           <Route path="/diagnostic/intro" element={
             <ProtectedRoute>
-              <PreAssessmentIntroView onStartAssessment={() => navigate('/diagnostic')} onBack={() => navigate('/dashboard')} />
+              <PlacementOnboarding />
             </ProtectedRoute>
           } />
 

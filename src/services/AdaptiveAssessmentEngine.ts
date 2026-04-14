@@ -23,6 +23,7 @@ import {
 import { BatterySelector, BatteryQuestion } from '../engine/selector/AdaptiveSelector';
 import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { ASSESSMENT_CONFIG, DifficultyZone } from '../config/assessment-config';
+import { AssessmentSaveService } from './AssessmentSaveService';
 
 export interface BatteryProgress {
   answered: number;
@@ -46,15 +47,26 @@ export class AdaptiveAssessmentEngine {
   public assessmentId: string;
   private userId: string | null = null;
   private STORAGE_KEY: string;
+  public isStaticBattery: boolean = false;
 
   constructor(
     _startingLevel: CEFRLevel = 'B1', 
     _context?: LearnerContextProfile, 
-    userId: string | null = null
+    userId: string | null = null,
+    initialBattery?: BatteryQuestion[]
   ) {
     this.userId = userId || (typeof window !== 'undefined' ? localStorage.getItem('auth_user_id') : null);
-    this.assessmentId = "battery-" + Math.random().toString(36).substr(2, 9);
+    this.assessmentId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : "battery-" + Math.random().toString(36).substr(2, 9);
+    
     this.STORAGE_KEY = `asmt_state_${this.userId || 'guest'}`;
+
+    if (initialBattery && initialBattery.length === 40) {
+      this.battery = initialBattery;
+      this.isStaticBattery = true;
+      console.log("[Engine] Initialized with pre-fetched static battery.");
+    }
 
     const ALL_SKILLS = ["listening", "reading", "writing", "speaking", "vocabulary", "grammar"];
     ALL_SKILLS.forEach(s => {
@@ -62,6 +74,10 @@ export class AdaptiveAssessmentEngine {
     });
 
     this.tryRecoverState();
+  }
+
+  public hasBattery(): boolean {
+    return this.battery.length === 40;
   }
 
   private tryRecoverState() {
@@ -106,11 +122,31 @@ export class AdaptiveAssessmentEngine {
   public async getNextQuestion(): Promise<AssessmentQuestion | null> {
     if (this.completed) return null;
     
-    // Lazy initialize battery if not recovered
+    // 🛡️ RECOVERY ORCHESTRATION: If battery is empty, try Remote Sync before fetching New
     if (this.battery.length === 0) {
-      console.log("[Engine] Fetching new 40-question battery...");
-      this.battery = await BatterySelector.fetchAndBuild(this.userId || "");
-      this.saveState();
+      console.log("[Engine] Local battery empty. Attempting remote recovery...");
+      
+      if (this.userId) {
+        const remoteState = await AssessmentSaveService.getLatestAssessmentState(this.userId);
+        if (remoteState) {
+          console.log(`[Engine] ✅ Recovered remote state: ${remoteState.assessmentId} at index ${remoteState.currentIndex}`);
+          this.battery = remoteState.battery;
+          this.currentIndex = remoteState.currentIndex;
+          this.skillScores = remoteState.skillScores;
+          this.answerHistory = remoteState.answerHistory;
+          this.taskEvaluations = remoteState.taskEvaluations;
+          this.assessmentId = remoteState.assessmentId;
+          this.saveState(); // Sync back to local
+        }
+      }
+
+      // If still empty after remote check, fetch BRAND NEW
+      if (this.battery.length === 0) {
+        console.log("[Engine] No remote session found. Fetching brand new battery...");
+        this.battery = await BatterySelector.fetchAndBuild(this.userId || "");
+        this.saveState();
+        this.syncStateToRemote(); // Initial sync to secure the battery
+      }
     }
 
     if (this.currentIndex >= this.battery.length) {
@@ -176,6 +212,11 @@ export class AdaptiveAssessmentEngine {
       this.clearState();
     } else {
       this.saveState();
+      
+      // 🚀 SMART SYNC: Trigger remote save at block boundaries (e.g. Q10, Q20, Q30)
+      if (this.currentIndex % 10 === 0) {
+        this.syncStateToRemote();
+      }
     }
 
     return { 
@@ -183,6 +224,31 @@ export class AdaptiveAssessmentEngine {
       score: evaluation.score, 
       evaluation 
     };
+  }
+
+  /**
+   * Pushes the entire session state to Supabase for cross-device resilience.
+   */
+  public async syncStateToRemote() {
+    if (!this.userId) return;
+    
+    console.log(`[Engine] 🔄 Pushing remote state sync for ${this.assessmentId}...`);
+    
+    const state = {
+      battery: this.battery,
+      currentIndex: this.currentIndex,
+      skillScores: this.skillScores,
+      answerHistory: this.answerHistory,
+      taskEvaluations: this.taskEvaluations,
+      assessmentId: this.assessmentId,
+      syncedAt: new Date().toISOString()
+    };
+
+    await AssessmentSaveService.saveAssessmentState(
+      this.assessmentId, 
+      state, 
+      this.userId
+    );
   }
 
   private checkMCQ(item: QuestionBankItem, answer: string): boolean {

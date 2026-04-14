@@ -13,6 +13,8 @@ interface ModuleProps {
   isEvaluating: boolean;
   feedback: TaskFeedbackPayload | null;
   retryCount: number;
+  userId?: string;
+  assessmentId?: string;
 }
 
 type Mode = 'mic_check' | 'ready' | 'recording' | 'review' | 'submitted';
@@ -20,7 +22,7 @@ type Mode = 'mic_check' | 'ready' | 'recording' | 'review' | 'submitted';
 // Session-level flag to avoid re-testing mic for every speaking question
 let sessionMicPassed = false;
 
-export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvaluating, feedback, retryCount }) => {
+export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvaluating, feedback, retryCount, userId, assessmentId }) => {
   const [mode, setMode] = useState<Mode>(sessionMicPassed ? 'ready' : 'mic_check');
   const [useTextFallback, setUseTextFallback] = useState(false);
   const [textInput, setTextInput] = useState('');
@@ -122,6 +124,19 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
     setErrorMsg('');
 
     try {
+      const svc = AudioRecordingService.getInstance();
+      
+      // 1. Upload to Supabase Storage first (Evidence Preservation)
+      console.log("[SpeakingModule] ⬆️ Uploading evidence audio...");
+      const audioUrl = await svc.uploadAudio(
+        audioBlob, 
+        userId || 'anonymous', 
+        assessmentId || 'battery-session', 
+        task.id
+      );
+
+      // 2. Transcribe
+      console.log("[SpeakingModule] ✍️ Transcribing speech...");
       const transcribeRes = await SpeechToTextService.transcribe(audioBlob);
       
       const meta: SpeakingSubmissionMeta = {
@@ -129,14 +144,16 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
         hasValidAudio: true,
         audioDurationSec: validationResult.durationSec,
         micCheckPassed: sessionMicPassed,
-        transcriptionAvailable: true
+        transcriptionAvailable: true,
+        audioUrl: audioUrl // Attached URL for DB record
       };
 
       onSubmit({
         answer: transcribeRes.text,
         inputMode: 'voice',
         speakingMeta: meta,
-        responseMode: 'voice' // Legacy mapping fallback just in case
+        responseMode: 'voice',
+        audioUrl: audioUrl
       });
       
       setMode('submitted');
