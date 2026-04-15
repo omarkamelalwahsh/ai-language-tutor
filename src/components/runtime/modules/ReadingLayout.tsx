@@ -1,28 +1,39 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, Pen } from 'lucide-react';
 
 interface ReadingLayoutProps {
   stimulus: string;
   children: React.ReactNode;
   currentQuestionIndex: number;
-  totalInBundle?: number;
+  totalInBundle: number;
+  /** Active skill determines the badge text and icon */
+  activeSkill?: 'reading' | 'grammar' | 'writing';
 }
+
+const BADGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  reading: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-indigo-50 text-indigo-700' },
+  grammar: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-indigo-50 text-indigo-700' },
+  writing:  { label: 'Writing Task — Reference Text', icon: <Pen size={16} className="font-bold" />, color: 'bg-emerald-50 text-emerald-700' },
+};
 
 export const ReadingLayout: React.FC<ReadingLayoutProps> = ({ 
   stimulus, 
   children, 
   currentQuestionIndex,
-  totalInBundle = 4
+  totalInBundle,
+  activeSkill = 'reading'
 }) => {
+  const badge = BADGE_CONFIG[activeSkill] || BADGE_CONFIG.reading;
+
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-[#F7F8FC]">
       {/* 📖 LEFT SIDE: FIXED PASSAGE */}
       <aside className="w-full lg:w-1/2 h-1/2 lg:h-full overflow-y-auto p-8 lg:p-12 bg-white border-b lg:border-b-0 lg:border-r border-slate-100 shadow-[inset_-10px_0_30px_-20px_rgba(0,0,0,0.05)] custom-scrollbar">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 mb-8 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl w-fit">
-            <BookOpen size={16} className="font-bold" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Reading Passage</span>
+          <div className={`flex items-center gap-2 mb-8 px-4 py-2 rounded-xl w-fit ${badge.color}`}>
+            {badge.icon}
+            <span className="text-[10px] font-black uppercase tracking-widest">{badge.label}</span>
           </div>
           
           <div className="prose prose-slate prose-lg max-w-none">

@@ -1,7 +1,10 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * 40-Question IELTS-Inspired Adaptive Assessment Engine
- * Skill Quotas: Grammar(12) Listening(8) Reading(8) Vocab(4) Writing(4) Speaking(4)
+ * 40-Question Fixed-Length Adaptive Assessment Engine
+ * 
+ * Block Order: Reading+Grammar(15) → Writing(5) → Listening(15) → Speaking(5)
+ * Skill Quotas: Reading(8) Grammar(7) Listening(15) Writing(5) Speaking(5)
+ * Scoring: CEFR-weighted (A1=0.1 → C2=1.0)
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -26,7 +29,7 @@ import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { ASSESSMENT_CONFIG, DifficultyZone } from '../config/assessment-config';
 import { AssessmentSaveService } from './AssessmentSaveService';
 
-// Fallback Difficulty Constants
+// CEFR → numeric difficulty (mirrors ASSESSMENT_CONFIG.CEFR_DIFFICULTY_MAP)
 const DIFF_MAP: Record<string, number> = {
   'a1': 0.1, 'a2': 0.2,
   'b1': 0.4, 'b2': 0.6,
@@ -78,9 +81,9 @@ export class AdaptiveAssessmentEngine {
       console.log(`[Engine] Initialized with pre-fetched static battery (${this.battery.length} questions).`);
     }
 
-    // IELTS quotas: grammar=12, listening=8, reading=8, vocab=4, writing=4, speaking=4
+    // Fixed-Length quotas: reading=8, grammar=7, listening=15, writing=5, speaking=5
     const SKILL_TOTALS: Record<string, number> = {
-      grammar: 12, listening: 8, reading: 8, vocabulary: 4, writing: 4, speaking: 4
+      reading: 8, grammar: 7, listening: 15, writing: 5, speaking: 5
     };
     Object.entries(SKILL_TOTALS).forEach(([s, total]) => {
       this.skillScores[s] = { earned: 0, total };
@@ -413,60 +416,80 @@ export class AdaptiveAssessmentEngine {
   }
 
   private checkMCQ(item: any, answer: string): boolean {
-    const { options, correctIndex } = this.extractMCQData(item);
-    if (!options || correctIndex === null || correctIndex === undefined) return false;
-    const correctText = options[correctIndex];
-    return answer.trim() === correctText?.trim();
+    const { options, correctIndex, correctValue } = this.extractMCQData(item);
+    
+    // Path 1: Direct text match against correctValue
+    if (correctValue && answer.trim().toLowerCase() === correctValue.trim().toLowerCase()) {
+      return true;
+    }
+    // Path 2: Index-based match
+    if (options && correctIndex !== null && correctIndex !== undefined && correctIndex >= 0) {
+      const correctText = options[correctIndex];
+      if (correctText && answer.trim().toLowerCase() === correctText.trim().toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private getCorrectAnswer(item: any): string {
     // Production tasks (writing/speaking) don't have a single "correct" answer
     const mode = (item.response_mode || 'mcq') as string;
     if (mode === 'typed' || mode === 'audio') {
-      // Return rubric hint or empty — AI evaluation handles scoring
       return item.rubric || item.model_answer || '';
     }
-    const { options, correctIndex } = this.extractMCQData(item);
-    if (!options || correctIndex === null || correctIndex === undefined) return "";
-    return options[correctIndex] || "";
+    const { options, correctIndex, correctValue } = this.extractMCQData(item);
+    if (correctValue) return correctValue;
+    if (options && correctIndex !== null && correctIndex !== undefined && correctIndex >= 0) {
+      return options[correctIndex] || '';
+    }
+    return '';
   }
 
   /**
-   * Exhaustively extracts MCQ options and correct_index from any answer_key structure.
+   * Exhaustively extracts MCQ options, correct_index, and correctValue
+   * from all known answer_key structures (legacy + new CEFR bank).
    */
-  private extractMCQData(item: any): { options: string[] | null; correctIndex: number | null } {
-    // First check top-level options (hoisted by BatterySelector)
-    if (item.options && item.options.length > 0) {
-      // Find correct_index from answer_key
-      let correctIndex: number | null = null;
-      const ak = item.answer_key as any;
-      if (ak) {
-        let parsed = typeof ak === 'string' ? (() => { try { return JSON.parse(ak); } catch { return null; } })() : ak;
-        if (parsed?.value?.correct_index !== undefined) correctIndex = parsed.value.correct_index;
-        else if (parsed?.correct_index !== undefined) correctIndex = parsed.correct_index;
-      }
-      return { options: item.options, correctIndex };
-    }
+  private extractMCQData(item: any): { options: string[] | null; correctIndex: number | null; correctValue: string | null } {
+    let options = item.options && item.options.length > 0 ? item.options : null;
+    let correctIndex: number | null = null;
+    let correctValue: string | null = null;
 
-    // Fallback: extract from answer_key directly
     const ak = item.answer_key as any;
-    if (!ak) return { options: null, correctIndex: null };
+    if (!ak && !options) return { options: null, correctIndex: null, correctValue: null };
 
-    let parsed = ak;
-    if (typeof ak === 'string') {
-      try { parsed = JSON.parse(ak); } catch { return { options: null, correctIndex: null }; }
+    let parsed: any = null;
+    if (ak) {
+      parsed = typeof ak === 'string' ? (() => { try { return JSON.parse(ak); } catch { return null; } })() : ak;
     }
 
-    // Path 1: answer_key.value.options
-    if (parsed?.value && typeof parsed.value === 'object' && Array.isArray(parsed.value.options)) {
-      return { options: parsed.value.options, correctIndex: parsed.value.correct_index ?? null };
-    }
-    // Path 2: answer_key.options
-    if (Array.isArray(parsed?.options)) {
-      return { options: parsed.options, correctIndex: parsed.correct_index ?? null };
+    if (parsed) {
+      // Extract options if not already hoisted
+      if (!options) {
+        if (Array.isArray(parsed.options)) options = parsed.options;
+        else if (parsed.value && Array.isArray(parsed.value.options)) options = parsed.value.options;
+      }
+
+      // Extract correct_index
+      if (parsed.correct_index !== undefined && parsed.correct_index !== -1) correctIndex = parsed.correct_index;
+      else if (parsed.value?.correct_index !== undefined) correctIndex = parsed.value.correct_index;
+
+      // Extract correctValue (new CEFR bank format)
+      if (parsed.correctValue) correctValue = parsed.correctValue;
+      else if (parsed.correct) correctValue = parsed.correct;
+      else if (parsed.correct_answer) correctValue = parsed.correct_answer;
+      else if (parsed.value?.correct_answer) correctValue = parsed.value.correct_answer;
     }
 
-    return { options: null, correctIndex: null };
+    // If we have correctValue but no correctIndex, compute it
+    if (correctValue && options && (correctIndex === null || correctIndex === -1)) {
+      const idx = options.findIndex((o: string) => 
+        o.trim().toLowerCase() === correctValue!.trim().toLowerCase()
+      );
+      if (idx >= 0) correctIndex = idx;
+    }
+
+    return { options, correctIndex, correctValue };
   }
 
   public getOutcome(): AssessmentOutcome {
@@ -509,7 +532,7 @@ export class AdaptiveAssessmentEngine {
       stopReason: 'max_reached',
       speakingAudit: { 
         micCheckPassed: true, voiceRecordingsAttempted: 0, voiceRecordingsValid: 0,
-        typedFallbacksUsed: 0, speakingTasksTotal: 4, hasAnySpeakingEvidence: true,
+        typedFallbacksUsed: 0, speakingTasksTotal: 5, hasAnySpeakingEvidence: true,
         speakingFallbackApplied: false
       }
     };

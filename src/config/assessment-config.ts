@@ -1,24 +1,40 @@
 /**
- * Progressive 40-Question Hybrid Ordered Architecture
+ * Fixed-Length Adaptive Assessment Configuration
  * 
- * Deterministic assessment organized into 4 sequential blocks:
- * 1. Listening & Language Use (10 Qs - MCQ)
- * 2. Reading (10 Qs - MCQ - Big Stimulus)
- * 3. Writing (10 Qs - Open Ended - Same Stimulus)
- * 4. Speaking (10 Qs - Audio - Progressive difficulty)
+ * 40-Question CEFR-Tiered Architecture:
+ * Block 1: Reading & Grammar (15 Qs - MCQ - Mega-Passage Split Layout)
+ * Block 2: Writing (5 Qs - Open-Ended - Same Mega-Passage)
+ * Block 3: Listening (15 Qs - MCQ - Audio Player)
+ * Block 4: Speaking (5 Qs - Audio Recording)
  * 
- * Scoring: Easy=1pt, Medium=2pt, Hard=3pt → Max 20pts/block, 80pts total.
+ * Each skill distributes items across 3 CEFR Tiers for learning-curve analysis.
+ * Scoring: Difficulty-weighted by CEFR level (A1=0.1 → C2=1.0).
  */
 
-export type AssessmentBlock = 'block1_listening_use' | 'block2_reading' | 'block3_writing' | 'block4_speaking';
-export type BatterySkill = 'reading' | 'listening' | 'grammar' | 'vocabulary' | 'writing' | 'speaking';
+export type AssessmentBlock = 
+  | 'block1_reading_grammar' 
+  | 'block2_writing' 
+  | 'block3_listening' 
+  | 'block4_speaking';
+
+export type BatterySkill = 'reading' | 'grammar' | 'listening' | 'writing' | 'speaking';
 
 export type DifficultyZone = 'EASY' | 'MEDIUM' | 'HARD';
 
-export interface ZoneConfig {
-  readonly count: number;
+export type CEFRTier = 'tier1' | 'tier2' | 'tier3';
+
+export interface TierConfig {
+  readonly tier: CEFRTier;
+  readonly zone: DifficultyZone;
   readonly levels: readonly string[];
-  readonly pointsPerQuestion: number;
+}
+
+export interface BlockConfig {
+  readonly name: string;
+  readonly skills: readonly BatterySkill[];
+  readonly itemCount: number;
+  readonly responseMode: 'mcq' | 'typed' | 'audio';
+  readonly useSplitLayout: boolean;
 }
 
 export interface CEFRScaleEntry {
@@ -27,27 +43,84 @@ export interface CEFRScaleEntry {
   readonly level: string;
 }
 
+/**
+ * Per-skill item distribution across CEFR tiers.
+ * Total must match the block's itemCount.
+ */
+export interface SkillTierDistribution {
+  readonly skill: BatterySkill;
+  readonly tier1: number; // A1-A2
+  readonly tier2: number; // B1-B2
+  readonly tier3: number; // C1-C2
+}
+
 export const ASSESSMENT_CONFIG = {
   TOTAL_QUESTIONS: 40,
-  
+
+  /** Sequential block order — determines assessment flow */
   BLOCKS: [
-    'block1_listening_use',
-    'block2_reading',
-    'block3_writing',
+    'block1_reading_grammar',
+    'block2_writing',
+    'block3_listening',
     'block4_speaking'
   ] as const,
 
-  QUESTIONS_PER_BLOCK: 10,
+  /** Per-block configuration */
+  BLOCK_CONFIG: {
+    block1_reading_grammar: {
+      name: 'Reading & Grammar',
+      skills: ['reading', 'grammar'] as const,
+      itemCount: 15,
+      responseMode: 'mcq' as const,
+      useSplitLayout: true,
+    },
+    block2_writing: {
+      name: 'Writing',
+      skills: ['writing'] as const,
+      itemCount: 5,
+      responseMode: 'typed' as const,
+      useSplitLayout: true, // Same passage from Block 1
+    },
+    block3_listening: {
+      name: 'Listening',
+      skills: ['listening'] as const,
+      itemCount: 15,
+      responseMode: 'mcq' as const,
+      useSplitLayout: false,
+    },
+    block4_speaking: {
+      name: 'Speaking',
+      skills: ['speaking'] as const,
+      itemCount: 5,
+      responseMode: 'audio' as const,
+      useSplitLayout: false,
+    },
+  } satisfies Record<AssessmentBlock, BlockConfig>,
 
-  ZONES: {
-    EASY: { count: 3, levels: ['A1', 'A2'] as const, pointsPerQuestion: 1 },
-    MEDIUM: { count: 4, levels: ['B1', 'B2'] as const, pointsPerQuestion: 2 },
-    HARD: { count: 3, levels: ['C1', 'C2'] as const, pointsPerQuestion: 3 },
-  } satisfies Record<DifficultyZone, ZoneConfig>,
+  /** CEFR tier → difficulty zone mapping */
+  TIERS: {
+    tier1: { tier: 'tier1', zone: 'EASY',   levels: ['A1', 'A2'] as const },
+    tier2: { tier: 'tier2', zone: 'MEDIUM', levels: ['B1', 'B2'] as const },
+    tier3: { tier: 'tier3', zone: 'HARD',   levels: ['C1', 'C2'] as const },
+  } satisfies Record<CEFRTier, TierConfig>,
 
-  MAX_POINTS_PER_BLOCK: 20,
-  MAX_POINTS_TOTAL: 80,
+  /** Per-skill tier distribution */
+  SKILL_DISTRIBUTION: [
+    { skill: 'reading',   tier1: 3, tier2: 3, tier3: 2 }, // 8 total
+    { skill: 'grammar',   tier1: 2, tier2: 3, tier3: 2 }, // 7 total
+    { skill: 'writing',   tier1: 1, tier2: 2, tier3: 2 }, // 5 total
+    { skill: 'listening', tier1: 5, tier2: 5, tier3: 5 }, // 15 total
+    { skill: 'speaking',  tier1: 1, tier2: 2, tier3: 2 }, // 5 total
+  ] as const satisfies readonly SkillTierDistribution[],
 
+  /** CEFR level → numeric difficulty for weighted scoring */
+  CEFR_DIFFICULTY_MAP: {
+    'A1': 0.1, 'A2': 0.2,
+    'B1': 0.4, 'B2': 0.6,
+    'C1': 0.8, 'C2': 1.0,
+  } as const,
+
+  /** Percentage → CEFR level scale */
   CEFR_SCALE: [
     { min: 0,  max: 20,  level: 'A1' },
     { min: 21, max: 40,  level: 'A2' },

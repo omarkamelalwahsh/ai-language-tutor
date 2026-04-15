@@ -59,12 +59,12 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
   grammar:    { icon: <BookOpen size={14} />,    color: 'text-indigo-600',  bg: 'bg-indigo-50 border-indigo-200',  label: 'Grammar' },
 };
 
-// Block info - 3 phases across 40 questions
+// Block info - 4 sequential skill blocks across 40 questions
 const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: string }> = {
-  1: { label: 'Foundations', icon: <Zap size={16} />, color: 'text-amber-500' },
-  2: { label: 'Deep Dive', icon: <TrendingUp size={16} />, color: 'text-blue-500' },
-  3: { label: 'Refinement', icon: <Target size={16} />, color: 'text-indigo-600' },
-  4: { label: 'Final Sprint', icon: <Sparkles size={16} />, color: 'text-rose-600' },
+  1: { label: 'Reading & Grammar', icon: <BookOpen size={16} />, color: 'text-indigo-600' },
+  2: { label: 'Writing', icon: <Pen size={16} />, color: 'text-emerald-600' },
+  3: { label: 'Listening', icon: <Headphones size={16} />, color: 'text-sky-600' },
+  4: { label: 'Speaking', icon: <Mic size={16} />, color: 'text-amber-600' },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -377,8 +377,9 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const isSpeakingTask = responseMode === 'audio';
   const hasOptions = currentTask.options && currentTask.options.length > 0;
 
-  // Split Layout for reading tasks with a stimulus
-  const isSplitLayout = !!currentTask.stimulus && currentTask.skill === 'reading';
+  // Split Layout for reading/grammar/writing tasks with a stimulus (Blocks 1 & 2)
+  const isSplitLayout = !!currentTask.stimulus && 
+    (currentTask.skill === 'reading' || currentTask.skill === 'grammar' || currentTask.skill === 'writing');
 
   // Debug values
   const debugLevel = (currentTask as any)._battery?.item?.level || currentTask.difficulty || '??';
@@ -585,7 +586,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           <ReadingLayout 
             stimulus={currentTask.stimulus!} 
             currentQuestionIndex={progress.answered}
-            totalInBundle={4}
+            totalInBundle={progress.currentBlock === 1 ? 15 : 5}
+            activeSkill={currentTask.skill as 'reading' | 'grammar' | 'writing'}
           >
             {renderQuestionContent()}
           </ReadingLayout>
