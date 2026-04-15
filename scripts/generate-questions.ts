@@ -19,36 +19,44 @@ const llmClient = new OpenAI({
 // ============================================================================
 const TOPIC_MAP: Record<string, Record<string, string[]>> = {
   'A1': {
-    'Grammar': ['Verb to be', 'Subject Pronouns', 'Present Simple (Basic)', 'Articles a/an', 'Plural Nouns'],
-    'Reading': ['Personal Profiles', 'Public Signs', 'Short Text Messages', 'Simple Menus'],
-    'Listening': ['Personal Introductions', 'Numbers & Prices', 'Time & Dates', 'Simple Instructions'],
-    'Vocabulary': ['Family Members', 'Common Foods', 'Colors', 'Numbers 1-100', 'Basic Verbs']
+    'Grammar': ['Verb to be', 'Subject Pronouns', 'Present Simple (Basic)'],
+    'Reading': ['Personal Profiles', 'Short Messages'],
+    'Listening': ['Personal Introductions', 'Numbers & Prices'],
+    'Vocabulary': ['Family Members', 'Common Foods'],
+    'Writing': ['Introducing Yourself', 'Describing your Room'],
+    'Speaking': ['Greeting People', 'Saying your Name']
   },
   'A2': {
-    'Grammar': ['Past Simple', 'Present Continuous', 'Comparatives', 'Countable/Uncountable', 'Possessive Pronouns'],
-    'Reading': ['Local News Snippets', 'Travel Ads', 'Work Schedules', 'Personal Emails'],
-    'Listening': ['Everyday Conversations', 'Weather Forecasts', 'Shopping Dialogue', 'Basic Announcements'],
-    'Vocabulary': ['Jobs & Work', 'Health & Illness', 'Hobbies', 'Weather', 'Technology Basics']
+    'Grammar': ['Past Simple', 'Present Continuous'],
+    'Reading': ['Local News Snippets', 'Travel Ads'],
+    'Listening': ['Everyday Conversations', 'Shopping Dialogue'],
+    'Vocabulary': ['Jobs & Work', 'Health & Illness'],
+    'Writing': ['Your Last Holiday', 'A Day in my Life'],
+    'Speaking': ['Ordering Food', 'Giving Directions']
   },
   'B1': {
-    'Grammar': ['Present Perfect', 'Modals (Possibility)', 'Passive Voice (Simple)', 'Relative Clauses', 'Conditionals 1'],
-    'Reading': ['Product Reviews', 'Interview Articles', 'Short Stories', 'Advice Columns'],
-    'Listening': ['Detailed Narratives', 'Radio Interviews', 'Educational Talks', 'Phone Bookings'],
-    'Vocabulary': ['Environment', 'Social Media', 'Emotions', 'Workplace Relations', 'Cultural Events']
+    'Grammar': ['Present Perfect', 'Modals (Possibility)'],
+    'Reading': ['Product Reviews', 'Advice Columns'],
+    'Listening': ['Detailed Narratives', 'Radio Interviews'],
+    'Vocabulary': ['Environment', 'Social Media'],
+    'Writing': ['A Review of a Movie', 'An Email to a Friend'],
+    'Speaking': ['Expressing Opinions', 'Discussing Future Plans']
   },
   'B2': {
-    'Grammar': ['Future Perfect', 'Mixed Conditionals', 'Reported Speech', 'Causative Verbs', 'Inversion'],
-    'Reading': ['Op-Eds', 'Technical Summaries', 'Literary Excerpts', 'Business Reports'],
-    'Listening': ['Podcasts', 'Debates', 'University Lectures', 'Current Affairs News'],
-    'Vocabulary': ['Education Systems', 'Media & Politics', 'Scientific Concepts', 'Criminal Justice', 'Economic Trends']
+    'Grammar': ['Future Perfect', 'Mixed Conditionals'],
+    'Reading': ['Op-Eds', 'Technical Summaries'],
+    'Listening': ['Podcasts', 'University Lectures'],
+    'Vocabulary': ['Education Systems', 'Media & Politics'],
+    'Writing': ['Argumentative Essay', 'Formal Report'],
+    'Speaking': ['Debating Social Issues', 'Giving a Presentation']
   }
 };
 
-const LEVELS = ['A1', 'A2', 'B1', 'B2']; // Focused set for now
-const SKILLS = ['Reading', 'Listening', 'Grammar', 'Vocabulary'];
+const LEVELS = ['A1', 'A2', 'B1', 'B2']; 
+const SKILLS = ['Grammar', 'Reading', 'Listening', 'Vocabulary', 'Writing', 'Speaking'];
 
 const TASK_FORMAT = 'passage_bundle';
-const QUESTIONS_PER_TASK = 4; // Optimized for 0.1 -> 0.9 spread
+const QUESTIONS_PER_TASK = 2; // Reduced per topic to speed up initial seed
 
 const generatePrompt = (targetLevel: string, targetSkill: string, topicName: string) => {
   let stimulusLength = 'medium';

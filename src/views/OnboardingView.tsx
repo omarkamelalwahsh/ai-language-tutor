@@ -36,7 +36,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
   const [isSaving, setIsSaving] = useState(false);
   const [state, setState] = useState<OnboardingState>({
     goal: 'serious',
-    nativeLanguage: 'Arabic',
+    nativeLanguage: 'English',
     targetLanguage: 'English',
     focusSkills: [],
     topics: [],
