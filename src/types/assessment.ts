@@ -366,9 +366,13 @@ export type AnswerRecord = {
   /** Correct answer to be saved to db logs */
   correctAnswer?: string;
   /** Model A Analysis */
-  errorTag?: string;
-  briefExplanation?: string;
-  /** CEFR level string (e.g. 'a1','b2') for question_level column */
+  /** Item CEFR level from question bank */
+  questionLevel?: string;
+  /** Estimated user CEFR level at time of answer */
+  userLevel?: string;
+  /** Category (synchronized with skill for now) */
+  category?: string;
+  /** Deprecated: use questionLevel or userLevel instead */
   level?: string;
   /** Legacy fallbacks */
   isCorrect?: boolean;

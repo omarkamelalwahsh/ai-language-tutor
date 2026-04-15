@@ -43,10 +43,10 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
     }
   ];
 
-  const categories = ['All', ...Array.from(new Set(sampleQuestions.map(q => q.skill_tested)))];
+  const categories = ['All', ...Array.from(new Set(sampleQuestions?.map(q => q.skill_tested) || []))];
   const filteredQuestions = filter === 'All' 
     ? sampleQuestions 
-    : sampleQuestions.filter(q => q.skill_tested === filter);
+    : sampleQuestions?.filter(q => q.skill_tested === filter) || [];
 
   return (
     <div id="question-analysis" className="space-y-8 animate-in fade-in duration-700 scroll-mt-24">
@@ -75,8 +75,9 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
       </div>
 
       <div className="grid gap-6">
-        {filteredQuestions.map((q, idx) => {
+        {filteredQuestions?.map((q, idx) => {
           const isCorrect = q.result === 'Correct';
+
           return (
             <div key={idx} className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all border-l-4 group" 
                  style={{ borderLeftColor: isCorrect ? '#10b981' : '#f43f5e' }}>

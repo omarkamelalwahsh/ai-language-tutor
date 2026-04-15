@@ -62,43 +62,7 @@ export class AssessmentSaveService {
     return s;
   }
 
-  /**
-   * JOURNEY FACTORY: Generates initial nodes based on CEFR level.
-   * Total 36 nodes (6 per level).
-   */
-  private static generateInitialJourneyNodes(level: string): { nodes: any[], currentNodeId: string } {
-    const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'C2+'];
-    const nodesPerLevel = 6;
-    const nodes: any[] = [];
-    
-    // Find index of current level (fallback to A1 if invalid)
-    const levelIndex = Math.max(0, levels.indexOf(level.replace('+', '')));
-    const currentStartNodeIndex = levelIndex * nodesPerLevel;
-    let currentNodeId = "";
 
-    levels.slice(0, 6).forEach((lvl, lIdx) => {
-      for (let i = 1; i <= nodesPerLevel; i++) {
-        const globalIdx = (lIdx * nodesPerLevel) + i;
-        const logicalId = `node_${globalIdx}`;
-        const nodeId = toValidUUID(logicalId);
-        const isCompleted = globalIdx <= currentStartNodeIndex;
-        const isCurrent = globalIdx === currentStartNodeIndex + 1;
-        
-        if (isCurrent) currentNodeId = nodeId;
-
-        nodes.push({
-          id: nodeId,
-          title: `${lvl} ${i}: ${i === 1 ? 'Foundations' : 'Intermediate Practice'}`,
-          level: lvl,
-          status: isCompleted ? 'completed' : (isCurrent ? 'current' : 'locked'),
-          order: globalIdx,
-          points: 100
-        });
-      }
-    });
-
-    return { nodes, currentNodeId: currentNodeId || "node_1" };
-  }
 
   // Helper buffers unchanged...
   private static saveToLocalBuffer(payload: any) {
@@ -215,8 +179,11 @@ export class AssessmentSaveService {
         user_answer: audioUrl ? `[AUDIO] ${audioUrl} | transcription: ${answerStr}` : answerStr,
         is_correct: isCorrect,
         skill: skillStr,
-        quality_issue: isQualityIssue ? true : undefined,
-        audio_url: audioUrl || undefined // Attempting to use official column if it exists
+        category: skillStr, // Alignment: Duplicate skill to category for now
+        difficulty: task.difficulty_numeric || 0.5,
+        response_time_ms: timeSpentMs || 0,
+        status: 'completed',
+        explanation: evaluation, // Alignment: Store FULL AI feedback object
       };
 
 
@@ -234,19 +201,25 @@ export class AssessmentSaveService {
 
     // 2. ASSESSMENT_LOGS — Sanitized Minimal Payload
     try {
-      const logsPayload = {
-        user_id: finalUserId,
-        question_id: String(task.id),
-        question: questionText,
+        question: questionText, // Alignment: Both 'question' and 'question_text' exist in schema
+        question_text: questionText, // Alignment
         user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
-        correct_answer: task.correctAnswer || (isProductionTask ? '[open_ended]' : ''),
+        correct_answer: correctAnswerStr || (isProductionTask ? '[open_ended]' : ''),
         is_correct: isCorrect,
         skill: skillStr,
-        quality_issue: isQualityIssue ? true : undefined,
-        audio_url: audioUrl || undefined,
+        category: skillStr, // Alignment
+        score: evaluation.score !== undefined ? evaluation.score : (isCorrect ? 1.0 : 0.0),
+        difficulty: task.difficulty_numeric || 0.5,
+        response_time_ms: timeSpentMs || 0,
+        duration_ms: timeSpentMs || 0, // Alignment
+        question_level: task.difficulty || 'b1',
+        level: (task as any)._userLevel || 'b1', // Capture snapshot level if passed
+        status: 'completed',
+        evaluation_metadata: evaluation,
         metadata: {
-          time_spent: timeSpentMs,
-          audio_url: audioUrl
+          audio_url: audioUrl,
+          evaluation_source: isProductionTask ? 'ai' : 'deterministic',
+          time_spent: timeSpentMs
         }
       };
 
@@ -454,16 +427,20 @@ export class AssessmentSaveService {
         user_id: userId,
         question_id: toValidUUID(h.questionId),
         user_answer: h.answer,
-        score: h.score !== undefined ? h.score : (h.isCorrect ? 1 : 0),
-        is_correct: h.isCorrect ?? (h as any).correct,
+        score: h.score !== undefined ? h.score : (h.correct ? 1 : 0),
+        is_correct: h.correct,
         skill: this.toCanonicalSkill(h.skill),
+        category: this.toCanonicalSkill(h.skill),
         difficulty: h.difficulty ?? 0.4,
-        question_level: h.level || 'b1',
+        question_level: h.questionLevel || h.level || 'b1',
+        answer_level: h.userLevel || 'b1',
+        response_time_ms: h.responseTimeMs || 0,
+        status: 'completed',
         created_at: h.timestamp || new Date().toISOString()
       }));
 
       // B. user_error_analysis (Incorrect ONLY)
-      const errorAnalysisPayload = history.filter(h => !(h.isCorrect ?? (h as any).correct)).map(h => ({
+      const errorAnalysisPayload = history.filter(h => !h.correct).map((h, idx) => ({
         user_id: userId,
         category: this.toCanonicalSkill(h.skill),
         user_answer: h.answer,
@@ -471,6 +448,7 @@ export class AssessmentSaveService {
         is_correct: false,
         ai_interpretation: `Skill Gap: ${h.skill}`,
         deep_insight: 'Detected in diagnostic flow',
+        question_number: idx + 1,
         created_at: new Date().toISOString()
       }));
 
@@ -510,8 +488,8 @@ export class AssessmentSaveService {
         supabase.from('learner_profiles').update({
           overall_level: (outcome as any).finalLevel || (outcome as any).overallBand || 'B1',
           points: (oldProfile?.points || 0) + ((outcome as any).pointsAwarded || 50),
-          onboarding_complete: true,
           has_completed_assessment: true,
+          onboarding_complete: true,
           updated_at: new Date().toISOString()
         }).eq('id', userId),
         
@@ -706,26 +684,35 @@ export class AssessmentSaveService {
       console.log("🟠 Hydrating multi-table ecosystem...");
 
       // A. user_error_analysis (Failures Only)
-      const errorAnalysisPayload = history.filter(h => !h.is_correct).map(h => ({
-        user_id: userId,
-        category: h.category,
-        user_answer: h.user_answer,
-        correct_answer: h.correct_answer || '',
-        is_correct: false,
-        ai_interpretation: `Skill Gap detected at ${h.category}`,
-        deep_insight: 'Analyzed during finalization orchestrated pipeline',
-        created_at: new Date().toISOString()
-      }));
+      const errorAnalysisPayload = history.filter(h => !h.is_correct).map((h, idx) => {
+        const evalMeta = h.evaluation_metadata || {};
+        return {
+          user_id: userId,
+          category: h.category || h.skill,
+          user_answer: h.user_answer,
+          correct_answer: h.correct_answer || '',
+          is_correct: false,
+          ai_interpretation: evalMeta.feedback || evalMeta.reasoning || `Skill Gap detected at ${h.category || h.skill}`,
+          brief_explanation: evalMeta.feedback || '',
+          error_tag: evalMeta.error_tag || '',
+          suggested_band: h.question_level || 'A2',
+          deep_insight: evalMeta.deep_insight || 'Analyzed during finalization orchestrated pipeline',
+          question_number: idx + 1,
+          created_at: new Date().toISOString()
+        };
+      });
 
       // B. skill_states (Performance Mapping)
        const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => {
          const rawScore = outcome.skillBreakdown[skillKey].score || 0;
          // 🎯 Normalize cleanly: cast to 0-1, then strictly multiply by 10000
          const normalizedScore = Math.round((rawScore > 1 ? rawScore / 100 : rawScore) * 10000);
+         const band = outcome.skillBreakdown[skillKey].band;
          return {
            user_id: userId,
            skill: skillKey.toLowerCase(),
-           current_level: outcome.skillBreakdown[skillKey].band,
+           current_level: band,
+           level: band, // Alignment
            current_score: normalizedScore,
            confidence: outcome.skillBreakdown[skillKey].confidence,
            last_tested: new Date().toISOString(),
@@ -733,12 +720,9 @@ export class AssessmentSaveService {
          };
        });
 
-      // C. Journey Factory Initialization
-      const { nodes, currentNodeId } = this.generateInitialJourneyNodes(newLevel);
-
       // EXECUTION
       const results = await Promise.all([
-        // 1. Error Analysis Bulk Insert (use upsert to prevent 409 conflict)
+        // 1. Error Analysis Bulk Insert
         errorAnalysisPayload.length > 0 
           ? supabase.from('user_error_analysis').upsert(errorAnalysisPayload, { ignoreDuplicates: true }) 
           : Promise.resolve({ error: null }),
@@ -755,17 +739,7 @@ export class AssessmentSaveService {
         // 3. Skill Matrices Refresh
         supabase.from('skill_states').upsert(skillUpserts, { onConflict: 'user_id, skill' }),
 
-        // 4. Learning Journey Initialization (Force 'Foundations' completion for UX journey start)
-        supabase.from('learning_journeys').upsert({
-          id: userId,
-          user_id: userId,
-          nodes: nodes.map((n, idx) => idx === 0 ? { ...n, status: 'completed' } : n),
-          current_node_id: nodes[1]?.id || nodes[0].id,
-          metadata: { initial_level: newLevel, generated_at: new Date().toISOString() },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' }),
-
-        // 5. Learner Profile Hydration (Final Step)
+        // 4. Learner Profile Hydration (Final Step)
         supabase.from('learner_profiles').update({
           overall_level: newLevel,
           onboarding_complete: true,

@@ -61,7 +61,8 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
 const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: string }> = {
   1: { label: 'Foundations', icon: <Zap size={16} />, color: 'text-amber-500' },
   2: { label: 'Deep Dive', icon: <TrendingUp size={16} />, color: 'text-blue-500' },
-  3: { label: 'Mastery', icon: <Brain size={16} />, color: 'text-indigo-600' },
+  3: { label: 'Refinement', icon: <Target size={16} />, color: 'text-indigo-600' },
+  4: { label: 'Final Sprint', icon: <Sparkles size={16} />, color: 'text-rose-600' },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -565,7 +566,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             <div className="text-center space-y-6">
               <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 flex items-center justify-center mx-auto shadow-2xl shadow-indigo-100/50">
                 <span className={BLOCK_INFO[showBlockTransition]?.color || "text-indigo-600"}>
-                  {React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
+                  {BLOCK_INFO[showBlockTransition]?.icon && React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
                 </span>
               </div>
               <div className="space-y-1">

@@ -12,27 +12,7 @@ import { toValidUUID } from '../lib/utils';
  */
 export class JourneyService {
   
-  /**
-   * Deterministic generation based on CEFR catalog.
-   * Used as an immediate response and fallback for LLM failures.
-   */
-  public static buildJourney(result: AssessmentSessionResult): LearnerJourneyPayload {
-    const currentLevel = result?.overall?.estimatedLevel || 'A1';
-    const targetLevel = getNextBand(currentLevel);
-    
-    const gaps = result ? this.identifyGaps(result) : [];
-    const objectives = this.identifyObjectives(targetLevel);
-    const nodes = this.generateStaticNodes(gaps, objectives);
 
-    return {
-      currentStage: currentLevel,
-      targetStage: targetLevel,
-      journeyTitle: `Your Path to ${targetLevel}`,
-      currentCapabilitiesSummary: `Refining ${currentLevel} foundations based on your performance evidence.`,
-      targetCapabilitiesSummary: `Achieving full competence at ${targetLevel} level.`,
-      nodes
-    };
-  }
 
   /**
    * AI-Driven generation using the "Journey Architect" prompt.
@@ -58,8 +38,8 @@ export class JourneyService {
     });
 
     if (!response || !response.nodes) {
-      console.warn('[JourneyService] LLM generation failed or returned no nodes. Falling back to static.');
-      return this.buildJourney(result);
+      console.warn('[JourneyService] LLM generation failed or returned no nodes.');
+      throw new Error("AI Journey Architecture failed.");
     }
 
     // 3. Map LLM nodes to UI structure
@@ -122,9 +102,11 @@ export class JourneyService {
         title: node.title,
         description: node.description,
         order_index: i,
-        status: node.status,
-        icon_type: node.iconType,
-        skill_focus: node.skillFocus || (node.id.includes('gap') ? 'remediation' : 'progression')
+        status: node.status || 'locked',
+        icon_type: node.iconType || 'map-pin',
+        skill_focus: node.skillFocus || (node.id.includes('gap') ? 'remediation' : 'progression'),
+        is_locked: node.status === 'locked' || node.status === undefined,
+        content_payload: (node as any).payload || {}
       }));
 
       const { error: sError } = await supabase.from('journey_steps').insert(stepsToInsert);
@@ -170,50 +152,5 @@ export class JourneyService {
 
   private static identifyObjectives(targetLevel: CefrLevel): CefrDescriptor[] {
     return CEFR_CATALOG.filter(d => d.level === targetLevel).slice(0, 3);
-  }
-
-  private static generateStaticNodes(gaps: CefrDescriptor[], objectives: CefrDescriptor[]): JourneyNode[] {
-    const nodes: JourneyNode[] = [];
-    let nodeIndex = 0;
-
-    // Phase 1: Remediation (Gap Filling)
-    gaps.forEach(gap => {
-      nodes.push({
-        id: toValidUUID(`gap_${gap.id}`),
-        type: 'task',
-        status: nodeIndex === 0 ? 'current' : 'locked',
-        title: `Bridge: ${gap.skill.charAt(0).toUpperCase() + gap.skill.slice(1)}`,
-        description: gap.canonicalTextEn,
-        iconType: this.mapIconType('', gap.skill),
-        skillFocus: 'remediation'
-      });
-      nodeIndex++;
-    });
-
-    // Checkpoint
-    nodes.push({
-      id: toValidUUID(`cp_remediation`),
-      type: 'checkpoint',
-      status: 'locked',
-      title: 'Foundation Checkpoint',
-      description: 'Validate remediation of identified gaps before moving to new objectives.',
-      iconType: 'assessment',
-      skillFocus: 'progression'
-    });
-
-    // Phase 2: Progression (New Objectives)
-    objectives.forEach(obj => {
-      nodes.push({
-        id: toValidUUID(`obj_${obj.id}`),
-        type: 'task',
-        status: 'locked',
-        title: `Target: ${obj.skill.charAt(0).toUpperCase() + obj.skill.slice(1)}`,
-        description: obj.canonicalTextEn,
-        iconType: this.mapIconType('', obj.skill),
-        skillFocus: 'progression'
-      });
-    });
-
-    return nodes;
   }
 }

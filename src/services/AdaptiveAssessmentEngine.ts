@@ -269,12 +269,18 @@ export class AdaptiveAssessmentEngine {
       }
     }
 
+    // 🎯 Snapshot User Level calculation
+    const currentOutcome = this.getOutcome();
+    const snapLevel = currentOutcome.overall.estimatedLevel;
+
     this.answerHistory.push({
       taskId: item.id, 
       questionId: item.id, 
       skill: item.skill as any,
       difficulty: difficultyVal,
-      level: canonicalLevel,
+      questionLevel: canonicalLevel,
+      userLevel: snapLevel,
+      category: item.skill,
       correct: isCorrect,
       score: evaluation.score, 
       answer, 

@@ -423,59 +423,42 @@ export class BatterySelector {
    * Also extracts correct_answer for the engine's MCQ check.
    */
   private static hoistOptions(item: QuestionBankItem) {
-    // 🛡️ Guard: Skip hoisting for non-MCQ response modes (writing=typed, speaking=audio)
+    // 🛡️ Guard: Skip hoisting for production modes
     const mode = (item.response_mode || '') as string;
-    if (mode === 'typed' || mode === 'audio') {
-      // Production tasks don't have MCQ options — this is expected, not a warning
-      return;
-    }
+    if (mode === 'typed' || mode === 'audio') return;
 
-    if (item.options && item.options.length > 0) {
-      // Already has top-level options, nothing to hoist
-      return;
-    }
+    if (item.options && item.options.length > 0) return;
 
+    // 🛡️ Exhaustive check for nested options in answer_key
     const ak = item.answer_key as any;
     if (!ak) return;
 
     let parsed = ak;
-
-    // If answer_key is a JSON string, parse it
     if (typeof ak === 'string') {
       try { parsed = JSON.parse(ak); } catch { return; }
     }
 
     let options: string[] | null = null;
-    let correctIndex: number | null = null;
 
-    // Path 1: answer_key.value.options (canonical)
+    // Path 1: answer_key.value.options (standard structure for some imports)
     if (parsed?.value && typeof parsed.value === 'object' && Array.isArray(parsed.value.options)) {
       options = parsed.value.options;
-      correctIndex = parsed.value.correct_index;
     }
-    // Path 2: answer_key.options (flat)
+    // Path 2: answer_key.options (the format the user mentioned)
     else if (Array.isArray(parsed?.options)) {
       options = parsed.options;
-      correctIndex = parsed.correct_index;
     }
-    // Path 3: answer_key.value is a string (possibly JSON)
-    else if (parsed?.value && typeof parsed.value === 'string') {
-      try {
-        const innerParsed = JSON.parse(parsed.value);
-        if (Array.isArray(innerParsed?.options)) {
-          options = innerParsed.options;
-          correctIndex = innerParsed.correct_index;
-        }
-      } catch { /* not JSON */ }
+    // Path 3: answer_key directly is the object
+    else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).options)) {
+       options = (parsed as any).options;
     }
 
     if (options && options.length > 0) {
       item.options = options;
-      console.log(`[Hoist] ✅ ${item.id} (${item.skill}): Hoisted ${options.length} options`);
-    } else {
-      console.warn(`[Hoist] ⚠️ ${item.id} (${item.skill}): No options found in answer_key:`, JSON.stringify(ak).slice(0, 200));
+      console.log(`[Hoist] ✅ ${item.id}: Hoisted ${options.length} options from answer_key`);
     }
   }
+
 
   private static toBatteryQuestion(item: QuestionBankItem): BatteryQuestion {
     return {

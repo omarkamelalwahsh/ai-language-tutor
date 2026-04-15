@@ -260,31 +260,45 @@ export class AudioRecordingService {
 
     console.log(`[AudioRecordingService] 📤 Uploading audio to storage: ${filePath}`);
 
-    try {
+    // 🔥 TIMEOUT PROTECTION: 12 seconds
+    const UPLOAD_TIMEOUT = 12000;
+
+    const timeoutPromise = new Promise<string>((_, reject) =>
+      setTimeout(() => reject(new Error('UPLOAD_TIMEOUT')), UPLOAD_TIMEOUT)
+    );
+
+    const uploadPromise = (async () => {
       const { data, error } = await supabase.storage
-        .from('audio') // 🛡️ Bucket name fixed to 'audio' (lowercase)
+        .from('audio')
         .upload(filePath, blob, {
           contentType: blob.type || 'audio/webm',
           upsert: true
         });
 
       if (error) {
-        console.warn('[AudioRecordingService] ⚠️ Storage upload error:', error.message);
-        // Fire-and-forget placeholder to keep assessment moving
-        return `[storage_failure_fallback]:${filePath}`;
+        throw error;
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('audio')
         .getPublicUrl(data.path);
 
-      console.log(`[AudioRecordingService] ✅ Upload successful: ${publicUrl}`);
       return publicUrl;
+    })();
+
+    try {
+      // Race the upload against the timeout
+      const result = await Promise.race([uploadPromise, timeoutPromise]);
+      console.log(`[AudioRecordingService] ✅ Upload successful: ${result}`);
+      return result;
     } catch (err: any) {
-      console.warn('[AudioRecordingService] 🛑 Fatal upload crash:', err.message);
-      // Return a local-friendly identifier or placeholder
-      return `[local_fallback]:${filePath}`;
+      if (err.message === 'UPLOAD_TIMEOUT') {
+        console.warn(`[AudioRecordingService] ⏳ Upload timed out after ${UPLOAD_TIMEOUT}ms. Using fallback.`);
+        return `[upload_timeout_fallback]:${filePath}`;
+      }
+      console.warn('[AudioRecordingService] ⚠️ Storage upload error:', err.message || err);
+      return `[storage_failure_fallback]:${filePath}`;
     }
   }
 }
+

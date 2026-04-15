@@ -140,11 +140,13 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
           task.id
         );
       } catch (uploadErr) {
-        console.warn("[SpeakingModule] Audio upload failed, proceeding with transcription only:", uploadErr);
+        console.warn("[SpeakingModule] Audio upload failed, proceeding with transcription:", uploadErr);
+      } finally {
+        setIsUploading(false);
       }
 
-      setIsUploading(false);
       setIsTranscribing(true);
+
 
       // 2. Transcribe
       console.log("[SpeakingModule] ✍️ Transcribing speech...");

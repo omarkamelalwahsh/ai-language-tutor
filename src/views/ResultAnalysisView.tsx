@@ -113,14 +113,14 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
       // Aggregate from real DB logs
       const stats: Record<string, { correct: number, total: number }> = {};
       dbLogs.forEach(entry => {
-        const s = entry.skill?.toLowerCase();
+        const s = (entry.skill || 'unknown').toLowerCase();
         if (!stats[s]) stats[s] = { correct: 0, total: 0 };
         stats[s].total++;
         if (entry.is_correct) stats[s].correct++;
       });
 
       return BATTERY_SKILLS.map(s => {
-        const skillStats = stats[s] || { correct: 0, total: 0 };
+        const skillStats = stats[s.toLowerCase()] || { correct: 0, total: 0 };
         const pct = skillStats.total > 0 ? Math.round((skillStats.correct / skillStats.total) * 100) : 50; 
         return {
           subject: s.charAt(0).toUpperCase() + s.slice(1),
@@ -137,6 +137,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
       fullMark: 100
     }));
   }, [dbLogs, skills]);
+
 
   const handleFinalize = async () => {
     if (isFinalizing) return;
@@ -337,7 +338,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                   <div key={skillRes.skill}>
                     <div className="flex justify-between items-center mb-1.5 text-sm">
                       <div className="flex items-center gap-2 font-semibold text-slate-700 capitalize">
-                        {skillIcons[skillRes.skill] || <Target className="w-4 h-4 text-slate-400" />} {skillRes.skill}
+                        {skillIcons[skillRes.skill.toLowerCase()] || <Target className="w-4 h-4 text-slate-400" />} {skillRes.skill}
                       </div>
                       <span className="font-bold text-slate-900">{Math.round(((skillRes.masteryScore ?? skillRes.confidence.score) > 1 ? (skillRes.masteryScore ?? skillRes.confidence.score) : (skillRes.masteryScore ?? skillRes.confidence.score) * 100))}%</span>
                     </div>
