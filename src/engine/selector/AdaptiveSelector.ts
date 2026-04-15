@@ -78,11 +78,32 @@ export class BatterySelector {
         if (difficulty <= 0.3) zone = 'EASY';
         else if (difficulty > 0.7) zone = 'HARD';
 
+        // 🛡️ HOIST OPTIONS: extract from answer_key if top-level options is missing
+        let options = item.options || [];
+        const ak = item.answer_key;
+        if ((!options || options.length === 0) && ak) {
+          try {
+            const parsed = typeof ak === 'string' ? JSON.parse(ak) : ak;
+            options = parsed.options || (parsed.value && parsed.value.options) || [];
+          } catch (e) {
+            console.warn(`[Selector] Failed to parse answer_key for item ${item.id}`);
+          }
+        }
+
+        const isMCQ = options.length > 0 || item.task_type?.includes('mcq');
+        let response_mode: 'mcq' | 'typed' | 'audio' = isMCQ ? 'mcq' : 'typed';
+        
+        // 🎙️ Skill-based Mode Enforcement
+        if (item.skill === 'speaking') response_mode = 'audio';
+        else if (item.skill === 'writing') response_mode = 'typed';
+
         return {
           item: {
             ...item,
             id: item.id,
-            response_mode: (item.task_type?.includes('mcq') || (item.answer_key && (item.answer_key.options || (typeof item.answer_key === 'string' && item.answer_key.includes('options'))))) ? 'mcq' : 'typed'
+            options,
+            audio_url: item.audio_url || item.audioUrl || null, // Map audio explicitly
+            response_mode
           } as QuestionBankItem,
           block: Math.floor(index / 10) + 1,
           skill: item.skill,
