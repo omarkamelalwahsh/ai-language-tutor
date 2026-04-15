@@ -67,19 +67,27 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
 
-  // Redirect Fix Cache
+  // 🛡️ REDIRECT HARDENING: Prioritize local cache during save windows to prevent background-sync-induced loops
   const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
-  const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
-  const isOnboardingComplete = profile?.onboarding_complete === true;
+  const isOnboardingCompleteCache = localStorage.getItem('onboarding_complete') === 'true';
   
+  const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
+  const isOnboardingComplete = profile?.onboarding_complete === true || isOnboardingCompleteCache;
+  
+  // If we haven't finished onboarding or assessment, we MUST be at an onboarding/diagnostic route
   if (!isOnboardingComplete && !hasCompletedAssessment) {
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
-    if (!isAtAssessment) return <Navigate to="/onboarding" />;
+    if (!isAtAssessment) {
+      console.warn('[ProtectedRoute] 🔂 Redirecting to onboarding (Incomplete Profile)');
+      return <Navigate to="/onboarding" />;
+    }
   }
 
   // Block access to onboarding or diagnostic if assessment is already complete
-  if (hasCompletedAssessment) {
-    if (location === '/onboarding' || location === '/diagnostic' || location === '/diagnostic/intro') {
+  if (hasCompletedAssessment || isOnboardingComplete) {
+    const isResetting = location.includes('reset=true');
+    if (!isResetting && (location === '/onboarding' || location === '/diagnostic' || location === '/diagnostic/intro')) {
+      console.log('[ProtectedRoute] ✅ Blocked redundant onboarding access (Redirecting to Dashboard)');
       return <Navigate to="/dashboard" replace />;
     }
   }
@@ -191,6 +199,7 @@ function AppRoutes() {
     // 2. OPTIMISTIC HYDRATION: Update local memory so pages aren't empty
     console.log('[App] 💧 Optimistically hydrating local state...');
     localStorage.setItem('has_completed_assessment', 'true'); // Fast cache for routing
+    localStorage.setItem('onboarding_complete', 'true'); // Fast cache for routing
     setSessionResult(computedSessionResult, outcome, history);
     updateProfileLocally({
         onboarding_complete: true,

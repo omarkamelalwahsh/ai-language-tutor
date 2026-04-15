@@ -75,7 +75,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (profileData) {
-        setProfile(profileData);
+        // 🧪 OPTIMISTIC MERGE: If local storage says we're complete, trust it over the DB 
+        // during the background-save window.
+        const localOnboardingComplete = localStorage.getItem('onboarding_complete') === 'true';
+        const localAssessmentComplete = localStorage.getItem('has_completed_assessment') === 'true';
+
+        const mergedProfile = {
+          ...profileData,
+          onboarding_complete: profileData.onboarding_complete || localOnboardingComplete,
+          has_completed_assessment: profileData.has_completed_assessment || localAssessmentComplete
+        };
+
+        setProfile(mergedProfile);
         // Trigger global refresh for dashboard components
         setRefreshTrigger(prev => prev + 1);
       } else {
