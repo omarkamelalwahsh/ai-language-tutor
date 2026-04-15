@@ -164,53 +164,98 @@ app.get("/api/db-status", async (_req, res) => {
 });
 
 app.get("/api/questions", async (req, res) => {
-    console.log("[Questions] Fetching bank from Supabase...");
+    const isDiagnostic = req.query.type === 'diagnostic';
+    console.log(`[Questions] Fetching bank from Supabase (Mode: ${isDiagnostic ? 'DIAGNOSTIC' : 'RAW'})...`);
+
     try {
-        // 🔒 RESILIENT QUERY: We fetch all columns to avoid crashing if we guessed a column name wrong.
-        // We also use a service role key to bypass RLS for this specific bank-loading step.
-        const { data, error } = await supabase
+        if (!isDiagnostic) {
+          // --- RAW BANK FETCH (Fallback/Admin) ---
+          const { data, error } = await supabase.from('question_bank_items').select('*');
+          if (error) throw error;
+          const formatted = data.map(item => formatQuestion(item));
+          return res.json(formatted);
+        }
+
+        // --- STRICT DIAGNOSTIC BLUEPRINT (40 Questions) ---
+        const distribution = [
+          { skill: 'grammar',    easy: 4, medium: 4, hard: 4 },
+          { skill: 'listening',  easy: 2, medium: 4, hard: 2 },
+          { skill: 'reading',    easy: 2, medium: 4, hard: 2 },
+          { skill: 'vocabulary', easy: 1, medium: 2, hard: 1 },
+          { skill: 'writing',    easy: 1, medium: 2, hard: 1 },
+          { skill: 'speaking',   easy: 1, medium: 2, hard: 1 }
+        ];
+
+        let battery = [];
+        
+        // Execute 6 skill-based queries in parallel
+        const skillPools = await Promise.all(distribution.map(async (d) => {
+          const { data, error } = await supabase
             .from('question_bank_items')
-            .select('*');
-
-        if (error) {
-            console.error("[Questions] Supabase Error:", error);
-            return res.status(500).json({ 
-                error: "Database connection failed", 
-                details: error.message,
-                hint: "Check if SUPABASE_SERVICE_ROLE_KEY is correctly set in Vercel."
-            });
-        }
-
-        if (!data || data.length === 0) {
-            console.warn("[Questions] Bank is empty in Supabase.");
-            return res.json([]);
-        }
-
-        const formattedQuestions = data.map(item => ({
-            id: item.external_id || item.id,
-            skill: (item.skill || 'vocabulary').toString().toLowerCase(),
-            task_type: item.task_type || 'essay',
-            level: item.level || 'A1',
-            difficulty: Number(item.difficulty) || 0.5,
-            response_mode: (item.task_type?.includes('mcq') || item.response_mode === 'multiple_choice') ? 'mcq' : 'typed',
-            prompt: item.prompt || 'Untitled Question',
-            stimulus: item.stimulus || '',
-            audio_url: item.audio_url || null,
-            options: item.options || [],
-            evidence_policy: item.evidence_policy || null,
-            answer_key: item.answer_key || {}
+            .select('*')
+            .eq('skill', d.skill);
+          
+          if (error) {
+            console.error(`[Blueprint] Error fetching ${d.skill}:`, error.message);
+            return { skill: d.skill, items: [] };
+          }
+          return { skill: d.skill, items: data || [], quota: d };
         }));
 
-        console.log(`[Questions] Successfully loaded ${formattedQuestions.length} items.`);
-        res.json(formattedQuestions);
+        for (const pool of skillPools) {
+          const { items, quota } = pool;
+          
+          const easy = items.filter(q => Number(q.difficulty) <= 0.3);
+          const medium = items.filter(q => Number(q.difficulty) > 0.3 && Number(q.difficulty) <= 0.7);
+          const hard = items.filter(q => Number(q.difficulty) > 0.7);
+
+          const sampledEasy = shuffle(easy).slice(0, quota.easy);
+          const sampledMedium = shuffle(medium).slice(0, quota.medium);
+          const sampledHard = shuffle(hard).slice(0, quota.hard);
+
+          battery.push(...sampledEasy, ...sampledMedium, ...sampledHard);
+        }
+
+        // --- FINAL GLOBAL ORDERING: EASY -> MEDIUM -> HARD ---
+        // Ensuring the test follows a "Scaffolding" experience across skills
+        battery.sort((a, b) => Number(a.difficulty) - Number(b.difficulty));
+
+        const formattedBattery = battery.map(item => formatQuestion(item));
+        console.log(`[Blueprint] Constructed 40-question battery. Success.`);
+        res.json(formattedBattery);
+
     } catch (err) {
         console.error("[Questions] Unexpected Server Error:", err);
-        res.status(500).json({ 
-            error: "Internal Server Error during bank loading",
-            message: err.message 
-        });
+        res.status(500).json({ error: "Internal Server Error", message: err.message });
     }
 });
+
+// Helper: Standardize question format
+function formatQuestion(item) {
+  return {
+    id: item.external_id || item.id,
+    skill: (item.skill || 'vocabulary').toString().toLowerCase(),
+    task_type: item.task_type || 'essay',
+    level: item.level || 'A1',
+    difficulty: Number(item.difficulty) || 0.5,
+    response_mode: (item.task_type?.includes('mcq') || (item.answer_key && (item.answer_key.options || JSON.parse(typeof item.answer_key === 'string' ? item.answer_key : '{}').options))) ? 'mcq' : 'typed',
+    prompt: item.prompt || 'Untitled Question',
+    stimulus: item.stimulus || '',
+    audio_url: item.audio_url || null,
+    options: item.options || (item.answer_key?.options) || [],
+    answer_key: typeof item.answer_key === 'string' ? JSON.parse(item.answer_key) : item.answer_key || {}
+  };
+}
+
+// Helper: Shuffle array
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 // ============================================================================
 // 🌍 Leaderboard & Ranking (Production Ready)
