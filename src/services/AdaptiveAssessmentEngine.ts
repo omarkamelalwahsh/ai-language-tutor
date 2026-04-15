@@ -286,34 +286,24 @@ export class AdaptiveAssessmentEngine {
     this.taskEvaluations.push(evaluation);
     this.currentIndex++;
 
-    // 🎯 LEVEL UNLOCKING (Strict Sequencing - The 80% Rule)
-    // After 10 questions, if success rate <= 80%, cap the level to A2/B1.
+    // 🎯 STRICT BLOCK ENFORCEMENT
+    // The previous 80% Rule (Level Capping) is now DISABLED.
+    // The engine must strictly follow the 3-4-3 difficulty distribution.
     if (this.currentIndex === 10 && !this.levelCapReached) {
       const firstTen = this.answerHistory.slice(0, 10);
       const correctCount = firstTen.filter(a => a.correct).length;
       const successRate = (correctCount / 10) * 100;
-      
-      console.log(`[Engine] 📊 First 10 Check: ${successRate}% success rate.`);
-      
-      if (successRate <= 80) {
-        console.log("[Engine] ⚠️ Success rate <= 80%. Capping remaining battery to B1 maximum.");
-        this.levelCapReached = true;
-        this.applyLevelCap(3.5); // Cap at B1 (TrueDifficulty ~3.0-4.0)
-      }
+      console.log(`[Engine] 📊 First 10 Check: ${successRate}% success rate. Proceeding with strict 3-4-3 blocks.`);
     }
     
     if (this.currentIndex >= this.battery.length) {
-
       this.completed = true;
       this.clearState();
     } else {
-      // 🚀 ADAPTIVITY SPEED (Re-ordering battery)
-      // If the user got it right, move harder questions of this skill/level earlier
-      if (isCorrect) {
-        this.reorderRemainingBattery(difficultyVal);
-      }
+      // 🚀 ADAPTIVITY DISABLED: We rely on the BatterySelector's 3-4-3 fixed blocks
       this.saveState();
     }
+
 
     return { 
       correct: isCorrect, 

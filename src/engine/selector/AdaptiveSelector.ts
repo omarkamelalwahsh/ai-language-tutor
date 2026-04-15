@@ -39,9 +39,10 @@ const SKILL_QUOTAS: SkillQuota[] = [
   { skill: 'grammar',    total: 12, easy: 4, medium: 4, hard: 4, responseMode: 'mcq',   isProduction: false },
   { skill: 'listening',  total: 8,  easy: 2, medium: 4, hard: 2, responseMode: 'mcq',   isProduction: false },
   { skill: 'reading',    total: 8,  easy: 2, medium: 4, hard: 2, responseMode: 'mcq',   isProduction: false },
-  { skill: 'vocabulary', total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'mcq',   isProduction: false },
+  { skill: 'vocabulary', total: 4,  easy: 2, medium: 0, hard: 2, responseMode: 'mcq',   isProduction: false },
   { skill: 'writing',    total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'typed',  isProduction: true },
   { skill: 'speaking',   total: 4,  easy: 1, medium: 2, hard: 1, responseMode: 'audio',  isProduction: true },
+
 ];
 
 const BATTERY_SIZE = 40;
@@ -112,23 +113,90 @@ export class BatterySelector {
       console.log(`[Selector]   ✅ ${quota.skill}: ${sampled.length}/${quota.total}`);
     }
 
-    // 3. Shuffle receptive items but RE-SORT to ensure first 10 are A1-A2
-    // We want a natural progression: A1-A2 -> B1-B2 -> C1
-    let sortedReceptive = this.shuffle(receptiveItems).sort((a, b) => {
-        const diffA = this.getTrueDifficulty(a.item);
-        const diffB = this.getTrueDifficulty(b.item);
-        return diffA - diffB;
+    // 3. Strict 3-4-3 Distribution Logic per Block (10 questions)
+    // We must respect reading bundles implicitly by assigning them whole into blocks.
+    const battery: BatteryQuestion[] = [];
+    const allItems = [...receptiveItems, ...productionItems];
+    
+    // Group reading bundles
+    const readingBundles: Record<string, BatteryQuestion[]> = {};
+    const freestandingItems: BatteryQuestion[] = [];
+    
+    allItems.forEach(q => {
+       if (q.skill === 'reading' && q.item.stimulus) {
+          if (!readingBundles[q.item.stimulus]) readingBundles[q.item.stimulus] = [];
+          readingBundles[q.item.stimulus].push(q);
+       } else {
+          freestandingItems.push(q);
+       }
     });
 
-    // 4. Interleave production tasks every ~5 questions
-    // This will keep the progression mostly intact
-    const battery = this.interleaveProduction(sortedReceptive, this.shuffle(productionItems));
+    const easyPool = freestandingItems.filter(q => q.zone === 'EASY');
+    const medPool = freestandingItems.filter(q => q.zone === 'MEDIUM');
+    const hardPool = freestandingItems.filter(q => q.zone === 'HARD');
 
-    // 5. Assign final indices and blocks
+    // Distribute bundles (limit to 2 bundles maximum, assign to block 2 and 4 typically)
+    const bundleKeys = Object.keys(readingBundles);
+    const bundlesToAssign = [
+       bundleKeys[0] ? readingBundles[bundleKeys[0]] : [],
+       bundleKeys[1] ? readingBundles[bundleKeys[1]] : []
+    ];
+
+    for (let b = 1; b <= 4; b++) {
+       const blockOutput: BatteryQuestion[] = [];
+       let targetE = 3;
+       let targetM = 4;
+       let targetH = 3;
+
+       // Assign a reading bundle to Block 2 and Block 4 if available
+       if (b === 2 && bundlesToAssign[0].length > 0) {
+           const bundle = bundlesToAssign[0];
+           blockOutput.push(...bundle);
+           bundle.forEach(q => { if(q.zone==='EASY') targetE--; else if (q.zone==='MEDIUM') targetM--; else targetH--; });
+       }
+       if (b === 4 && bundlesToAssign[1].length > 0) {
+           const bundle = bundlesToAssign[1];
+           blockOutput.push(...bundle);
+           bundle.forEach(q => { if(q.zone==='EASY') targetE--; else if (q.zone==='MEDIUM') targetM--; else targetH--; });
+       }
+
+       // Fill remaining targets (allowing negative targets to swallow over-represented zones)
+       const pickQuestions = (pool: BatteryQuestion[], fallbackA: BatteryQuestion[], fallbackB: BatteryQuestion[], count: number) => {
+          for(let i = 0; i < count; i++) {
+             if (pool.length > 0) blockOutput.push(pool.pop()!);
+             else if (fallbackA.length > 0) blockOutput.push(fallbackA.pop()!); // No Overlap Alert: Used fallback
+             else if (fallbackB.length > 0) blockOutput.push(fallbackB.pop()!);
+          }
+       };
+
+       if (targetE > 0) pickQuestions(easyPool, medPool, hardPool, targetE);
+       if (targetM > 0) pickQuestions(medPool, hardPool, easyPool, targetM);
+       if (targetH > 0) pickQuestions(hardPool, medPool, easyPool, targetH);
+
+       // Reorder the block: Non-reading (sorted E -> M -> H) + Reading Bundle at the end
+       const nonR = blockOutput.filter(q => !(q.skill === 'reading' && q.item.stimulus));
+       const r = blockOutput.filter(q => q.skill === 'reading' && q.item.stimulus);
+       
+       nonR.sort((x, y) => {
+           const map: any = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3 };
+           return map[x.zone] - map[y.zone];
+       });
+
+       // Interleave production into nonR carefully so it isn't clustered
+       const finalBlock = [...nonR, ...r];
+       
+       finalBlock.forEach((q) => {
+         q.block = b;
+         battery.push(q);
+       });
+    }
+
+    // Assign final indices
     battery.forEach((q, i) => {
       q.globalIndex = i;
-      q.block = i < 13 ? 1 : i < 27 ? 2 : 3;
     });
+
+
 
     // 6. Validation
     this.validateBattery(battery);
@@ -436,6 +504,12 @@ export class BatterySelector {
     const skillCounts: Record<string, number> = {};
     const zoneCounts: Record<string, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     const modeCounts: Record<string, number> = {};
+    const blockDistributions: Record<number, Record<string, number>> = {
+      1: { EASY: 0, MEDIUM: 0, HARD: 0 },
+      2: { EASY: 0, MEDIUM: 0, HARD: 0 },
+      3: { EASY: 0, MEDIUM: 0, HARD: 0 },
+      4: { EASY: 0, MEDIUM: 0, HARD: 0 },
+    };
 
     battery.forEach(q => {
       const skill = q.skill.toLowerCase();
@@ -443,6 +517,9 @@ export class BatterySelector {
       zoneCounts[q.zone] = (zoneCounts[q.zone] || 0) + 1;
       const mode = q.item.response_mode || 'unknown';
       modeCounts[mode] = (modeCounts[mode] || 0) + 1;
+      if (blockDistributions[q.block]) {
+          blockDistributions[q.block][q.zone]++;
+      }
     });
 
     console.log(`[Selector] 📊 Battery Composition:`);
@@ -450,6 +527,11 @@ export class BatterySelector {
     console.log(`  Zones:`, JSON.stringify(zoneCounts));
     console.log(`  Modes:`, JSON.stringify(modeCounts));
     console.log(`  Total:`, battery.length);
+
+    console.log(`[Selector] 🎯 3-4-3 Block Distribution Check:`);
+    Object.entries(blockDistributions).forEach(([block, zones]) => {
+      console.log(`  Block ${block}: Easy: ${zones.EASY}, Medium: ${zones.MEDIUM}, Hard: ${zones.HARD} (Total: ${zones.EASY + zones.MEDIUM + zones.HARD})`);
+    });
 
     if (battery.length < BATTERY_SIZE) {
       console.warn(`[Selector] ⚠️ Battery is undersized: ${battery.length}/${BATTERY_SIZE}. Some skills may have insufficient items in the question bank.`);
