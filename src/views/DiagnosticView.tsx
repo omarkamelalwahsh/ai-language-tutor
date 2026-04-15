@@ -12,6 +12,7 @@ import {
   Mic,
   ArrowRight,
   Zap, 
+  Target,
   AlertTriangle, 
   Shield, 
   TrendingUp, 
