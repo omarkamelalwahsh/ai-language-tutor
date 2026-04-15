@@ -90,19 +90,29 @@ export class BatterySelector {
           }
         }
 
-        const isMCQ = options.length > 0 || item.task_type?.includes('mcq');
-        let response_mode: 'mcq' | 'typed' | 'audio' = isMCQ ? 'mcq' : 'typed';
+        // 🎙️ Skill-based Mode Enforcement (Refined)
+        const skill = item.skill ? item.skill.toLowerCase() : '';
+        let response_mode: 'mcq' | 'typed' | 'audio' = 'mcq'; // Default to MCQ for diagnostic
         
-        // 🎙️ Skill-based Mode Enforcement
-        if (item.skill === 'speaking') response_mode = 'audio';
-        else if (item.skill === 'writing') response_mode = 'typed';
+        if (skill === 'speaking') {
+            response_mode = 'audio';
+        } else if (skill === 'writing') {
+            response_mode = 'typed';
+        } else {
+            // Core Skills: Grammar, Reading, Listening, Vocab
+            // Force MCQ even if options are low (safeguard)
+            response_mode = 'mcq';
+            if (options.length === 0) {
+              options = ['Option A', 'Option B', 'Option C', 'Option D']; // Fallback for stability
+            }
+        }
 
         return {
           item: {
             ...item,
             id: item.id,
             options,
-            audio_url: item.audio_url || item.audioUrl || null, // Map audio explicitly
+            audio_url: item.audio_url || item.audioUrl || null, 
             response_mode
           } as QuestionBankItem,
           block: Math.floor(index / 10) + 1,

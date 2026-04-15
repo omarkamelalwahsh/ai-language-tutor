@@ -1,14 +1,19 @@
-import pool from '../server/db.js';
+import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// Get the Groq API Key from the environment
+// Configuration
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
 
-if (!GROQ_API_KEY) {
-  console.error("❌ ERROR: GROQ_API_KEY is not set in your .env file!");
+if (!SUPABASE_URL || !SUPABASE_KEY || !GROQ_API_KEY) {
+  console.error("❌ ERROR: Missing credentials in .env (Supabase or Groq)");
   process.exit(1);
 }
 
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const llmClient = new OpenAI({
   apiKey: GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
@@ -56,7 +61,7 @@ const LEVELS = ['A1', 'A2', 'B1', 'B2'];
 const SKILLS = ['Grammar', 'Reading', 'Listening', 'Vocabulary', 'Writing', 'Speaking'];
 
 const TASK_FORMAT = 'passage_bundle';
-const QUESTIONS_PER_TASK = 2; // Reduced per topic to speed up initial seed
+const QUESTIONS_PER_TASK = 4; // Ensure we get Easy, Medium, and Hard coverage
 
 const generatePrompt = (targetLevel: string, targetSkill: string, topicName: string) => {
   let stimulusLength = 'medium';
@@ -145,8 +150,9 @@ async function generateQuestionBank() {
           for (let i = 0; i < parsedData.questions.length; i++) {
             const q = parsedData.questions[i];
             
-            // Programmatic Difficulty: Start at 0.1, end near 0.9
-            const difficulty = Number((0.1 + (i * 0.25)).toFixed(2));
+            // Programmatic Difficulty: Ensure spread (Easy, Med, Med, Hard)
+            const diffs = [0.2, 0.45, 0.65, 0.85];
+            const difficulty = diffs[i] || 0.5;
             
             // Systematic External ID: SKILL-LEVEL-TOPIC-INDEX
             const topicId = topic.replace(/\s+/g, '-').toUpperCase().substring(0, 10);
@@ -168,21 +174,19 @@ async function generateQuestionBank() {
               }
             };
 
-            await pool.query(
-              `INSERT INTO question_bank_items 
-              (external_id, skill, task_type, level, difficulty, prompt, stimulus, answer_key) 
-              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-              [
-                payload.external_id,
-                payload.skill,
-                payload.task_type,
-                payload.level,
-                payload.difficulty,
-                payload.prompt,
-                payload.stimulus,
-                payload.answer_key
-              ]
-            );
+            await supabase
+              .from('question_bank_items')
+              .insert({
+                external_id: payload.external_id,
+                skill: payload.skill,
+                task_type: payload.task_type,
+                level: payload.level,
+                difficulty: payload.difficulty,
+                prompt: payload.prompt,
+                stimulus: payload.stimulus,
+                answer_key: payload.answer_key
+              });
+
             successCount++;
           }
           
@@ -199,7 +203,6 @@ async function generateQuestionBank() {
   }
 
   console.log(`\n🎉 Completed! Stored ${totalStored} questions into the bank.`);
-  await pool.end();
 }
 
 generateQuestionBank();
