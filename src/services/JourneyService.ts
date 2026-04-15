@@ -95,6 +95,7 @@ export class JourneyService {
       const { data: journeyRow, error: jError } = await supabase
         .from('learning_journeys')
         .upsert({
+          id: userId,
           user_id: userId,
           nodes: journey.nodes,
           current_node_id: journey.nodes[0]?.id || 'start',

@@ -137,9 +137,26 @@ function AppRoutes() {
       (async () => {
         const { AssessmentSaveService } = await import('./services/AssessmentSaveService');
         await AssessmentSaveService.warmupAuth();
+        
+        // 🔄 Session Persistence Check
+        if (!localStorage.getItem('has_completed_assessment')) {
+          try {
+            const remoteState = await AssessmentSaveService.getLatestAssessmentState(user.id);
+            if (remoteState && remoteState.battery && remoteState.currentIndex > 0 && remoteState.currentIndex < remoteState.battery.length) {
+              console.log('[App] 🔄 Found active remote session, resuming at question:', remoteState.currentIndex);
+              // Save to local storage for engine to pick up
+              localStorage.setItem(`asmt_state_${user.id}`, JSON.stringify(remoteState));
+              if (!window.location.pathname.includes('/diagnostic')) {
+                navigate('/diagnostic');
+              }
+            }
+          } catch(err) {
+            console.error('[App] Failed to check for active sessions:', err);
+          }
+        }
       })();
     }
-  }, [user]);
+  }, [user, navigate]);
 
 
   const handleLogout = async () => {

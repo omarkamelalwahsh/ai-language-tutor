@@ -35,7 +35,7 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
         // Use the new deterministic bridge
         const result = AssessmentAnalysisService.fromAssessmentOutcome(
           assessmentOutcome, 
-          onboardingState?.userId || user?.id || 'anonymous', 
+          onboardingState?.userId || 'anonymous', 
           assessmentOutcome?.assessmentId || 'diagnostic_session', 
           onboardingState || {}
         );

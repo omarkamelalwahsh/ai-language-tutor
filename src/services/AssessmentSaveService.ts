@@ -171,6 +171,34 @@ export class AssessmentSaveService {
     // Production task awareness: writing/speaking use AI scores, not boolean MCQ checks
     const responseMode = (task.response_mode || 'mcq') as string;
     const isProductionTask = responseMode === 'typed' || responseMode === 'audio';
+    
+    // QUALITY CHECK
+    let isQualityIssue = false;
+    let qualityReason = '';
+
+    const correctAnswerStr = typeof task.correctAnswer === 'string' ? task.correctAnswer : JSON.stringify(task.correctAnswer || '');
+
+    if (!correctAnswerStr || correctAnswerStr.trim() === '') {
+      if (!isProductionTask) {
+        isQualityIssue = true;
+        qualityReason = 'Empty correct answer in DB';
+      }
+    }
+
+    if (questionText.toLowerCase().includes('if i had') && correctAnswerStr.toLowerCase() === 'would') {
+      isQualityIssue = true;
+      qualityReason = 'Third conditional grammar error (would vs would have)';
+    }
+
+    if (isQualityIssue) {
+      // Fire logic to lower DB trust naturally
+      this.lowerQuestionReliability(String(task.id), qualityReason);
+      
+      // Zero-Score for Errors
+      evaluation.is_correct = false; // Zero score
+      if (evaluation.score !== undefined) evaluation.score = 0;
+    }
+
     const isCorrect = evaluation.is_correct !== undefined
       ? evaluation.is_correct
       : (evaluation.score || 0) >= 0.5;
@@ -185,7 +213,8 @@ export class AssessmentSaveService {
         question_id: String(task.id),
         user_answer: answerStr,
         is_correct: isCorrect,
-        skill: skillStr
+        skill: skillStr,
+        quality_issue: isQualityIssue ? true : undefined,
       };
 
       const { error: respError } = await supabase.from('assessment_responses').insert(responsesPayload);
@@ -209,7 +238,8 @@ export class AssessmentSaveService {
         user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
         correct_answer: task.correctAnswer || (isProductionTask ? '[open_ended]' : ''),
         is_correct: isCorrect,
-        skill: skillStr
+        skill: skillStr,
+        quality_issue: isQualityIssue ? true : undefined,
       };
 
       // Ensure no undefined values
@@ -241,6 +271,40 @@ export class AssessmentSaveService {
     }
 
     return { success: respSuccess && logSuccess };
+  }
+
+  /**
+   * QUALITY SYSTEM: Lowers the trust score of a buggy question.
+   * NOTE: Make sure to run the following SQL snippet in the Supabase Dashboard SQL Editor:
+   * ALTER TABLE question_bank_items ADD COLUMN IF NOT EXISTS trust_score INT DEFAULT 100;
+   */
+  public static async lowerQuestionReliability(questionId: string, reason: string): Promise<void> {
+    try {
+      console.log(`[AssessmentSaveService] 📉 Lowering question reliability for ${questionId}. Reason: ${reason}`);
+      
+      // Fetch current score
+      const { data: item } = await supabase
+        .from('question_bank_items')
+        .select('trust_score')
+        .eq('id', questionId)
+        .single();
+        
+      const currentScore = item?.trust_score !== undefined ? item.trust_score : 100;
+      const newScore = Math.max(0, currentScore - 15);
+
+      const { error } = await supabase
+        .from('question_bank_items')
+        .update({ 
+          trust_score: newScore,
+          metadata: { last_flag_reason: reason, quality_issue: newScore < 50 } 
+        })
+        .eq('id', questionId);
+
+      if (error) throw error;
+      console.log(`[AssessmentSaveService] ✅ Reliability lowered. New trust_score: ${newScore}`);
+    } catch (err: any) {
+      console.warn(`[AssessmentSaveService] ⚠️ Failed to lower question reliability (ignore if trust_score missing):`, err.message);
+    }
   }
 
   /**
@@ -379,7 +443,7 @@ export class AssessmentSaveService {
       // A. assessment_responses (Every Q/A)
       const responsesPayload = history.map(h => ({
         user_id: userId,
-        question_id: this.toValidUUID(h.questionId),
+        question_id: toValidUUID(h.questionId),
         user_answer: h.answer,
         score: h.score !== undefined ? h.score : (h.isCorrect ? 1 : 0),
         is_correct: h.isCorrect ?? (h as any).correct,
@@ -684,6 +748,7 @@ export class AssessmentSaveService {
 
         // 4. Learning Journey Initialization (Force 'Foundations' completion for UX journey start)
         supabase.from('learning_journeys').upsert({
+          id: userId,
           user_id: userId,
           nodes: nodes.map((n, idx) => idx === 0 ? { ...n, status: 'completed' } : n),
           current_node_id: nodes[1]?.id || nodes[0].id,

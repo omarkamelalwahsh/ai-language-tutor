@@ -46,6 +46,10 @@ const SKILL_QUOTAS: SkillQuota[] = [
 
 const BATTERY_SIZE = 40;
 
+const BLACKLISTED_IDS = [
+  // Add IDs of questions that are known to be low quality or too easy
+];
+
 export class BatterySelector {
 
   // ═══════════════════════════════════════════════════════════════
@@ -145,7 +149,8 @@ export class BatterySelector {
         return;
       }
 
-      pools[quota.skill] = (data || []).filter(q => !seenIds.has(q.id)) as QuestionBankItem[];
+      // Filter out seen IDs and blacklisted IDs
+      pools[quota.skill] = (data || []).filter(q => !seenIds.has(q.id) && !BLACKLISTED_IDS.includes(q.id)) as QuestionBankItem[];
     });
 
     await Promise.all(fetchPromises);

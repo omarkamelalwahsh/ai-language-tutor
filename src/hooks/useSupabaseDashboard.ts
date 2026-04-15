@@ -5,6 +5,7 @@ import { DB_SCHEMA } from '../constants/dbSchema';
 
 export interface DashboardSupabaseData {
   user: {
+    id: string;
     fullName: string;
     email: string;
   } | null;
@@ -165,6 +166,7 @@ export const useSupabaseDashboard = () => {
 
       setData({
         user: {
+          id: user.id,
           fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Learner',
           email: user.email || '',
         },

@@ -93,6 +93,8 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     // 🎯 Dynamic Name Selection: Profile Data > Auth Data > Fallback
     const displayName = supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
 
+    console.log('User Context:', supabaseData.user?.id);
+
     if (isLoading) return <LoadingSkeleton />;
 
     return (
@@ -896,7 +898,7 @@ const SettingsTab = ({ supabaseData }: any) => {
     );
 }
 
-const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'locked', label: string, onClick?: () => void }) => {
+const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'locked', label: any, onClick?: any }) => {
     const isLocked = status === 'locked';
     return (
         <div 
