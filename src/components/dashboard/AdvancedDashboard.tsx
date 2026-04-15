@@ -898,7 +898,7 @@ const SettingsTab = ({ supabaseData }: any) => {
     );
 }
 
-const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'locked', label: any, onClick?: any }) => {
+const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'locked', label: any, onClick?: any, key?: any }) => {
     const isLocked = status === 'locked';
     return (
         <div 

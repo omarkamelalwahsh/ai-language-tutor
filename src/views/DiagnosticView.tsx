@@ -385,68 +385,6 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     || DIFF_MAP_DEBUG[String(debugLevel).toLowerCase()] 
     || 0.4;
 
-  return (
-    <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
-      <header className="shrink-0 px-6 h-16 flex items-center gap-6 bg-white border-b border-slate-100 z-30">
-        <button onClick={() => setShowQuitDialog(true)} className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
-          <X size={18} />
-        </button>
-        <div className="flex-1 flex items-center gap-4">
-          <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-            <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
-          </div>
-          <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
-            {progress.answered + 1} / {progress.total}
-          </span>
-        </div>
-        {/* SKIP BUTTON */}
-        <button 
-          onClick={handleSkip}
-          disabled={isEvaluating}
-          className="flex items-center gap-1.5 px-4 py-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
-        >
-          <SkipForward size={14} /> Skip
-        </button>
-      </header>
-
-      <AnimatePresence mode="wait">
-        {showBlockTransition && (
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-white/98 backdrop-blur-md">
-            <div className="text-center space-y-6">
-              <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 flex items-center justify-center mx-auto shadow-2xl shadow-indigo-100/50">
-                <span className={BLOCK_INFO[showBlockTransition]?.color || "text-indigo-600"}>
-                  {React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Entering Phase {showBlockTransition}</p>
-                <h2 className="text-5xl font-black text-slate-900 tracking-tight">{BLOCK_INFO[showBlockTransition]?.label}</h2>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="flex-1 overflow-hidden">
-        {isSplitLayout ? (
-          <ReadingLayout 
-            stimulus={currentTask.stimulus!} 
-            currentQuestionIndex={progress.answered}
-            totalInBundle={4}
-          >
-            {renderQuestionContent()}
-          </ReadingLayout>
-        ) : (
-          <div className="h-full overflow-y-auto bg-[#F7F8FC]">
-            <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col min-h-full">
-               {renderHeaderAndContext()}
-               {renderQuestionContent()}
-               {renderFooter()}
-            </div>
-          </div>
-        )}
-      </main>
-
   const renderHeaderAndContext = () => (
     <>
       <div className="mb-8 flex items-center justify-between">
@@ -596,7 +534,68 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     </div>
   );
 
+  return (
 
+    <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
+      <header className="shrink-0 px-6 h-16 flex items-center gap-6 bg-white border-b border-slate-100 z-30">
+        <button onClick={() => setShowQuitDialog(true)} className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
+          <X size={18} />
+        </button>
+        <div className="flex-1 flex items-center gap-4">
+          <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+            <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
+          </div>
+          <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
+            {progress.answered + 1} / {progress.total}
+          </span>
+        </div>
+        {/* SKIP BUTTON */}
+        <button 
+          onClick={handleSkip}
+          disabled={isEvaluating}
+          className="flex items-center gap-1.5 px-4 py-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
+        >
+          <SkipForward size={14} /> Skip
+        </button>
+      </header>
+
+      <AnimatePresence mode="wait">
+        {showBlockTransition && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-white/98 backdrop-blur-md">
+            <div className="text-center space-y-6">
+              <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 flex items-center justify-center mx-auto shadow-2xl shadow-indigo-100/50">
+                <span className={BLOCK_INFO[showBlockTransition]?.color || "text-indigo-600"}>
+                  {React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Entering Phase {showBlockTransition}</p>
+                <h2 className="text-5xl font-black text-slate-900 tracking-tight">{BLOCK_INFO[showBlockTransition]?.label}</h2>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="flex-1 overflow-hidden">
+        {isSplitLayout ? (
+          <ReadingLayout 
+            stimulus={currentTask.stimulus!} 
+            currentQuestionIndex={progress.answered}
+            totalInBundle={4}
+          >
+            {renderQuestionContent()}
+          </ReadingLayout>
+        ) : (
+          <div className="h-full overflow-y-auto bg-[#F7F8FC]">
+            <div className="max-w-2xl mx-auto px-8 py-16 flex flex-col min-h-full">
+               {renderHeaderAndContext()}
+               {renderQuestionContent()}
+               {renderFooter()}
+            </div>
+          </div>
+        )}
+      </main>
 
       <AnimatePresence>
         {showQuitDialog && (
