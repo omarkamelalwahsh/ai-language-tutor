@@ -18,6 +18,7 @@ import {
   TrendingUp, 
   Brain, 
   MessageSquare,
+  Sparkles,
   Play,
   Pause,
   RotateCcw,
