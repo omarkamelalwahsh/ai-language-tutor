@@ -341,14 +341,14 @@ export class BatterySelector {
   }
 
   private static getDifficultyZone(item: QuestionBankItem): DifficultyZone {
-    const level = (item.target_cefr || (item as any).level || 'B1').toLowerCase();
+    const level = (item.level || 'B1').toLowerCase();
     if (['a1', 'a2'].includes(level)) return 'EASY';
     if (['b1', 'b2'].includes(level)) return 'MEDIUM';
     return 'HARD';
   }
 
   private static getTrueDifficulty(item: QuestionBankItem): number {
-    const level = (item.target_cefr || (item as any).level || 'B1').toLowerCase();
+    const level = (item.level || 'B1').toLowerCase();
     const weight = LEVEL_WEIGHTS[level] || 3.0;
     const diff = item.difficulty || 0.5;
     return weight + (diff * 0.1);

@@ -434,7 +434,7 @@ export class AssessmentSaveService {
         category: this.toCanonicalSkill(h.skill),
         difficulty: h.difficulty ?? 0.4,
         question_level: h.questionLevel || h.level || 'b1',
-        answer_level: h.userLevel || 'b1',
+        answer_level: h.answerLevel || 'b1',
         response_time_ms: h.responseTimeMs || 0,
         status: 'completed',
         created_at: h.timestamp || new Date().toISOString()

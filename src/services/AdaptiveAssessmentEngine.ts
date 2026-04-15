@@ -202,7 +202,7 @@ export class AdaptiveAssessmentEngine {
     const item = batteryQ.item;
     
     // Determine numerical difficulty and level (strictly lowercase)
-    const levelOrDiff = item.target_cefr || (item as any).level || 'b1';
+    const levelOrDiff = item.level || 'b1';
     const canonicalLevel = String(levelOrDiff).toLowerCase();
     const difficultyVal = item.difficulty || DIFF_MAP[canonicalLevel] || 0.4;
     
@@ -279,7 +279,7 @@ export class AdaptiveAssessmentEngine {
       skill: item.skill as any,
       difficulty: difficultyVal,
       questionLevel: canonicalLevel,
-      userLevel: snapLevel,
+      answerLevel: snapLevel,
       category: item.skill,
       correct: isCorrect,
       score: evaluation.score, 
@@ -325,7 +325,7 @@ export class AdaptiveAssessmentEngine {
     const remaining = this.battery.slice(this.currentIndex);
     const filtered = remaining.filter(q => {
         const diff = q.item.difficulty || 0.5;
-        const levelWeight = this.getLevelWeight(q.item.target_cefr || 'b1');
+        const levelWeight = this.getLevelWeight(q.item.level || 'b1');
         const trueDiff = levelWeight + (diff * 0.1);
         return trueDiff <= maxDifficulty;
     });
@@ -351,8 +351,8 @@ export class AdaptiveAssessmentEngine {
     
     // Sort receptive items so that higher difficulty comes first if we are doing well
     receptive.sort((a, b) => {
-      const diffA = a.item.difficulty || DIFF_MAP[a.item.target_cefr?.toLowerCase() || 'b1'] || 0.4;
-      const diffB = b.item.difficulty || DIFF_MAP[b.item.target_cefr?.toLowerCase() || 'b1'] || 0.4;
+      const diffA = a.item.difficulty || DIFF_MAP[a.item.level?.toLowerCase() || 'b1'] || 0.4;
+      const diffB = b.item.difficulty || DIFF_MAP[b.item.level?.toLowerCase() || 'b1'] || 0.4;
       return diffB - diffA;
     });
     
@@ -554,7 +554,7 @@ export class AdaptiveAssessmentEngine {
       id: item.id, 
       prompt: item.prompt, 
       skill: item.skill as any,
-      difficulty: item.target_cefr as any, 
+      difficulty: item.level as any, 
       type: item.task_type as any,
       response_mode: item.response_mode as any, 
       stimulus: item.stimulus,

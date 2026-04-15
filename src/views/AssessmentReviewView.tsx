@@ -11,8 +11,8 @@ interface ExternalResponse {
   question_id: string;
   user_answer: string;
   is_correct: boolean;
-  cefr_level: string;
-  ai_feedback_text: string;
+  answer_level: string;
+  explanation: any; // Can be string or JSONB
   skill: string;
   // Fallbacks if mapped from external DB join
   prompt?: string;
@@ -105,8 +105,8 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
     skill: ev.skill || 'grammar',
     user_answer: ev.rawSignals?.answer || ev.reviewData?.userAnswer || '',
     is_correct: ev.reviewData?.result === 'correct',
-    cefr_level: ev.reviewData?.answerLevel || ev.difficulty || 'A1',
-    ai_feedback_text: ev.reviewData?.explanation.whyCorrect || ev.reviewData?.explanation.whatWentWrong || "Automated Review",
+    answer_level: ev.reviewData?.answerLevel || ev.difficulty || 'A1',
+    explanation: ev.reviewData?.explanation.whyCorrect || ev.reviewData?.explanation.whatWentWrong || "Automated Review",
     prompt: ev.rawSignals?.prompt as string | undefined || ev.reviewData?.prompt
   })) : dbResponses;
 
@@ -140,7 +140,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
         >
           {mappedList.map((item, idx) => {
             const isCorrect = item.is_correct;
-            const badgeClass = getBadgeColor(item.cefr_level);
+            const badgeClass = getBadgeColor(item.answer_level);
 
             return (
               <motion.div 
@@ -156,7 +156,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                     </span>
                     <div className="flex gap-1.5 items-center bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Demonstrated Level:</span>
-                       <span className={`text-xs font-black px-2 py-0.5 rounded border ${badgeClass}`}>{item.cefr_level}</span>
+                       <span className={`text-xs font-black px-2 py-0.5 rounded border ${badgeClass}`}>{item.answer_level}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-100">
@@ -198,7 +198,9 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                         <div>
                           <p className="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">Pedagogical Analysis</p>
                           <p className="text-slate-700 text-base leading-relaxed font-medium">
-                            {item.ai_feedback_text}
+                            {typeof item.explanation === 'object' 
+                              ? (item.explanation.note || JSON.stringify(item.explanation)) 
+                              : item.explanation}
                           </p>
                         </div>
                      </div>

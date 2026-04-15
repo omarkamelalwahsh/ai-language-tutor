@@ -147,7 +147,7 @@ async function generateQuestionBank() {
         const dbPayload = parsedData.questions.map((q: any, index: number) => ({
           external_id: `BUNDLE_${level}_${Date.now()}_Q${index}`,
           skill: skill.toLowerCase(),
-          target_cefr: level,
+          level,
           task_type: TASK_FORMAT,
           difficulty: q.metadata?.difficulty || DIFFICULTY_TARGET,
           prompt: q.question_text,
@@ -165,13 +165,13 @@ async function generateQuestionBank() {
           try {
             await pool.query(
               `INSERT INTO question_bank_items 
-              (external_id, skill, task_type, target_cefr, difficulty, prompt, stimulus, answer_key) 
+              (external_id, skill, task_type, level, difficulty, prompt, stimulus, answer_key) 
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
               [
                 item.external_id,
                 item.skill,
                 item.task_type,
-                item.target_cefr,
+                item.level,
                 item.difficulty,
                 item.prompt,
                 item.stimulus,

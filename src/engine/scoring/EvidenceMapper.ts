@@ -14,7 +14,7 @@ export class EvidenceMapper {
     
     // 1. تحديد نوع السؤال (MCQ check)
     const isMCQ = item.response_mode === 'mcq' || (item as any).type === 'mcq' || item.task_type === 'mcq';
-    const lv = item.target_cefr || item.level || 'A1';
+    const lv = item.level || 'A1';
     const numericDifficulty = BAND_VALUE[lv] || 1;
     
     let baseScore = 0;

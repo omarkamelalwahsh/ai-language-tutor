@@ -190,7 +190,7 @@ app.get("/api/questions", async (req, res) => {
             id: item.external_id || item.id,
             skill: (item.skill || 'vocabulary').toString().toLowerCase(),
             task_type: item.task_type || 'essay',
-            target_cefr: item.target_cefr || 'A1',
+            level: item.level || 'A1',
             difficulty: Number(item.difficulty) || 0.5,
             response_mode: (item.task_type?.includes('mcq') || item.response_mode === 'multiple_choice') ? 'mcq' : 'typed',
             prompt: item.prompt || 'Untitled Question',
@@ -339,8 +339,10 @@ app.post('/api/evaluate', async (req, res) => {
         user_answer: String(payload.learnerAnswer || ''),
         is_correct: (parsed.summary?.overall_score || 0) >= 0.5,
         answer_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1'),
+        question_level: String(payload.questionLevel || payload.currentBand || 'A1'),
         score: Number(parsed.summary?.overall_score || 0),
-        explanation: parsed.skills || { note: 'No skills breakdown' }
+        explanation: parsed.skills || { note: 'No skills breakdown' },
+        category: String(payload.category || payload.skill || 'general')
       });
       if (resErr) throw resErr;
 
@@ -493,8 +495,10 @@ app.post('/api/assessments/complete', async (req, res) => {
     await supabase.from('assessments').insert({
       id: assessmentId,
       user_id: targetUserId,
-      overall_level: overallLevel,
-      confidence_score: confidence || 0.5
+      evaluation_metadata: {
+        overall_level: overallLevel,
+        confidence_score: confidence || 0.5
+      }
     });
 
     res.status(200).json({ success: true });
@@ -565,8 +569,8 @@ app.get('/api/assessments/:id/responses', async (req, res) => {
            question_id,
            user_answer,
            is_correct,
-           cefr_level,
-           ai_feedback_text,
+           answer_level,
+           explanation,
            skill,
            question_bank_items (
              prompt,
@@ -607,11 +611,11 @@ app.get('/api/assessments/:id/responses', async (req, res) => {
              question_id: l.question_id,
              user_answer: l.user_answer,
              is_correct: l.is_correct,
-             cefr_level: l.evaluation_metadata?.cefr_level || 'Pending',
-             ai_feedback_text: l.evaluation_metadata?.feedback || 'Review available soon',
-             skill: l.category || 'General',
-             prompt: l.question || 'Original question text',
-             stimulus: l.evaluation_metadata?.stimulus || null
+             answer_level: l.level || 'Pending',
+             explanation: l.explanation || 'Review available soon',
+             skill: l.skill || 'General',
+             prompt: l.question_text || l.question || 'Original question text',
+             stimulus: l.metadata?.stimulus || null
            }));
        }
      }

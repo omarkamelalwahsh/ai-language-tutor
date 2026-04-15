@@ -57,7 +57,7 @@ async function runAIAggregateAnalysis(logs) {
     question_skill: l.skill,
     user_answer: l.user_answer,
     was_marked_correct: l.is_correct,
-    difficulty_level: l.cefr_level || l.answer_level
+    difficulty_level: l.answer_level || 'A1'
   }));
 
   try {

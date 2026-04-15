@@ -47,7 +47,7 @@ export class BankValidator {
           seenIds.add(item.id);
 
           // 2. Audio Validation
-          if ((item.skill === 'listening' || item.task_type.includes('listening')) && !item.audio_url) {
+          if ((item.skill === 'listening' || item.task_type?.includes('listening')) && !item.audio_url) {
              report.warnings.push(`Listening task ${item.id} is missing audio_url. UI will fallback to text stimulus.`);
           }
 

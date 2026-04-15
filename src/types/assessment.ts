@@ -369,10 +369,10 @@ export type AnswerRecord = {
   /** Item CEFR level from question bank */
   questionLevel?: string;
   /** Estimated user CEFR level at time of answer */
-  userLevel?: string;
+  answerLevel?: string;
   /** Category (synchronized with skill for now) */
   category?: string;
-  /** Deprecated: use questionLevel or userLevel instead */
+  /** Deprecated: use questionLevel or answerLevel instead */
   level?: string;
   /** Legacy fallbacks */
   isCorrect?: boolean;

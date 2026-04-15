@@ -12,6 +12,23 @@ import { toValidUUID } from '../lib/utils';
  */
 export class JourneyService {
   
+  /**
+   * Main entry point to build a journey payload from assessment results.
+   * This is used by Dashboard and other views.
+   */
+  public static buildJourney(result: AssessmentSessionResult): LearnerJourneyPayload {
+    const currentLevel = result.overall.estimatedLevel || "A1";
+    const targetLevel = getNextBand(currentLevel);
+    
+    return {
+      currentStage: currentLevel,
+      targetStage: targetLevel,
+      journeyTitle: `Path to ${targetLevel}`,
+      currentCapabilitiesSummary: result.overall.rationale?.join('. ') || "Analyzing current proficiency...",
+      targetCapabilitiesSummary: `Personalized milestones for ${targetLevel} transition.`,
+      nodes: [] // Initial empty nodes
+    };
+  }
 
 
   /**

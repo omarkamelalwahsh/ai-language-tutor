@@ -26,9 +26,8 @@ export interface QuestionBankItem {
   id: string;
   external_id?: string; // External identifier from database
   skill: string; // primary skill
-  task_type: string;
-  target_cefr: CEFRLevel;
-  level?: CEFRLevel; // Alias for target_cefr used by selector
+  task_type?: string; 
+  level: CEFRLevel;
   difficulty: number; // 0.0 - 1.0 within the band, or absolute 0-6 relative
   response_mode: 'typed' | 'audio' | 'mcq';
   prompt: string;

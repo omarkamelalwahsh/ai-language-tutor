@@ -16,7 +16,7 @@ export type EvaluationPayload = {
     subskills: string[];
     semanticIntent?: string;
     requiredContentPoints?: string[];
-    target_cefr?: DifficultyBand; // Added to map back to original question level
+    level?: DifficultyBand; // Added to map back to original question level
   };
   learnerAnswer: string;
   descriptors: Partial<Record<DifficultyBand, string[]>>;
