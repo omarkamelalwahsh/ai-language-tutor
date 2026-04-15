@@ -77,16 +77,11 @@ Generate a highly cohesive assessment block for level ${targetLevel} in the skil
 TOPIC: "${topicName}"
 
 ### STRICT LOGIC & ORDERING RULES
-1. SCAFFOLDING: Questions MUST follow a logical progression from easiest to hardest.
+1. SCAFFOLDING: Questions MUST follow a logical progression from easiest to hardest (Difficulty ${targetLevel}).
 2. TOPIC COHERENCE: All questions must stay strictly within the context of "${topicName}".
 3. STIMULUS ANCHORING: All questions must be derived from the SAME shared stimulus.
-4. DISTRACTOR RIGOR: Distractors must be plausible "word-traps" specific to ${targetLevel}.
-
-### INPUT VARIABLES
-- TARGET_LEVEL: ${targetLevel}
-- TARGET_SKILL: ${targetSkill}
-- STIMULUS_LENGTH: ${stimulusLength}
-- QUESTIONS_PER_TASK: ${QUESTIONS_PER_TASK}
+4. DISTRACTOR RIGOR: Provide 4 UNIQUE, MEANINGFUL, and contextually relevant options. Do NOT use A, B, C, D as placeholders.
+5. MCQ ONLY: All core skills (Reading, Listening, Grammar, Vocab) MUST use Multiple Choice format.
 
 ### JSON SCHEMA
 {
@@ -97,8 +92,8 @@ TOPIC: "${topicName}"
   "questions": [
     {
       "question_text": "string",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "string",
+      "options": ["First real answer choice", "Plausible but incorrect distractor", "Another distractor", "Clearly incorrect but related option"],
+      "correct_answer": "string (must match one of the options exactly)",
       "explanation": "State why it's correct and why others are distractors."
     }
   ]
@@ -142,7 +137,7 @@ async function generateQuestionBank() {
           const parsedData = JSON.parse(rawText);
           if (!Array.isArray(parsedData.questions)) throw new Error("Missing questions array");
 
-          console.log(`✅ Received ${parsedData.questions.length} questions for topic: ${topic}.`);
+          console.log(`✅ Received ${parsedData.questions.length} questions. Sample Q1 Options:`, JSON.stringify(parsedData.questions[0]?.options));
 
           const stimulus = parsedData.shared_stimulus?.text || null;
           let successCount = 0;
@@ -150,6 +145,12 @@ async function generateQuestionBank() {
           for (let i = 0; i < parsedData.questions.length; i++) {
             const q = parsedData.questions[i];
             
+            // 🛡️ VALIDATION: Skip items without real options
+            if (!q.options || q.options.length < 2) {
+              console.warn(`⚠️ Skipping question ${i+1} for [${topic}] due to missing options.`);
+              continue;
+            }
+
             // Programmatic Difficulty: Ensure spread (Easy, Med, Med, Hard)
             const diffs = [0.2, 0.45, 0.65, 0.85];
             const difficulty = diffs[i] || 0.5;
