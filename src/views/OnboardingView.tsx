@@ -52,27 +52,32 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     } else {
       setIsSaving(true);
       const userId = localStorage.getItem('auth_user_id');
-      const finish = () => onComplete(state);
-
-      if (userId) {
-        const { supabase } = await import('../lib/supabaseClient');
-        await supabase
-          .from(DB_SCHEMA.TABLES.PROFILES)
-          .upsert({ 
-             id: userId,
-             [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
-             [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
-             learning_goal: state.goal,
-             goal_context: state.goalContext,
-             focus_skills: state.focusSkills,
-             learning_topics: state.topics,
-             session_intensity: state.sessionIntensity,
-             native_language: state.nativeLanguage,
-             target_language: state.targetLanguage,
-             updated_at: new Date().toISOString()
-          });
+      
+      try {
+        if (userId) {
+          const { supabase } = await import('../lib/supabaseClient');
+          await supabase
+            .from(DB_SCHEMA.TABLES.PROFILES)
+            .upsert({ 
+               id: userId,
+               [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
+               [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
+               learning_goal: state.goal,
+               goal_context: state.goalContext,
+               focus_skills: state.focusSkills,
+               learning_topics: state.topics,
+               session_intensity: state.sessionIntensity,
+               native_language: state.nativeLanguage,
+               target_language: state.targetLanguage,
+               updated_at: new Date().toISOString()
+            });
+        }
+      } catch (err) {
+        console.warn("[OnboardingView] Profile upsert failed (non-blocking):", err);
+      } finally {
+        setIsSaving(false);
+        onComplete(state);
       }
-      finish();
     }
   };
 
