@@ -201,6 +201,7 @@ export class AssessmentSaveService {
 
     // 2. ASSESSMENT_LOGS — Sanitized Minimal Payload
     try {
+      const logsPayload = {
         question: questionText, // Alignment: Both 'question' and 'question_text' exist in schema
         question_text: questionText, // Alignment
         user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
