@@ -33,12 +33,15 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
   const [validationResult, setValidationResult] = useState<ValidatorResult | null>(null);
   
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
-  const isDisabled = isEvaluating || isTranscribing || (feedback !== null && feedback.canAdvance);
+  const isDisabled = isEvaluating || isTranscribing || isUploading || (feedback !== null && feedback.canAdvance);
+
 
   useEffect(() => {
     return () => {
@@ -120,20 +123,28 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
   const handleVoiceSubmit = async () => {
     if (!audioBlob || !validationResult?.valid) return;
     
-    setIsTranscribing(true);
+    setIsUploading(true);
     setErrorMsg('');
 
     try {
       const svc = AudioRecordingService.getInstance();
       
-      // 1. Upload to Supabase Storage first (Evidence Preservation)
+      // 1. Upload to Supabase Storage (Evidence Preservation)
       console.log("[SpeakingModule] ⬆️ Uploading evidence audio...");
-      const audioUrl = await svc.uploadAudio(
-        audioBlob, 
-        userId || 'anonymous', 
-        assessmentId || 'battery-session', 
-        task.id
-      );
+      let audioUrl = null;
+      try {
+        audioUrl = await svc.uploadAudio(
+          audioBlob, 
+          userId || 'anonymous', 
+          assessmentId || 'battery-session', 
+          task.id
+        );
+      } catch (uploadErr) {
+        console.warn("[SpeakingModule] Audio upload failed, proceeding with transcription only:", uploadErr);
+      }
+
+      setIsUploading(false);
+      setIsTranscribing(true);
 
       // 2. Transcribe
       console.log("[SpeakingModule] ✍️ Transcribing speech...");
@@ -145,7 +156,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
         audioDurationSec: validationResult.durationSec,
         micCheckPassed: sessionMicPassed,
         transcriptionAvailable: true,
-        audioUrl: audioUrl // Attached URL for DB record
+        audioUrl: audioUrl || undefined // Attached URL for DB record
       };
 
       onSubmit({
@@ -160,9 +171,11 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
     } catch (err: any) {
       console.error(err);
       setErrorMsg("Failed to process your speech. Please try again or type your answer.");
+      setIsUploading(false);
       setIsTranscribing(false);
     }
   };
+
 
   // --- Text Fallback Handlers ---
 
@@ -290,8 +303,17 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                   disabled={!validationResult?.valid || isDisabled}
                   className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-200 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
-                  {isTranscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-5 h-5" /> Submit</>}
+                  {isUploading ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</>
+                  ) : isTranscribing ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Transcribing...</>
+                  ) : isEvaluating ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Send className="w-5 h-5" /> Submit</>
+                  )}
                 </button>
+
               </div>
             </div>
           )}

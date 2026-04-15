@@ -51,6 +51,8 @@ export class AdaptiveAssessmentEngine {
   private answerHistory: AnswerRecord[] = [];
   private taskEvaluations: TaskEvaluation[] = [];
   private completed: boolean = false;
+  private levelCapReached: boolean = false;
+
   
   public assessmentId: string;
   private userId: string | null = null;
@@ -283,8 +285,25 @@ export class AdaptiveAssessmentEngine {
 
     this.taskEvaluations.push(evaluation);
     this.currentIndex++;
+
+    // 🎯 LEVEL UNLOCKING (Strict Sequencing - The 80% Rule)
+    // After 10 questions, if success rate <= 80%, cap the level to A2/B1.
+    if (this.currentIndex === 10 && !this.levelCapReached) {
+      const firstTen = this.answerHistory.slice(0, 10);
+      const correctCount = firstTen.filter(a => a.correct).length;
+      const successRate = (correctCount / 10) * 100;
+      
+      console.log(`[Engine] 📊 First 10 Check: ${successRate}% success rate.`);
+      
+      if (successRate <= 80) {
+        console.log("[Engine] ⚠️ Success rate <= 80%. Capping remaining battery to B1 maximum.");
+        this.levelCapReached = true;
+        this.applyLevelCap(3.5); // Cap at B1 (TrueDifficulty ~3.0-4.0)
+      }
+    }
     
     if (this.currentIndex >= this.battery.length) {
+
       this.completed = true;
       this.clearState();
     } else {
@@ -302,6 +321,31 @@ export class AdaptiveAssessmentEngine {
       evaluation 
     };
   }
+
+  /**
+   * Removes questions from the remaining battery that exceed the specified TrueDifficulty.
+   */
+  private applyLevelCap(maxDifficulty: number) {
+    const remaining = this.battery.slice(this.currentIndex);
+    const filtered = remaining.filter(q => {
+        const diff = q.item.difficulty || 0.5;
+        const levelWeight = this.getLevelWeight(q.item.target_cefr || 'b1');
+        const trueDiff = levelWeight + (diff * 0.1);
+        return trueDiff <= maxDifficulty;
+    });
+
+    console.log(`[Engine] 🛡️ Level Cap applied. Removed ${remaining.length - filtered.length} advanced questions.`);
+    this.battery = [...this.battery.slice(0, this.currentIndex), ...filtered];
+  }
+
+  private getLevelWeight(cefr: string): number {
+    const l = cefr.toLowerCase();
+    const weights: Record<string, number> = {
+      'a1': 1.0, 'a2': 2.0, 'b1': 3.0, 'b2': 4.0, 'c1': 5.0, 'c2': 6.0
+    };
+    return weights[l] || 3.0;
+  }
+
 
   private reorderRemainingBattery(currentDifficulty: number) {
     const remaining = this.battery.slice(this.currentIndex);

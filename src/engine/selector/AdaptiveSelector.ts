@@ -46,9 +46,16 @@ const SKILL_QUOTAS: SkillQuota[] = [
 
 const BATTERY_SIZE = 40;
 
+const LEVEL_WEIGHTS: Record<string, number> = {
+  'a1': 1.0, 'a2': 2.0,
+  'b1': 3.0, 'b2': 4.0,
+  'c1': 5.0, 'c2': 6.0
+};
+
 const BLACKLISTED_IDS = [
   // Add IDs of questions that are known to be low quality or too easy
 ];
+
 
 export class BatterySelector {
 
@@ -69,18 +76,32 @@ export class BatterySelector {
 
     for (const quota of SKILL_QUOTAS) {
       const pool = skillPools[quota.skill] || [];
-      const sampled = this.sampleWithDifficulty(pool, quota);
+      
+      let sampled: QuestionBankItem[];
+      
+      // 📚 SPECIAL HANDLING: Reading Bundles (3 MCQ + 1 Writing)
+      if (quota.skill === 'reading') {
+        sampled = this.sampleReadingBundles(pool, quota);
+      } else {
+        sampled = this.sampleWithDifficulty(pool, quota);
+      }
 
       // Enforce response_mode and hoist options (MCQ only)
       sampled.forEach(item => {
-        item.response_mode = quota.responseMode as any;
-        // Only hoist options for MCQ tasks — writing/speaking have no options
-        if (quota.responseMode === 'mcq') {
+        // Hoist response mode from quota (unless it's a reading writing question)
+        if (item.task_type === 'reading_writing' || item.response_mode === 'typed') {
+             item.response_mode = 'typed' as any;
+        } else {
+             item.response_mode = quota.responseMode as any;
+        }
+
+        // Only hoist options for MCQ tasks
+        if (item.response_mode === 'mcq') {
           this.hoistOptions(item);
         }
       });
 
-      const batteryItems = sampled.map((item, i) => this.toBatteryQuestion(item, quota));
+      const batteryItems = sampled.map((item) => this.toBatteryQuestion(item));
 
       if (quota.isProduction) {
         productionItems.push(...batteryItems);
@@ -88,14 +109,20 @@ export class BatterySelector {
         receptiveItems.push(...batteryItems);
       }
 
-      console.log(`[Selector]   ✅ ${quota.skill}: ${sampled.length}/${quota.total} (E:${quota.easy} M:${quota.medium} H:${quota.hard})`);
+      console.log(`[Selector]   ✅ ${quota.skill}: ${sampled.length}/${quota.total}`);
     }
 
-    // 3. Shuffle receptive items
-    const shuffledReceptive = this.shuffle(receptiveItems);
+    // 3. Shuffle receptive items but RE-SORT to ensure first 10 are A1-A2
+    // We want a natural progression: A1-A2 -> B1-B2 -> C1
+    let sortedReceptive = this.shuffle(receptiveItems).sort((a, b) => {
+        const diffA = this.getTrueDifficulty(a.item);
+        const diffB = this.getTrueDifficulty(b.item);
+        return diffA - diffB;
+    });
 
     // 4. Interleave production tasks every ~5 questions
-    const battery = this.interleaveProduction(shuffledReceptive, this.shuffle(productionItems));
+    // This will keep the progression mostly intact
+    const battery = this.interleaveProduction(sortedReceptive, this.shuffle(productionItems));
 
     // 5. Assign final indices and blocks
     battery.forEach((q, i) => {
@@ -109,6 +136,7 @@ export class BatterySelector {
     console.log(`[Selector] ✅ 40-Question IELTS Battery Assembled (${battery.length} items).`);
     return battery;
   }
+
 
   // ═══════════════════════════════════════════════════════════════
   // FETCHING
@@ -135,8 +163,8 @@ export class BatterySelector {
     const pools: Record<string, QuestionBankItem[]> = {};
 
     const fetchPromises = SKILL_QUOTAS.map(async (quota) => {
-      // Fetch 3x the quota to have enough for difficulty sampling
-      const limit = Math.max(quota.total * 3, 30);
+      // Fetch 4x the quota for Reading to ensure we can form bundles
+      const limit = quota.skill === 'reading' ? 100 : Math.max(quota.total * 3, 30);
       const { data, error } = await supabase
         .from('question_bank_items')
         .select('*')
@@ -161,6 +189,10 @@ export class BatterySelector {
   // DIFFICULTY SAMPLING
   // ═══════════════════════════════════════════════════════════════
 
+  /**
+   * Samples items from a pool matching the Easy/Medium/Hard quota.
+   * Falls back to filling from remaining items if a difficulty band is short.
+   */
   /**
    * Samples items from a pool matching the Easy/Medium/Hard quota.
    * Falls back to filling from remaining items if a difficulty band is short.
@@ -191,12 +223,69 @@ export class BatterySelector {
     return result;
   }
 
+  /**
+   * Samples Reading questions by grouping them into bundles (Passage-based).
+   * Expects 3 MCQ + 1 Writing per bundle.
+   */
+  private static sampleReadingBundles(pool: QuestionBankItem[], quota: SkillQuota): QuestionBankItem[] {
+    const result: QuestionBankItem[] = [];
+    const groupedByStimulus: Record<string, QuestionBankItem[]> = {};
+
+    pool.forEach(item => {
+      if (!item.stimulus) return;
+      if (!groupedByStimulus[item.stimulus]) groupedByStimulus[item.stimulus] = [];
+      groupedByStimulus[item.stimulus].push(item);
+    });
+
+    // Sort stimulus groups by level to pick appropriate blocks
+    const stimuli = this.shuffle(Object.keys(groupedByStimulus));
+    
+    // We need 8 questions total -> 2 bundles of 4
+    for (const stim of stimuli) {
+      if (result.length >= quota.total) break;
+      
+      const items = groupedByStimulus[stim];
+      const mcqs = items.filter(q => q.response_mode === 'mcq' || q.task_type?.includes('mcq'));
+      const writings = items.filter(q => q.response_mode === 'typed' || q.task_type?.includes('writing'));
+
+      if (mcqs.length >= 3) {
+        // Take 3 MCQs + 1 Writing (if available, otherwise 4th MCQ)
+        result.push(...this.shuffle(mcqs).slice(0, 3));
+        if (writings.length > 0) {
+          result.push(writings[0]);
+        } else if (mcqs.length > 3) {
+          result.push(mcqs[3]);
+        } else {
+          // Incomplete bundle fallback
+          continue; 
+        }
+      }
+    }
+
+    // If still short, backfill with random reading items
+    if (result.length < quota.total) {
+       const usedIds = new Set(result.map(r => r.id));
+       const remaining = this.shuffle(pool.filter(p => !usedIds.has(p.id)));
+       result.push(...remaining.slice(0, quota.total - result.length));
+    }
+
+    return result.slice(0, quota.total);
+  }
+
   private static getDifficultyZone(item: QuestionBankItem): DifficultyZone {
-    const diff = item.difficulty || this.getFallbackDifficulty(item.target_cefr || (item as any).level);
-    if (diff <= 0.3) return 'EASY';
-    if (diff <= 0.6) return 'MEDIUM';
+    const level = (item.target_cefr || (item as any).level || 'B1').toLowerCase();
+    if (['a1', 'a2'].includes(level)) return 'EASY';
+    if (['b1', 'b2'].includes(level)) return 'MEDIUM';
     return 'HARD';
   }
+
+  private static getTrueDifficulty(item: QuestionBankItem): number {
+    const level = (item.target_cefr || (item as any).level || 'B1').toLowerCase();
+    const weight = LEVEL_WEIGHTS[level] || 3.0;
+    const diff = item.difficulty || 0.5;
+    return weight + (diff * 0.1);
+  }
+
 
   private static getFallbackDifficulty(level?: string): number {
     const l = (level || 'b1').toLowerCase();
@@ -320,16 +409,17 @@ export class BatterySelector {
     }
   }
 
-  private static toBatteryQuestion(item: QuestionBankItem, quota: SkillQuota): BatteryQuestion {
+  private static toBatteryQuestion(item: QuestionBankItem): BatteryQuestion {
     return {
       item,
-      block: 1, // Will be reassigned after interleaving
+      block: 1, 
       skill: item.skill,
       zone: this.getDifficultyZone(item),
-      globalIndex: 0, // Will be reassigned after interleaving
-      pointValue: 0,   // Dynamic based on difficulty in Engine
+      globalIndex: 0, 
+      pointValue: this.getTrueDifficulty(item),
     };
   }
+
 
   private static getZoneForLevel(level: string): DifficultyZone {
     const l = level.toLowerCase();

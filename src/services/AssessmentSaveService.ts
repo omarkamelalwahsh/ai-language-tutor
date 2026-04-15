@@ -154,7 +154,8 @@ export class AssessmentSaveService {
    * Each insert is independently try-caught. Auth failures are swallowed.
    * Failed logs are buffered locally for background sync.
    */
-  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string, timeSpentMs?: number): Promise<{ success: boolean }> {
+  public static async log_and_update_assessment(task: any, evaluation: any, answer: string, userId?: string, timeSpentMs?: number, audioUrl?: string | null): Promise<{ success: boolean }> {
+
     // 🛡️ Crash-proof auth resolution
     let finalUserId: string;
     try {
@@ -211,11 +212,13 @@ export class AssessmentSaveService {
       const responsesPayload = {
         user_id: finalUserId,
         question_id: String(task.id),
-        user_answer: answerStr,
+        user_answer: audioUrl ? `[AUDIO] ${audioUrl} | transcription: ${answerStr}` : answerStr,
         is_correct: isCorrect,
         skill: skillStr,
         quality_issue: isQualityIssue ? true : undefined,
+        audio_url: audioUrl || undefined // Attempting to use official column if it exists
       };
+
 
       const { error: respError } = await supabase.from('assessment_responses').insert(responsesPayload);
 
@@ -240,7 +243,13 @@ export class AssessmentSaveService {
         is_correct: isCorrect,
         skill: skillStr,
         quality_issue: isQualityIssue ? true : undefined,
+        audio_url: audioUrl || undefined,
+        metadata: {
+          time_spent: timeSpentMs,
+          audio_url: audioUrl
+        }
       };
+
 
       // Ensure no undefined values
       const cleanPayload: Record<string, any> = {};
