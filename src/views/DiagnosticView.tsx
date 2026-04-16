@@ -295,12 +295,28 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     setIsSaving(true); 
     setIsCompleting(true);
     try {
-      const academicOutcome = engine.getOutcome();
+      const outcome = engine.getOutcome();
       const history = engine.getAnswerHistory();
       const evaluations = engine.getEvaluations();
-      await onSaveComplete(history, academicOutcome, evaluations);
-    } catch (e) {
-      setSaveError('AI analysis failed. Navigating to results...');
+      
+      // Explicitly fetch user to ensure session validity before finalizing
+      const { supabase } = await import('../lib/supabaseClient');
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("User session lost");
+
+      try {
+        await onSaveComplete(history, outcome, evaluations);
+        // Navigate only on successful save execution
+        navigate('/diagnostic/results');
+      } catch (saveErr) {
+        console.error("Save failure in App context:", saveErr);
+        alert("حدث خطأ أثناء حفظ النتائج، برجاء المحاولة مرة أخرى");
+        throw saveErr;
+      }
+    } catch (err) {
+      console.error("Critical Save Error:", err);
+      setSaveError('AI analysis failed. Navigating to fallback...');
       setTimeout(() => navigate('/dashboard'), 2000);
     }
   }, [engine, navigate, onSaveComplete]);

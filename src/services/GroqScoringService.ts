@@ -171,7 +171,8 @@ FINAL EVALUATION SCHEMA:
   public static async getScoringResultFromAPI(
     question: AssessmentQuestion,
     answer: string,
-    currentLevel: string
+    currentLevel: string,
+    isLastQuestion: boolean = false
   ): Promise<any> {
     try {
       const response = await fetch("/api/evaluate", {
@@ -186,7 +187,8 @@ FINAL EVALUATION SCHEMA:
           questionId: question.id,
           prompt: question.prompt,
           stimulus: question.stimulus,
-          isMCQ: question.response_mode === 'mcq'
+          isMCQ: question.response_mode === 'mcq',
+          isLastQuestion: isLastQuestion
         })
       });
 

@@ -221,6 +221,8 @@ export class AdaptiveAssessmentEngine {
     const isProductionTask = itemMode === 'typed' || itemMode === 'audio';
     const isMCQTask = !isProductionTask && item.options && item.options.length > 0;
     
+    const isLastQuestion = this.currentIndex === this.battery.length - 1;
+
     if (isMCQTask) {
       const isCorrect = this.checkMCQ(item, answer);
       evaluation = { 
@@ -228,10 +230,17 @@ export class AdaptiveAssessmentEngine {
         is_correct: isCorrect, 
         feedback: isCorrect ? "Correct!" : "Incorrect." 
       };
+      
+      // FIRE MCQ TO BACKEND SO IT ALSO HITS THE ENDPOINT TO UPDATE PROFILE IF LAST
+      if (isLastQuestion) {
+        console.log(`[Engine] ⚡ Flagging last question to backend evaluate...`);
+        // We push it asynchronously so it registers the isLastQuestion flag on the DB side
+        GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, true).catch(e => console.warn(e));
+      }
     } else if (isProductionTask) {
       // AI evaluation for Writing/Speaking (open-ended production tasks)
       console.log(`[Engine] 🤖 Evaluating ${item.skill} (${itemMode}) via AI...`);
-      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
+      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
       // Ensure is_correct is derived from score for production tasks
       if (evaluation.is_correct === undefined) {
         evaluation.is_correct = (evaluation.score || 0) >= 0.5;
@@ -239,7 +248,7 @@ export class AdaptiveAssessmentEngine {
     } else {
       // Fallback: MCQ skill without options — attempt AI evaluation
       console.log(`[Engine] ⚠️ ${item.skill} MCQ missing options, falling back to AI evaluation...`);
-      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel);
+      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
       if (evaluation.is_correct === undefined) {
         evaluation.is_correct = (evaluation.score || 0) >= 0.5;
       }

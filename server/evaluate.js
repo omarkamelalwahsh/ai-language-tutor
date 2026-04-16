@@ -418,6 +418,20 @@ app.post('/api/evaluate', async (req, res) => {
           const { error: analysisErr } = await supabase.from('user_error_analysis').insert(errorRows);
           if (analysisErr) throw analysisErr;
         }
+
+        // 4. FINAL QUESTION FLAG CHECK (Break the Assessment Loop)
+        if (payload.isLastQuestion) {
+          console.log('[Server] 🏁 Final question detected. Updating learner profile onboarding status...');
+          const { error: profileErr } = await supabase
+              .from('learner_profiles')
+              .update({ 
+                  onboarding_complete: true,
+                  has_completed_assessment: true,
+                  overall_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1')
+              })
+              .eq('id', targetUserId);
+          if (profileErr) console.error('[Server] Failed to update final profile state:', profileErr);
+        }
       }
       console.log('[Server] ✅ Database Persistence Complete on Vercel!');
     } catch (dbErr) {
