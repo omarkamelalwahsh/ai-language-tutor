@@ -307,19 +307,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
       try {
         await onSaveComplete(history, outcome, evaluations);
-        // Navigate only on successful save execution
-        navigate('/diagnostic/results');
+        // App.tsx handleAssessmentSave now handles the navigation.
       } catch (saveErr) {
         console.error("Save failure in App context:", saveErr);
-        alert("حدث خطأ أثناء حفظ النتائج، برجاء المحاولة مرة أخرى");
-        throw saveErr;
+        setSaveError('حدث خطأ أثناء حفظ النتائج، برجاء المحاولة مرة أخرى');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Critical Save Error:", err);
-      setSaveError('AI analysis failed. Navigating to fallback...');
-      setTimeout(() => navigate('/dashboard'), 2000);
+      setSaveError(err?.message || 'AI analysis failed. Please try again or return to dashboard.');
     }
-  }, [engine, navigate, onSaveComplete]);
+  }, [engine, onSaveComplete]);
 
   // 🚀 BOOTSTRAP EFFECT: Runs once on mount
   useEffect(() => {
@@ -670,14 +667,40 @@ const PreparingBatteryView = () => (
   </div>
 );
 
-const AnalyzingTransitionView = ({ isSaving, saveError }: any) => (
-  <div className="h-screen bg-white flex flex-col items-center justify-center space-y-8 p-12 text-center">
-    <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center"><Brain color="white" size={40} /></motion.div>
-    <div className="space-y-2">
-      <h2 className="text-3xl font-black text-slate-900">Calculating precise profile...</h2>
-      <p className="text-slate-500">Aggregating 40-question responses across all skills.</p>
+const AnalyzingTransitionView = ({ isSaving, saveError }: any) => {
+  return (
+    <div className="h-screen bg-white flex flex-col items-center justify-center space-y-8 p-12 text-center">
+      <motion.div 
+        animate={saveError ? { rotate: [0, -10, 10, -10, 10, 0] } : { rotate: 360 }} 
+        transition={saveError ? { duration: 0.5 } : { duration: 3, repeat: Infinity, ease: "linear" }} 
+        className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-xl ${saveError ? 'bg-rose-500 shadow-rose-200' : 'bg-indigo-600 shadow-indigo-200'}`}
+      >
+        {saveError ? <AlertTriangle color="white" size={40} /> : <Brain color="white" size={40} />}
+      </motion.div>
+      <div className="space-y-2">
+        <h2 className="text-3xl font-black text-slate-900">{saveError ? 'Analysis Error' : 'Calculating precise profile...'}</h2>
+        <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
+          {saveError || 'Aggregating 40-question responses across all skills.'}
+        </p>
+      </div>
+      {saveError && (
+        <div className="flex gap-4 pt-4">
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-2xl font-bold flex items-center gap-2 transition-all"
+          >
+            <RefreshCcw size={18} /> Retry Analysis
+          </button>
+          <a 
+            href="/dashboard"
+            className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-rose-200 transition-all active:scale-95"
+          >
+            Go to Dashboard <ArrowRight size={18} />
+          </a>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 export default DiagnosticView;

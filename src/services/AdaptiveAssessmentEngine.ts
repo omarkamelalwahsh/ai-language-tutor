@@ -504,16 +504,18 @@ export class AdaptiveAssessmentEngine {
     
     // Calculate percentage based on weighted difficulty potential
     const percentage = maxBasePoints > 0 ? Math.round((totalScore / maxBasePoints) * 100) : 0;
-    const cefr = CEFREngine.mapPercentageToLevel(percentage);
+    const cefr = CEFREngine.mapPercentageToLevel(percentage) || "A1";
 
     const breakdown: any = {};
-    Object.entries(this.skillScores).forEach(([skill, data]) => {
+    const ALL_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary', 'writing', 'speaking'];
+    ALL_SKILLS.forEach((skill) => {
+      const data = this.skillScores[skill] || { earned: 0, total: 0 };
       const skillPct = data.total > 0 ? Math.round((data.earned / data.total) * 100) : 0;
       breakdown[skill] = {
-        band: CEFREngine.mapPercentageToLevel(skillPct),
-        score: skillPct,
+        band: CEFREngine.mapPercentageToLevel(skillPct) || "A1",
+        score: skillPct || 0,
         confidence: 0.9,
-        evidenceCount: this.answerHistory.filter(a => a.skill === skill).length,
+        evidenceCount: this.answerHistory.filter(a => a.skill === skill).length || 0,
         status: 'stable'
       };
     });

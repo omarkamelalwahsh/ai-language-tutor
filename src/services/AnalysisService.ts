@@ -37,80 +37,104 @@ export class AssessmentAnalysisService {
     const BATTERY_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary'];
 
     for (const skill of ALL_SKILLS) {
-      const engineSkill = breakdown[skill as AssessmentSkill];
-      const isBatterySkill = BATTERY_SKILLS.includes(skill);
-      
-      if (!engineSkill) {
-        // Safe fallback for untested skills
+      try {
+        const engineSkill = breakdown[skill as AssessmentSkill];
+        const isBatterySkill = BATTERY_SKILLS.includes(skill);
+        
+        if (!engineSkill) {
+          // Safe fallback for untested skills
+          skillResults[skill] = {
+            skill,
+            estimatedLevel: "A1",
+            confidence: { band: "low", score: 0, reasons: ["Skill not tested in this session"] },
+            evidenceCount: 0,
+            descriptors: [],
+            strengths: [],
+            weaknesses: [`No evidence collected for ${skill}`],
+            taskCoverage: { total: isBatterySkill ? 10 : 0, completed: 0, valid: 0 },
+            subscores: [],
+            status: "insufficient_data",
+            masteryScore: 0
+          };
+          continue;
+        }
+
+        // Normalize BandLabel to CefrLevel
+        const normalizedLevel = this.normalizeEngineBand(engineSkill.band || "A1");
+
+        // Battery scores are 0-100 (percentage), so masteryScore = score / 100
+        // Guard: if score is already 0-1 (legacy), don't double-divide
+        let rawScore = engineSkill.score || 0;
+        if (isNaN(rawScore)) rawScore = 0;
+        const masteryScore = rawScore > 1 ? rawScore / 100 : rawScore;
+
+        // Build weaknesses from cappedReason (foundational_gap) or missing descriptors
+        const weaknessList: string[] = [];
+        if (engineSkill.cappedReason) {
+          weaknessList.push(engineSkill.cappedReason);
+        }
+        if (engineSkill.missingDescriptors) {
+          for (const id of engineSkill.missingDescriptors.slice(0, 3)) {
+            const entry = getDescriptorById(id);
+            const parts = id.split('_');
+            const s = parts[0] || '';
+            const l = parts[1] || '';
+            weaknessList.push(entry?.canonicalTextEn || `Needs improvement in ${s} (${l})`.trim());
+          }
+        }
+
+        skillResults[skill] = {
+          skill,
+          estimatedLevel: normalizedLevel,
+          confidence: {
+            band: this.valueToConfidenceBand(engineSkill.confidence ?? 0),
+            score: engineSkill.confidence ?? 0,
+            reasons: []
+          },
+          evidenceCount: engineSkill.evidenceCount || 0,
+          descriptors: engineSkill.matchedDescriptors || [],
+          strengths: (engineSkill.matchedDescriptors || []).slice(0, 3).map(d => d.descriptorText),
+          weaknesses: weaknessList,
+          masteryScore,
+          taskCoverage: {
+            total: isBatterySkill ? 10 : 0,
+            completed: engineSkill.evidenceCount || 0,
+            valid: engineSkill.evidenceCount || 0
+          },
+          subscores: [],
+          status: engineSkill.status || "insufficient_data",
+          isCapped: !!engineSkill.isCapped,
+          cappedReason: engineSkill.cappedReason
+        };
+      } catch (err) {
+        console.error(`[AnalysisService] Error processing skill ${skill}:`, err);
         skillResults[skill] = {
           skill,
           estimatedLevel: "A1",
-          confidence: { band: "low", score: 0, reasons: ["Skill not tested in this session"] },
+          confidence: { band: "low", score: 0, reasons: ["Error processing skill"] },
           evidenceCount: 0,
           descriptors: [],
           strengths: [],
-          weaknesses: [`No evidence collected for ${skill}`],
-          taskCoverage: { total: isBatterySkill ? 10 : 0, completed: 0, valid: 0 },
+          weaknesses: [`Processing error for ${skill}`],
+          taskCoverage: { total: BATTERY_SKILLS.includes(skill) ? 10 : 0, completed: 0, valid: 0 },
           subscores: [],
-          status: "insufficient_data"
+          status: "insufficient_data",
+          masteryScore: 0
         };
-        continue;
       }
-
-      // Normalize BandLabel to CefrLevel
-      const normalizedLevel = this.normalizeEngineBand(engineSkill.band || "A1");
-
-      // Battery scores are 0-100 (percentage), so masteryScore = score / 100
-      // Guard: if score is already 0-1 (legacy), don't double-divide
-      const rawScore = engineSkill.score || 0;
-      const masteryScore = rawScore > 1 ? rawScore / 100 : rawScore;
-
-      // Build weaknesses from cappedReason (foundational_gap) or missing descriptors
-      const weaknessList: string[] = [];
-      if (engineSkill.cappedReason) {
-        weaknessList.push(engineSkill.cappedReason);
-      }
-      if (engineSkill.missingDescriptors) {
-        for (const id of engineSkill.missingDescriptors.slice(0, 3)) {
-          const entry = getDescriptorById(id);
-          const parts = id.split('_');
-          const s = parts[0];
-          const l = parts[1];
-          weaknessList.push(entry?.canonicalTextEn || `Needs improvement in ${s} (${l})`);
-        }
-      }
-
-      skillResults[skill] = {
-        skill,
-        estimatedLevel: normalizedLevel,
-        confidence: {
-          band: this.valueToConfidenceBand(engineSkill.confidence ?? 0),
-          score: engineSkill.confidence ?? 0,
-          reasons: []
-        },
-        evidenceCount: engineSkill.evidenceCount,
-        descriptors: engineSkill.matchedDescriptors,
-        strengths: engineSkill.matchedDescriptors.slice(0, 3).map(d => d.descriptorText),
-        weaknesses: weaknessList,
-        masteryScore,
-        taskCoverage: {
-          total: isBatterySkill ? 10 : 0,
-          completed: engineSkill.evidenceCount,
-          valid: engineSkill.evidenceCount
-        },
-        subscores: [],
-        status: engineSkill.status,
-        isCapped: engineSkill.isCapped,
-        cappedReason: engineSkill.cappedReason
-      };
     }
 
     // Use battery rationale directly if available, otherwise build from skills
-    const estimatedLevel = outcome.overallBand 
-      ? this.normalizeEngineBand(outcome.overallBand)
-      : this.inferOverallLevel(skillResults, outcome.overallConfidence);
+    let estimatedLevel: CefrLevel = "A1";
+    try {
+      estimatedLevel = outcome?.overallBand 
+        ? this.normalizeEngineBand(outcome.overallBand)
+        : this.inferOverallLevel(skillResults, outcome?.overallConfidence ?? 0);
+    } catch (e) {
+      console.error("[AnalysisService] Error calculating overall level:", e);
+    }
 
-    const rationale = (outcome.overall?.rationale && outcome.overall.rationale.length > 0)
+    const rationale = (outcome?.overall?.rationale && outcome.overall.rationale.length > 0)
       ? outcome.overall.rationale
       : this.buildOverallRationale(skillResults, estimatedLevel);
 

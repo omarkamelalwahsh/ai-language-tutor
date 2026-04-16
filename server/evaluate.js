@@ -37,7 +37,7 @@ const CONFIG = {
   model: "llama-3.1-8b-instant",
   temperature: 0.1,
   maxTokens: 500,
-  requestTimeoutMs: 8000,
+  requestTimeoutMs: 7000,
 };
 
 const circuitBreaker = {
@@ -364,7 +364,7 @@ app.post('/api/evaluate', async (req, res) => {
           });
 
           const timeoutTask = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("Timeout")), 8000)
+            setTimeout(() => reject(new Error("Timeout")), 7000)
           );
 
           console.log('[Server] Dispatching AI Assessment...');
@@ -408,11 +408,24 @@ app.post('/api/evaluate', async (req, res) => {
         });
         if (bundleErr) throw bundleErr;
 
-        // 3. Multi-Error Analysis (Array Insert)
+        // 3. Ensure User Error Profile exists (Orchestration Link)
+        if (Array.isArray(parsed.analysis) && parsed.analysis.length > 0) {
+          console.log('[Server] Preparing Error Profile for Session:', safeAssessmentId);
+          await supabase.from('user_error_profiles').upsert({
+            id: safeAssessmentId,
+            user_id: targetUserId,
+            full_report: parsed,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        }
+
+        // 4. Multi-Error Analysis (Array Insert with Profile Link)
         if (Array.isArray(parsed.analysis) && parsed.analysis.length > 0) {
           console.log(`[Server] Inserting into user_error_analysis (${parsed.analysis.length} rows)...`);
           const errorRows = parsed.analysis.map(err => ({
+            profile_id: safeAssessmentId,
             user_id: targetUserId,
+            question_id: internalQId, // 🛡️ PROTECTED: Ensures no "battery-fetch" string enters UUID column
             category: String(err.skill || payload.skill || 'General'),
             ai_interpretation: String(err.issue || 'Unspecified'),
             user_answer: String(payload.learnerAnswer || ''),

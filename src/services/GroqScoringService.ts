@@ -180,7 +180,7 @@ FINAL EVALUATION SCHEMA:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: localStorage.getItem('auth_user_id'),
-          assessmentId: (question as any)._battery?.assessmentId || 'battery-fetch',
+          assessmentId: (question as any)._battery?.assessmentId || '00000000-0000-0000-0000-000000000000',
           skill: question.skill,
           currentBand: currentLevel,
           learnerAnswer: answer,

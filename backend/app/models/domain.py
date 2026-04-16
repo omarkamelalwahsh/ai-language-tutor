@@ -1,0 +1,118 @@
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Enum, text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import relationship
+from app.db.database import Base
+
+import enum
+
+class TaskType(str, enum.Enum):
+    mcq = "mcq"
+    typed = "typed"
+    audio = "audio"
+
+class AssessmentStatus(str, enum.Enum):
+    in_progress = "in_progress"
+    completed = "completed"
+    abandoned = "abandoned"
+
+class User(Base):
+    """Supabase Auth Users Table Mapping (Read-only for most cases or managed via trigger)"""
+    __tablename__ = "users"
+    __table_args__ = {'schema': 'auth'}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String)
+
+class LearnerProfile(Base):
+    __tablename__ = "learner_profiles"
+
+    id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), primary_key=True)
+    full_name = Column(String)
+    overall_level = Column(String, default="Pending")
+    onboarding_complete = Column(Boolean, default=False)
+    has_completed_assessment = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+
+class QuestionBankItem(Base):
+    __tablename__ = "question_bank_items"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    skill = Column(String, nullable=False)
+    task_type = Column(String, nullable=False)
+    response_mode = Column(String, default="mcq")
+    level = Column(String, nullable=False)
+    difficulty = Column(Float, default=0.5)
+    prompt = Column(String, nullable=False)
+    stimulus = Column(String)
+    options = Column(JSONB)
+    answer_key = Column(JSONB)
+    rubric = Column(String)
+
+class Assessment(Base):
+    __tablename__ = "assessments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String, default=AssessmentStatus.in_progress.value)
+    evaluation_metadata = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    completed_at = Column(DateTime(timezone=True))
+    
+    responses = relationship("AssessmentResponse", back_populates="assessment", cascade="all, delete-orphan")
+
+class AssessmentResponse(Base):
+    __tablename__ = "assessment_responses"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    question_id = Column(UUID(as_uuid=True), ForeignKey("question_bank_items.id", ondelete="SET NULL"))
+    
+    user_answer = Column(String)
+    
+    # Normalization fields
+    is_correct = Column(Boolean)
+    score = Column(Float)
+    answer_level = Column(String)
+    
+    # Store the full unmodified dynamic LLM response here
+    raw_evaluation = Column(JSONB)
+    
+    # Additional context for simple UI queries
+    skill = Column(String)
+    category = Column(String)
+    
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    
+    assessment = relationship("Assessment", back_populates="responses")
+    question = relationship("QuestionBankItem")
+
+# Error profiles
+class UserErrorProfile(Base):
+    __tablename__ = "user_error_profiles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    action_plan = Column(String)
+    weakness_areas = Column(JSONB, server_default='[]')
+    full_report = Column(JSONB, nullable=False, server_default='{}')
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+
+class UserErrorAnalysis(Base):
+    __tablename__ = "user_error_analysis"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    profile_id = Column(UUID(as_uuid=True), ForeignKey("user_error_profiles.id", ondelete="CASCADE"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"))
+    question_id = Column(UUID(as_uuid=True), ForeignKey("question_bank_items.id", ondelete="SET NULL"))
+    category = Column(String)
+    is_correct = Column(Boolean, default=False)
+    ai_interpretation = Column(String)
+    user_answer = Column(String)
+    correct_answer = Column(String)
+    deep_insight = Column(String)
+    question_number = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
