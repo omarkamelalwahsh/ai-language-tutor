@@ -317,7 +317,12 @@ app.post('/api/evaluate', async (req, res) => {
   
   try {
     const targetUserId = req.user?.id || payload.userId;
-    const internalQId = payload.questionId;
+    
+    // 🛡️ Ensure structural integrity of UUID fields
+    const isUUID = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    const internalQId = isUUID(payload.questionId) ? payload.questionId : '00000000-0000-0000-0000-000000000000';
+    const safeAssessmentId = isUUID(payload.assessmentId) ? payload.assessmentId : '00000000-0000-0000-0000-000000000000';
+    
     let parsed;
 
     if (payload.isMCQ) {
@@ -378,9 +383,9 @@ app.post('/api/evaluate', async (req, res) => {
       console.log('[Server] Inserting into assessment_responses...');
       const { error: resErr } = await supabase.from('assessment_responses').insert({
         user_id: targetUserId,
-        assessment_id: payload.assessmentId || '00000000-0000-0000-0000-000000000000',
+        assessment_id: safeAssessmentId,
         skill: String(payload.skill || 'general'),
-        question_id: String(internalQId || 'unknown'),
+        question_id: internalQId,
         user_answer: String(payload.learnerAnswer || ''),
         is_correct: (parsed.summary?.overall_score || 0) >= 0.5,
         answer_level: String(parsed.summary?.predicted_level || payload.currentBand || 'A1'),
