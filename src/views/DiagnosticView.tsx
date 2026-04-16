@@ -276,6 +276,12 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       // Block transition check
       if (nextProgress.currentBlock !== prevBlockRef.current && prevBlockRef.current !== null) {
         setShowBlockTransition(nextProgress.currentBlock);
+        
+        // 🔄 Live Refresh: Pull updated skill states from DB
+        if (refreshUserProfile) {
+           refreshUserProfile();
+        }
+
         setTimeout(() => setShowBlockTransition(null), 2500);
       }
       prevBlockRef.current = nextProgress.currentBlock;

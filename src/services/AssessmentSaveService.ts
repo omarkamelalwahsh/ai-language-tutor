@@ -1,6 +1,8 @@
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabaseClient';
 import { AssessmentOutcome, AnswerRecord } from '../types/assessment';
 import { withRetry, toValidUUID } from '../lib/utils';
+import { JourneyService } from './JourneyService';
+import { AssessmentSessionResult } from '../types/assessment';
 
 
 export class AssessmentSaveService {
@@ -202,19 +204,20 @@ export class AssessmentSaveService {
     // 2. ASSESSMENT_LOGS — Sanitized Minimal Payload
     try {
       const logsPayload = {
-        question: questionText, // Alignment: Both 'question' and 'question_text' exist in schema
-        question_text: questionText, // Alignment
+        user_id: finalUserId, // 🛠️ FIX: Added missing user identifier
+        question: questionText, 
+        question_text: questionText,
         user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
         correct_answer: correctAnswerStr || (isProductionTask ? '[open_ended]' : ''),
         is_correct: isCorrect,
         skill: skillStr,
-        category: skillStr, // Alignment
+        category: skillStr,
         score: evaluation.score !== undefined ? evaluation.score : (isCorrect ? 1.0 : 0.0),
         difficulty: task.difficulty_numeric || 0.5,
         response_time_ms: timeSpentMs || 0,
-        duration_ms: timeSpentMs || 0, // Alignment
+        duration_ms: timeSpentMs || 0,
         question_level: task.difficulty || 'b1',
-        level: (task as any)._userLevel || 'b1', // Capture snapshot level if passed
+        level: (task as any)._userLevel || 'b1',
         status: 'completed',
         evaluation_metadata: evaluation,
         metadata: {
@@ -757,7 +760,30 @@ export class AssessmentSaveService {
           points: (oldProfile?.points || 0) + 500, // Diagnostic Completion Bonus
           last_active_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }).eq('id', userId)
+        }).eq('id', userId),
+        
+        // 5. Journey Architecture (AI Launch)
+        (async () => {
+          console.log(`[Architecture] 🗺️ Architecting personalized journey for ${userId}...`);
+          try {
+            // Map outcome to the format JourneyService expects
+            const sessionResult: AssessmentSessionResult = {
+              learnerId: userId,
+              sessionId: 'diagnostic_final',
+              overall: outcome.overall,
+              skills: outcome.skillBreakdown as any,
+              behavioralProfile: { pace: 'moderate', confidenceStyle: 'balanced', selfCorrectionRate: 0 },
+              metadata: {},
+              recommendedNextTasks: [],
+              generatedAt: new Date().toISOString()
+            };
+            const dynamicJourney = await JourneyService.generateDynamicJourney(sessionResult);
+            await JourneyService.persistJourney(dynamicJourney, userId);
+            console.log(`[Architecture] ✅ Journey established for level: ${newLevel}`);
+          } catch (journeyErr) {
+            console.warn('[Architecture] ⚠️ Journey creation failed (non-blocking):', journeyErr);
+          }
+        })()
       ]);
 
       // Final Check

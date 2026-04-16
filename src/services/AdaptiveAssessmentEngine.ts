@@ -310,16 +310,50 @@ export class AdaptiveAssessmentEngine {
       this.completed = true;
       this.clearState();
     } else {
-      // 🚀 ADAPTIVITY DISABLED: We rely on the BatterySelector's 3-4-3 fixed blocks
+      // 🚀 Intermediate Skill Sync: Check if the current block just finished
+      const nextQ = this.battery[this.currentIndex];
+      const currentBlock = batteryQ.block || 1;
+      const nextBlock = nextQ?.block || null;
+
+      if (nextBlock !== null && nextBlock !== currentBlock) {
+        console.log(`[Engine] 🏁 Block ${currentBlock} finished. Syncing intermediate skill states...`);
+        this.syncIntermediateSkills();
+      }
+
       this.saveState();
     }
-
 
     return { 
       correct: isCorrect, 
       score: evaluation.score, 
       evaluation 
     };
+  }
+
+  /**
+   * Syncs the current skill performance to the database immediately after a block finishes.
+   */
+  private async syncIntermediateSkills() {
+    if (!this.userId) return;
+    
+    const outcome = this.getOutcome();
+    const currentSkill = this.battery[this.currentIndex - 1]?.skill;
+    
+    if (currentSkill && outcome.skillBreakdown[currentSkill]) {
+      const skillData = outcome.skillBreakdown[currentSkill];
+      console.log(`[Engine] 🔄 Intermediate Sync for skill: ${currentSkill} (${skillData.band})`);
+      
+      try {
+        await AssessmentSaveService.updateSkillState(
+          this.userId, 
+          currentSkill, 
+          skillData.confidence, 
+          skillData.band
+        );
+      } catch (err) {
+        console.warn(`[Engine] Intermediate skill sync failed for ${currentSkill}:`, err);
+      }
+    }
   }
 
   /**
