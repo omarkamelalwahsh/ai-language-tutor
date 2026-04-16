@@ -456,6 +456,12 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
       {/* RESPONSE INPUT AREA */}
       <div className="flex-1">
+        {(() => {
+          // Debug snippet from user requested
+          console.log("Current Task UI Debug:", currentTask, "hasOptions:", hasOptions);
+          return null;
+        })()}
+
         {/* ── MCQ TASKS ── */}
         {isMCQTask && hasOptions ? (
           <div className="space-y-4">
@@ -486,13 +492,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </label>
             ))}
           </div>
-        ) : isMCQTask && !hasOptions ? (
-          <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100 text-center">
-             <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-             <p className="text-amber-900 font-black text-lg">Missing Options</p>
-             <button className="mt-6 px-8 py-3.5 bg-amber-600 text-white rounded-2xl font-bold" onClick={handleSkip}>Skip Question</button>
-          </div>
-        ) : isSpeakingTask && !useSpeakingFallback ? (
+        ) : (isMCQTask && !hasOptions) || (!isMCQTask && !isSpeakingTask) ? (
+          /* Fallback to Open Ended if NO options are found, or if it's explicitly not MCQ/Speaking */
+          <div className="relative">
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="What do you think is the answer?"
+              className={`w-full min-h-[160px] p-6 rounded-3xl border-2 text-lg transition-all resize-none shadow-sm pb-16 focus:ring-4 ${
+                isEvaluating 
+                  ? 'border-indigo-200 bg-slate-50 text-slate-500 rounded-b-none'
+                  : 'border-slate-200 focus:border-indigo-500 focus:bg-white bg-slate-50'
+              }`}
+              disabled={isEvaluating}
+            />
+            {/* ... */}
           <div className="space-y-4">
             <SpeakingModule 
               userId={user?.id}

@@ -75,6 +75,14 @@ export function extractOptions(ak: any): string[] {
   
   if (!parsed) return [];
 
+  // Priority 0: Input is already an array
+  if (Array.isArray(parsed)) {
+    if (parsed.length > 0 && typeof parsed[0] === 'object') {
+       return parsed.map((o: any) => o.text || o.label || "");
+    }
+    return parsed;
+  }
+
   // Priority 1: Top-level options array
   if (Array.isArray(parsed.options)) {
     // Check if it's an array of strings or objects

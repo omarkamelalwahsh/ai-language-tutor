@@ -90,10 +90,18 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
     const fetchJourney = async () => {
       if (!user?.id) return;
       try {
+        const { data: journeyRow } = await supabase
+          .from('learning_journeys')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!journeyRow) return;
+
         const { data, error } = await supabase
           .from('journey_steps')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('journey_id', journeyRow.id)
           .order('order_index', { ascending: true });
         
         if (!error && data) setNodes(data);

@@ -584,7 +584,9 @@ export class AdaptiveAssessmentEngine {
     // For listening tasks: stimulus is the audio URL
     const audioSource = item.audio_url || (item.skill === 'listening' ? item.stimulus : undefined);
     
-    const options = extractOptions(item.options || item.answer_key);
+    const options = extractOptions(
+      (item.options && item.options.length > 0) ? item.options : item.answer_key
+    );
     
     return {
       id: item.id, 
