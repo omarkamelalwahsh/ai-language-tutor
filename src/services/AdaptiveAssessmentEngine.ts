@@ -28,6 +28,7 @@ import { BatterySelector, BatteryQuestion } from '../engine/selector/AdaptiveSel
 import { CEFREngine } from '../engine/cefr/CEFREngine';
 import { ASSESSMENT_CONFIG, DifficultyZone } from '../config/assessment-config';
 import { AssessmentSaveService } from './AssessmentSaveService';
+import { extractOptions, extractAnswerMetadata } from '../lib/utils';
 
 // CEFR → numeric difficulty (mirrors ASSESSMENT_CONFIG.CEFR_DIFFICULTY_MAP)
 const DIFF_MAP: Record<string, number> = {
@@ -416,19 +417,14 @@ export class AdaptiveAssessmentEngine {
   }
 
   private checkMCQ(item: any, answer: string): boolean {
-    const { options, correctIndex, correctValue } = this.extractMCQData(item);
+    const options = extractOptions(item.options || item.answer_key);
+    const { correctValue } = extractAnswerMetadata(item.answer_key, options);
     
     // Path 1: Direct text match against correctValue
     if (correctValue && answer.trim().toLowerCase() === correctValue.trim().toLowerCase()) {
       return true;
     }
-    // Path 2: Index-based match
-    if (options && correctIndex !== null && correctIndex !== undefined && correctIndex >= 0) {
-      const correctText = options[correctIndex];
-      if (correctText && answer.trim().toLowerCase() === correctText.trim().toLowerCase()) {
-        return true;
-      }
-    }
+    // Note: extractAnswerMetadata already handles the index-to-text mapping if needed.
     return false;
   }
 
@@ -438,57 +434,19 @@ export class AdaptiveAssessmentEngine {
     if (mode === 'typed' || mode === 'audio') {
       return item.rubric || item.model_answer || '';
     }
-    const { options, correctIndex, correctValue } = this.extractMCQData(item);
-    if (correctValue) return correctValue;
-    if (options && correctIndex !== null && correctIndex !== undefined && correctIndex >= 0) {
-      return options[correctIndex] || '';
-    }
-    return '';
+    const options = extractOptions(item.options || item.answer_key);
+    const { correctValue } = extractAnswerMetadata(item.answer_key, options);
+    return correctValue || '';
   }
 
   /**
    * Exhaustively extracts MCQ options, correct_index, and correctValue
    * from all known answer_key structures (legacy + new CEFR bank).
+   * @deprecated Use extractOptions and extractAnswerMetadata from lib/utils instead.
    */
   private extractMCQData(item: any): { options: string[] | null; correctIndex: number | null; correctValue: string | null } {
-    let options = item.options && item.options.length > 0 ? item.options : null;
-    let correctIndex: number | null = null;
-    let correctValue: string | null = null;
-
-    const ak = item.answer_key as any;
-    if (!ak && !options) return { options: null, correctIndex: null, correctValue: null };
-
-    let parsed: any = null;
-    if (ak) {
-      parsed = typeof ak === 'string' ? (() => { try { return JSON.parse(ak); } catch { return null; } })() : ak;
-    }
-
-    if (parsed) {
-      // Extract options if not already hoisted
-      if (!options) {
-        if (Array.isArray(parsed.options)) options = parsed.options;
-        else if (parsed.value && Array.isArray(parsed.value.options)) options = parsed.value.options;
-      }
-
-      // Extract correct_index
-      if (parsed.correct_index !== undefined && parsed.correct_index !== -1) correctIndex = parsed.correct_index;
-      else if (parsed.value?.correct_index !== undefined) correctIndex = parsed.value.correct_index;
-
-      // Extract correctValue (new CEFR bank format)
-      if (parsed.correctValue) correctValue = parsed.correctValue;
-      else if (parsed.correct) correctValue = parsed.correct;
-      else if (parsed.correct_answer) correctValue = parsed.correct_answer;
-      else if (parsed.value?.correct_answer) correctValue = parsed.value.correct_answer;
-    }
-
-    // If we have correctValue but no correctIndex, compute it
-    if (correctValue && options && (correctIndex === null || correctIndex === -1)) {
-      const idx = options.findIndex((o: string) => 
-        o.trim().toLowerCase() === correctValue!.trim().toLowerCase()
-      );
-      if (idx >= 0) correctIndex = idx;
-    }
-
+    const options = extractOptions(item.options || item.answer_key);
+    const { correctIndex, correctValue } = extractAnswerMetadata(item.answer_key, options);
     return { options, correctIndex, correctValue };
   }
 
@@ -573,6 +531,8 @@ export class AdaptiveAssessmentEngine {
     // For listening tasks: stimulus is the audio URL
     const audioSource = item.audio_url || (item.skill === 'listening' ? item.stimulus : undefined);
     
+    const options = extractOptions(item.options || item.answer_key);
+    
     return {
       id: item.id, 
       prompt: item.prompt, 
@@ -581,7 +541,7 @@ export class AdaptiveAssessmentEngine {
       type: item.task_type as any,
       response_mode: item.response_mode as any, 
       stimulus: item.stimulus,
-      options: item.options, 
+      options: options, 
       audioUrl: audioSource,
       _battery: batteryQ,
     } as any;
