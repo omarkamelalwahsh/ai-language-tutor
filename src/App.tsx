@@ -199,12 +199,18 @@ function AppRoutes() {
     // 2. OPTIMISTIC HYDRATION: Update local memory so pages aren't empty
     console.log('[App] 💧 Optimistically hydrating local state...');
     localStorage.setItem('has_completed_assessment', 'true'); // Fast cache for routing
-    localStorage.setItem('onboarding_complete', 'true'); // Fast cache for routing
+    // NOTE: onboarding_complete was already set during the onboarding form.
+    // We re-confirm it here for safety, but it should NOT be the primary setter.
+    localStorage.setItem('onboarding_complete', 'true');
     setSessionResult(computedSessionResult, outcome, history);
     updateProfileLocally({
         onboarding_complete: true,
+        has_completed_assessment: true,
         overall_level: outcome.overallBand || 'A1',
-        has_completed_assessment: true
+        accuracy_rate: outcome.accuracyRate ?? 0,
+        pacing_score: outcome.pacingScore ?? 0,
+        average_response_time: outcome.averageResponseTimeMs ?? 0,
+        total_questions_answered: outcome.totalQuestionsAnswered ?? 0,
     });
 
     // 3. INSTANT REDIRECT

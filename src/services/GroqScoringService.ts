@@ -1,7 +1,7 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
 
-const MODEL_A = "llama-3.1-8b-instant"; 
-const MODEL_B = "llama-3.3-70b-versatile";
+const MODEL_A = "llama3-8b-8192";       // Fast MCQ/Grammar scoring
+const MODEL_B = "llama3-70b-8192";      // Deep Writing/Speaking analysis
 
 export interface ProctorOutput {
   score: number; // 0.0 to 1.0 logic

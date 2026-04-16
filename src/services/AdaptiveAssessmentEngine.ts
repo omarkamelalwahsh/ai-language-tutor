@@ -475,6 +475,20 @@ export class AdaptiveAssessmentEngine {
       };
     });
 
+    // ── Computed Metrics (never NULL) ──
+    const totalAnswered = this.answerHistory.length || this.currentIndex;
+    const correctCount = this.answerHistory.filter(a => a.correct).length;
+    const accuracyRate = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+    // Pacing: benchmark = 45 seconds per question
+    const PACING_BENCHMARK_MS = 45_000;
+    const totalTimeMs = this.answerHistory.reduce((sum, a) => sum + (a.responseTimeMs || 0), 0);
+    const avgResponseTimeMs = totalAnswered > 0 ? Math.round(totalTimeMs / totalAnswered) : 0;
+    // Pacing = how close to benchmark (100 = perfect, >100 = too slow, <100 = fast)
+    // Clamp between 0-100 where 100 = at or under benchmark
+    const rawPacing = avgResponseTimeMs > 0 ? (PACING_BENCHMARK_MS / avgResponseTimeMs) * 100 : 100;
+    const pacingScore = Math.min(100, Math.max(0, Math.round(rawPacing)));
+
     return {
       overall: {
         estimatedLevel: cefr as CefrLevel,
@@ -488,6 +502,11 @@ export class AdaptiveAssessmentEngine {
       answerHistory: this.answerHistory,
       totalQuestions: this.currentIndex,
       stopReason: 'max_reached',
+      // ── Profile Metrics ──
+      accuracyRate: Math.min(100, Math.max(0, accuracyRate)),
+      pacingScore: Math.min(100, Math.max(0, pacingScore)),
+      averageResponseTimeMs: avgResponseTimeMs,
+      totalQuestionsAnswered: totalAnswered,
       speakingAudit: { 
         micCheckPassed: true, voiceRecordingsAttempted: 0, voiceRecordingsValid: 0,
         typedFallbacksUsed: 0, speakingTasksTotal: 5, hasAnySpeakingEvidence: true,

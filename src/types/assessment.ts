@@ -487,6 +487,11 @@ export type AssessmentOutcome = {
     is_consistent: boolean;
   };
   aiAnalysis?: any;
+  /** Computed profile metrics (never NULL) */
+  accuracyRate?: number;
+  pacingScore?: number;
+  averageResponseTimeMs?: number;
+  totalQuestionsAnswered?: number;
 };
 
 /** Legacy QuestionResult type (backward compat) */

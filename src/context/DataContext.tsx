@@ -75,16 +75,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (profileData) {
-        // 🧪 OPTIMISTIC MERGE: If local storage says we're complete, trust it over the DB 
-        // during the background-save window.
+        // 🧪 OPTIMISTIC MERGE: Only override with local flags if DB hasn't confirmed yet.
+        // Once DB says complete, we trust the DB and clear local overrides.
         const localOnboardingComplete = localStorage.getItem('onboarding_complete') === 'true';
         const localAssessmentComplete = localStorage.getItem('has_completed_assessment') === 'true';
 
         const mergedProfile = {
           ...profileData,
+          // Only apply local override if DB is still false/null
           onboarding_complete: profileData.onboarding_complete || localOnboardingComplete,
           has_completed_assessment: profileData.has_completed_assessment || localAssessmentComplete
         };
+
+        // 🧹 CLEANUP: If the DB has confirmed, clear local cache to prevent stale overrides
+        if (profileData.has_completed_assessment === true) {
+          localStorage.removeItem('has_completed_assessment');
+        }
+        if (profileData.onboarding_complete === true) {
+          localStorage.removeItem('onboarding_complete');
+        }
 
         setProfile(mergedProfile);
         // Trigger global refresh for dashboard components
