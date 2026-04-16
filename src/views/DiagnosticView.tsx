@@ -492,21 +492,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </label>
             ))}
           </div>
-        ) : (isMCQTask && !hasOptions) || (!isMCQTask && !isSpeakingTask) ? (
-          /* Fallback to Open Ended if NO options are found, or if it's explicitly not MCQ/Speaking */
-          <div className="relative">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="What do you think is the answer?"
-              className={`w-full min-h-[160px] p-6 rounded-3xl border-2 text-lg transition-all resize-none shadow-sm pb-16 focus:ring-4 ${
-                isEvaluating 
-                  ? 'border-indigo-200 bg-slate-50 text-slate-500 rounded-b-none'
-                  : 'border-slate-200 focus:border-indigo-500 focus:bg-white bg-slate-50'
-              }`}
-              disabled={isEvaluating}
-            />
-            {/* ... */}
+        ) : isSpeakingTask && !useSpeakingFallback ? (
           <div className="space-y-4">
             <SpeakingModule 
               userId={user?.id}
@@ -517,7 +503,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               retryCount={0} 
               onSubmit={(res) => handleNextTask(res.answer, res.responseMode, res.speakingMeta)} 
             />
-            <button onClick={() => setUseSpeakingFallback(true)} className="w-full py-3 text-slate-400 text-xs font-bold font-sans">Switch to typing</button>
+            <button onClick={() => setUseSpeakingFallback(true)} className="w-full py-3 text-slate-400 text-xs font-bold font-sans hover:text-indigo-600 transition-colors">Switch to typing</button>
           </div>
         ) : (
           <div className="space-y-6">
@@ -526,14 +512,15 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 value={textValue} 
                 onChange={e => setTextValue(e.target.value)} 
                 placeholder={isWritingTask ? "Write your answer here..." : "Type your spoken response here..."} 
-                className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 focus:border-indigo-500 outline-none text-slate-700 text-xl font-medium" 
+                className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 focus:border-indigo-500 outline-none text-slate-700 text-xl font-medium resize-none shadow-sm" 
+                disabled={isEvaluating}
               />
-              <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-300 bg-slate-50 px-3 py-1 rounded-full">{textValue.length} characters</div>
+              <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-400/80 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">{textValue.length} characters</div>
             </div>
             <button 
               onClick={() => handleNextTask(textValue)} 
               disabled={textValue.length < 5 || isEvaluating} 
-              className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-lg"
+              className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] font-black text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-600/20 active:scale-[0.98]"
             >
               {isEvaluating ? 'Evaluating...' : 'Submit Answer'}
             </button>
