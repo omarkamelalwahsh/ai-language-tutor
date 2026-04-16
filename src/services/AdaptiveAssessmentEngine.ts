@@ -70,9 +70,8 @@ export class AdaptiveAssessmentEngine {
     initialBattery?: BatteryQuestion[]
   ) {
     this.userId = userId || (typeof window !== 'undefined' ? localStorage.getItem('auth_user_id') : null);
-    this.assessmentId = typeof crypto !== 'undefined' && crypto.randomUUID 
-      ? crypto.randomUUID() 
-      : "battery-" + Math.random().toString(36).substr(2, 9);
+    // Initialize with a temporary ID, will be replaced by initialize()
+    this.assessmentId = "pending-sync";
     
     this.STORAGE_KEY = `asmt_state_${this.userId || 'guest'}`;
 
@@ -131,6 +130,35 @@ export class AdaptiveAssessmentEngine {
       assessmentId: this.assessmentId
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+  }
+
+  public async initialize(): Promise<string> {
+    if (this.assessmentId !== "pending-sync") return this.assessmentId;
+
+    try {
+      console.log(`[Engine] Initializing assessment on backend...`);
+      const response = await fetch("/api/assessments/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: this.userId,
+          starting_level: 'B1'
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to start assessment on backend");
+      
+      const data = await response.json();
+      this.assessmentId = data.assessment_id;
+      console.log(`[Engine] Assessment initialized with ID: ${this.assessmentId}`);
+      this.saveState();
+      return this.assessmentId;
+    } catch (err) {
+      console.error("[Engine] Initialization failed:", err);
+      // Fallback to local ID if backend is down
+      this.assessmentId = "local-" + Math.random().toString(36).substr(2, 9);
+      return this.assessmentId;
+    }
   }
 
   private clearState() {

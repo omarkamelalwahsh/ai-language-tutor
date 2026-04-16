@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import assessments
+from app.api.routes import assessments, chat, media, questions, leaderboard
 from app.core.config import settings
 
 app = FastAPI(
@@ -21,10 +21,14 @@ if settings.BACKEND_CORS_ORIGINS:
 
 @app.get("/health", tags=["System"])
 async def health_check():
-    return {"status": "ok", "version": settings.VERSION}
+    return {"status": "ok", "version": settings.VERSION, "healthy": True}
 
 # Include routing from api/routes
 app.include_router(assessments.router, prefix=f"{settings.API_V1_STR}/assessments", tags=["Assessments"])
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["Chat"])
+app.include_router(media.router, prefix=f"{settings.API_V1_STR}", tags=["Media"])
+app.include_router(questions.router, prefix=f"{settings.API_V1_STR}/questions", tags=["Questions"])
+app.include_router(leaderboard.router, prefix=f"{settings.API_V1_STR}/leaderboard", tags=["Leaderboard"])
 
 if __name__ == "__main__":
     import uvicorn

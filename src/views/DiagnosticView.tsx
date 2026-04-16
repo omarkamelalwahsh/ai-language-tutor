@@ -326,6 +326,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     console.log("[DiagnosticView] Initializing assessment bootstrap...");
     
     const bootstrap = async () => {
+      await engine.initialize();
       const q = await engine.getNextQuestion();
       if (q) {
         setTaskWithReset(q);

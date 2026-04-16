@@ -175,25 +175,35 @@ FINAL EVALUATION SCHEMA:
     isLastQuestion: boolean = false
   ): Promise<any> {
     try {
-      const response = await fetch("/api/evaluate", {
+      const assessmentId = (question as any)._battery?.assessmentId || 'pending-sync';
+      
+      const response = await fetch(`/api/assessments/${assessmentId}/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: localStorage.getItem('auth_user_id'),
-          assessmentId: (question as any)._battery?.assessmentId || '00000000-0000-0000-0000-000000000000',
+          user_id: localStorage.getItem('auth_user_id'),
+          assessment_id: assessmentId,
           skill: question.skill,
-          currentBand: currentLevel,
-          learnerAnswer: answer,
-          questionId: question.id,
+          current_band: currentLevel,
+          user_answer: answer,
+          question_id: question.id,
           prompt: question.prompt,
           stimulus: question.stimulus,
-          isMCQ: question.response_mode === 'mcq',
-          isLastQuestion: isLastQuestion
+          is_mcq: question.response_mode === 'mcq'
         })
       });
 
       if (!response.ok) throw new Error("API Score fetch failed");
-      return await response.json();
+      const data = await response.json();
+      
+      // Map Python EvaluationResponse to expected Frontend format
+      return {
+        score: data.normalized_fields?.score || 0.5,
+        is_correct: data.normalized_fields?.is_correct || false,
+        predicted_level: data.normalized_fields?.predicted_level || currentLevel,
+        feedback: data.result?.feedback || "",
+        ...data.result
+      };
     } catch (err) {
       console.error("[GroqScoringService] API Eval Error:", err);
       return { score: 0.5, is_correct: false, feedback: "Service temporarily unavailable." };
