@@ -56,8 +56,10 @@ class Assessment(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     status = Column(String, default=AssessmentStatus.in_progress.value)
+    current_index = Column(Integer, default=0)
     evaluation_metadata = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'), onupdate=text('NOW()'))
     completed_at = Column(DateTime(timezone=True))
     
     responses = relationship("AssessmentResponse", back_populates="assessment", cascade="all, delete-orphan")
