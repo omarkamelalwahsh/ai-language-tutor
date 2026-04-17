@@ -36,6 +36,7 @@ class LearnerProfile(Base):
     points = Column(Integer, default=0)
     current_journey_id = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'), onupdate=text('NOW()'))
 
 class QuestionBankItem(Base):
     __tablename__ = "question_bank_items"
