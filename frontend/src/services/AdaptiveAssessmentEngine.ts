@@ -69,7 +69,7 @@ export class AdaptiveAssessmentEngine {
     userId: string | null = null,
     initialBattery?: BatteryQuestion[]
   ) {
-    this.userId = userId || (typeof window !== 'undefined' ? localStorage.getItem('auth_user_id') : null);
+    this.userId = userId; // Preferred from props
     // Initialize with a temporary ID, will be replaced by initialize()
     this.assessmentId = "pending-sync";
     
@@ -136,10 +136,24 @@ export class AdaptiveAssessmentEngine {
     if (this.assessmentId !== "pending-sync") return this.assessmentId;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const sessionUserId = session?.user?.id;
+
+      // Update userId if it was null or different
+      if (sessionUserId) this.userId = sessionUserId;
+
+      if (!token) {
+        console.warn("[Engine] No auth session found. Using local flow.");
+      }
+
       console.log(`[Engine] Initializing assessment on backend...`);
       const response = await fetch("/api/assessments/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           user_id: this.userId,
           starting_level: 'B1'
@@ -150,7 +164,7 @@ export class AdaptiveAssessmentEngine {
       
       const data = await response.json();
       this.assessmentId = data.assessment_id;
-      console.log(`[Engine] Assessment initialized with ID: ${this.assessmentId}`);
+      console.log(`[Engine] Initialization successful (Assessment ID: ${this.assessmentId}) 🚀🔥`);
       this.saveState();
       return this.assessmentId;
     } catch (err) {
@@ -638,6 +652,7 @@ export class AdaptiveAssessmentEngine {
       options: options, 
       audioUrl: audioSource,
       _battery: batteryQ,
+      question_number: this.currentIndex + 1
     } as any;
   }
 }

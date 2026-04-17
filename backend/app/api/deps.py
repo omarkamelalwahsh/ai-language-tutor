@@ -11,12 +11,12 @@ security = HTTPBearer()
 async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """
     Validates the Supabase JWT and returns the user ID.
-    If the JWT_SECRET is explicitly set for Supabase, it will decode it properly.
+    If the SUPABASE_JWT_SECRET is explicitly set for Supabase, it will decode it properly.
     """
     token = credentials.credentials
     try:
         # Supabase JWTs are typically signed with the JWT Secret
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"], options={"verify_aud": False})
+        payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=["HS256"], options={"verify_aud": False})
         user_id: str = payload.get("sub")
         if user_id is None:
             # Fallback if structure differs slightly

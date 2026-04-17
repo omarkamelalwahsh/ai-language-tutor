@@ -16,7 +16,8 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*"], # This explicitly allows the Authorization header
+        expose_headers=["*"],
     )
 
 @app.get("/health", tags=["System"])

@@ -1,4 +1,5 @@
 import { AssessmentQuestion, AnswerRecord, TaskEvaluation } from '../types/assessment';
+import { supabase } from '../lib/supabaseClient';
 
 const MODEL_A = "llama3-8b-8192";       // Fast MCQ/Grammar scoring
 const MODEL_B = "llama3-70b-8192";      // Deep Writing/Speaking analysis
@@ -175,13 +176,20 @@ FINAL EVALUATION SCHEMA:
     isLastQuestion: boolean = false
   ): Promise<any> {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const userId = session?.user?.id || localStorage.getItem('auth_user_id');
+
       const assessmentId = (question as any)._battery?.assessmentId || 'pending-sync';
       
-      const response = await fetch(`/api/assessments/${assessmentId}/evaluate`, {
+      const response = await fetch(`/api/assessments/${assessmentId}/submit-answer`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
-          user_id: localStorage.getItem('auth_user_id'),
+          user_id: userId,
           assessment_id: assessmentId,
           skill: question.skill,
           current_band: currentLevel,
@@ -189,7 +197,9 @@ FINAL EVALUATION SCHEMA:
           question_id: question.id,
           prompt: question.prompt,
           stimulus: question.stimulus,
-          is_mcq: question.response_mode === 'mcq'
+          is_mcq: question.response_mode === 'mcq',
+          question_number: (question as any).question_number,
+          is_last_question: isLastQuestion
         })
       });
 

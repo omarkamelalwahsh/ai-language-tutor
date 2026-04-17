@@ -45,6 +45,7 @@ class AssessmentResponseItem(BaseModel):
     current_band: str
     prompt: str
     stimulus: Optional[str] = None
+    question_number: int = 0
     is_last_question: bool = False
 
 class ErrorAnalysisReport(BaseModel):

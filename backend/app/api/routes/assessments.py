@@ -38,7 +38,7 @@ async def start_assessment(
         "status": assessment.status
     }
 
-@router.post("/{assessment_id}/evaluate", response_model=EvaluationResponse)
+@router.post("/{assessment_id}/submit-answer", response_model=EvaluationResponse)
 async def evaluate_response(
     assessment_id: UUID,
     item: AssessmentResponseItem,

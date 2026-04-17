@@ -1,10 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import select, update, func
 from uuid import UUID
 import json
 from app.models.domain import Assessment, AssessmentResponse, AssessmentStatus, LearnerProfile, UserErrorProfile, UserErrorAnalysis
 from app.schemas.evaluation import StartAssessmentRequest, AssessmentResponseItem, EvaluationResponse, NormalizedFields
 from app.integrations.groq_client import evaluate_answer, audit_assessment
+from app.core.config import settings
 from datetime import datetime
 
 class AssessmentService:
@@ -32,37 +34,38 @@ class AssessmentService:
 
     async def evaluate_response(self, item: AssessmentResponseItem) -> EvaluationResponse:
         """
-        Evaluates a single question answer via Groq LLM, stores the raw response,
-        and returns the unified response envelope to the client.
+        Evaluates a single question answer via Groq LLM, stores the raw response 
+        using ATOMIC UPSERT to prevent duplicates, and performs real-time error analysis.
         """
-        # Fetch the assessment to ensure valid
+        # 1. Fetch the assessment context
         stmt = select(Assessment).where(Assessment.id == item.assessment_id).where(Assessment.user_id == item.user_id)
         result = await self.db.execute(stmt)
         assessment = result.scalar_one_or_none()
         if not assessment:
             raise ValueError("Assessment not found or unauthorized")
+        
+        if assessment.status != AssessmentStatus.in_progress.value:
+            # If already completed, just return existing evaluation if it exists? 
+            # Or just block it.
+            raise ValueError("Assessment is already finished.")
 
-        # In a real scenario, fetch the question from the DB to get the expected answer safely.
-        # But here we rely on the prompt from the payload (or ideally look it up).
-        # We will use the expected answer if provided, or "OPEN ENDED"
-        expected_answer = "OPEN ENDED" # Can be extended to fetch from QuestionBankItem
-
-        # Call Groq
+        # 2. Call Groq
+        expected_answer = "OPEN ENDED" # Can be extended
         raw_json, model_used = await evaluate_answer(
             prompt=item.prompt,
             expected_answer=expected_answer,
             user_answer=item.user_answer,
             current_level=item.current_band,
-            history="[]"  # Extend to pass real history if needed
+            history="[]"
         )
 
-        # Extract normalized fields safely
         score = float(raw_json.get("score", 0.0))
         is_correct = bool(raw_json.get("is_correct", False))
         predicted_level = raw_json.get("detected_level", item.current_band)
 
-        # Persist response
-        response_record = AssessmentResponse(
+        # 3. ATOMIC UPSERT into assessment_responses
+        # This handles the case where frontend retries the same question
+        insert_stmt = insert(AssessmentResponse).values(
             assessment_id=item.assessment_id,
             user_id=item.user_id,
             question_id=item.question_id,
@@ -71,10 +74,58 @@ class AssessmentService:
             score=score,
             answer_level=predicted_level,
             raw_evaluation=raw_json,
-            skill=item.skill
+            skill=item.skill,
+            created_at=func.now()
         )
-        self.db.add(response_record)
+        
+        upsert_stmt = insert_stmt.on_conflict_do_update(
+            constraint='uq_assessment_question',
+            set_={
+                'user_answer': insert_stmt.excluded.user_answer,
+                'is_correct': insert_stmt.excluded.is_correct,
+                'score': insert_stmt.excluded.score,
+                'answer_level': insert_stmt.excluded.answer_level,
+                'raw_evaluation': insert_stmt.excluded.raw_evaluation
+            }
+        )
+        await self.db.execute(upsert_stmt)
+
+        # 4. REAL-TIME ERROR ANALYSIS: If incorrect, record it immediately
+        if not is_correct:
+            # Ensure UserErrorProfile exists
+            err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == item.user_id)
+            err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
+            
+            if not err_profile:
+                err_profile = UserErrorProfile(user_id=item.user_id, full_report={})
+                self.db.add(err_profile)
+                await self.db.flush() # Get the ID
+
+            # Insert analysis record
+            analysis = UserErrorAnalysis(
+                profile_id=err_profile.id,
+                user_id=item.user_id,
+                question_id=item.question_id,
+                category=item.skill,
+                user_answer=item.user_answer,
+                is_correct=False,
+                ai_interpretation=raw_json.get("feedback", "No specific error detected"),
+                question_number=item.question_number
+            )
+            self.db.add(analysis)
+
+        # 5. Increment Progression
+        # Update current_index based on the question_number if it's the latest
+        if item.question_number >= assessment.current_index:
+            assessment.current_index = item.question_number + 1
+
+        # 6. Check for Auto-Completion
+        # We use settings.ASSESSMENT_TOTAL_QUESTIONS (default 40)
         await self.db.commit()
+        
+        if assessment.current_index >= settings.ASSESSMENT_TOTAL_QUESTIONS or item.is_last_question:
+            # Trigger completion aggregation
+            await self.complete_assessment(assessment.id, item.user_id)
 
         return EvaluationResponse(
             assessment_id=item.assessment_id,
@@ -90,8 +141,9 @@ class AssessmentService:
 
     async def complete_assessment(self, assessment_id: UUID, user_id: UUID) -> dict:
         """
-        Completes the assessment, performs final auditing via Groq,
-        and updates the user profile and error analysis tables.
+        Completes the assessment, performs final auditing via Groq based on history,
+        and updates the user profile. This version relies on the real-time errors 
+        gathered during the assessment for the detailed list.
         """
         stmt = select(Assessment).where(Assessment.id == assessment_id).where(Assessment.user_id == user_id)
         result = await self.db.execute(stmt)
@@ -100,9 +152,9 @@ class AssessmentService:
         if not assessment:
             raise ValueError("Assessment not found")
         if assessment.status == AssessmentStatus.completed.value:
-            raise ValueError("Assessment already completed")
+            return assessment.evaluation_metadata # Already done
 
-        # Fetch all responses for the history context
+        # Fetch all responses for the history context to calculate final CEFR
         resp_stmt = select(AssessmentResponse).where(AssessmentResponse.assessment_id == assessment_id)
         responses = (await self.db.execute(resp_stmt)).scalars().all()
         
@@ -112,51 +164,35 @@ class AssessmentService:
                 "skill": r.skill,
                 "answer": r.user_answer,
                 "is_correct": r.is_correct,
-                "score": r.score
+                "score": r.score,
+                "level": r.answer_level
             })
 
-        # Run Audit Evaluation (Groq)
+        # Run Audit Evaluation (Groq) - expensive but necessary for final placement
         raw_audit, model_used = await audit_assessment(json.dumps(history_context))
         
-        final_level = raw_audit.get("final_cefr_level", "Unknown")
+        final_level = raw_audit.get("final_cefr_level", "A1")
 
-        # Update assessment
+        # Update assessment status
         assessment.status = AssessmentStatus.completed.value
         assessment.completed_at = datetime.utcnow()
         assessment.evaluation_metadata = raw_audit
         
-        # Update Profile
+        # Update User Profile with the final CEFR placement
         prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
         profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
         if profile:
             profile.overall_level = final_level
             profile.has_completed_assessment = True
+            profile.points += 500 # Completion bonus
         
-        # Upsert Error Profile
+        # Finalize the Error Profile report summary
         err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
         err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
         
-        if not err_profile:
-            err_profile = UserErrorProfile(user_id=user_id, full_report=raw_audit)
-            self.db.add(err_profile)
-            await self.db.flush()
-        else:
+        if err_profile:
             err_profile.full_report = raw_audit
             err_profile.updated_at = datetime.utcnow()
-
-        # Add error analysis rows
-        error_list = raw_audit.get("error_analysis", [])
-        for err in error_list:
-            analysis = UserErrorAnalysis(
-                profile_id=err_profile.id,
-                user_id=user_id,
-                category=err.get("category", ""),
-                user_answer=err.get("user_answer", ""),
-                correct_answer=err.get("correct_answer", ""),
-                deep_insight=err.get("explanation", ""),
-                is_correct=False
-            )
-            self.db.add(analysis)
 
         await self.db.commit()
         return raw_audit

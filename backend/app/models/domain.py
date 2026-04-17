@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Enum, text, func
+import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -30,13 +31,31 @@ class LearnerProfile(Base):
 
     id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), primary_key=True)
     full_name = Column(String)
-    overall_level = Column(String, default="Pending")
+    overall_level = Column(String, default="A1")
     onboarding_complete = Column(Boolean, default=False)
     has_completed_assessment = Column(Boolean, default=False)
     points = Column(Integer, default=0)
     current_journey_id = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
-    updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'), onupdate=text('NOW()'))
+    
+    # Frontend Metadata & Personalization
+    focus_skills = Column(JSONB, server_default='[]') 
+    learning_goal = Column(String)
+    goal_context = Column(String)
+    learning_topics = Column(JSONB, server_default='[]')
+    session_intensity = Column(String)
+    native_language = Column(String)
+    target_language = Column(String)
+    
+    # Performance Metrics
+    streak = Column(Integer, server_default='0')
+    pacing_score = Column(Float, server_default='0.0')
+    accuracy_rate = Column(Float, server_default='0.0')
+    self_correction_rate = Column(Float, server_default='0.0')
+    confidence_style = Column(String)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 
 class QuestionBankItem(Base):
     __tablename__ = "question_bank_items"
@@ -60,6 +79,7 @@ class Assessment(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     status = Column(String, default=AssessmentStatus.in_progress.value)
     current_index = Column(Integer, default=0)
+    total_questions = Column(Integer, default=40)
     evaluation_metadata = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
     updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'), onupdate=text('NOW()'))
@@ -69,6 +89,9 @@ class Assessment(Base):
 
 class AssessmentResponse(Base):
     __tablename__ = "assessment_responses"
+    __table_args__ = (
+        sa.UniqueConstraint('assessment_id', 'question_id', name='uq_assessment_question'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False)
