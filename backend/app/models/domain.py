@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Enum, text
+from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Enum, text, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -33,6 +33,8 @@ class LearnerProfile(Base):
     overall_level = Column(String, default="Pending")
     onboarding_complete = Column(Boolean, default=False)
     has_completed_assessment = Column(Boolean, default=False)
+    points = Column(Integer, default=0)
+    current_journey_id = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
 
 class QuestionBankItem(Base):
@@ -118,3 +120,21 @@ class UserErrorAnalysis(Base):
     deep_insight = Column(String)
     question_number = Column(Integer)
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+
+# Learning Journey
+class LearningJourney(Base):
+    __tablename__ = "learning_journeys"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), unique=True)
+    nodes = Column(JSONB, default=[]) 
+    current_node_id = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+
+class JourneyStep(Base):
+    __tablename__ = "journey_steps"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    journey_id = Column(UUID(as_uuid=True), ForeignKey("learning_journeys.id", ondelete="CASCADE"))
+    title = Column(String, nullable=False)
+    content_payload = Column(JSONB) 
+    status = Column(String, default="locked") 
+

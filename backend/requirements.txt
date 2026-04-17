@@ -5,6 +5,7 @@ pydantic-settings>=2.2.1
 SQLAlchemy>=2.0.29
 asyncpg>=0.29.0
 alembic>=1.13.1
+psycopg2-binary>=2.9.9
 python-jose[cryptography]>=3.3.0
 groq>=0.5.0
 python-dotenv>=1.0.1
