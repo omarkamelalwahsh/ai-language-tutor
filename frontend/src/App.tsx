@@ -12,6 +12,7 @@ import { OnboardingView } from './views/OnboardingView';
 import { PlacementOnboarding } from './components/onboarding/PlacementOnboarding';
 import { DiagnosticView } from './views/DiagnosticView';
 import { LandingView } from './views/LandingView';
+import { LearningJourneyView } from './views/LearningJourneyView';
 import { FadeTransition } from './lib/animations';
 import { DashboardService } from './services/DashboardService';
 import { useMemo } from 'react';
@@ -22,6 +23,7 @@ import { UserLeaderboardView } from './views/UserLeaderboardView';
 
 // Components
 import { AssessmentReviewView } from './views/AssessmentReviewView';
+import { LearnerProfileView } from './views/LearnerProfileView';
 import { ResultAnalysisView } from './views/ResultAnalysisView';
 import { AdvancedDashboard } from './components/dashboard/AdvancedDashboard';
 import { SharedRuntime } from './components/runtime/SharedRuntime';
@@ -73,10 +75,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
   const isOnboardingComplete = profile?.onboarding_complete === true || isOnboardingCompleteCache;
+  const hasStartedOnboarding = !!profile?.learning_goal; // Check if they've at least done the setup
   
   // If we haven't finished onboarding or assessment, we MUST be at an onboarding/diagnostic route
   if (!isOnboardingComplete && !hasCompletedAssessment) {
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
+    
+    // If they finished the setup (step 3) but not the assessment, let them stay in diagnostic
+    if (hasStartedOnboarding && location.includes('diagnostic')) {
+      return <>{children}</>;
+    }
+
     if (!isAtAssessment) {
       console.warn('[ProtectedRoute] 🔂 Redirecting to onboarding (Incomplete Profile)');
       return <Navigate to="/onboarding" />;
@@ -105,7 +114,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
 
     if (hasCompletedAssessment) return <Navigate to="/dashboard" replace />;
-    if (profile?.onboarding_complete === true) return <Navigate to="/diagnostic/intro" replace />;
+    if (profile?.onboarding_complete === true || !!profile?.learning_goal) return <Navigate to="/diagnostic/intro" replace />;
     return <Navigate to="/onboarding" replace />;
   }
   
@@ -245,6 +254,21 @@ function AppRoutes() {
 
         // 🔄 Sync local profile with DB updates
         await refreshData();
+        
+        // 🗺️ ARCHITECTURE: Generate Journey in Background so results view is ready
+        try {
+          console.log('[App] 🗺️ Architecting personalized journey in background...');
+          const { JourneyService } = await import('./services/JourneyService');
+          const sessionResultString = localStorage.getItem(`asmt_result_${user?.id}`);
+          const sessionResult = sessionResultString ? JSON.parse(sessionResultString) : computedSessionResult;
+          
+          const dynamicJourney = await JourneyService.generateDynamicJourney(sessionResult);
+          await JourneyService.persistJourney(dynamicJourney, user.id);
+          console.log('[App] ✅ Background Journey established.');
+        } catch (journeyErr) {
+          console.warn('[App] ⚠️ Background Journey creation failed:', journeyErr);
+        }
+
         console.log('[App] ✅ Background Sync Complete. Ecosystem Hydrated.');
       } catch (err) {
         console.error('[App] ❌ Background worker failed:', err);
@@ -308,6 +332,7 @@ function AppRoutes() {
                   assessmentOutcome={assessmentOutcome}
                   isArchitecting={isArchitecting}
                   onContinue={() => window.location.assign('/dashboard')}
+                  onReview={() => navigate('/review/latest')}
                 />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -332,8 +357,21 @@ function AppRoutes() {
             </ProtectedRoute>
           } />
 
-          {/* Journey, Analytics, Practice, Review, History - All are tabs in Dashboard */}
-          <Route path="/journey" element={<Navigate to="/dashboard/journey" />} />
+          {/* Standalone Learning Journey */}
+          <Route path="/journey" element={
+            <ProtectedRoute>
+              <LearningJourneyView 
+                result={assessmentResult} 
+                onStartSession={() => navigate('/runtime')} 
+                onViewDashboard={() => navigate('/dashboard')} 
+              />
+            </ProtectedRoute>
+          } />
+
+          {/* Legacy redirect for old links */}
+          <Route path="/learning-journey" element={<Navigate to="/journey" replace />} />
+
+          {/* Analytics, Practice, Review, History - All are tabs in Dashboard */}
           <Route path="/analytics" element={<Navigate to="/dashboard/analytics" />} />
           <Route path="/practice" element={<Navigate to="/dashboard/hub" />} />
           <Route path="/review" element={<Navigate to="/dashboard/review" />} />
@@ -372,6 +410,13 @@ function AppRoutes() {
                 onNavigateHome={() => {}}
                 onLogout={handleLogout}
               />
+            </ProtectedRoute>
+          } />
+
+          {/* Intelligence Profile */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <LearnerProfileView />
             </ProtectedRoute>
           } />
 

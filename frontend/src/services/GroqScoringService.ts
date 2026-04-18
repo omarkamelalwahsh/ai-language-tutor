@@ -182,6 +182,9 @@ FINAL EVALUATION SCHEMA:
 
       const assessmentId = (question as any)._battery?.assessmentId || 'pending-sync';
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
       const response = await fetch(`/api/assessments/${assessmentId}/submit-answer`, {
         method: "POST",
         headers: { 
@@ -200,8 +203,11 @@ FINAL EVALUATION SCHEMA:
           is_mcq: question.response_mode === 'mcq',
           question_number: (question as any).question_number,
           is_last_question: isLastQuestion
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error("API Score fetch failed");
       const data = await response.json();

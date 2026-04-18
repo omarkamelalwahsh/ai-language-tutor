@@ -34,7 +34,17 @@ class LearnerProfile(Base):
     overall_level = Column(String, default="A1")
     onboarding_complete = Column(Boolean, default=False)
     has_completed_assessment = Column(Boolean, default=False)
+    
+    # --- DEPRECATED: points --- 
+    # Use xp_points instead. Kept for backward compatibility.
     points = Column(Integer, default=0)
+    
+    # --- New Fields for Decoupled System ---
+    xp_points = Column(Integer, default=0) 
+    current_proficiency_level = Column(String, default="A1")
+    proficiency_confidence = Column(Float, default=0.0)
+    stability_buffer = Column(JSONB, server_default='[]')
+    
     current_journey_id = Column(String)
     
     # Frontend Metadata & Personalization
@@ -52,6 +62,11 @@ class LearnerProfile(Base):
     accuracy_rate = Column(Float, server_default='0.0')
     self_correction_rate = Column(Float, server_default='0.0')
     confidence_style = Column(String)
+    
+    # Extended Assessment Metrics
+    average_response_time = Column(Float, server_default='0.0')
+    total_questions_answered = Column(Integer, server_default='0')
+    last_active_at = Column(DateTime(timezone=True), server_default=func.now())
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -94,7 +109,7 @@ class AssessmentResponse(Base):
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False)
+    assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     question_id = Column(UUID(as_uuid=True), ForeignKey("question_bank_items.id", ondelete="SET NULL"))
     
@@ -104,18 +119,52 @@ class AssessmentResponse(Base):
     is_correct = Column(Boolean)
     score = Column(Float)
     answer_level = Column(String)
+    difficulty = Column(Float, default=0.5)
     
     # Store the full unmodified dynamic LLM response here
     raw_evaluation = Column(JSONB)
+    explanation = Column(JSONB) # New: Detailed pedagogical feedback for the UI
     
     # Additional context for simple UI queries
     skill = Column(String)
     category = Column(String)
+    response_time_ms = Column(Integer, default=0)
+    status = Column(String, default="completed")
     
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
     
     assessment = relationship("Assessment", back_populates="responses")
     question = relationship("QuestionBankItem")
+
+class AssessmentLog(Base):
+    __tablename__ = "assessment_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    
+    question = Column(String)
+    question_text = Column(String)
+    user_answer = Column(String)
+    correct_answer = Column(String)
+    is_correct = Column(Boolean)
+    
+    skill = Column(String)
+    category = Column(String)
+    score = Column(Float)
+    difficulty = Column(Float)
+    
+    response_time_ms = Column(Integer)
+    duration_ms = Column(Integer)
+    
+    question_level = Column(String)
+    level = Column(String)
+    status = Column(String)
+    
+    evaluation_metadata = Column(JSONB)
+    metadata_field = Column("metadata", JSONB) # 'metadata' is often reserved, so we name it metadata_field but map it to 'metadata'
+    
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
 
 # Error profiles
 class UserErrorProfile(Base):
@@ -125,6 +174,9 @@ class UserErrorProfile(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     action_plan = Column(String)
     weakness_areas = Column(JSONB, server_default='[]')
+    common_mistakes = Column(JSONB, server_default='[]')
+    bridge_delta = Column(String)
+    bridge_percentage = Column(Float, default=0.0)
     full_report = Column(JSONB, nullable=False, server_default='{}')
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
     updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
@@ -137,6 +189,7 @@ class UserErrorAnalysis(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"))
     question_id = Column(UUID(as_uuid=True), ForeignKey("question_bank_items.id", ondelete="SET NULL"))
     category = Column(String)
+    error_rate = Column(Float, default=0.0)
     is_correct = Column(Boolean, default=False)
     ai_interpretation = Column(String)
     user_answer = Column(String)
@@ -152,13 +205,53 @@ class LearningJourney(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), unique=True)
     nodes = Column(JSONB, default=[]) 
     current_node_id = Column(String)
+    metadata_json = Column("metadata", JSONB, server_default='{}') 
     created_at = Column(DateTime(timezone=True), server_default=text('NOW()'))
+    updated_at = Column(DateTime(timezone=True), server_default=text('NOW()'), onupdate=text('NOW()'))
 
 class JourneyStep(Base):
     __tablename__ = "journey_steps"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     journey_id = Column(UUID(as_uuid=True), ForeignKey("learning_journeys.id", ondelete="CASCADE"))
     title = Column(String, nullable=False)
-    content_payload = Column(JSONB) 
+    description = Column(String)
+    order_index = Column(Integer, default=0)
     status = Column(String, default="locked") 
+    icon_type = Column(String)
+    skill_focus = Column(String)
+    is_locked = Column(Boolean, default=True)
+    content_payload = Column(JSONB, server_default='{}') 
 
+class UserSkill(Base):
+    __tablename__ = "skill_states"
+    __table_args__ = (
+        sa.UniqueConstraint('user_id', 'skill', name='uq_user_skill'),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    skill = Column(String, nullable=False)
+    
+    # --- DEPRECATED: current_score, current_level ---
+    # Use xp_points and current_proficiency_level instead. Kept for backward compatibility.
+    current_level = Column(String, default="A1")
+    level = Column(String, default="A1")  # Frontend alias for current_level
+    current_score = Column(Float, default=0.0)
+    
+    # --- New Fields for Decoupled System ---
+    xp_points = Column(Integer, default=0)
+    current_proficiency_level = Column(String, default="A1")
+    proficiency_confidence = Column(Float, default=0.0)
+    stability_buffer = Column(JSONB, server_default='[]')
+    
+    confidence = Column(Float, default=0.0)
+    category = Column(String)  # e.g., Grammar, Vocabulary
+    last_tested = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class UserAchievement(Base):
+    __tablename__ = "user_achievements"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    badge_name = Column(String, nullable=False)
+    earned_at = Column(DateTime(timezone=True), server_default=func.now())

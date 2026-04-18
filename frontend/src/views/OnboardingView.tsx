@@ -61,7 +61,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             .upsert({ 
                id: userId,
                [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending', 
-               [DB_SCHEMA.COLUMNS.ONBOARDING]: true,
                learning_goal: state.goal,
                goal_context: state.goalContext,
                focus_skills: state.focusSkills,

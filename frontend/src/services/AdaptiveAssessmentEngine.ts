@@ -244,11 +244,11 @@ export class AdaptiveAssessmentEngine {
     responseMode?: ResponseMode,
     speakingMeta?: SpeakingSubmissionMeta
   ): Promise<{ correct: boolean; score: number; evaluation: any }> {
-    const batteryQ = (question as any)._battery as BatteryQuestion;
-    const item = batteryQ.item;
+    const batteryQ = (question as any)._battery as BatteryQuestion | undefined;
+    const item = batteryQ ? batteryQ.item : (question as any);
     
     // Determine numerical difficulty and level (strictly lowercase)
-    const levelOrDiff = item.level || 'b1';
+    const levelOrDiff = item.level || item.difficulty || question.difficulty || 'b1';
     const canonicalLevel = String(levelOrDiff).toLowerCase();
     const difficultyVal = item.difficulty || DIFF_MAP[canonicalLevel] || 0.4;
     
@@ -261,124 +261,98 @@ export class AdaptiveAssessmentEngine {
     //   'audio' → AI evaluation (speaking tasks)
     const itemMode = (item.response_mode || 'mcq') as string;
     const isProductionTask = itemMode === 'typed' || itemMode === 'audio';
-    const isMCQTask = !isProductionTask && item.options && item.options.length > 0;
+    
+    // 🛡️ Robust MCQ Check: Look at both the raw options AND the extracted options in the question object
+    const questionOptions = (question as any).options;
+    const isMCQTask = !isProductionTask && ((item.options && item.options.length > 0) || (questionOptions && questionOptions.length > 0));
     
     const isLastQuestion = this.currentIndex === this.battery.length - 1;
 
-    if (isMCQTask) {
-      const isCorrect = this.checkMCQ(item, answer);
-      evaluation = { 
-        score: isCorrect ? 1.0 : 0.0, 
-        is_correct: isCorrect, 
-        feedback: isCorrect ? "Correct!" : "Incorrect." 
+    try {
+      if (isMCQTask) {
+        const isCorrect = this.checkMCQ(item, answer);
+        evaluation = { 
+          score: isCorrect ? 1.0 : 0.0, 
+          is_correct: isCorrect, 
+          feedback: isCorrect ? "Correct!" : "Incorrect." 
+        };
+        
+        if (isLastQuestion) {
+          console.log(`[Engine] ⚡ Flagging last question to backend evaluate...`);
+          GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, true).catch(e => console.warn(e));
+        }
+      } else if (isProductionTask) {
+        console.log(`[Engine] 🤖 Evaluating ${item.skill} (${itemMode}) via AI...`);
+        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
+        if (evaluation.is_correct === undefined) {
+          evaluation.is_correct = (evaluation.score || 0) >= 0.5;
+        }
+      } else {
+        console.log(`[Engine] ⚠️ ${item.skill} MCQ missing options, falling back to AI evaluation...`);
+        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
+        if (evaluation.is_correct === undefined) {
+          evaluation.is_correct = (evaluation.score || 0) >= 0.5;
+        }
+      }
+
+      // 🏋️ WEIGHTED PROFICIENCY SCORING: score * difficulty
+      const earnedPoints = (evaluation.score || 0) * difficultyVal;
+      const skill = item.skill.toLowerCase();
+      
+      if (this.skillScores[skill]) {
+        this.skillScores[skill].earned += earnedPoints;
+        this.skillScores[skill].total += difficultyVal;
+      }
+
+      const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
+      
+      // 🎯 Snapshot User Level calculation
+      const currentOutcome = this.getOutcome();
+      const snapLevel = currentOutcome.overall.estimatedLevel;
+
+      this.answerHistory.push({
+        taskId: item.id, 
+        questionId: item.id, 
+        skill: item.skill as any,
+        difficulty: difficultyVal,
+        questionLevel: canonicalLevel,
+        answerLevel: snapLevel,
+        category: item.skill,
+        correct: isCorrect,
+        score: evaluation.score, 
+        answer, 
+        correctAnswer: this.getCorrectAnswer(item),
+        responseTimeMs, 
+        taskType: (item.task_type || item.type) as any
+      });
+
+      this.taskEvaluations.push(evaluation);
+
+      return { 
+        correct: isCorrect, 
+        score: evaluation.score, 
+        evaluation 
       };
+    } finally {
+      this.currentIndex++;
       
-      // FIRE MCQ TO BACKEND SO IT ALSO HITS THE ENDPOINT TO UPDATE PROFILE IF LAST
-      if (isLastQuestion) {
-        console.log(`[Engine] ⚡ Flagging last question to backend evaluate...`);
-        // We push it asynchronously so it registers the isLastQuestion flag on the DB side
-        GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, true).catch(e => console.warn(e));
-      }
-    } else if (isProductionTask) {
-      // AI evaluation for Writing/Speaking (open-ended production tasks)
-      console.log(`[Engine] 🤖 Evaluating ${item.skill} (${itemMode}) via AI...`);
-      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
-      // Ensure is_correct is derived from score for production tasks
-      if (evaluation.is_correct === undefined) {
-        evaluation.is_correct = (evaluation.score || 0) >= 0.5;
-      }
-    } else {
-      // Fallback: MCQ skill without options — attempt AI evaluation
-      console.log(`[Engine] ⚠️ ${item.skill} MCQ missing options, falling back to AI evaluation...`);
-      evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
-      if (evaluation.is_correct === undefined) {
-        evaluation.is_correct = (evaluation.score || 0) >= 0.5;
+      if (this.currentIndex >= this.battery.length) {
+        this.completed = true;
+        this.clearState();
+      } else {
+        // 🚀 Intermediate Skill Sync: Check if the current block just finished
+        const nextQ = this.battery[this.currentIndex];
+        const currentBlock = batteryQ.block || 1;
+        const nextBlock = nextQ?.block || null;
+
+        if (nextBlock !== null && nextBlock !== currentBlock) {
+          console.log(`[Engine] 🏁 Block ${currentBlock} finished. Syncing intermediate skill states...`);
+          this.syncIntermediateSkills();
+        }
+
+        this.saveState();
       }
     }
-
-    // 🏋️ WEIGHTED PROFICIENCY SCORING: score * difficulty
-    const earnedPoints = (evaluation.score || 0) * difficultyVal;
-    const skill = item.skill.toLowerCase();
-    
-    if (this.skillScores[skill]) {
-      this.skillScores[skill].earned += earnedPoints;
-      this.skillScores[skill].total += difficultyVal; // Maintain relative total
-    }
-
-    // 🔍 INCONSISTENT DETECTION
-    // Flag if: This is HARD, correct, and last 2 EASY questions were failed.
-    const isHard = difficultyVal >= 0.7;
-    const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
-    
-    let is_inconsistent = false;
-    if (isHard && isCorrect) {
-      const easyFailures = this.answerHistory
-        .filter(a => a.difficulty <= 0.3)
-        .slice(-2)
-        .filter(a => !a.correct);
-      
-      if (easyFailures.length >= 2) {
-        is_inconsistent = true;
-        evaluation.inconsistent = true;
-        evaluation.evaluation_metadata = { ...evaluation.evaluation_metadata, flagged_as: 'inconsistent' };
-      }
-    }
-
-    // 🎯 Snapshot User Level calculation
-    const currentOutcome = this.getOutcome();
-    const snapLevel = currentOutcome.overall.estimatedLevel;
-
-    this.answerHistory.push({
-      taskId: item.id, 
-      questionId: item.id, 
-      skill: item.skill as any,
-      difficulty: difficultyVal,
-      questionLevel: canonicalLevel,
-      answerLevel: snapLevel,
-      category: item.skill,
-      correct: isCorrect,
-      score: evaluation.score, 
-      answer, 
-      correctAnswer: this.getCorrectAnswer(item),
-      responseTimeMs, 
-      taskType: item.task_type as any
-    });
-
-    this.taskEvaluations.push(evaluation);
-    this.currentIndex++;
-
-    // 🎯 STRICT BLOCK ENFORCEMENT
-    // The previous 80% Rule (Level Capping) is now DISABLED.
-    // The engine must strictly follow the 3-4-3 difficulty distribution.
-    if (this.currentIndex === 10 && !this.levelCapReached) {
-      const firstTen = this.answerHistory.slice(0, 10);
-      const correctCount = firstTen.filter(a => a.correct).length;
-      const successRate = (correctCount / 10) * 100;
-      console.log(`[Engine] 📊 First 10 Check: ${successRate}% success rate. Proceeding with strict 3-4-3 blocks.`);
-    }
-    
-    if (this.currentIndex >= this.battery.length) {
-      this.completed = true;
-      this.clearState();
-    } else {
-      // 🚀 Intermediate Skill Sync: Check if the current block just finished
-      const nextQ = this.battery[this.currentIndex];
-      const currentBlock = batteryQ.block || 1;
-      const nextBlock = nextQ?.block || null;
-
-      if (nextBlock !== null && nextBlock !== currentBlock) {
-        console.log(`[Engine] 🏁 Block ${currentBlock} finished. Syncing intermediate skill states...`);
-        this.syncIntermediateSkills();
-      }
-
-      this.saveState();
-    }
-
-    return { 
-      correct: isCorrect, 
-      score: evaluation.score, 
-      evaluation 
-    };
   }
 
   /**

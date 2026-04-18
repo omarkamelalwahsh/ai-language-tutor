@@ -16,6 +16,7 @@ def format_question(item):
     return {
         "id": str(item.id),
         "skill": str(item.skill or 'vocabulary').lower(),
+        "skill_tag": str(item.skill or 'vocabulary').lower(),
         "task_type": item.task_type or 'essay',
         "level": item.level or 'A1',
         "difficulty": float(item.difficulty or 0.5),

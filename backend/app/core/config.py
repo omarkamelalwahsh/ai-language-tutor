@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
     
     # Assessment settings
-    ASSESSMENT_TOTAL_QUESTIONS: int = 40
+    ASSESSMENT_TOTAL_QUESTIONS: int = 2
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
     
-    # Auth (Supabase JWT secret)
+    # Auth (Supabase JWT settings)
     SUPABASE_JWT_SECRET: str
+    VITE_SUPABASE_URL: str
+    VITE_SUPABASE_ANON_KEY: str
     
     # External APIs
     GROQ_API_KEY: str

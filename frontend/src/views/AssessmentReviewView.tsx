@@ -33,11 +33,12 @@ const skillIcons: Record<string, React.ReactNode> = {
   grammar: <BrainCircuit className="w-4 h-4" />,
 };
 
-const getBadgeColor = (level?: string) => {
+const getBadgeColor = (level?: string | any) => {
   if (!level) return 'bg-slate-100 text-slate-700 border-slate-200';
-  if (level.includes('C')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-  if (level.includes('B')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-  if (level.includes('A')) return 'bg-red-100 text-red-800 border-red-200';
+  const lvlStr = String(level);
+  if (lvlStr.includes('C')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  if (lvlStr.includes('B')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+  if (lvlStr.includes('A')) return 'bg-red-100 text-red-800 border-red-200';
   return 'bg-slate-100 text-slate-700 border-slate-200';
 };
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime
@@ -13,7 +13,7 @@ class EvaluationResponse(BaseModel):
     Standard envelope designed to keep the dynamic Groq evaluation output intact 
     while extracting necessary normalized fields.
     """
-    assessment_id: UUID
+    assessment_id: Union[UUID, str]
     question_id: UUID
     evaluation_source: str = "groq"
     evaluation_model: str
@@ -28,14 +28,14 @@ class EvaluationResponse(BaseModel):
     metadata: Dict[str, Any] = {}
 
 class StartAssessmentRequest(BaseModel):
-    user_id: UUID
+    user_id: Union[UUID, str]
     # Optionally specify a goal, topics
     goal: Optional[str] = None
     preferred_topics: Optional[List[str]] = None
 
 class AssessmentResponseItem(BaseModel):
-    user_id: UUID
-    assessment_id: UUID
+    user_id: Union[UUID, str]
+    assessment_id: Union[UUID, str]
     question_id: UUID
     user_answer: str
     is_mcq: bool = False

@@ -7,5 +7,7 @@ from app.models.domain import (
     UserErrorProfile,
     UserErrorAnalysis,
     LearningJourney,
-    JourneyStep
+    JourneyStep,
+    UserSkill,
+    AssessmentLog
 )

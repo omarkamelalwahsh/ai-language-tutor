@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -31,15 +31,23 @@ import {
     Sparkles,
     PenTool,
     Headphones,
-    LayoutDashboard
+    LayoutDashboard,
+    ShieldCheck,
+    Layers
 } from 'lucide-react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
+import { LearningJourneyView } from '../../views/LearningJourneyView';
+import { 
+    ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
+    RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
+} from 'recharts';
+import { DashboardSkeleton } from './DashboardSkeleton';
 import { VisualErrorProfile } from './VisualErrorProfile';
 import { normalizeBand } from '../../lib/cefr-utils';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessment';
+import { learnerService, DashboardData, JourneyData } from '../../services/learnerService';
 
 // --- Types ---
 interface AdvancedDashboardProps {
@@ -69,6 +77,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     const supabaseData = useSupabaseDashboard();
     const navigate = useNavigate();
     const location = useLocation();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
     // Tab router
     const activeTab = useMemo(() => {
@@ -84,21 +93,66 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
             props.onStartSession();
             return;
         }
+        if (tabId === 'journey') {
+            navigate('/journey');
+            return;
+        }
         if (tabId === 'home') navigate('/dashboard');
         else navigate(`/dashboard/${tabId}`);
     };
 
-    const isLoading = supabaseData.isLoading && !result;
+    const [realtimeData, setRealtimeData] = React.useState<DashboardData | null>(null);
+    const [journeyData, setJourneyData] = React.useState<JourneyData | null>(null);
+    const [isLearnerLoading, setIsLearnerLoading] = React.useState(true);
 
-    // 🎯 Dynamic Name Selection: Profile Data > Auth Data > Fallback
-    const displayName = supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
+    const fetchAllData = React.useCallback(async () => {
+        setIsLearnerLoading(true);
+        try {
+            console.log('[Dashboard] Fetching fresh data...');
+            const [dash, journey] = await Promise.all([
+                learnerService.getDashboard(),
+                learnerService.getJourney()
+            ]);
+            console.log('[Dashboard] API Response received:', dash);
+            setRealtimeData(dash);
+            setJourneyData(journey);
+        } catch (err) {
+            console.error('[Dashboard] Fetch Error:', err);
+        } finally {
+            setIsLearnerLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchAllData();
+    }, [fetchAllData]);
+
+    const isLoading = (supabaseData.isLoading || isLearnerLoading) && !result;
+
+    // 🎯 Dynamic Name Selection: API Data > Profile Data > Auth Data > Fallback
+    const displayName = realtimeData?.profile?.full_name || supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
 
     console.log('User Context:', supabaseData.user?.id);
 
-    if (isLoading) return <LoadingSkeleton />;
+    // Remove the global blocking skeleton for a more fluid experience
+    const isGlobalLoading = (supabaseData.isLoading) && !result;
+    
+    if (isGlobalLoading) return (
+        <div className="h-screen w-full flex items-center justify-center bg-[#020617]">
+            <div className="flex flex-col items-center gap-6">
+                <Brain size={60} className="text-indigo-500 animate-pulse" />
+                <p className="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse">Initializing Environment...</p>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] text-slate-800 font-sans overflow-hidden relative">
+        <div className="flex h-screen bg-[#020617] text-white font-sans overflow-hidden relative selection:bg-blue-500/30">
+            {/* 🌌 Dynamic Atmospheric Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+            </div>
 
             {/* Auto-Sync Banner */}
             <AnimatePresence>
@@ -113,65 +167,82 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            
+            {/* 0. Mobile Sidebar Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
+                    >
+                        <motion.aside 
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-72 h-full bg-[#0B1437]/95 backdrop-blur-xl p-6 shadow-2xl flex flex-col border-r border-white/5"
+                        >
+                            <SidebarContent activeTab={activeTab} onTabChange={(id) => { handleTabChange(id); setIsMobileMenuOpen(false); }} onLogout={onLogout} navigate={navigate} />
+                        </motion.aside>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {/* 1. Sidebar */}
-            <aside className="w-64 bg-[#0B1437] flex flex-col p-6 shrink-0 z-10 hidden md:flex rounded-br-3xl shadow-xl shadow-slate-200/50">
-                <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => handleTabChange('home')}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-                        <Trophy size={20} className="text-white" fill="currentColor" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black text-white leading-tight tracking-tight">Career Copilot</h1>
-                    </div>
-                </div>
-
-                <nav className="space-y-1.5 flex-1">
-                    <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => handleTabChange('home')} />
-                    <NavItem icon={<MapIcon size={18} />} label="My Path" active={activeTab === 'journey'} onClick={() => handleTabChange('journey')} />
-                    <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => handleTabChange('analytics')} />
-                    <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => handleTabChange('history')} />
-                    <NavItem icon={<BookOpen size={18} />} label="Practice" active={activeTab === 'practice'} onClick={() => handleTabChange('practice')} />
-                </nav>
-
-                <div className="mt-auto pt-6 border-t border-slate-700/50 space-y-1.5">
-                    <NavItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
-                    {onLogout && <NavItem icon={<LogOut size={18} />} label="Sign Out" onClick={onLogout} isDanger />}
-                </div>
+            {/* 1. Sidebar (Desktop) */}
+            <aside className="w-64 bg-[#0B1437]/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-white/5 shadow-2xl">
+                <SidebarContent activeTab={activeTab} onTabChange={handleTabChange} onLogout={onLogout} navigate={navigate} />
             </aside>
 
             {/* 2. Main Content Area */}
             <main className="flex-1 flex flex-col overflow-hidden relative">
-                <header className="h-[72px] bg-[#F8FAFC]/80 backdrop-blur-md flex items-center justify-between px-8 shrink-0 relative z-20">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-400 capitalize bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-                        <span className={`transition-colors cursor-pointer hover:text-slate-700 ${activeTab === 'home' ? 'text-slate-800' : ''}`} onClick={() => handleTabChange('home')}>
-                            {activeTab === 'home' ? 'Home' : 'My Path'}
-                        </span>
-                        {activeTab !== 'home' && (
-                            <>
-                                <ChevronRight size={14} className="text-slate-300" />
-                                <span className="text-slate-800">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
-                            </>
-                        )}
+                <header className="h-[72px] bg-white/5 backdrop-blur-xl flex items-center justify-between px-8 shrink-0 relative z-20 border-b border-white/5">
+                    <div className="flex items-center gap-4">
+                        {/* Mobile Menu Toggle */}
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="p-2 -ml-2 rounded-xl bg-white/5 border border-white/10 text-white/60 md:hidden hover:bg-white/10 transition shadow-sm active:scale-95"
+                        >
+                            <Layout size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-2 text-sm font-bold text-white/40 capitalize bg-white/5 px-4 py-2 rounded-full border border-white/10 shadow-sm">
+                            <span className={`transition-colors cursor-pointer hover:text-white ${activeTab === 'home' ? 'text-white' : ''}`} onClick={() => handleTabChange('home')}>
+                                {activeTab === 'home' ? 'Home' : 'My Path'}
+                            </span>
+                            {activeTab !== 'home' && (
+                                <>
+                                    <ChevronRight size={14} className="text-white/20" />
+                                    <span className="text-white/80">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="relative p-2 bg-white rounded-full border border-slate-200 text-slate-400 hover:text-slate-600 transition shadow-sm hover:shadow active:scale-95">
+                        <button className="relative p-2 bg-white/5 rounded-full border border-white/10 text-white/60 hover:text-white transition shadow-sm hover:shadow active:scale-95">
                             <Bell size={18} />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#0B1437]"></span>
                         </button>
 
                         <div className="hidden md:block text-right">
-                            <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
-                            <p className="text-[10px] text-slate-500 uppercase font-black mt-1">
+                            <p className="text-sm font-bold text-white leading-none">{displayName}</p>
+                            <p className="text-[10px] text-white/40 uppercase font-black mt-1">
                                 {normalizeBand(supabaseData.profile?.overall_level || 'A1')}
                             </p>
                         </div>
 
-                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition cursor-pointer">
+                        <div 
+                            onClick={() => navigate('/profile')}
+                            className="w-10 h-10 rounded-full bg-white/10 overflow-hidden border-2 border-white/10 shadow-sm hover:shadow-md transition cursor-pointer active:scale-95"
+                        >
                             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
                         </div>
 
-                        <button onClick={onLogout} className="p-2 ml-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100 group shadow-sm active:scale-95" title="Sign Out">
+                        <button onClick={onLogout} className="p-2 ml-2 rounded-xl bg-white/5 text-white/40 hover:bg-rose-500/20 hover:text-rose-400 transition-all border border-white/10 group shadow-sm active:scale-95" title="Sign Out">
                             <LogOut size={20} className="group-hover:translate-x-0.5 transition-transform" />
                         </button>
                     </div>
@@ -187,18 +258,29 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             transition={{ duration: 0.2 }}
                             className="h-full"
                         >
-                            {activeTab === 'home' && <HomeTab {...props} displayName={displayName} supabaseData={supabaseData} />}
+                            {activeTab === 'home' && (
+                                isLearnerLoading ? (
+                                    <DashboardSkeleton />
+                                ) : (
+                                    <HomeTab 
+                                        onStartSession={props.onStartSession} 
+                                        displayName={displayName} 
+                                        dashboardData={realtimeData} 
+                                    />
+                                )
+                            )}
                             {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'analytics' && (
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
+                                    dashboardData={realtimeData}
                                     weaknesses={supabaseData.errorProfile?.weakness_areas || []}
                                     mistakes={supabaseData.errorProfile?.common_mistakes || []}
-                                    actionPlan={supabaseData.errorProfile?.action_plan || "Generating your path..."}
+                                    actionPlan={realtimeData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || "Generating your path..."}
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
-                            {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} />}
+                            {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} refresh={fetchAllData} />}
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -208,130 +290,516 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 };
 
 // ============================================================================
-// SUB-COMPONENTS
+// SUB-COMPONENTS (PREMIUM AI-GLASS SYSTEM)
 // ============================================================================
 
-const HomeTab = ({ assessmentOutcome, onViewReview, displayName, supabaseData }: any) => {
-    const profile = supabaseData?.profile || {};
-    
-    // 🎯 Logic Fix: If we have a persisted level in the DB that isn't 'Pending', believe it!
-    // This solves the 'Computing...' hang after a refresh.
-    const dbLevel = profile.overall_level || profile.overallLevel;
-    const outcomeLevel = assessmentOutcome?.finalLevel;
-    
-    let rawLevel = (dbLevel && dbLevel !== 'Pending') 
-        ? dbLevel 
-        : (outcomeLevel || 'A1');
+const GlassCard = ({ children, className = "", hover = true, glow = false }: any) => (
+    <motion.div
+        whileHover={hover ? { y: -4, scale: 1.01 } : {}}
+        className={`relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-2xl ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
+    >
+        {glow && <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />}
+        {children}
+    </motion.div>
+);
 
-    const hasCompletedAssessment = profile.hasCompletedAssessment === true;
-    const isCalculatingLevel = rawLevel === 'Pending' || (!dbLevel && profile.onboardingComplete && !hasCompletedAssessment);
-    const currentLevel = isCalculatingLevel ? 'Computing...' : normalizeBand(rawLevel);
-    const points = profile.points || 0;
-
-    const skills = supabaseData.skills || [];
-    
-    const skillData = useMemo(() => {
-        if (!Array.isArray(skills)) return [];
-        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'vocabulary', 'grammar'];
-        
-        return skillOrder.map(skillName => {
-            const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
-            // Protect against fractional database values showing up as tiny dots
-            const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore) : 0;
-            const finalScore = raw < 1 && raw > 0 ? raw * 100 : raw;
-
-            return {
-                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
-                score: Math.round(finalScore || 0), 
-                fullMark: 100
-            };
-        });
-    }, [skills]);
+const AnimatedGauge = ({ value, label, size = 80, strokeWidth = 8, color = "#3B82F6" }: any) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (value / 100) * circumference;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
-            <div className="lg:col-span-8 flex flex-col gap-6">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between relative overflow-hidden group hover:shadow-md transition duration-300">
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-20 h-20 rounded-[1.25rem] bg-slate-50 overflow-hidden shadow-sm border border-slate-200 shrink-0">
-                            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName || 'Learner'}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{displayName || 'Learner'}</h2>
-                            <div className="flex items-center gap-3 mt-2">
-                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Global Level</span>
-                                <span className="text-[11px] font-black text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">{currentLevel}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-left sm:text-right mt-6 sm:mt-0 pt-6 sm:pt-0 border-t border-slate-100 sm:border-0 w-full sm:w-auto">
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total points</p>
-                        <p className="text-5xl font-black text-slate-900 tracking-tighter mb-4">{points}</p>
-                        <button onClick={onViewReview} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-600 text-white text-[11px] font-bold uppercase rounded-xl transition shadow-lg active:scale-95">
-                            <History size={14} /> Review Assessment
-                        </button>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex-1 flex flex-col min-h-[450px]">
-                    <h3 className="text-xl font-bold text-slate-900 mb-6">Mastery Distribution</h3>
-                    <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                <PolarGrid stroke="#e2e8f0" strokeDasharray="4 4" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
-                                {/* Explicit Domain [0, 100] is CRITICAL for accurate mapping */}
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar 
-                                    name="Mastery" 
-                                    dataKey="score" 
-                                    stroke="#f59e0b" 
-                                    strokeWidth={3} 
-                                    fill="#f59e0b" 
-                                    fillOpacity={0.4} 
-                                    animationDuration={1200}
-                                />
-                            </RadarChart>
-                        </ResponsiveContainer>
-                    </div>
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative" style={{ width: size, height: size }}>
+                <svg className="w-full h-full -rotate-90">
+                    <circle 
+                        cx={size / 2} cy={size / 2} r={radius}
+                        stroke="rgba(255,255,255,0.05)" strokeWidth={strokeWidth} fill="transparent"
+                    />
+                    <motion.circle 
+                        cx={size / 2} cy={size / 2} r={radius}
+                        stroke={color} strokeWidth={strokeWidth} fill="transparent"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset: offset }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-black text-white">{Math.round(value || 0)}%</span>
                 </div>
             </div>
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{label}</span>
+        </div>
+    );
+};
 
-            <div className="lg:col-span-4">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 h-full">
-                    <h3 className="text-xl font-bold text-slate-900 mb-6">Focus Areas</h3>
-                    <div className="space-y-4">
-                        {(supabaseData.errorProfile?.weakness_areas || []).length > 0 ? (
-                            supabaseData.errorProfile.weakness_areas.map((w: string, i: number) => (
-                                <div key={`focus-${i}`} className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-center gap-3 group hover:bg-white hover:shadow-sm transition">
-                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-50">
-                                        <Target size={14} className="group-hover:scale-110 transition-transform" />
-                                    </div>
-                                    <span className="text-sm font-bold text-slate-700">{w}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="p-4 rounded-2xl border border-dashed border-slate-200 text-center text-slate-400 text-sm">
-                                Complete your assessment to reveal focus areas.
-                            </div>
-                        )}
+const JourneyPortal = ({ journeyData }: { journeyData: JourneyData | null }) => {
+    const navigate = useNavigate();
+    
+    // Fallback if no journey nodes yet
+    const nodes = journeyData?.nodes?.slice(0, 3) || [
+        { type: 'lesson', title: 'Calibrating Path...', is_locked: false, status: 'active' },
+        { type: 'drill', title: 'Analyzing Skills...', is_locked: true, status: 'locked' },
+        { type: 'audit', title: 'Assessment Required', is_locked: true, status: 'locked' }
+    ];
+
+    const getIcon = (type: string) => {
+        switch(type.toLowerCase()) {
+            case 'lesson': return <Layers size={14} />;
+            case 'drill': return <Zap size={14} />;
+            default: return <ShieldCheck size={14} />;
+        }
+    };
+
+    return (
+        <GlassCard className="p-6 flex flex-col gap-4 group cursor-pointer" glow onClick={() => navigate('/journey')}>
+            <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-black text-white tracking-widest uppercase">Journey Portal</h3>
+                <Sparkles size={16} className="text-blue-400 animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-3 relative before:absolute before:left-[17px] before:top-4 before:bottom-4 before:w-[1px] before:bg-white/10">
+                {nodes.map((node, i) => (
+                    <div key={i} className={`flex items-start gap-4 transition-all duration-300 ${node.is_locked ? 'opacity-30' : 'hover:translate-x-1'}`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-colors
+                            ${node.status === 'active' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/40' : 'bg-white/5 border-white/10 text-white/40'}
+                        `}>
+                            {getIcon(node.type)}
+                        </div>
+                        <div className="pt-1">
+                            <p className="text-[13px] font-bold text-white/90 leading-none mb-1">{node.title}</p>
+                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                {node.status === 'active' ? 'Current Objective' : node.status}
+                            </p>
+                        </div>
                     </div>
-                </div>
+                ))}
+            </div>
+        </GlassCard>
+    );
+};
+
+const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | null }) => {
+    const rawInsights = dashboardData?.intelligence_feed?.recent_insights || [];
+    
+    // Default fallback if no insights yet
+    const insights = rawInsights.length > 0 ? rawInsights.map(ri => ({
+        model: ri.category || 'Intelligence',
+        text: ri.insight,
+        type: 'info'
+    })) : [
+        { model: 'Skill Matrix', text: 'Calibrating your linguistic baseline...', type: 'info' },
+        { model: 'Retention', text: 'Analyzing memory decay patterns...', type: 'info' }
+    ];
+
+    return (
+        <div className="flex flex-col gap-4">
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-2 mb-2">Learner Intelligence Feed</h3>
+            <div className="space-y-3">
+                {insights.map((insight, i) => (
+                    <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.2 }}
+                        className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group cursor-default"
+                    >
+                        <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{insight.model}</span>
+                        </div>
+                        <p className="text-[12px] font-medium text-white/70 leading-relaxed group-hover:text-white transition-colors">{insight.text}</p>
+                    </motion.div>
+                ))}
             </div>
         </div>
     );
 };
 
+const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
+    const navigate = useNavigate();
+    const [visibleSkills, setVisibleSkills] = React.useState<string[]>(['speaking', 'writing', 'reading', 'listening']);
+
+    const toggleSkill = (skill: string) => {
+        setVisibleSkills(prev => 
+            prev.includes(skill) 
+                ? prev.filter(s => s !== skill) 
+                : [...prev, skill]
+        );
+    };
+
+    const parseLinguisticContent = (content: string) => {
+        if (!content) return "";
+        const trimmed = content.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                return parsed.scenario || parsed.description || parsed.title || parsed.task || content;
+            } catch (e) {
+                return content;
+            }
+        }
+        return content;
+    };
+
+    const kpis = dashboardData?.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
+    const actionPanel = dashboardData?.action_panel || { hero: null, queue: [] };
+    const trends = dashboardData?.trends || [];
+    const skills = dashboardData?.skills || [];
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1 }
+    };
+
+    return (
+        <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full max-w-7xl mx-auto px-4 md:px-0 space-y-10 pb-40"
+        >
+            {/* 1. KPI Top Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPICard 
+                    label="Learning Momentum" 
+                    value={`${kpis.momentum}%`} 
+                    icon={<Zap size={18} />} 
+                    color="text-indigo-400" 
+                    trend="+12% from last week"
+                />
+                <KPICard 
+                    label="Weekly Study Time" 
+                    value={`${kpis.weekly_minutes}m`} 
+                    icon={<Clock size={18} />} 
+                    color="text-blue-400"
+                    trend="Target: 120m"
+                />
+                <KPICard 
+                    label="Active Errors" 
+                    value={kpis.active_errors} 
+                    icon={<AlertCircle size={18} />} 
+                    color="text-rose-400"
+                    trend="Priority high"
+                />
+                <KPICard 
+                    label="Due Reviews" 
+                    value={kpis.due_reviews} 
+                    icon={<Brain size={18} />} 
+                    color="text-emerald-400"
+                    trend="Retention stable"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* 2. Main Action Hub (Left) */}
+                <div className="lg:col-span-8 space-y-8">
+                    
+                    {/* Hero Action Panel */}
+                    <motion.div variants={itemVariants}>
+                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl group">
+                            <div className="relative z-10">
+                                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">
+                                    AI Selection: Best Next Move
+                                </span>
+                                <h2 className="text-4xl font-black tracking-tighter mb-4 max-w-lg">
+                                    {parseLinguisticContent(actionPanel.hero?.title || "Initialize Intelligence Model")}
+                                </h2>
+                                <p className="text-white/70 text-lg font-medium mb-12 max-w-xl leading-relaxed">
+                                    {parseLinguisticContent(actionPanel.hero?.why || "Connect your profile to start receiving personalized linguistic recommendations.")}
+                                </p>
+                                
+                                <div className="flex flex-wrap items-center gap-8">
+                                    <button 
+                                        onClick={() => navigate('/runtime')}
+                                        className="px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-2xl flex items-center gap-3 decoration-indigo-500"
+                                    >
+                                        Start Session <ArrowRight size={18} />
+                                    </button>
+                                    <div className="flex items-center gap-6 text-white/40">
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={16} /> <span className="text-xs font-bold">{actionPanel.hero?.duration || '8 min'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <ShieldCheck size={16} /> <span className="text-xs font-bold">{actionPanel.hero?.type || 'Guided'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Decorative brain */}
+                            <Brain size={240} className="absolute bottom-[-60px] right-[-60px] text-white/5 -rotate-12 transition-transform duration-1000 group-hover:rotate-0" />
+                            {/* Halo */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-white/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                        </div>
+                    </motion.div>
+
+                    {/* Skill Analytics Chart */}
+                    <motion.div variants={itemVariants}>
+                        <GlassCard className="p-10" glow>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                                <div>
+                                    <h3 className="text-xl font-black text-white tracking-tight">Skill Trajectory</h3>
+                                    <p className="text-sm text-white/40 font-medium whitespace-nowrap">Progress across primary linguistic dimensions.</p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-4">
+                                    {[
+                                        { id: 'speaking', label: 'Speaking', color: '#6366F1' },
+                                        { id: 'writing', label: 'Writing', color: '#3B82F6' },
+                                        { id: 'reading', label: 'Reading', color: '#10B981' },
+                                        { id: 'listening', label: 'Listening', color: '#F59E0B' }
+                                    ].map(skill => (
+                                        <button 
+                                            key={skill.id}
+                                            onClick={() => toggleSkill(skill.id)}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95
+                                                ${visibleSkills.includes(skill.id) 
+                                                    ? 'bg-white/5 border-white/10 opacity-100' 
+                                                    : 'bg-transparent border-transparent opacity-30 grayscale'}
+                                            `}
+                                        >
+                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skill.color }} />
+                                            <span className="text-[10px] font-black uppercase text-white/60 tracking-widest">{skill.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="h-[350px] min-h-[350px] w-full mt-4 flex items-center justify-center relative min-w-0 overflow-hidden">
+                                {trends.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                                        <LineChart data={trends}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                            <XAxis 
+                                                dataKey="date" 
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 700 }}
+                                                dy={10}
+                                            />
+                                            <YAxis 
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 700 }}
+                                                domain={[0, 100]}
+                                            />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="speaking" 
+                                                name="Speaking"
+                                                stroke="#6366F1" 
+                                                strokeWidth={4} 
+                                                dot={false}
+                                                hide={!visibleSkills.includes('speaking')}
+                                                activeDot={{ r: 6, fill: '#6366F1', stroke: '#fff', strokeWidth: 2 }}
+                                                animationDuration={1500}
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="writing" 
+                                                name="Writing"
+                                                stroke="#3B82F6" 
+                                                strokeWidth={4} 
+                                                dot={false}
+                                                hide={!visibleSkills.includes('writing')}
+                                                activeDot={{ r: 6, fill: '#3B82F6', stroke: '#fff', strokeWidth: 2 }}
+                                                animationDuration={1500}
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="reading" 
+                                                name="Reading"
+                                                stroke="#10B981" 
+                                                strokeWidth={4} 
+                                                dot={false}
+                                                hide={!visibleSkills.includes('reading')}
+                                                activeDot={{ r: 6, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }}
+                                                animationDuration={1500}
+                                            />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="listening" 
+                                                name="Listening"
+                                                stroke="#F59E0B" 
+                                                strokeWidth={4} 
+                                                dot={false}
+                                                hide={!visibleSkills.includes('listening')}
+                                                activeDot={{ r: 6, fill: '#F59E0B', stroke: '#fff', strokeWidth: 2 }}
+                                                animationDuration={1500}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 text-white/20">
+                                        <Activity size={40} className="animate-pulse" />
+                                        <p className="text-xs font-black uppercase tracking-[0.2em]">Gathering Linguistic Data...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </GlassCard>
+                    </motion.div>
+                </div>
+
+                {/* 3. Intelligence Overlay (Right) */}
+                <div className="lg:col-span-4 space-y-8">
+                    
+                    {/* Today's Stats & State */}
+                    <motion.div variants={itemVariants}>
+                        <GlassCard className="p-8">
+                            <h3 className="text-sm font-black text-white/20 uppercase tracking-[0.2em] mb-6">Learning State</h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold text-white/60">Pacing</span>
+                                        <span className="text-xs font-black text-indigo-400">OPTIMAL</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} className="h-full bg-indigo-500" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold text-white/60">Confidence</span>
+                                        <span className="text-xs font-black text-emerald-400">STABLE</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-500" />
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="mt-6 text-xs text-white/40 font-medium leading-relaxed">
+                                You're currently excelling in high-intensity verbal tasks. The system has increased challenge difficulty by 12%.
+                            </p>
+                        </GlassCard>
+                    </motion.div>
+
+                    {/* Quick Queue */}
+                    <motion.div variants={itemVariants}>
+                        <GlassCard className="p-0 border-none bg-transparent shadow-none" hover={false}>
+                            <h3 className="text-sm font-black text-white/20 uppercase tracking-[0.2em] mb-4 px-2">Minor Tasks Queue</h3>
+                            <div className="space-y-3">
+                                {actionPanel.queue.map((item: any) => (
+                                    <div key={item.id} className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
+                                                <Zap size={16} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-white">{parseLinguisticContent(item.title)}</h4>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-0.5">{item.type}</p>
+                                            </div>
+                                        </div>
+                                        <ChevronRight size={16} className="text-white/20 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                ))}
+                            </div>
+                        </GlassCard>
+                    </motion.div>
+
+                    {/* Recursive Intelligence Insight */}
+                    <motion.div variants={itemVariants}>
+                        <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10">
+                            <h3 className="text-sm font-black text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
+                            <p className="text-sm text-white/60 leading-relaxed italic font-medium">
+                                "{dashboardData?.intelligence_feed?.action_plan || "Calculating next optimal drift in your linguistic matrix..."}"
+                            </p>
+                        </div>
+                    </motion.div>
+
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+// --- Custom Components for Clean Dashboard ---
+
+const KPICard = ({ label, value, icon, color, trend }: any) => (
+    <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}>
+        <GlassCard className="p-6 md:p-8" glow>
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-xl bg-white/5 ${color} border border-white/5`}>
+                    {icon}
+                </div>
+            </div>
+            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">{label}</p>
+            <p className="text-3xl font-black text-white mb-2 tracking-tighter">{value}</p>
+            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{trend}</p>
+        </GlassCard>
+    </motion.div>
+);
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-[#0B1437]/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl">
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">{label}</p>
+                <div className="space-y-2">
+                    {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="text-xs font-bold text-white capitalize">{entry.name}:</span>
+                            <span className="text-xs font-black text-white">{entry.value}%</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
 // --- Helpers ---
+
+const SidebarContent = ({ activeTab, onTabChange, onLogout, navigate }: any) => (
+    <>
+        <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 group" onClick={() => onTabChange('home')}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+                <Trophy size={20} className="text-white" fill="currentColor" />
+            </div>
+            <div>
+                <h1 className="text-xl font-black text-white leading-tight tracking-tight">Language AI</h1>
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
+            </div>
+        </div>
+
+        <nav className="space-y-1.5 flex-1">
+            <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => onTabChange('home')} />
+            <NavItem icon={<Brain size={18} />} label="AI Brain Profile" onClick={() => navigate('/profile')} />
+            <NavItem icon={<MapIcon size={18} />} label="My Journey" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
+            <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
+            <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
+            <NavItem icon={<BookOpen size={18} />} label="Practice" active={activeTab === 'practice'} onClick={() => onTabChange('practice')} />
+        </nav>
+
+        <div className="mt-auto pt-6 border-t border-white/5 space-y-1.5">
+            <NavItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => onTabChange('settings')} />
+            {onLogout && <NavItem icon={<LogOut size={18} />} label="Sign Out" onClick={onLogout} isDanger />}
+        </div>
+    </>
+);
 
 const NavItem = ({ icon, label, active, onClick, isDanger }: any) => (
     <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${active
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
                 : isDanger
-                    ? 'text-slate-400 hover:bg-rose-500/10 hover:text-rose-500'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                    ? 'text-white/30 hover:bg-rose-500/10 hover:text-rose-400'
+                    : 'text-white/40 hover:bg-white/5 hover:text-white'
             }`}
     >
         {icon}
@@ -356,98 +824,14 @@ const LoadingSkeleton = () => (
         </div>
     </div>
 );
-const JourneyTab = ({ onStartSession, supabaseData }: any) => {
-    const journeyNodes = supabaseData.persistedJourney?.nodes || [];
-    const journeyTitle = supabaseData.persistedJourney?.journeyTitle || "Bridge to Mastery";
-    
-    const JourneyHexPath = () => {
-        if (!Array.isArray(journeyNodes) || journeyNodes.length === 0) {
-            return (
-                <div className="flex flex-col items-center justify-center p-12 text-center">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <MapIcon className="w-8 h-8 text-slate-300" />
-                    </div>
-                    <p className="text-slate-400 font-medium italic">Your personalized path is being architected...</p>
-                </div>
-            );
-        }
-        return (
-            <div className="relative py-12 flex flex-col items-center">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-20 relative z-10 px-4">
-                    {journeyNodes.map((node: any, idx: number) => (
-                        <IsometricHexNode 
-                            key={node.id}
-                            status={node.status === 'completed' || node.status === 'available' ? 'active' : 'locked'}
-                            label={node.title}
-                            onClick={node.status !== 'locked' ? onStartSession : undefined}
-                        />
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
+const JourneyTab = ({ onStartSession, result }: any) => {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
-             <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-10 min-h-[550px] relative overflow-hidden flex flex-col group hover:shadow-md transition duration-300">
-                 
-                 <div className="flex justify-between items-start mb-10 z-20 relative">
-                     <div>
-                         <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">{journeyTitle}</h2>
-                         <p className="text-sm text-slate-500 font-medium">Your personalized AI-architected progression map.</p>
-                     </div>
-                     <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                         <MapIcon size={14} className="text-indigo-500" /> Dynamic Path
-                     </div>
-                 </div>
-
-                 <div className="absolute inset-0 z-0 flex items-center justify-center top-32 overflow-hidden">
-                     <div className="w-[150%] h-[150%] origin-top">
-                        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="opacity-30">
-                            <defs>
-                                <pattern id="isometricGrid" width="60" height="34.64" patternUnits="userSpaceOnUse" patternTransform="scale(1.5)">
-                                <path d="M60 0L30 17.32M30 17.32L0 0M30 17.32V51.96" fill="none" stroke="#cbd5e1" strokeWidth="1" />
-                                </pattern>
-                            </defs>
-                            <g style={{ transform: 'rotateX(60deg) rotateZ(45deg)' }}>
-                                <rect width="100%" height="100%" fill="url(#isometricGrid)" />
-                            </g>
-                        </svg>
-                     </div>
-                 </div>
-
-                 <div className="flex-1 w-full relative z-10">
-                     <JourneyHexPath />
-                 </div>
-             </div>
-
-             <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 h-full min-h-[500px] group hover:shadow-md transition duration-300 relative">
-                 <div className="absolute bottom-6 right-6 text-slate-300 hover:text-blue-500 cursor-pointer transition">
-                    <RefreshCcw size={18} />
-                 </div>
-                 
-                 <h3 className="text-xl font-black text-slate-900 mb-8 tracking-tight">Parallel Progress</h3>
-                 
-                 <div className="space-y-5">
-                     <EventLogItem 
-                        icon={<Database size={16} className="text-slate-500" strokeWidth={2.5}/>} 
-                        title="Database Sync" desc="in real time" 
-                     />
-                     <EventLogItem 
-                        icon={<RefreshCcw size={16} className="text-amber-500" strokeWidth={2.5} />} 
-                        title="State Update" desc="in real time" 
-                     />
-                     <EventLogItem 
-                        icon={<BookOpen size={16} className="text-slate-400" strokeWidth={2.5}/>} 
-                        title="Boiler page or assessments" desc="complete" 
-                        blur 
-                     />
-                     <EventLogItem 
-                        icon={<RefreshCcw size={16} className="text-amber-500" strokeWidth={2.5} />} 
-                        title="State Update" desc="in real time" 
-                     />
-                 </div>
-             </div>
+        <div className="h-full overflow-y-auto rounded-3xl overflow-hidden border border-slate-200 shadow-xl">
+            <LearningJourneyView 
+                result={result} 
+                onStartSession={onStartSession} 
+                onViewDashboard={() => {}} // Already on dashboard
+            />
         </div>
     );
 };
@@ -458,222 +842,122 @@ const AnalyticsTab = ({ supabaseData }: any) => {
     const history = supabaseData.history || [];
     const achievements = supabaseData.achievements || [];
     
-    // Combine history and achievements for the Event Log
     const eventLog = React.useMemo(() => {
         const historyItems = history.map((h: any) => ({
             id: `h-${h.id}`,
             title: `Assessment: ${h.overallLevel || h.category || 'General'}`,
             desc: h.overallLevel ? `Level: ${h.overallLevel}` : 'Diagnostic preview',
             time: h.createdAt || h.created_at || Date.now(),
-            type: 'history'
+            type: h.overallLevel?.includes('A') ? 'info' : 'success'
         }));
-        
-        const achievementItems = achievements.map((a: any) => ({
-            id: `a-${a.id}`,
-            title: `Unlocked: ${a.name || a.badge_name}`,
-            desc: 'Milestone reached',
-            time: a.earnedAt || a.earned_at || Date.now(),
-            type: 'achievement'
-        }));
-
-        return [...historyItems, ...achievementItems].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
-    }, [history, achievements]);
+        return historyItems.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+    }, [history]);
 
     const skillData = useMemo(() => {
-        // 🛡️ Bulletproof 6-Skill Order for Production Stability
-        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'vocabulary', 'grammar'];
-        
+        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'grammar'];
         return skillOrder.map(skillName => {
             const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
-            // Protect against fractional values like 0.9 showing up in tooltips/charts
             const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore) : 0;
             const currentScore = Math.round(raw < 1 && raw > 0 ? raw * 100 : raw);
-            
-            // Add level label for deeper analytics display
-            const levelLabel = s?.currentLevel ? ` (${s.currentLevel})` : '';
-
             return {
-                subject: `${skillName.charAt(0).toUpperCase() + skillName.slice(1)}${levelLabel}`,
+                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
                 current: currentScore,
-                target: Math.min(100, currentScore + 20),
                 fullMark: 100
             };
         });
     }, [skills]);
 
-    const formatTimeAgo = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-        if (diffInHours < 1) return 'Just now';
-        if (diffInHours === 1) return '1 hour ago';
-        if (diffInHours < 24) return `${diffInHours} hours ago`;
-        return date.toLocaleDateString();
-    };
-
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
-            {/* Main Content Area */}
-            <div className="lg:col-span-9 flex flex-col gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
-                    {/* Skill Overview */}
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition">
-                        <div className="flex justify-between items-center mb-2 z-10">
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Overview</h3>
-                            <div className="flex items-center gap-4">
-                                <div className="hidden sm:flex items-center gap-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 ml-2">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target</span>
-                                    </div>
-                                </div>
-                                <button className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-white hover:shadow-sm transition">
-                                    Confidence interval
-                                </button>
-                            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full max-w-[1400px] mx-auto min-h-full">
+            <div className="lg:col-span-8 flex flex-col gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Mastery Distribution Radar */}
+                    <GlassCard className="p-8 flex flex-col" glow>
+                        <h3 className="text-xl font-black text-white mb-6">Mastery Distribution</h3>
+                        <div className="flex-1 min-h-[300px] relative">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
+                                    <PolarGrid stroke="rgba(255,255,255,0.1)" strokeDasharray="4 4" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 700 }} />
+                                    <Radar name="Mastery" dataKey="current" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.4} />
+                                </RadarChart>
+                            </ResponsiveContainer>
                         </div>
-                        <div className="relative mt-2 w-full h-[320px] flex items-center justify-center">
-                           {skillData.length > 0 ? (
-                             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                 <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3"/>
-                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
-                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                 {/* Target Radar needs to be first and less opaque (e.g. fill #e2e8f0) */}
-                                 <Radar name="Target" dataKey="target" stroke="#e2e8f0" strokeWidth={1} fill="#e2e8f0" fillOpacity={0.2} animationDuration={1000} />
-                                 {/* Current Radar should be second and highlighted (e.g. fill #f59e0b) */}
-                                 <Radar name="Current" dataKey="current" stroke="#f59e0b" strokeWidth={3} fill="#f59e0b" fillOpacity={0.6} animationDuration={1200} />
-                                 <Tooltip 
-                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }}
-                                    itemStyle={{ fontWeight: 'bold', fontSize: '12px', color: '#1e293b' }}
-                                 />
-                               </RadarChart>
-                             </ResponsiveContainer>
-                           ) : (
-                             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
-                                <Activity size={32} className="opacity-20 animate-pulse text-amber-500" />
-                                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Predicting Matrix...</p>
-                             </div>
-                           )}
-                        </div>
-                    </div>
+                    </GlassCard>
 
                     {/* Skill Deep Dive */}
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Skill Deep Dive</h3>
-                            <div className="p-1 px-3 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">AI Inference</div>
+                    <GlassCard className="p-8">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black text-white">Logic Mapping</h3>
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                <Database size={18} />
+                            </div>
                         </div>
-                        <div className="flex-1 space-y-6">
-                            {(errorProfile.weakness_areas || []).length > 0 ? (
-                                (errorProfile.weakness_areas || []).slice(0, 3).map((w: string, i: number) => (
-                                    <div key={i} className="group/dive">
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0 group-hover/dive:scale-125 transition" />
-                                            <div>
-                                                <h4 className="text-[14px] font-black text-slate-900 leading-snug mb-1">
-                                                    {w}: <span className="text-slate-500 font-bold">{errorProfile.common_mistakes?.[i] || "Needs foundational support and pattern practice."}</span>
-                                                    <span className="ml-2 text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                                                        {skills.find((s: any) => (s.skill || '').toLowerCase() === w.toLowerCase())?.currentLevel || 'A1'} → Target gap
-                                                    </span>
-                                                </h4>
-                                                <p className="text-[12px] font-medium text-slate-400 leading-relaxed max-w-md">
-                                                    Logic mapping identifies specific structural patterns to focus your learning trajectory.
-                                                </p>
-                                            </div>
-                                        </div>
+                        <div className="space-y-6">
+                            {(errorProfile.weakness_areas || []).slice(0, 3).map((w: string, i: number) => (
+                                <div key={i} className="group/dive">
+                                    <p className="text-[14px] font-black text-white mb-1">{w}</p>
+                                    <p className="text-[12px] font-medium text-white/40 leading-relaxed">
+                                        {errorProfile.common_mistakes?.[i] || "Analyzing pattern persistence..."}
+                                    </p>
+                                    <div className="w-full h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${80 - (i * 20)}%` }}
+                                            className="h-full bg-blue-500/50"
+                                        />
                                     </div>
-                                ))
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3 py-10">
-                                    <BookOpen size={40} className="text-slate-300" />
-                                    <p className="text-xs font-black uppercase tracking-widest">Awaiting assessment cycles</p>
                                 </div>
-                            )}
-
-                            {(errorProfile.weakness_areas || []).length > 3 && (
-                                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition">
-                                    Show more <ChevronRight size={14} className="rotate-90" />
-                                </button>
-                            )}
+                            ))}
                         </div>
-                    </div>
+                    </GlassCard>
                 </div>
 
-                {/* Action Plan */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 group hover:shadow-md transition relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-                    <h3 className="text-xl font-black text-slate-900 mb-6 tracking-tight flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
-                            <Trophy size={16} />
+                {/* Intelligence Action Plan */}
+                <GlassCard className="p-8 relative overflow-hidden" glow>
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <Zap size={80} className="text-blue-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                            <Sparkles size={18} />
                         </div>
-                        Action Plan
+                        Linguistic Action Plan
                     </h3>
-                    
-                    <div className="relative">
-                        <p className="text-[15px] font-medium text-slate-600 leading-[1.8] mb-8 max-w-3xl">
-                            {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect. Complete more assessments to accelerate this process."}
-                        </p>
-                        
-                        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
-                            <div className="flex flex-wrap gap-3">
-                                {(errorProfile.weakness_areas || ['Speaking Drills', 'Vocab Expansion', 'Grammar Polish']).slice(0, 3).map((tag: string) => (
-                                    <span key={tag} className="px-5 py-2.5 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white hover:shadow-sm transition cursor-default">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-
-                            <div className="w-full md:w-48 h-28 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 flex flex-col justify-center relative overflow-hidden group-hover:scale-[1.02] transition duration-500 shadow-xl shrink-0">
-                                <div className="relative z-10">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 opacity-60">Bridge Delta</div>
-                                    <div className="text-3xl font-black text-white tracking-tighter">+{errorProfile.bridge_percentage || 12}%</div>
-                                    <div className="text-[9px] font-bold text-amber-500 uppercase tracking-widest mt-1">Growth Index</div>
-                                </div>
-                                <Activity className="absolute bottom-[-15px] right-[-15px] w-24 h-24 text-white/5 rotate-12" />
-                            </div>
-                        </div>
+                    <p className="text-[15px] font-medium text-white/60 leading-[1.8] mb-8 max-w-2xl">
+                        {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect."}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        {(errorProfile.weakness_areas || ['Grammar Repairs', 'Speech Pacing', 'Vocab Expansion']).slice(0, 5).map((tag: string) => (
+                            <span key={tag} className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white/40">
+                                {tag}
+                            </span>
+                        ))}
                     </div>
-                </div>
+                </GlassCard>
             </div>
 
-            {/* Parallel Event Log Sidebar */}
-            <div className="lg:col-span-3 flex flex-col h-full">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 group hover:shadow-md transition relative flex flex-col">
-                    <h3 className="text-xl font-black text-slate-900 mb-8 tracking-tight">Parallel Event Log</h3>
-                    
-                    <div className="space-y-8 relative ml-2 flex-1 before:absolute before:inset-0 before:ml-[7px] before:-translate-x-px before:h-full before:w-[1.5px] before:bg-slate-100">
-                        {eventLog.length > 0 ? (
-                            eventLog.map(event => (
-                                <div key={event.id} className="flex gap-5 relative z-10 w-full group/event cursor-default">
-                                    <div className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center mt-1 transition shadow-sm
-                                        ${event.type === 'history' ? 'bg-blue-50 border-blue-400 text-blue-500' : 'bg-amber-50 border-amber-400 text-amber-500'}`}>
-                                        {event.type === 'history' ? <CheckCircle2 size={10} strokeWidth={4} /> : <Trophy size={10} strokeWidth={3} className="fill-amber-500" />}
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[13px] font-bold text-slate-900 leading-tight group-hover/event:text-blue-600 transition">{event.title}</h4>
-                                        <p className="text-[11px] font-medium text-slate-500 mb-1.5">{event.desc}</p>
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{formatTimeAgo(event.time)}</p>
-                                    </div>
+            {/* Event Log Sidebar */}
+            <div className="lg:col-span-4 h-full">
+                <GlassCard className="p-8 h-full">
+                    <h3 className="text-xl font-black text-white mb-8">Parallel Event Log</h3>
+                    <div className="space-y-8 relative before:absolute before:left-[7px] before:top-4 before:bottom-4 before:w-[2px] before:bg-white/5">
+                        {eventLog.map(event => (
+                            <div key={event.id} className="flex gap-6 relative z-10 group cursor-default">
+                                <div className={`w-4 h-4 rounded-full border-2 border-[#020617] mt-1 shadow-lg transition-transform group-hover:scale-125
+                                    ${event.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'}`} 
+                                />
+                                <div>
+                                    <h4 className="text-[14px] font-bold text-white group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                    <p className="text-[12px] font-medium text-white/40 mb-1">{event.desc}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-white/20">
+                                        {new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full opacity-20 py-20">
-                                <History size={48} className="text-slate-300" />
                             </div>
-                        )}
+                        ))}
                     </div>
-
-                    <div className="mt-8 pt-8 border-t border-slate-50">
-                        <button className="w-full py-3 rounded-2xl bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition duration-300">
-                            Download Report
-                        </button>
-                    </div>
-                </div>
+                </GlassCard>
             </div>
         </div>
     );
@@ -683,88 +967,84 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
     const history = supabaseData.history || [];
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-[1400px] mx-auto min-h-full">
-            <div className="lg:col-span-8 flex flex-col gap-6 h-full">
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex-1 flex flex-col group hover:shadow-md transition">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full max-w-[1400px] mx-auto min-h-full">
+            <div className="lg:col-span-8 flex flex-col gap-8 h-full">
+                <GlassCard className="p-8 flex-1 flex flex-col" glow>
                     <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Assessment History</h3>
-                        <div className="flex items-center gap-2">
-                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{history.length} Sessions Found</span>
-                        </div>
+                        <h3 className="text-xl font-black text-white">Assessment History</h3>
+                        <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{history.length} Dimensions Logged</span>
                     </div>
 
                     <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                         {history.length > 0 ? (
                             history.map((session: any) => (
-                                <div key={session.id} className="p-5 rounded-2xl border border-slate-50 bg-slate-50/30 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all group/session flex items-center justify-between cursor-default">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center shadow-sm group-hover/session:border-blue-200 transition-colors">
-                                            <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">
+                                <div key={session.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group lg:flex items-center justify-between">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center justify-center shadow-lg group-hover:border-blue-500/30 transition-colors">
+                                            <span className="text-[9px] font-black text-white/30 uppercase leading-none mb-1">
                                                 {new Date(session.createdAt).toLocaleString('default', { month: 'short' })}
                                             </span>
-                                            <span className="text-lg font-black text-slate-900 leading-none">
+                                            <span className="text-xl font-black text-white leading-none">
                                                 {new Date(session.createdAt).getDate()}
                                             </span>
                                         </div>
                                         <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h4 className="font-bold text-slate-900 text-[15px] leading-none">Diagnostic Assessment</h4>
-                                                <span className="text-[10px] bg-blue-50 text-blue-600 font-black px-2 py-0.5 rounded border border-blue-100">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <h4 className="font-bold text-white text-[16px] leading-none">AI Diagnostics</h4>
+                                                <span className="text-[10px] bg-blue-500/20 text-blue-400 font-black px-2 py-0.5 rounded border border-blue-500/30">
                                                     {session.overallLevel}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] font-medium text-slate-400 italic">
-                                                ID: {session.id.substring(0, 8)}... • {new Date(session.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            <p className="text-[11px] font-medium text-white/40 uppercase tracking-widest">
+                                                Session Entropy: {session.id.substring(0, 8)}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-8">
-                                        <div className="hidden md:flex flex-col items-end">
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Confidence</span>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                                                    <div 
-                                                        className="h-full bg-blue-500 rounded-full" 
-                                                        style={{ width: `${(session.confidence || 0) * 100}%` }} 
+                                    <div className="mt-4 lg:mt-0 flex items-center gap-8">
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2">Confidence Score</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                                    <motion.div 
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${(session.confidence || 0) * 100}%` }}
+                                                        className="h-full bg-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
                                                     />
                                                 </div>
-                                                <span className="text-xs font-bold text-slate-700">{Math.round((session.confidence || 0) * 100)}%</span>
+                                                <span className="text-xs font-black text-white/60">{Math.round((session.confidence || 0) * 100)}%</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="h-64 flex flex-col items-center justify-center text-slate-300">
-                                <History size={48} strokeWidth={1.5} className="mb-4 opacity-20" />
-                                <p className="text-sm font-bold uppercase tracking-widest">No history recorded yet</p>
+                            <div className="h-64 flex flex-col items-center justify-center text-white/10">
+                                <History size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                                <p className="text-sm font-black uppercase tracking-widest">Awaiting First Execution</p>
                             </div>
                         )}
                     </div>
-                </div>
+                </GlassCard>
             </div>
 
-            <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="bg-[#0B1437] rounded-3xl p-8 text-white relative overflow-hidden group hover:shadow-xl transition shadow-lg shadow-slate-200">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                        <TrendingUp size={80} />
+            <div className="lg:col-span-4 flex flex-col gap-8">
+                <GlassCard className="p-8 bg-gradient-to-br from-[#0B1437]/60 to-transparent" glow>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-6">
+                        <TrendingUp size={22} />
                     </div>
-                    <h3 className="text-lg font-bold mb-6 flex items-center gap-2 relative z-10">
-                        <TrendingUp size={18} className="text-blue-400" /> Progress velocity
-                    </h3>
-                    <div className="space-y-6 relative z-10">
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Max Level Reached</p>
-                            <p className="text-4xl font-black">{history[0]?.overallLevel || 'B1'}</p>
-                        </div>
+                    <h3 className="text-lg font-black text-white mb-2">Progress Velocity</h3>
+                    <p className="text-white/40 text-sm font-medium mb-8 leading-relaxed">Your linguistic baseline is expanding. Current trajectory predicts target reach in 1.4 months.</p>
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Max Proficiency Level</p>
+                        <p className="text-4xl font-black text-white">{history[0]?.overallLevel || 'B1'}</p>
                     </div>
-                </div>
+                </GlassCard>
             </div>
         </div>
     )
 }
 
-const SettingsTab = ({ supabaseData }: any) => {
+const SettingsTab = ({ supabaseData, refresh }: any) => {
     const profile = supabaseData.profile;
     const [isSaving, setIsSaving] = React.useState(false);
     
@@ -810,6 +1090,7 @@ const SettingsTab = ({ supabaseData }: any) => {
                 .eq('id', userId);
 
             if (error) throw error;
+            if (refresh) refresh();
             if (supabaseData.refresh) supabaseData.refresh();
         } catch (err) {
             console.error('[Settings] Save Failed:', err);
@@ -819,75 +1100,79 @@ const SettingsTab = ({ supabaseData }: any) => {
     };
 
     const SettingCard = ({ icon, label, title, subtitle, children }: { icon: any, label: string, title: string, subtitle: string, children: React.ReactNode }) => (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col group hover:shadow-md transition relative">
-            <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+        <GlassCard className="p-8 flex flex-col group relative">
+            <div className="flex items-start justify-between mb-8">
+                <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-all">
                         {icon}
                     </div>
                     <div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">{label}</span>
-                            <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none">{title}</h3>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none">{label}</span>
+                            <h3 className="text-xl font-black text-white tracking-tight leading-none">{title}</h3>
                         </div>
-                        <p className="text-sm text-slate-500 mt-1.5 font-medium">{subtitle}</p>
+                        <p className="text-sm text-white/40 mt-2 font-medium">{subtitle}</p>
                     </div>
                 </div>
             </div>
             {children}
-        </div>
+        </GlassCard>
     );
 
     return (
-        <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 pb-20">
-            <div className="flex items-center justify-between mb-2">
+        <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 pb-32">
+            <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Adaptive Profile</h2>
-                    <p className="text-slate-500 font-medium">Fine-tune your learning engine across 5 dimensions.</p>
+                    <h2 className="text-3xl font-black text-white tracking-tight">Engine Parameters</h2>
+                    <p className="text-white/40 font-medium">Fine-tune your trajectory across 5 dimensions.</p>
                 </div>
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
                   disabled={isSaving}
-                  className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition shadow-lg
+                  className={`px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl
                     ${isSaving 
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/25 active:scale-95'}
+                        ? 'bg-white/5 text-white/20 cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-500/40 active:scale-95'}
                   `}
                 >
-                    {isSaving ? 'Syncing...' : 'Save Changes'}
-                </button>
+                    {isSaving ? 'Synchronizing...' : 'Apply Overrides'}
+                </motion.button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SettingCard icon={<Trophy size={20} />} label="Goal" title="The WHY" subtitle="What is your ultimate objective?">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <SettingCard icon={<Trophy size={22} />} label="Incentive" title="Primary Goal" subtitle="What is your ultimate objective?">
                     <select 
                         value={settings.why}
                         onChange={(e) => setSettings({...settings, why: e.target.value as any})}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 font-bold text-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500 transition appearance-none cursor-pointer"
                     >
-                        <option value="casual">Casual Learner</option>
-                        <option value="serious">Academic Performance</option>
-                        <option value="professional">Professional Career</option>
+                        <option value="casual" className="bg-[#020617]">Casual Learner</option>
+                        <option value="serious" className="bg-[#020617]">Academic Performance</option>
+                        <option value="professional" className="bg-[#020617]">Professional Career</option>
                     </select>
                 </SettingCard>
+                
                 <div className="md:col-span-2">
-                    <SettingCard icon={<Clock size={20} />} label="Time" title="The PACE" subtitle="Set your weekly intensity level.">
-                        <div className="grid grid-cols-3 gap-4">
+                    <SettingCard icon={<Clock size={22} />} label="Intensity" title="Learning Pace" subtitle="Set your weekly intensity level.">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             {[
-                                { id: 'light', label: 'Light', desc: 'Social Pace' },
-                                { id: 'regular', label: 'Regular', desc: 'Balanced growth' },
-                                { id: 'intensive', label: 'Intensive', desc: 'Fast track' }
+                                { id: 'light', label: 'Light', desc: '15m / day' },
+                                { id: 'regular', label: 'Regular', desc: '45m / day' },
+                                { id: 'intensive', label: 'Intensive', desc: '90m / day' }
                             ].map((opt: any) => (
                                 <button
                                     key={opt.id}
                                     onClick={() => setSettings({...settings, pace: opt.id as any})}
-                                    className={`p-4 rounded-2xl border-2 transition text-left
-                                        ${settings.pace === opt.id ? 'border-blue-500 bg-blue-50/30 shadow-md shadow-blue-500/10' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}
+                                    className={`p-6 rounded-2xl border-2 transition text-left relative overflow-hidden group/opt
+                                        ${settings.pace === opt.id ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-white/5 hover:border-white/10'}
                                     `}
                                 >
-                                    <h4 className={`font-black uppercase tracking-widest text-xs ${settings.pace === opt.id ? 'text-blue-600' : 'text-slate-600'}`}>
+                                    <h4 className={`font-black uppercase tracking-widest text-xs mb-2 ${settings.pace === opt.id ? 'text-blue-400' : 'text-white/60'}`}>
                                         {opt.label}
                                     </h4>
-                                    <p className="text-[11px] text-slate-400 font-bold mt-1">{opt.desc}</p>
+                                    <p className="text-[11px] text-white/30 font-bold">{opt.desc}</p>
+                                    {settings.pace === opt.id && <div className="absolute top-0 right-0 p-3"><Zap size={14} className="text-blue-400" /></div>}
                                 </button>
                             ))}
                         </div>
