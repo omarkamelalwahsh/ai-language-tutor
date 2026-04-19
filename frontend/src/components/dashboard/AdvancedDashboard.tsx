@@ -107,6 +107,13 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     const [isLearnerLoading, setIsLearnerLoading] = React.useState(true);
 
     const fetchAllData = React.useCallback(async () => {
+        const userContext = supabaseData.user?.id;
+        
+        // تأكد من وجود المستخدم أولاً
+        if (!userContext || String(userContext) === 'undefined') {
+            return;
+        }
+
         setIsLearnerLoading(true);
         try {
             console.log('[Dashboard] Fetching fresh data...');
@@ -122,7 +129,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         } finally {
             setIsLearnerLoading(false);
         }
-    }, []);
+    }, [supabaseData.user?.id]);
 
     React.useEffect(() => {
         fetchAllData();
