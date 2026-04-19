@@ -256,26 +256,51 @@ class AssessmentService:
                 if confidence >= 0.7:
                     skill_record.current_score = max(skill_record.current_score or 0.0, float(new_bp))
                 
-                # B. CEFR Window (Proficiency Engine)
-                if confidence >= 0.7:
-                    buffer = list(getattr(skill_record, 'stability_buffer', []) or [])
-                    buffer.append(predicted_level)
-                    buffer = buffer[-3:]
-                    skill_record.stability_buffer = buffer
-                    
-                    valid_levels = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
-                    curr_val = valid_levels.get(skill_record.current_proficiency_level or "A1", 0)
-                    new_val = valid_levels.get(predicted_level, 0)
-                    
-                    # Upgrade quickly if higher capability is demonstrated
-                    if new_val > curr_val:
-                        skill_record.current_proficiency_level = predicted_level
-                        skill_record.current_level = predicted_level # Legacy
-                        skill_record.proficiency_confidence = max(skill_record.proficiency_confidence or 0.0, confidence)
-                    # Downgrade slowly only if 3 consecutive answers are lower
-                    elif new_val < curr_val and len(buffer) == 3 and len(set(buffer)) == 1:
-                        skill_record.current_proficiency_level = predicted_level
-                        skill_record.current_level = predicted_level # Legacy
+                    # B. CEFR Window (Proficiency Engine)
+                    if confidence >= 0.7:
+                        buffer = list(getattr(skill_record, 'stability_buffer', []) or [])
+                        is_initial_baseline = len(buffer) == 0
+                        buffer.append(predicted_level)
+                        buffer = buffer[-3:]
+                        skill_record.stability_buffer = buffer
+                        
+                        valid_levels = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
+                        curr_val = valid_levels.get(skill_record.current_proficiency_level or "A1", 0)
+                        new_val = valid_levels.get(predicted_level, 0)
+                        
+                        # Case 1: Initial Baseline (First Strike)
+                        if is_initial_baseline:
+                            logging.info(f"[Proficiency] Initial baseline for {s_name} set to {predicted_level}")
+                            skill_record.current_proficiency_level = predicted_level
+                            skill_record.current_level = predicted_level
+                            skill_record.proficiency_confidence = max(skill_record.proficiency_confidence or 0.0, confidence)
+                        
+                        # Case 2: Potential Upgrade (2-Strike Rule)
+                        elif new_val > curr_val:
+                            # Verify if the last 2 samples are BOTH higher than current level
+                            last_2_vals = [valid_levels.get(b, 0) for b in buffer[-2:]]
+                            if len(last_2_vals) >= 2 and all(v > curr_val for v in last_2_vals):
+                                # Upgrade to the conservative minimum of the validated spikes
+                                upgrade_target = min(buffer[-2:], key=lambda x: valid_levels.get(x, 0))
+                                logging.info(f"[Proficiency] UPGRADE: {s_name} {skill_record.current_proficiency_level} -> {upgrade_target}")
+                                skill_record.current_proficiency_level = upgrade_target
+                                skill_record.current_level = upgrade_target
+                                skill_record.proficiency_confidence = max(skill_record.proficiency_confidence or 0.0, confidence)
+                            else:
+                                logging.info(f"[Proficiency] Upgrade buffered: {s_name} detected {predicted_level}, waiting for consistent evidence.")
+                        
+                        # Case 3: Potential Downgrade (3-Strike Rule)
+                        elif new_val < curr_val:
+                            # Verify if the last 3 samples are ALL lower than current level
+                            last_3_vals = [valid_levels.get(b, 0) for b in buffer[-3:]]
+                            if len(last_3_vals) >= 3 and all(v < curr_val for v in last_3_vals):
+                                # Downgrade to the highest of the lower samples (conservative drop)
+                                downgrade_target = max(buffer[-3:], key=lambda x: valid_levels.get(x, 0))
+                                logging.info(f"[Proficiency] DOWNGRADE: {s_name} {skill_record.current_proficiency_level} -> {downgrade_target}")
+                                skill_record.current_proficiency_level = downgrade_target
+                                skill_record.current_level = downgrade_target
+                            else:
+                                logging.info(f"[Proficiency] Downgrade buffered: {s_name} detected {predicted_level}, stability maintained.")
 
             # 8. REAL-TIME ERROR ANALYSIS: If incorrect, record it immediately
             if not is_correct:

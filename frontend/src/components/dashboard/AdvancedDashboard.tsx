@@ -137,8 +137,57 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
     const isLoading = (supabaseData.isLoading || isLearnerLoading) && !result;
 
+    // --- Hybrid Recovery: Fallback KPI Calculation ---
+    const calculateFallbackKPIs = React.useCallback((sData: any) => {
+        const skills = sData?.skills || [];
+        const profile = sData?.profile || {};
+        const history = sData?.history || [];
+        
+        // 1. Momentum (Based on streak)
+        const momentum = Math.min(100, (profile.streak || 0) * 10);
+        
+        // 2. Weekly Minutes (Sum of recent sessions)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const weeklyMinutes = history
+            .filter((h: any) => new Date(h.createdAt || h.created_at) >= sevenDaysAgo)
+            .reduce((acc: number, h: any) => acc + (h.durationMs || 0), 0) / 60000;
+
+        // 3. Active Errors
+        const activeErrors = (sData?.errorProfile?.weakness_areas || []).length;
+
+        // 4. Due Reviews
+        const dueReviews = skills.filter((s: any) => 
+            (s.proficiency_confidence || s.confidence || 0) < 0.5
+        ).length;
+
+        return {
+            momentum: Math.round(momentum),
+            weekly_minutes: Math.round(weeklyMinutes),
+            active_errors: activeErrors,
+            due_reviews: dueReviews
+        };
+    }, []);
+
+    const mergedDashboardData = useMemo(() => {
+        if (!realtimeData) return null;
+        
+        const apiKPIs = realtimeData.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
+        // If API returns all zeros, it might be a sync delay on live. Recover from Supabase.
+        const needsRecovery = apiKPIs.momentum === 0 && apiKPIs.weekly_minutes === 0 && apiKPIs.active_errors === 0;
+
+        if (needsRecovery && supabaseData.profile) {
+            console.log('[Dashboard] Entering Hybrid Recovery Mode: Using Supabase data for KPIs');
+            return {
+                ...realtimeData,
+                kpis: calculateFallbackKPIs(supabaseData)
+            };
+        }
+        return realtimeData;
+    }, [realtimeData, supabaseData, calculateFallbackKPIs]);
+
     // 🎯 Dynamic Name Selection: API Data > Profile Data > Auth Data > Fallback
-    const displayName = realtimeData?.profile?.full_name || supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
+    const displayName = mergedDashboardData?.profile?.full_name || realtimeData?.profile?.full_name || supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
 
     console.log('User Context:', supabaseData.user?.id);
 
@@ -266,7 +315,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                     <HomeTab 
                                         onStartSession={props.onStartSession} 
                                         displayName={displayName} 
-                                        dashboardData={realtimeData} 
+                                        dashboardData={mergedDashboardData} 
                                     />
                                 )
                             )}
@@ -274,10 +323,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             {activeTab === 'analytics' && (
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
-                                    dashboardData={realtimeData}
+                                    dashboardData={mergedDashboardData}
                                     weaknesses={supabaseData.errorProfile?.weakness_areas || []}
                                     mistakes={supabaseData.errorProfile?.common_mistakes || []}
-                                    actionPlan={realtimeData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || "Generating your path..."}
+                                    actionPlan={mergedDashboardData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || "Generating your path..."}
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
