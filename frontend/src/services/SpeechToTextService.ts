@@ -18,7 +18,8 @@ export class SpeechToTextService {
 
       console.log(`[SpeechToTextService] Sending audio for transcription (${(audioBlob.size / 1024).toFixed(1)} KB)`);
 
-      const response = await fetch('/api/transcribe', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${baseUrl}/api/transcribe`, {
         method: 'POST',
         // Note: fetch will automatically set the correct Content-Type with the boundary for FormData
         body: formData, 

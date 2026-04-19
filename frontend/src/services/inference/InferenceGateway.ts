@@ -11,7 +11,9 @@ interface ChatMessage {
 
 class InferenceGateway {
   // بنكلم الـ Proxy بتاعنا على Vercel مش Groq مباشرة
-  private static readonly PROXY_ENDPOINT = '/api/chat';
+  private static get PROXY_ENDPOINT() {
+    return import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/chat` : '/api/chat';
+  }
 
   /**
    * الدالة الرئيسية لطلب الرد من الـ AI
