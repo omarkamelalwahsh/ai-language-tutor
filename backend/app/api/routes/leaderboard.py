@@ -10,8 +10,14 @@ router = APIRouter()
 @router.get("")
 async def get_leaderboard(db: AsyncSession = Depends(get_db)):
     try:
-        # Fetch profiles sorted by overall_level (simplified ranking for now)
-        stmt = select(LearnerProfile).where(LearnerProfile.onboarding_complete == True).limit(50)
+        # Fetch profiles sorted by xp_points (Primary Rank) then streak
+        stmt = select(LearnerProfile).where(
+            LearnerProfile.onboarding_complete == True
+        ).order_by(
+            desc(LearnerProfile.xp_points),
+            desc(LearnerProfile.streak)
+        ).limit(50)
+        
         result = await db.execute(stmt)
         profiles = result.scalars().all()
 
@@ -19,14 +25,14 @@ async def get_leaderboard(db: AsyncSession = Depends(get_db)):
         for index, profile in enumerate(profiles):
             leaderboard.append({
                 "userId": str(profile.id),
-                "displayName": profile.full_name or "Aspiring Learner",
+                "displayName": profile.full_name or "Anonymous Learner",
                 "rank": index + 1,
-                "score": 1000 + (len(profiles) - index) * 100,
-                "streak": 5,
-                "completedModules": 12,
-                "level": profile.overall_level or "B1",
-                "lastActivityAt": "Active",
-                "teamName": "Global"
+                "score": profile.xp_points or 0,
+                "streak": profile.streak or 0,
+                "completedModules": profile.total_questions_answered or 0,
+                "level": profile.overall_level or "A1",
+                "lastActivityAt": "Active" if profile.last_active_at else "Member",
+                "teamName": "Global Academy"
             })
         
         return leaderboard

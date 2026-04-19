@@ -20,26 +20,25 @@ export const mockAdminStats: AdminDashboardStats = {
 };
 
 export class AdminService {
-  static async getDashboardStats(): Promise<AdminDashboardStats> {
+  static async getDashboardStats(): Promise<AdminDashboardStats | null> {
     try {
       const res = await fetch('/api/admin/stats');
       if (res.ok) return await res.json();
     } catch (e) {
-      console.warn('[AdminService] Admin stats fetch failed, using fallback', e);
+      console.warn('[AdminService] Admin stats fetch failed', e);
     }
-    return mockAdminStats;
+    return null;
   }
 
   static async getLeaderboard(): Promise<LeaderboardEntry[]> {
     try {
       const res = await fetch('/api/leaderboard');
       if (res.ok) {
-        const data = await res.json();
-        return data.length > 0 ? data : mockLeaderboardData; // Fallback to mocks only if empty for now
+        return await res.json();
       }
     } catch (e) {
-      console.warn('[AdminService] Leaderboard fetch failed, using fallback', e);
+      console.warn('[AdminService] Leaderboard fetch failed', e);
     }
-    return mockLeaderboardData;
+    return [];
   }
 }

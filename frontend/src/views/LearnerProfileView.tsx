@@ -374,3 +374,5 @@ const Sparkles = ({ className, fill }: { className?: string, fill?: string }) =>
         <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
+
+export default LearnerProfileView;

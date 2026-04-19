@@ -141,3 +141,5 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
     </div>
   );
 };
+
+export default AdminLeaderboardView;

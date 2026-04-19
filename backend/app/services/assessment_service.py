@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select, update, func
-from uuid import UUID
+from uuid import UUID, uuid4
 import json
 import logging
 import traceback
@@ -154,6 +154,7 @@ class AssessmentService:
                 difficulty_val = item.difficulty
 
             insert_stmt = insert(AssessmentResponse).values(
+                id=uuid4(),
                 assessment_id=item.assessment_id,
                 user_id=item.user_id,
                 question_id=item.question_id,
@@ -185,6 +186,7 @@ class AssessmentService:
 
             # 6b. Record detailed log in assessment_logs table
             new_log = AssessmentLog(
+                id=uuid4(),
                 assessment_id=item.assessment_id,
                 user_id=item.user_id,
                 question=item.prompt,
@@ -206,66 +208,74 @@ class AssessmentService:
             )
             self.db.add(new_log)
 
-            # 7. SKILLS TRACKING: Update skill_states table (new column names)
-            skill_name = (item.skill or "general").lower()
-            skill_stmt = select(UserSkill).where(
-                UserSkill.user_id == item.user_id,
-                UserSkill.skill == skill_name
-            )
-            skill_record = (await self.db.execute(skill_stmt)).scalar_one_or_none()
+            # 7. MULTI-SKILL TRACKING: Update skill_states table
+            # Primary Skill
+            primary_skill = (item.skill or "general").lower()
             
-            if not skill_record:
-                skill_record = UserSkill(
-                    user_id=item.user_id,
-                    skill=skill_name,
-                    category=item.skill,
-                    xp_points=0,
-                    current_proficiency_level="A1",
-                    proficiency_confidence=0.0,
-                    stability_buffer=[]
+            # Sub-skills for Inference (Speaking/Writing only)
+            inferred_skills = []
+            if primary_skill in OPEN_ENDED_SKILLS:
+                if "vocabulary_score" in raw_json:
+                    inferred_skills.append(("vocabulary", float(raw_json["vocabulary_score"])))
+                if "grammar_score" in raw_json:
+                    inferred_skills.append(("grammar", float(raw_json["grammar_score"])))
+
+            # 🚀 Unified Skill Sync Loop
+            for s_name, s_score in [(primary_skill, score)] + inferred_skills:
+                skill_stmt = select(UserSkill).where(
+                    UserSkill.user_id == item.user_id,
+                    UserSkill.skill == s_name
                 )
-                self.db.add(skill_record)
-                await self.db.flush()
-            
-            # --- A. The XP Flow (Engagement Engine) ---
-            prof_stmt = select(LearnerProfile).where(LearnerProfile.id == item.user_id)
-            profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
-            streak_multiplier = 1.2 if (profile and getattr(profile, 'streak', 0) >= 3) else 1.0
-            
-            base_xp = 5 if is_correct else -2
-            awarded_xp = int(base_xp * streak_multiplier) if is_correct else base_xp
-            skill_record.xp_points = max(0, (getattr(skill_record, 'xp_points', 0) or 0) + awarded_xp)
-            
-            # Weighted scoring (Legacy backward compatibility)
-            if is_correct:
-                skill_record.current_score += 5.0
-            else:
-                skill_record.current_score = max(0.0, skill_record.current_score - 2.0)
-            
-            # --- B. The CEFR Flow (Proficiency Engine) ---
-            # Confidence Threshold: Ignore the LLM's detected_level if it hallucinates low confidence
-            if confidence >= 0.7:
-                # Maintain Sliding Window of 3
-                buffer = list(getattr(skill_record, 'stability_buffer', []) or [])
-                buffer.append(predicted_level)
-                buffer = buffer[-3:]
-                skill_record.stability_buffer = buffer
+                skill_record = (await self.db.execute(skill_stmt)).scalar_one_or_none()
                 
-                # Consistency Gate (Require 3 consecutive same-level detections for upgrade)
-                if len(buffer) == 3 and len(set(buffer)) == 1:
-                    candidate_level = buffer[0]
+                if not skill_record:
+                    skill_record = UserSkill(
+                        user_id=item.user_id,
+                        skill=s_name,
+                        category=s_name.capitalize(),
+                        xp_points=0,
+                        current_score=0.0,
+                        current_proficiency_level="A1",
+                        proficiency_confidence=0.0,
+                        stability_buffer=[]
+                    )
+                    self.db.add(skill_record)
+                    await self.db.flush()
+                
+                # A. XP & Score (Basis Points: 0-10000)
+                is_this_correct = s_score >= 0.5
+                base_xp = 5 if is_this_correct else -2
+                skill_record.xp_points = max(0, (skill_record.xp_points or 0) + base_xp)
+                
+                # Update current_score (0-10000 BP)
+                # s_score is 0-1.0, so 0.82 -> 8200
+                new_bp = int(s_score * 10000)
+                # Weighted average for stability or just take the new high if credible?
+                # For now, we take max(current, new) for diagnostic phase or weighted average for learning phase.
+                # Diagnostic mode: we want the highest credible evidence.
+                if confidence >= 0.7:
+                    skill_record.current_score = max(skill_record.current_score or 0.0, float(new_bp))
+                
+                # B. CEFR Window (Proficiency Engine)
+                if confidence >= 0.7:
+                    buffer = list(getattr(skill_record, 'stability_buffer', []) or [])
+                    buffer.append(predicted_level)
+                    buffer = buffer[-3:]
+                    skill_record.stability_buffer = buffer
+                    
                     valid_levels = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
+                    curr_val = valid_levels.get(skill_record.current_proficiency_level or "A1", 0)
+                    new_val = valid_levels.get(predicted_level, 0)
                     
-                    curr_val = valid_levels.get(getattr(skill_record, 'current_proficiency_level', "A1"), 0)
-                    cand_val = valid_levels.get(candidate_level, 0)
-                    
-                    # Session Level Anchoring (Only upgrade, no downgrade)
-                    if cand_val > curr_val:
-                        skill_record.current_proficiency_level = candidate_level
-                        skill_record.proficiency_confidence = confidence
-                        # Update Legacy
-                        skill_record.current_level = candidate_level
-                        skill_record.confidence = confidence
+                    # Upgrade quickly if higher capability is demonstrated
+                    if new_val > curr_val:
+                        skill_record.current_proficiency_level = predicted_level
+                        skill_record.current_level = predicted_level # Legacy
+                        skill_record.proficiency_confidence = max(skill_record.proficiency_confidence or 0.0, confidence)
+                    # Downgrade slowly only if 3 consecutive answers are lower
+                    elif new_val < curr_val and len(buffer) == 3 and len(set(buffer)) == 1:
+                        skill_record.current_proficiency_level = predicted_level
+                        skill_record.current_level = predicted_level # Legacy
 
             # 8. REAL-TIME ERROR ANALYSIS: If incorrect, record it immediately
             if not is_correct:
@@ -273,11 +283,12 @@ class AssessmentService:
                 err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
                 
                 if not err_profile:
-                    err_profile = UserErrorProfile(user_id=item.user_id, full_report={})
+                    err_profile = UserErrorProfile(id=uuid4(), user_id=item.user_id, full_report={})
                     self.db.add(err_profile)
                     await self.db.flush() 
 
                 analysis = UserErrorAnalysis(
+                    id=uuid4(),
                     profile_id=err_profile.id,
                     user_id=item.user_id,
                     question_id=item.question_id,
@@ -296,7 +307,8 @@ class AssessmentService:
             # 10. Check for Auto-Completion
             await self.db.commit()
             
-            if assessment.current_index >= settings.ASSESSMENT_TOTAL_QUESTIONS or item.is_last_question:
+            # 🛑 NEVER GUESS COMPLETION: Only proceed if it is explicitly the last question
+            if getattr(item, 'is_last_question', False):
                 await self.complete_assessment(assessment.id, item.user_id)
 
             return EvaluationResponse(

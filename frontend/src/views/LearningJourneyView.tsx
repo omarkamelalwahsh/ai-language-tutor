@@ -28,11 +28,7 @@ const getNextLevel = (current: string): string => {
   return CEFR_LEVELS[idx + 1];
 };
 
-const ADAPTIVE_INTERVENTIONS = [
-  { id: 1, title: 'Grammar Repair Pack', desc: 'Auto-injected due to Past Tense instability.', icon: ShieldCheck },
-  { id: 2, title: 'Retention Booster', desc: 'Smart recall for 12 critical vocab items.', icon: Zap },
-  { id: 3, title: 'Accent Neutralizer', desc: 'Focusing on phoneme /θ/ based on latest recording.', icon: Mic }
-];
+const ADAPTIVE_INTERVENTIONS: any[] = [];
 
 // ---------------------------------------------------------------------------
 // Reusable Mini-Components
@@ -419,9 +415,9 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                  <MapPin className="text-indigo-400" /> Current Stop Goals
               </h3>
               <div className="space-y-4">
-                <GoalItem title="Complex Sentiment Analysis" desc="Ability to identify sarcasm and nuance in native dialogue." />
-                <GoalItem title="Hedging with Conditionals" desc="Mastering 'might have' and 'could have' for polite uncertainty." />
-                <GoalItem title="Narrative Fluency" desc="Connecting 3+ distinct events into a cohesive spoken summary." />
+                {nodes.slice(0, 3).map((node, i) => (
+                  <GoalItem key={node.id} title={parseLinguisticContent(node.title)} desc={parseLinguisticContent(node.description)} />
+                ))}
               </div>
             </div>
 
@@ -498,3 +494,5 @@ const GoalItem = ({ title, desc }: any) => (
     </div>
   </div>
 );
+
+export default LearningJourneyView;

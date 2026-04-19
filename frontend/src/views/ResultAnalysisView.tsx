@@ -29,6 +29,67 @@ interface ResultAnalysisViewProps {
   onReview?: () => void;
 }
 
+// --- Custom Cybernetic Atoms ---
+
+const MasteryBadge = ({ level, label, arLabel, confidence }: { level: string, label: string, arLabel: string, confidence: number }) => (
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    className="relative group cursor-default"
+  >
+    <div className="absolute inset-0 bg-cyan-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-cyan-500/40 transition-all" />
+    <div className="relative bg-slate-950/60 backdrop-blur-3xl border-2 border-cyan-500/30 rounded-[2.5rem] p-8 text-center overflow-hidden">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400 mb-2">Core Mastery</p>
+      <h3 className="text-8xl font-black text-white leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+        {level}
+      </h3>
+      <div className="mt-4 space-y-1">
+        <p className="text-xl font-black text-white uppercase tracking-tight">{label}</p>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{arLabel}</p>
+      </div>
+      
+      {/* Confidence Bar */}
+      <div className="mt-8 flex items-center justify-center gap-3">
+         <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${confidence * 100}%` }}
+              className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500"
+            />
+         </div>
+         <span className="text-[10px] font-black text-cyan-400">{Math.round(confidence * 100)}% DETECTED</span>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const ChasingLightButton = ({ children, loading, onClick, className = "", variant = "cyan" }: { children: React.ReactNode, loading?: boolean, onClick?: () => void, className?: string, variant?: 'cyan' | 'indigo' }) => {
+  const colors = {
+    cyan: "bg-[conic-gradient(from_90deg_at_50%_50%,#00FFFF_0%,#4F46E5_50%,#00FFFF_100%)]",
+    indigo: "bg-[conic-gradient(from_90deg_at_50%_50%,#4F46E5_0%,#C084FC_50%,#4F46E5_100%)]"
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className={`relative group p-[2px] rounded-2xl overflow-hidden transition-all active:scale-95 ${className}`}
+    >
+      <div className={`absolute inset-[-1000%] animate-[spin_4s_linear_infinite] ${colors[variant === 'cyan' ? 'cyan' : 'indigo']} opacity-30 group-hover:opacity-100 transition-opacity`} />
+      <div className={`relative w-full h-full bg-slate-950/80 backdrop-blur-xl rounded-[14px] px-8 py-5 flex items-center justify-center gap-3 border border-white/5 group-hover:bg-slate-900/40 transition-colors`}>
+        {loading ? (
+          <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
+        ) : (
+          <span className="text-white font-black uppercase tracking-[0.2em] drop-shadow-glow flex items-center gap-3">
+            {children}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+};
+
 export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   result,
   assessmentOutcome,
@@ -55,15 +116,15 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   const isWritingMissing = (result.skills.writing?.evidenceCount ?? 0) === 0;
   const isProvisional = isSpeakingMissing || isWritingMissing;
 
-  const confidenceLabel = result.overall.confidence >= 0.8 ? `Confident ${result.overall.estimatedLevel}` :
-    result.overall.confidence >= 0.5 ? `Likely ${result.overall.estimatedLevel}` :
-      `${result.overall.estimatedLevel} emerging`;
+  const confidenceLabel = (result?.overall?.confidence ?? 0) >= 0.8 ? `Confident ${result?.overall?.estimatedLevel ?? '?'}` :
+    (result?.overall?.confidence ?? 0) >= 0.5 ? `Likely ${result?.overall?.estimatedLevel ?? '?'}` :
+      `${result?.overall?.estimatedLevel ?? '?'} emerging`;
 
   // 2. Local Skill Logic
   const BATTERY_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary', 'writing', 'speaking'];
 
   const skills = useMemo(() => {
-    return [...(Object.values(result.skills) as SkillAssessmentResult[])]
+    return [...(Object.values(result?.skills || {}) as SkillAssessmentResult[])]
       .filter(s => BATTERY_SKILLS.includes(s.skill))
       .sort((a, b) => (a.masteryScore ?? 0) - (b.masteryScore ?? 0));
   }, [result]);
@@ -74,8 +135,8 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   // 🔥 INSTANT RADAR: Derived from assessmentResult props
   const radarData = useMemo(() => {
     return BATTERY_SKILLS.map(s => {
-      const skillRes = result.skills[s.toLowerCase()] as SkillAssessmentResult;
-      const pct = skillRes ? Math.round(((skillRes.masteryScore ?? skillRes.confidence.score) || 0.5) * 100) : 50;
+      const skillRes = result?.skills?.[s.toLowerCase()] as SkillAssessmentResult;
+      const pct = skillRes ? Math.round(((skillRes.masteryScore ?? skillRes.confidence?.score) || 0.5) * 100) : 50;
       return {
         subject: s.charAt(0).toUpperCase() + s.slice(1),
         A: pct,
@@ -117,12 +178,14 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
     'A1': { en: 'Beginner', ar: 'مبتدئ' },
     'A2': { en: 'Elementary', ar: 'فوق المبتدئ' },
     'B1': { en: 'Intermediate', ar: 'متوسط' },
+    'B1+': { en: 'Independent User', ar: 'مستقل (B1+)' },
     'B2': { en: 'Upper Intermediate', ar: 'فوق المتوسط' },
     'C1': { en: 'Advanced', ar: 'متقدم' },
-    'C2': { en: 'Proficiency', ar: 'خبير' },
+    'C2': { en: 'Proficiency', ar: 'خبير / طلاقة' },
   };
 
-  const levelInfo = levelNames[normalizeBand(result.overall.estimatedLevel)] || { en: 'Learning', ar: 'متعلم' };
+  const rawLevel = result?.overall?.estimatedLevel || 'A1';
+  const levelInfo = levelNames[rawLevel] || levelNames[normalizeBand(rawLevel)] || { en: 'Learning', ar: 'متعلم' };
 
   const handleFinalize = async () => {
     if (isFinalizing) return;
@@ -145,184 +208,229 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20 selection:bg-indigo-100">
-      {/* 🚀 Header Banner */}
-      <div className="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] py-6 px-8 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
-        <h1 className="text-2xl md:text-3xl font-black text-white relative z-10 tracking-tight">
-          Career Copilot - Unified Mastery Path
-        </h1>
+    <div className="min-h-screen bg-[#020617] text-white selection:bg-cyan-500/30 overflow-x-hidden prestige-gpu">
+      {/* Background Atmosphere */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[160px]" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[140px]" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSdub2lzZUZpbHRlcic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzMnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbm9pc2VGaWx0ZXIpJy8+PC9zdmc+')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10">
-        <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8">
+      {/* 🚀 Header */}
+      <div className="w-full relative z-10 border-b border-white/5 bg-slate-950/20 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+              <ShieldCheck className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-black tracking-tighter uppercase">Unified Mastery Analysis</h1>
+              <p className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">Quantified Linguistic Intelligence</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+             <div className="text-right hidden md:block">
+               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocol Version</p>
+               <p className="text-xs font-bold text-white uppercase tracking-widest">3.1 - Career Copilot</p>
+             </div>
+             <motion.div 
+               animate={{ opacity: [0.5, 1, 0.5] }}
+               transition={{ duration: 2, repeat: Infinity }}
+               className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full"
+             >
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Sync Active</span>
+             </motion.div>
+          </div>
+        </div>
+      </div>
 
-          {/* ================= LEFT COLUMN ================= */}
-          <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 relative z-10">
+        <div className="grid lg:grid-cols-[400px_1fr] gap-12 items-start">
 
-            {/* User Profile Summary */}
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-indigo-900/5 border border-slate-100 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                <Target size={120} />
+          {/* ================= LEFT COLUMN (PROFILE) ================= */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-8"
+          >
+            <MasteryBadge 
+              level={rawLevel}
+              label={levelInfo.en}
+              arLabel={levelInfo.ar}
+              confidence={result?.overall?.confidence ?? 0}
+            />
+
+            {/* Radar Analysis */}
+            <div className="bg-slate-950/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px]">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Skill Calibration</h3>
+                <BarChart3 className="text-indigo-400 w-4 h-4" />
               </div>
-
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center border-4 border-white shadow-md">
-                  <Zap className="w-8 h-8 text-indigo-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black text-slate-900">Career Copilot</h2>
-                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Linguistic Profile</p>
-                </div>
-              </div>
-
-              {/* Level Card */}
-              <div className="bg-white rounded-3xl p-6 border-2 border-slate-50 shadow-inner mb-6 relative">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Current Level:</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-6xl font-black text-slate-900 leading-none">{normalizeBand(result.overall.estimatedLevel)}</span>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-indigo-600">{levelInfo.en}</span>
-                        <span className="text-xs font-bold text-slate-400">({levelInfo.ar})</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-1.5 h-16 bg-slate-100 rounded-full relative overflow-hidden">
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${result.overall.confidence * 100}%` }}
-                      className="absolute bottom-0 w-full bg-indigo-500 rounded-full"
+              
+              <div className="h-full w-full -mt-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                    <PolarAngleAxis 
+                      dataKey="subject" 
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} 
                     />
-                  </div>
-                </div>
+                    <Radar
+                      name="Learner"
+                      dataKey="A"
+                      stroke="#00FFFF"
+                      strokeWidth={2}
+                      fill="#4F46E5"
+                      fillOpacity={0.3}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* Point Summary */}
-              <div className="flex items-center justify-between px-2 mb-8">
-                <div className="flex items-center gap-3">
-                  <span className="text-slate-500 font-bold text-sm">Point Summary:</span>
-                  <div className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full border border-amber-100">
-                    <Zap size={14} className="fill-amber-500" />
-                    <span className="font-black">{totalPoints}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-indigo-50 text-indigo-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tight">تصميم</span>
-                  <span className="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tight">متوسط</span>
-                </div>
+              {/* Skill Legend */}
+              <div className="absolute bottom-10 left-8 right-8 grid grid-cols-2 gap-4">
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase">Peak Performance</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase">Growth Potential</span>
+                 </div>
               </div>
-
-              {/* Focus Skills */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2 mb-4">Focus Skills:</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {(report?.growth_areas || weaknesses).slice(0, 4).map((area: string, i: number) => {
-                    const icons = [<BookOpen />, <Mic />, <Zap />, <PenTool />];
-                    return (
-                      <div key={i} className="flex flex-col items-center text-center p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 hover:border-indigo-300 transition-colors">
-                        <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 mb-3">
-                          {React.cloneElement(icons[i % 4] as any, { size: 20 })}
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-700 leading-tight">{area}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid gap-3 mt-10">
-                <button
-                  onClick={handleFinalize}
-                  disabled={isFinalizing}
-                  className="w-full bg-[#3B82F6] hover:bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  <Map size={20} />
-                  <span>{isFinalizing ? 'Architecting...' : 'Start Your Journey (Dashboard)'}</span>
-                </button>
-                <button
-                  onClick={() => onReview ? onReview() : document.getElementById('question-analysis')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="w-full bg-white hover:bg-slate-50 text-[#1E293B] font-black py-4 rounded-2xl border-2 border-slate-100 flex items-center justify-center gap-3 transition-all active:scale-95"
-                >
-                  <RefreshCw size={20} />
-                  <span>View Completed Answers (Review)</span>
-                </button>
-              </div>
-              <p className="text-[10px] text-center text-slate-400 font-bold mt-4 uppercase tracking-widest">Click to proceed or review your answers</p>
             </div>
 
-          </div>
-
-          {/* ================= RIGHT COLUMN (ROADMAP) ================= */}
-          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-indigo-900/5 border border-slate-100 flex flex-col items-center">
-
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-black text-slate-900 mb-2">Career Copilot's Journey Roadmap</h2>
-              <div className="h-1.5 w-20 bg-indigo-600 rounded-full mx-auto" />
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Diagnostic Points</p>
+                  <p className="text-2xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]">{totalPoints}</p>
+               </div>
+               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Success Rate</p>
+                  <p className="text-2xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{Math.round((history.filter((h:any)=>h.correct).length / Math.max(1, history.length)) * 100)}%</p>
+               </div>
             </div>
+          </motion.div>
 
-            <div className="relative w-full max-w-lg">
-              {/* Path Connector SVG */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minHeight: '600px' }}>
-                <path
-                  d="M 50% 100% C 50% 80%, 90% 80%, 90% 60% S 10% 40%, 10% 20% S 50% 20%, 50% 0"
-                  stroke="#E2E8F0"
-                  strokeWidth="4"
-                  fill="none"
-                  strokeDasharray="8 8"
-                />
-                <motion.path
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 2, ease: "easeInOut" }}
-                  d="M 50 550 L 350 450 L 50 350 L 350 250 L 200 100" // Simplified for logic
-                  className="hidden md:block"
-                  stroke="rgba(79, 70, 229, 0.1)"
-                  strokeWidth="80"
-                  fill="none"
-                />
-              </svg>
+          {/* ================= RIGHT COLUMN (JOURNEY) ================= */}
+          <div className="space-y-8">
+            <div className="bg-slate-950/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 md:p-14 relative overflow-hidden">
+               {/* Roadmap Header */}
+               <div className="mb-14 flex items-center justify-between relative z-10">
+                 <div>
+                   <h3 className="text-3xl font-black tracking-tighter uppercase bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Journey Roadmap</h3>
+                   <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mt-1">AI Optimized Trajectory</p>
+                 </div>
+                 <Sparkles className="text-cyan-400 w-8 h-8 animate-pulse" />
+               </div>
 
-              <div className="flex flex-col gap-10 relative z-10 w-full">
+               <div className="relative z-10 py-10">
+                  {/* Path Connector SVG */}
+                  <div className="absolute inset-0 pointer-events-none opacity-20">
+                     <svg className="w-full h-full" viewBox="0 0 400 600">
+                        <motion.path
+                          d="M 200 600 L 300 480 L 100 360 L 300 240 L 200 120"
+                          fill="none"
+                          stroke="url(#pathGradient)"
+                          strokeWidth="4"
+                          strokeDasharray="10 10"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2 }}
+                        />
+                        <defs>
+                          <linearGradient id="pathGradient" x1="0" y1="0" x2="0" y2="1">
+                             <stop offset="0%" stopColor="#00FFFF" />
+                             <stop offset="100%" stopColor="#4F46E5" />
+                          </linearGradient>
+                        </defs>
+                     </svg>
+                  </div>
 
-                {/* 🌟 FINAL MASTER NODE */}
-                <div className="flex justify-center mb-4">
-                  <div className="bg-white border-2 border-indigo-100 p-6 rounded-3xl shadow-lg text-center w-56 relative group">
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-amber-400 text-white p-2 rounded-full shadow-lg">
-                      <Sparkles size={20} />
+                  <div className="space-y-16">
+                    {/* Final Mastery Node */}
+                    <div className="flex justify-center -mb-8">
+                       <motion.div 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#020617] border-2 border-cyan-500/50 p-6 rounded-[2rem] shadow-[0_0_30px_rgba(0,255,255,0.2)] text-center w-64 relative group"
+                       >
+                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                           End Goal
+                         </div>
+                         <h4 className="font-black text-white text-xl">C2 TOTAL MASTERY</h4>
+                         <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mt-1">Native Proficiency</p>
+                       </motion.div>
                     </div>
-                    <h4 className="font-black text-slate-900 text-lg">Final C2 Mastery</h4>
-                    <p className="text-xs font-bold text-emerald-500 uppercase tracking-tighter">Mastery Achieved</p>
+
+                    <div className="space-y-24">
+                      {RoadmapSteps(nodes, isArchitecting)}
+                    </div>
+
+                    {/* Start Node */}
+                    <div className="flex justify-center -mt-8">
+                        <div className="bg-indigo-600 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(79,70,229,0.3)] text-center w-72 border-b-4 border-slate-950/30">
+                         <h4 className="font-black text-white text-xl uppercase italic tracking-tighter">Diagnostic Origin</h4>
+                         <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mt-1">Initial Level: {normalizeBand(result?.overall?.estimatedLevel || 'A1')}</p>
+                       </div>
+                    </div>
                   </div>
-                </div>
+               </div>
 
-                <div className="space-y-16">
-                  {RoadmapSteps(nodes, isArchitecting)}
-                </div>
+               {/* CTA Area */}
+               <div className="mt-20 pt-16 border-t border-white/5 flex flex-col md:flex-row gap-6 relative z-10">
+                  <ChasingLightButton
+                    onClick={handleFinalize}
+                    loading={isFinalizing}
+                    variant="cyan"
+                    className="flex-1"
+                  >
+                    <Target size={20} />
+                    {isFinalizing ? 'CALIBRATING...' : 'Initialize Full Dashboard'}
+                  </ChasingLightButton>
+                  
+                  <ChasingLightButton
+                    onClick={() => onReview ? onReview() : document.getElementById('question-analysis')?.scrollIntoView({ behavior: 'smooth' })}
+                    variant="indigo"
+                    className="flex-1"
+                  >
+                    <RefreshCw size={20} />
+                    Review All Answers
+                  </ChasingLightButton>
+               </div>
+               
+               <p className="text-center text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mt-8 italic">
+                 Click above to finalize your linguistic twin profile.
+               </p>
+            </div>
 
-                {/* 📍 START NODE */}
-                <div className="flex justify-center mt-4">
-                  <div className="bg-slate-900 p-6 rounded-3xl shadow-2xl text-center w-64 border-b-4 border-indigo-500">
-                    <h4 className="font-black text-white text-lg">Current {normalizeBand(result.overall.estimatedLevel)} Mastery</h4>
-                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">(Current {normalizeBand(result.overall.estimatedLevel)} Level)</p>
+            {/* Skill focus area */}
+            <div className="grid md:grid-cols-2 gap-6">
+                {(report?.growth_areas || weaknesses).slice(0, 2).map((area: string, i: number) => (
+                  <div key={i} className="bg-slate-950 border border-white/5 p-6 rounded-[2rem] flex items-center gap-6 group hover:border-cyan-500/30 transition-all">
+                     <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-all">
+                        <Sparkles size={24} />
+                     </div>
+                     <div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Growth Vector {i+1}</p>
+                        <h4 className="text-sm font-black text-white">{area}</h4>
+                     </div>
                   </div>
-                </div>
-
-              </div>
-
-              <p className="text-xs text-center text-slate-400 font-bold mt-12 uppercase tracking-widest">
-                Mastery Progress from {normalizeBand(result.overall.estimatedLevel)} to Final C2
-              </p>
+                ))}
             </div>
           </div>
-
         </div>
 
-        {/* Question Analysis Footer */}
-        <div id="question-analysis" className="mt-20">
-          <QuestionAnalysis questions={report?.question_analysis} />
+        {/* Question Analysis (Hidden but available via scroll) */}
+        <div id="question-analysis" className="mt-32">
+           <div className="flex items-center gap-6 mb-12">
+              <h2 className="text-4xl font-black tracking-tighter uppercase italic">Raw Diagnostic Log</h2>
+              <div className="h-px flex-1 bg-white/5" />
+           </div>
+           <QuestionAnalysis questions={report?.question_analysis} />
         </div>
       </div>
     </div>
@@ -344,22 +452,28 @@ const RoadmapSteps = (nodes: any[], isArchitecting: boolean) => {
       align: i % 2 === 0 ? 'right' : 'left'
     }));
 
-  return steps.map((step, i) => (
-    <div key={i} className={`flex w-full ${step.align === 'left' ? 'justify-start' : 'justify-end'} relative`}>
-      <motion.div
-        initial={{ opacity: 0, x: step.align === 'left' ? -20 : 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: i * 0.2 }}
-        className="bg-white border-2 border-slate-50 p-4 rounded-3xl shadow-sm flex items-center gap-4 w-64 group hover:border-indigo-100 transition-colors"
-      >
-        <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-          {step.icon}
+  return (
+    <div className="flex flex-col gap-24 relative">
+       {steps.map((step, i) => (
+        <div key={i} className={`flex w-full ${step.align === 'left' ? 'justify-start' : 'justify-end'} relative`}>
+          <motion.div
+            initial={{ opacity: 0, x: step.align === 'left' ? -20 : 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.2 }}
+            className="bg-slate-950/60 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-cyan-500/30 transition-all shadow-2xl"
+          >
+            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-cyan-400 shrink-0 group-hover:bg-cyan-500 group-hover:text-slate-900 transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+              {React.cloneElement(step.icon as any, { size: 24 })}
+            </div>
+            <div className="text-left overflow-hidden">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">MILESTONE {i + 1}</p>
+              <h5 className="text-sm font-black text-white line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
+            </div>
+          </motion.div>
         </div>
-        <div className="text-left overflow-hidden">
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">Zig-Zag Point {i + 1}</p>
-          <h5 className="text-xs font-black text-slate-800 line-clamp-2 leading-tight">{step.title}</h5>
-        </div>
-      </motion.div>
+      ))}
     </div>
-  ));
+  );
 };
+
+export default ResultAnalysisView;

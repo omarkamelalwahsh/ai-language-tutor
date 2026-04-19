@@ -115,3 +115,5 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onNaviga
     </div>
   );
 };
+
+export default AdminDashboardView;

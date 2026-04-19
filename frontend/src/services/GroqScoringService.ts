@@ -173,6 +173,7 @@ FINAL EVALUATION SCHEMA:
     question: AssessmentQuestion,
     answer: string,
     currentLevel: string,
+    assessmentId: string,
     isLastQuestion: boolean = false
   ): Promise<any> {
     try {
@@ -180,7 +181,7 @@ FINAL EVALUATION SCHEMA:
       const token = session?.access_token;
       const userId = session?.user?.id || localStorage.getItem('auth_user_id');
 
-      const assessmentId = (question as any)._battery?.assessmentId || 'pending-sync';
+      // 🛡️ assessmentId is now explicitly passed — no more 'pending-sync' fallback
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout

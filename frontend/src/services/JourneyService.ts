@@ -88,14 +88,20 @@ export class JourneyService {
    */
   public static async persistJourney(journey: LearnerJourneyPayload, userId: string): Promise<void> {
     try {
+      // Make deterministic IDs globally unique by combining with userId
+      const uniqueNodes = journey.nodes.map((n, i) => ({
+        ...n,
+        id: toValidUUID(`${userId}_${n.id}`)
+      }));
+
       // A. Upsert the main journey metadata
       const { data: journeyRow, error: jError } = await supabase
         .from('learning_journeys')
         .upsert({
           id: userId,
           user_id: userId,
-          nodes: journey.nodes,
-          current_node_id: journey.nodes[0]?.id || 'start',
+          nodes: uniqueNodes,
+          current_node_id: uniqueNodes[0]?.id || 'start',
           metadata: {
             journey_title: journey.journeyTitle,
             current_stage: journey.currentStage,
@@ -113,8 +119,8 @@ export class JourneyService {
       // B. Atomic Step Update: Clear and Rebuild
       await supabase.from('journey_steps').delete().eq('journey_id', journeyId);
 
-      const stepsToInsert = journey.nodes.map((node, i) => ({
-        id: node.id, // Explicitly pass the deterministic UUID
+      const stepsToInsert = uniqueNodes.map((node, i) => ({
+        id: node.id, 
         journey_id: journeyId,
         title: node.title,
         description: node.description,

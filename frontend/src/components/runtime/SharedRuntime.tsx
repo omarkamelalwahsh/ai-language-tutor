@@ -65,7 +65,7 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
   );
 };
 
-export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
+const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const supabaseData = useSupabaseDashboard();
 
   // 1. Move ALL Hooks to the top (Stably ordered)
@@ -470,3 +470,5 @@ export const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) 
     </div>
   );
 };
+
+export default SharedRuntime;

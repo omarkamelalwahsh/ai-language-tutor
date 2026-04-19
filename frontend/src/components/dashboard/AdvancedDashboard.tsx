@@ -41,6 +41,7 @@ import {
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
 } from 'recharts';
 import { DashboardSkeleton } from './DashboardSkeleton';
+import { NeuralPulseLoader } from '../common/NeuralPulseLoader';
 import { VisualErrorProfile } from './VisualErrorProfile';
 import { normalizeBand } from '../../lib/cefr-utils';
 
@@ -137,14 +138,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     // Remove the global blocking skeleton for a more fluid experience
     const isGlobalLoading = (supabaseData.isLoading) && !result;
     
-    if (isGlobalLoading) return (
-        <div className="h-screen w-full flex items-center justify-center bg-[#020617]">
-            <div className="flex flex-col items-center gap-6">
-                <Brain size={60} className="text-indigo-500 animate-pulse" />
-                <p className="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse">Initializing Environment...</p>
-            </div>
-        </div>
-    );
+    if (isGlobalLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
 
     return (
         <div className="flex h-screen bg-[#020617] text-white font-sans overflow-hidden relative selection:bg-blue-500/30">
@@ -231,7 +225,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         <div className="hidden md:block text-right">
                             <p className="text-sm font-bold text-white leading-none">{displayName}</p>
                             <p className="text-[10px] text-white/40 uppercase font-black mt-1">
-                                {normalizeBand(supabaseData.profile?.overall_level || 'A1')}
+                                {normalizeBand(supabaseData?.profile?.overall_level || 'A1')}
                             </p>
                         </div>
 
@@ -474,28 +468,28 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard 
                     label="Learning Momentum" 
-                    value={`${kpis.momentum}%`} 
+                    value={`${kpis?.momentum || 0}%`} 
                     icon={<Zap size={18} />} 
                     color="text-indigo-400" 
                     trend="+12% from last week"
                 />
                 <KPICard 
                     label="Weekly Study Time" 
-                    value={`${kpis.weekly_minutes}m`} 
+                    value={`${kpis?.weekly_minutes || 0}m`} 
                     icon={<Clock size={18} />} 
                     color="text-blue-400"
                     trend="Target: 120m"
                 />
                 <KPICard 
                     label="Active Errors" 
-                    value={kpis.active_errors} 
+                    value={kpis?.active_errors || 0} 
                     icon={<AlertCircle size={18} />} 
                     color="text-rose-400"
                     trend="Priority high"
                 />
                 <KPICard 
                     label="Due Reviews" 
-                    value={kpis.due_reviews} 
+                    value={kpis?.due_reviews || 0} 
                     icon={<Brain size={18} />} 
                     color="text-emerald-400"
                     trend="Retention stable"
@@ -514,10 +508,10 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                                     AI Selection: Best Next Move
                                 </span>
                                 <h2 className="text-4xl font-black tracking-tighter mb-4 max-w-lg">
-                                    {parseLinguisticContent(actionPanel.hero?.title || "Initialize Intelligence Model")}
+                                    {parseLinguisticContent(actionPanel?.hero?.title || "Initialize Intelligence Model")}
                                 </h2>
                                 <p className="text-white/70 text-lg font-medium mb-12 max-w-xl leading-relaxed">
-                                    {parseLinguisticContent(actionPanel.hero?.why || "Connect your profile to start receiving personalized linguistic recommendations.")}
+                                    {parseLinguisticContent(actionPanel?.hero?.why || "Connect your profile to start receiving personalized linguistic recommendations.")}
                                 </p>
                                 
                                 <div className="flex flex-wrap items-center gap-8">
@@ -691,20 +685,26 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                         <GlassCard className="p-0 border-none bg-transparent shadow-none" hover={false}>
                             <h3 className="text-sm font-black text-white/20 uppercase tracking-[0.2em] mb-4 px-2">Minor Tasks Queue</h3>
                             <div className="space-y-3">
-                                {actionPanel.queue.map((item: any) => (
-                                    <div key={item.id} className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
-                                                <Zap size={16} />
+                                {actionPanel?.queue?.length > 0 ? (
+                                    actionPanel.queue.map((item: any) => (
+                                        <div key={item?.id || Math.random()} className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
+                                                    <Zap size={16} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-white">{parseLinguisticContent(item?.title)}</h4>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-0.5">{item?.type}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-white">{parseLinguisticContent(item.title)}</h4>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-0.5">{item.type}</p>
-                                            </div>
+                                            <ChevronRight size={16} className="text-white/20 group-hover:translate-x-1 transition-transform" />
                                         </div>
-                                        <ChevronRight size={16} className="text-white/20 group-hover:translate-x-1 transition-transform" />
+                                    ))
+                                ) : (
+                                    <div className="p-10 text-center border border-dashed border-white/10 rounded-3xl opacity-20 italic text-xs uppercase tracking-widest">
+                                        Queue Empty
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </GlassCard>
                     </motion.div>
@@ -1232,6 +1232,8 @@ const EventLogItem = ({ icon, title, desc, blur }: { icon: any, title: string, d
             <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-1">{desc}</p>
         </div>
     </div>
-)
+);
+
+export default AdvancedDashboard;
 
 

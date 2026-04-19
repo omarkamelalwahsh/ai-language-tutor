@@ -120,13 +120,15 @@ export const ASSESSMENT_CONFIG = {
     'C1': 0.8, 'C2': 1.0,
   } as const,
 
-  /** Percentage → CEFR level scale */
+  /** Percentage → CEFR level scale (Professional International Thresholds) */
   CEFR_SCALE: [
     { min: 0,  max: 20,  level: 'A1' },
     { min: 21, max: 40,  level: 'A2' },
-    { min: 41, max: 60,  level: 'B1' },
-    { min: 61, max: 80,  level: 'B2' },
-    { min: 81, max: 90,  level: 'C1' },
-    { min: 91, max: 100, level: 'C2' },
+    { min: 41, max: 54,  level: 'B1' },
+    // B1+ (55-60%) is handled explicitly in CEFREngine.mapPercentageToLevel
+    { min: 55, max: 60,  level: 'B1+' },
+    { min: 61, max: 75,  level: 'B2' },
+    { min: 76, max: 85,  level: 'C1' },
+    { min: 86, max: 100, level: 'C2' },
   ] as const satisfies readonly CEFRScaleEntry[],
 };

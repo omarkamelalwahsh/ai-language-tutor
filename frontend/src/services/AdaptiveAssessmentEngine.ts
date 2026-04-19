@@ -62,6 +62,7 @@ export class AdaptiveAssessmentEngine {
   private userId: string | null = null;
   private STORAGE_KEY: string;
   public isStaticBattery: boolean = false;
+  private syncAttempts: Set<string> = new Set(); // Track synced question IDs
 
   constructor(
     _startingLevel: CEFRLevel = 'B1', 
@@ -70,31 +71,81 @@ export class AdaptiveAssessmentEngine {
     initialBattery?: BatteryQuestion[]
   ) {
     this.userId = userId; // Preferred from props
-    // Initialize with a temporary ID, will be replaced by initialize()
-    this.assessmentId = "pending-sync";
-    
+    // 🛡️ MUST BE A VALID UUID: 'fresh-start' is invalid in Supabase UUID columns
+    this.assessmentId = initialBattery ? crypto.randomUUID() : crypto.randomUUID(); 
+
     this.STORAGE_KEY = `asmt_state_${this.userId || 'guest'}`;
 
     if (initialBattery && initialBattery.length > 0) {
+      console.log(`[Engine] 🆕 New Battery Detected. Purging previous state...`);
+      this.clearState(); // 🛡️ PURGE ON START
       this.battery = initialBattery;
       this.isStaticBattery = true;
-      console.log(`[Engine] Initialized with pre-fetched static battery (${this.battery.length} questions).`);
     }
 
-    // Fixed-Length quotas: reading=8, grammar=7, listening=15, writing=5, speaking=5
-    const SKILL_TOTALS: Record<string, number> = {
-      reading: 8, grammar: 7, listening: 15, writing: 5, speaking: 5
-    };
-    Object.entries(SKILL_TOTALS).forEach(([s, total]) => {
-      this.skillScores[s] = { earned: 0, total };
+    // Fixed-Length quotas are used for battery selection, but scoring totals 
+    // must strictly accumulate difficulty weights starting from 0.
+    const SKILLS = ['reading', 'grammar', 'listening', 'writing', 'speaking', 'vocabulary'];
+    SKILLS.forEach((s) => {
+      this.skillScores[s] = { earned: 0, total: 0 };
     });
 
     // Only recover if we don't have a static battery or if we need to resume
     this.tryRecoverState();
   }
 
+
   public hasBattery(): boolean {
     return this.battery && this.battery.length > 0;
+  }
+
+  /**
+   * 🎯 AUTH SYNC: Allows the engine to receive a User ID after initialization.
+   * This is critical for new signups where the Auth context might be delayed.
+   */
+  public setUserId(userId: string) {
+    if (this.userId === userId) return;
+    
+    console.log(`[Engine] 🔐 Auth Sync: Updating UserID from ${this.userId || 'guest'} to ${userId}`);
+    this.userId = userId;
+    this.STORAGE_KEY = `asmt_state_${this.userId}`;
+    this.saveState();
+
+    // 🚀 RETROACTIVE SYNC: Flush any previously answered questions to the DB
+    if (this.answerHistory.length > 0) {
+      console.log(`[Engine] 🔄 Flushing ${this.answerHistory.length} historical answers to remote DB...`);
+      this.flushPendingSyncs();
+    }
+  }
+
+  private async flushPendingSyncs() {
+    if (!this.userId) return;
+
+    for (const record of this.answerHistory) {
+      const qid = record.questionId || record.taskId;
+      if (this.syncAttempts.has(qid)) continue;
+
+      // Find the corresponding item in the battery
+      const batteryQ = this.battery.find(bq => bq.item.id === qid);
+      if (!batteryQ) continue;
+
+      try {
+        await AssessmentSaveService.log_and_update_assessment(
+          {
+            ...batteryQ.item,
+            assessmentId: this.assessmentId,
+            difficulty_numeric: record.difficulty
+          },
+          { score: record.score, is_correct: record.correct, feedback: "" },
+          record.answer || "",
+          this.userId,
+          record.responseTimeMs || 0
+        );
+        this.syncAttempts.add(qid);
+      } catch (err) {
+        console.warn(`[Engine] ⚠️ Retroactive sync failed for question ${qid}:`, err);
+      }
+    }
   }
 
   private tryRecoverState() {
@@ -133,7 +184,7 @@ export class AdaptiveAssessmentEngine {
   }
 
   public async initialize(): Promise<string> {
-    if (this.assessmentId !== "pending-sync") return this.assessmentId;
+    // assessmentId is always a valid UUID from crypto.randomUUID() set in constructor
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -214,17 +265,18 @@ export class AdaptiveAssessmentEngine {
         console.log(`[Engine] ✅ Fresh battery fetched with ${this.battery.length} items. Preparing to sync session...`);
         this.saveState();
         
-        // 🚀 Immediate Sync: Call createSession BEFORE any complex logic
-        // Using a default B1 prediction context if not pre-evaluated, ensuring we don't look for 'ready: true'
+        // 🚀 IMMEDIATE LOCKDOWN: Sync the entire battery to remote state
+        this.saveState();
+        
         await AssessmentSaveService.createSession(
           this.assessmentId, 
           this.userId, 
           this.battery.length, 
-          { prediction: "B1", status: "architected", source: "engine_init" }
+          { prediction: "B1", status: "architected", source: "engine_init", battery: this.battery }
         );
         
-        // Remove await from syncStateToRemote so it doesn't block UI transition
-        this.syncStateToRemote();
+        // Final sync of the full state blob
+        await this.syncStateToRemote();
       }
     }
 
@@ -279,29 +331,62 @@ export class AdaptiveAssessmentEngine {
         
         if (isLastQuestion) {
           console.log(`[Engine] ⚡ Flagging last question to backend evaluate...`);
-          GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, true).catch(e => console.warn(e));
+          GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, this.assessmentId, true).catch(e => console.warn(e));
         }
       } else if (isProductionTask) {
         console.log(`[Engine] 🤖 Evaluating ${item.skill} (${itemMode}) via AI...`);
-        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
+        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, this.assessmentId, isLastQuestion);
         if (evaluation.is_correct === undefined) {
           evaluation.is_correct = (evaluation.score || 0) >= 0.5;
         }
       } else {
         console.log(`[Engine] ⚠️ ${item.skill} MCQ missing options, falling back to AI evaluation...`);
-        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, isLastQuestion);
+        evaluation = await GroqScoringService.getScoringResultFromAPI(question, answer, canonicalLevel, this.assessmentId, isLastQuestion);
         if (evaluation.is_correct === undefined) {
           evaluation.is_correct = (evaluation.score || 0) >= 0.5;
         }
       }
 
       // 🏋️ WEIGHTED PROFICIENCY SCORING: score * difficulty
-      const earnedPoints = (evaluation.score || 0) * difficultyVal;
-      const skill = item.skill.toLowerCase();
+      const primarySkill = item.skill.toLowerCase();
       
-      if (this.skillScores[skill]) {
-        this.skillScores[skill].earned += earnedPoints;
-        this.skillScores[skill].total += difficultyVal;
+      // Accumulate for Primary Skill
+      if (this.skillScores[primarySkill]) {
+        this.skillScores[primarySkill].earned += (evaluation.score || 0) * difficultyVal;
+        this.skillScores[primarySkill].total += difficultyVal;
+      }
+
+      // 🧠 INFERRED SKILLS (Vocabulary & Grammar)
+      // If the AI evaluation provides deep-dive sub-scores, sync them too.
+      const inferredScores: Record<string, number> = {
+        'vocabulary': evaluation.vocabulary_score,
+        'grammar': evaluation.grammar_score
+      };
+
+      Object.entries(inferredScores).forEach(([sName, sScore]) => {
+        if (sScore !== undefined && this.skillScores[sName]) {
+          console.log(`[Engine] 🧠 Inferred ${sName} contribution: ${sScore}`);
+          this.skillScores[sName].earned += sScore * difficultyVal;
+          this.skillScores[sName].total += difficultyVal;
+        }
+      });
+
+      // 🚀 REAL-TIME PERSISTENCE: Push this answer to the DB immediately
+      if (this.userId) {
+        AssessmentSaveService.log_and_update_assessment(
+          {
+            ...item,
+            assessmentId: this.assessmentId,
+            difficulty_numeric: difficultyVal
+          },
+          evaluation,
+          answer,
+          this.userId,
+          responseTimeMs
+        );
+        this.syncAttempts.add(item.id);
+      } else {
+        console.warn(`[Engine] ⏳ No UserID yet. Question ${item.id} queued for Retroactive Sync.`);
       }
 
       const isCorrect = evaluation.is_correct || evaluation.score >= 0.5;
@@ -379,60 +464,6 @@ export class AdaptiveAssessmentEngine {
         console.warn(`[Engine] Intermediate skill sync failed for ${currentSkill}:`, err);
       }
     }
-  }
-
-  /**
-   * Removes questions from the remaining battery that exceed the specified TrueDifficulty.
-   */
-  private applyLevelCap(maxDifficulty: number) {
-    const remaining = this.battery.slice(this.currentIndex);
-    const filtered = remaining.filter(q => {
-        const diff = q.item.difficulty || 0.5;
-        const levelWeight = this.getLevelWeight(q.item.level || 'b1');
-        const trueDiff = levelWeight + (diff * 0.1);
-        return trueDiff <= maxDifficulty;
-    });
-
-    console.log(`[Engine] 🛡️ Level Cap applied. Removed ${remaining.length - filtered.length} advanced questions.`);
-    this.battery = [...this.battery.slice(0, this.currentIndex), ...filtered];
-  }
-
-  private getLevelWeight(cefr: string): number {
-    const l = cefr.toLowerCase();
-    const weights: Record<string, number> = {
-      'a1': 1.0, 'a2': 2.0, 'b1': 3.0, 'b2': 4.0, 'c1': 5.0, 'c2': 6.0
-    };
-    return weights[l] || 3.0;
-  }
-
-
-  private reorderRemainingBattery(currentDifficulty: number) {
-    const remaining = this.battery.slice(this.currentIndex);
-    // Separate production and receptive to preserve interleaving
-    const production = remaining.filter(q => ['writing', 'speaking'].includes(q.skill.toLowerCase()));
-    const receptive = remaining.filter(q => !['writing', 'speaking'].includes(q.skill.toLowerCase()));
-    
-    // Sort receptive items so that higher difficulty comes first if we are doing well
-    receptive.sort((a, b) => {
-      const diffA = a.item.difficulty || DIFF_MAP[a.item.level?.toLowerCase() || 'b1'] || 0.4;
-      const diffB = b.item.difficulty || DIFF_MAP[b.item.level?.toLowerCase() || 'b1'] || 0.4;
-      return diffB - diffA;
-    });
-    
-    // Re-interleave: insert production tasks at regular intervals
-    const reinterleaved: typeof remaining = [];
-    const interval = production.length > 0 ? Math.floor(receptive.length / (production.length + 1)) : receptive.length;
-    let pIdx = 0;
-    receptive.forEach((q, i) => {
-      reinterleaved.push(q);
-      if ((i + 1) % interval === 0 && pIdx < production.length) {
-        reinterleaved.push(production[pIdx++]);
-      }
-    });
-    // Push any remaining production tasks
-    while (pIdx < production.length) reinterleaved.push(production[pIdx++]);
-    
-    this.battery = [...this.battery.slice(0, this.currentIndex), ...reinterleaved];
   }
 
   /**
@@ -518,26 +549,35 @@ export class AdaptiveAssessmentEngine {
       maxBasePoints += s.total;
     });
     
-    // Calculate percentage based on weighted difficulty potential
+    // Calculate percentage based on strictly attempted weighted difficulty
     const percentage = maxBasePoints > 0 ? Math.round((totalScore / maxBasePoints) * 100) : 0;
     const cefr = CEFREngine.mapPercentageToLevel(percentage) || "A1";
 
-    const breakdown: any = {};
+    // ── Full 6-Skill Matrix (Strict Isolation) ──
+    const breakdown: Record<string, any> = {};
     const ALL_SKILLS = ['reading', 'listening', 'grammar', 'vocabulary', 'writing', 'speaking'];
     ALL_SKILLS.forEach((skill) => {
-      const data = this.skillScores[skill] || { earned: 0, total: 0 };
+      let data = { ...this.skillScores[skill] } || { earned: 0, total: 0 };
+      
       const skillPct = data.total > 0 ? Math.round((data.earned / data.total) * 100) : 0;
+      
+      // 🎯 Evidence-Weighted Confidence: Increases as evidence mounts, capped at 0.95
+      const evidenceCount = this.answerHistory.filter(a => a.skill === skill).length;
+      const confidence = data.total > 0 
+        ? Math.min(0.95, (evidenceCount / (skill === 'listening' ? 15 : 5)) * 0.9) 
+        : 0;
+
       breakdown[skill] = {
         band: CEFREngine.mapPercentageToLevel(skillPct) || "A1",
         score: skillPct || 0,
-        confidence: 0.9,
-        evidenceCount: this.answerHistory.filter(a => a.skill === skill).length || 0,
-        status: 'stable'
+        confidence: Number(confidence.toFixed(2)),
+        evidenceCount,
+        status: evidenceCount >= 3 ? 'stable' : 'insufficient_data'
       };
     });
 
-    // ── Computed Metrics (never NULL) ──
-    const totalAnswered = this.answerHistory.length || this.currentIndex;
+    // ── Computed Metrics ──
+    const totalAnswered = this.answerHistory.length;
     const correctCount = this.answerHistory.filter(a => a.correct).length;
     const accuracyRate = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
 
@@ -553,11 +593,11 @@ export class AdaptiveAssessmentEngine {
     return {
       overall: {
         estimatedLevel: cefr as CefrLevel,
-        confidence: 0.9,
+        confidence: 0.92,
         rationale: [`Weighted Score: ${totalScore.toFixed(2)}/ ${maxBasePoints.toFixed(2)} (${percentage}%)`]
       },
       overallBand: cefr as any,
-      overallConfidence: 0.9,
+      overallConfidence: 0.92,
       skillBreakdown: breakdown,
       strengths: [], weaknesses: [],
       answerHistory: this.answerHistory,
@@ -600,6 +640,36 @@ export class AdaptiveAssessmentEngine {
   }
 
   public async skipQuestion(questionId: string): Promise<AssessmentQuestion | null> {
+    const currentQ = this.battery[this.currentIndex];
+    if (currentQ) {
+      const item = currentQ.item;
+      const canonicalLevel = (item.level || 'b1').toLowerCase();
+      const difficultyVal = item.difficulty || DIFF_MAP[canonicalLevel] || 0.4;
+
+      // Ensure skipped question is recorded with 0 score
+      this.answerHistory.push({
+        taskId: item.id,
+        questionId: item.id,
+        skill: item.skill as any,
+        difficulty: difficultyVal,
+        questionLevel: canonicalLevel,
+        answerLevel: 'A1', // Minimum level assigned for skips
+        category: item.skill,
+        correct: false,
+        score: 0,
+        answer: "[SKIPPED]",
+        correctAnswer: this.getCorrectAnswer(item),
+        responseTimeMs: 0,
+        taskType: (item.task_type || item.type) as any
+      });
+      
+      // Also update skill scores to reflect the failure (add difficulty to total but 0 to earned)
+      const skill = item.skill.toLowerCase();
+      if (this.skillScores[skill]) {
+        this.skillScores[skill].total += difficultyVal;
+      }
+    }
+
     this.currentIndex++;
     this.saveState();
     return this.getNextQuestion();

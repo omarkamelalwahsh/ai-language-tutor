@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { NeuralPulseLoader } from '../components/common/NeuralPulseLoader';
 
 import { AssessmentQuestion, AssessmentOutcome, ResponseMode, SpeakingSubmissionMeta, LearnerContextProfile, TaskEvaluation } from '../types/assessment';
 import { AdaptiveAssessmentEngine, BatteryProgress } from '../services/AdaptiveAssessmentEngine';
@@ -256,6 +257,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   
+  // 🛡️ PRE-FLIGHT SYSTEM INTEGRITY STATES
+  const [integrityStatus, setIntegrityStatus] = useState<'pending' | 'ok' | 'failed'>('pending');
+  const [integrityError, setIntegrityError] = useState<string | null>(null);
+
   const [textValue, setTextValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [useSpeakingFallback, setUseSpeakingFallback] = useState(false);
@@ -326,17 +331,62 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     console.log("[DiagnosticView] Initializing assessment bootstrap...");
     
     const bootstrap = async () => {
-      await engine.initialize();
-      const q = await engine.getNextQuestion();
-      if (q) {
-        setTaskWithReset(q);
-      } else {
-        handleFinish();
+      try {
+        setIntegrityStatus('pending');
+        
+        // 1. Audit Auth and DB Link
+        const audit = await AssessmentSaveService.checkSystemIntegrity(user?.id);
+        
+        if (!audit.ok) {
+          setIntegrityStatus('failed');
+          setIntegrityError(audit.message);
+          return; // 🛑 ATOMIC LOCK: DO NOT START EXAM
+        }
+
+        setIntegrityStatus('ok');
+        console.log("[DiagnosticView] System Integrity Check Passed ✅");
+
+        // 2. ⚓ SESSION ANCHOR: Create parent record to satisfy foreign key constraints
+        // We do this BEFORE initialize() so that any background logic in initialize has a valid session ID
+        if (user?.id) {
+          console.log("[DiagnosticView] Anchoring session in DB...");
+          try {
+            await AssessmentSaveService.initializeAssessmentSession(engine.assessmentId, user.id);
+          } catch (anchorErr: any) {
+            console.error("[DiagnosticView] ❌ Atomic Anchor Failed:", anchorErr);
+            setIntegrityStatus('failed');
+            setIntegrityError(`Session Anchor Failure: ${anchorErr.message}`);
+            return;
+          }
+        }
+
+        // 3. 🟢 [READY] LOG: Final Pre-Flight Confirmation
+        console.log(`%c[READY] Assessment ID: ${engine.assessmentId} | User ID: ${user?.id}`, 'color: #22c55e; font-weight: bold; font-size: 14px;');
+
+        // 4. Initialize Engine and fetch first question
+        await engine.initialize();
+        const q = await engine.getNextQuestion();
+        if (q) {
+          setTaskWithReset(q);
+        } else {
+          handleFinish();
+        }
+      } catch (err: any) {
+        console.error("[DiagnosticView] Bootstrap Failure:", err);
+        setIntegrityStatus('failed');
+        setIntegrityError(err.message || "An unexpected error occurred during initialization.");
       }
     };
 
     bootstrap();
   }, [engine, handleFinish, setTaskWithReset]);
+
+  // 🚀 AUTH SYNC EFFECT: Monitors the user object and updates the engine reactively
+  useEffect(() => {
+    if (user?.id) {
+      engine.setUserId(user.id);
+    }
+  }, [user?.id, engine]);
 
   const handleNextTask = useCallback(async (answer: string, mode?: ResponseMode, meta?: SpeakingSubmissionMeta) => {
     if (!currentTask || isEvaluating) return;
@@ -345,17 +395,24 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     try {
       const { evaluation } = await engine.submitAnswer(currentTask, answer, time, mode, meta);
       
-      // 🚀 IMMEDIATE TRANSITION: Move to next question regardless of save status
-      AssessmentSaveService.log_and_update_assessment(
-        currentTask, 
-        evaluation, 
-        answer, 
-        user?.id, 
-        time,
-        meta?.audioUrl || (currentTask as any).audioUrl
-      ).catch(err => console.warn("[DiagnosticView] Background save failed (non-blocking):", err));
+      // 🚀 ATOMIC SYNC: Block the UI and await persistence before moving forward
+      console.log(`[DiagnosticView] Question ${currentTask.id} evaluated. Awaiting DB sync...`);
       
-      // 🚀 IMMEDIATE TRANSITION: Move to next question regardless of save status
+      try {
+        await AssessmentSaveService.log_and_update_assessment(
+          currentTask, 
+          evaluation, 
+          answer, 
+          user?.id, 
+          time,
+          meta?.audioUrl || (currentTask as any).audioUrl
+        );
+        console.log(`[DiagnosticView] ✅ Atomic sync confirmed for ${currentTask.id}`);
+      } catch (saveErr) {
+        console.error("[DiagnosticView] ⚠️ Atomic sync failed:", saveErr);
+        // We continue to next question to avoid blocking the user if save fails after retries
+      }
+      
       const next = await engine.getNextQuestion();
       if (next) setTaskWithReset(next);
       else await handleFinish();
@@ -380,7 +437,35 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   }, [currentTask, isEvaluating, engine, handleFinish, setTaskWithReset]);
 
   if (isCompleting) return <AnalyzingTransitionView isSaving={isSaving} saveError={saveError} />;
-  if (!engine.hasBattery() || !currentTask) return <PreparingBatteryView />;
+  
+  // 🛡️ INTEGRITY FAILURE SCREEN
+  if (integrityStatus === 'failed') {
+    return (
+      <div className="h-screen bg-[#020617] flex flex-col items-center justify-center p-12 text-center">
+        <div className="w-20 h-20 bg-rose-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-rose-500/20">
+          <AlertTriangle color="white" size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-white mb-4 italic tracking-tight uppercase">System Integrity Failure</h2>
+        <p className="text-slate-400 max-w-md mx-auto mb-8 font-medium">
+          {integrityError || "A critical connection error prevented the assessment from starting."}
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black hover:bg-slate-100 transition-all active:scale-95"
+        >
+          Retry Connection Audit
+        </button>
+      </div>
+    );
+  }
+
+  if (integrityStatus === 'pending' || !engine?.hasBattery() || !currentTask) {
+     const statusText = integrityStatus === 'pending' 
+      ? "Verifying System Integrity Audit..." 
+      : (!engine?.hasBattery() ? "Anchoring Assessment Session & Forging Battery..." : undefined);
+      
+     return <PreparingBatteryView status={statusText} />;
+  }
 
   const skillInfo = SKILL_CONFIG[currentTask.skill] || SKILL_CONFIG.reading;
   const zoneInfo = progress.currentZone ? ZONE_CONFIG[progress.currentZone] : null;
@@ -436,8 +521,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             </span>
           )}
         </div>
-        <div className="px-3 py-1 bg-slate-200/50 text-slate-500 rounded-lg text-[10px] font-bold">
-          BLOCK {progress.currentBlock}
+        <div className="flex flex-col items-end">
+          <div className="px-3 py-1 bg-slate-200/50 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest">
+            Diagnostic Phase
+          </div>
+          <div className="mt-1 text-[9px] font-bold text-slate-400">
+            {progress.answered + 1} of {progress.total} Data Points
+          </div>
         </div>
       </div>
 
@@ -464,7 +554,17 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       {/* QUESTION PROMPT */}
       <div className="mb-10">
         <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-[1.15] tracking-tight">
-          {currentTask.prompt}
+          {(() => {
+            try {
+              const parsed = JSON.parse(currentTask.prompt);
+              if (parsed && typeof parsed === 'object' && parsed.scenario) {
+                return parsed.scenario;
+              }
+            } catch (e) {
+              // Ignore parse error
+            }
+            return currentTask.prompt;
+          })()}
         </h1>
       </div>
 
@@ -561,7 +661,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
   return (
 
-    <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-[#F7F8FC] overflow-hidden font-sans prestige-gpu">
       <header className="shrink-0 px-6 h-16 flex items-center gap-6 bg-white border-b border-slate-100 z-30">
         <button onClick={() => setShowQuitDialog(true)} className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
           <X size={18} />
@@ -594,7 +694,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                 </span>
               </div>
               <div className="space-y-1">
-                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Entering Phase {showBlockTransition}</p>
+                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Processing Phase {showBlockTransition} of 4</p>
                 <h2 className="text-5xl font-black text-slate-900 tracking-tight">{BLOCK_INFO[showBlockTransition]?.label}</h2>
               </div>
             </div>
@@ -641,36 +741,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   );
 };
 
-const PreparingBatteryView = () => (
-  <div className="h-screen bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
-    <motion.div 
-      initial={{ scale: 0.8, opacity: 0 }} 
-      animate={{ scale: 1, opacity: 1 }}
-      className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mb-8 relative"
-    >
-      <div className="absolute inset-0 bg-blue-600/10 animate-ping rounded-[2rem]" />
-      <Zap className="text-blue-600" size={40} fill="currentColor" />
-    </motion.div>
-    <h2 className="text-2xl font-bold text-slate-900 mb-2">Building your 40-question assessment</h2>
-    <p className="text-slate-500 max-w-xs leading-relaxed text-sm">
-      We're selecting specialized questions across 6 skills to build your personalized IELTS-style diagnostic.
-    </p>
-    <div className="mt-12 flex gap-1.5">
-      {[0, 1, 2].map(i => (
-        <motion.div
-          key={i}
-          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-          className="w-2 h-2 bg-blue-600 rounded-full"
-        />
-      ))}
-    </div>
-  </div>
+const PreparingBatteryView = ({ status }: { status?: string }) => (
+  <NeuralPulseLoader status={status || "Forging Personalized Assessment Protocol..."} fullscreen />
 );
 
 const AnalyzingTransitionView = ({ isSaving, saveError }: any) => {
+  if (!saveError) return (
+    <NeuralPulseLoader 
+      status="Deep Analysis in Progress (Model B Audit)..." 
+      subtitle="The 70B Cloud Model is performing a final deep-dive check on your 40-question session for precise CEFR placement."
+      fullscreen 
+    />
+  );
+  
   return (
-    <div className="h-screen bg-white flex flex-col items-center justify-center space-y-8 p-12 text-center">
+    <div className="h-screen bg-[#020617] flex flex-col items-center justify-center space-y-8 p-12 text-center prestige-gpu">
       <motion.div 
         animate={saveError ? { rotate: [0, -10, 10, -10, 10, 0] } : { rotate: 360 }} 
         transition={saveError ? { duration: 0.5 } : { duration: 3, repeat: Infinity, ease: "linear" }} 

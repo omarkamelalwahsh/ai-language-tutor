@@ -92,7 +92,7 @@ class LearnerService:
                 return min(500, s.current_score or 0) 
 
             mastery_sum = sum(get_effective_score(s) for s in skills) if skills else 0
-            mastery_percentage = min(100, round((mastery_sum / 3000) * 100)) if mastery_sum > 0 else 0
+            mastery_percentage = min(100, round((mastery_sum / (len(skills) * 500)) * 100)) if mastery_sum > 0 and skills else 0
             
             feed_stmt = select(UserErrorAnalysis).where(UserErrorAnalysis.user_id == user_id).order_by(desc(UserErrorAnalysis.created_at)).limit(5)
             feed_result = await self.db.execute(feed_stmt)
@@ -128,21 +128,24 @@ class LearnerService:
                 "action_panel": {
                     "hero": {
                         "title": f"Guided {weakest_skill} Session",
-                        "why": f"Your {weakest_skill} stability is currently 12% below your target band. This session focuses on repair.",
-                        "duration": "8 min",
-                        "type": "Guided Practice"
+                        "why": f"Your {weakest_skill} stability is currently based on {len(logs)} historic markers. This session focuses on repair.",
+                        "duration": "12 min",
+                        "type": "Diagnostic Review"
                     },
                     "queue": [
-                        {"id": "q1", "title": "5 Flashcards due", "type": "Retention"},
-                        {"id": "q2", "title": "Review Verb Agreement", "type": "Error Repair"}
+                        {
+                            "id": str(e.id), 
+                            "title": f"Review {e.category}", 
+                            "type": "Error Repair"
+                        } for e in recent_errors[:2]
                     ]
                 },
                 "skills": [
                     {
                         "name": s.skill.capitalize(),
                         "skill": s.skill.lower(), 
-                        "score": min(100, (s.xp_points or 0) if (s.xp_points and s.xp_points > 0) else (int((s.current_score or 0) / 40) if (s.current_score or 0) > 0 else 0)),
-                        "level": s.current_proficiency_level or s.current_level or "A1",
+                        "score": min(100, int((s.current_score or 0) / 100)) if (s.current_score or 0) > 0 else 0,
+                        "level": s.current_level or s.current_proficiency_level or "A1",
                         "confidence": s.proficiency_confidence or s.confidence or 0
                     } for s in skills
                 ],
@@ -181,20 +184,41 @@ class LearnerService:
             feed_stmt = select(UserErrorAnalysis).where(UserErrorAnalysis.user_id == user_id).order_by(desc(UserErrorAnalysis.created_at))
             errors = (await self.db.execute(feed_stmt)).scalars().all()
 
+            # 1.5 Fetch History for Trends (Speaking/Writing) - Timezone Aware
+            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+            log_stmt = select(AssessmentLog).where(
+                and_(
+                    AssessmentLog.user_id == user_id,
+                    AssessmentLog.created_at >= thirty_days_ago
+                )
+            ).order_by(AssessmentLog.created_at.asc())
+            logs_result = await self.db.execute(log_stmt)
+            logs = logs_result.scalars().all()
+
             # 2. Skill Model Processing
             skill_matrix = []
-            # We want: Speaking, Writing, Listening, Grammar
-            target_skills = ['speaking', 'writing', 'listening', 'grammar']
+            # We want: Speaking, Writing, Reading, Listening, Grammar, Vocabulary
+            target_skills = ['speaking', 'writing', 'reading', 'listening', 'grammar', 'vocabulary']
             for s_name in target_skills:
                 # Find the skill record or create a placeholder
                 s = next((sk for sk in skills if sk.skill.lower() == s_name), None)
                 if s:
-                    score = min(100, (s.xp_points or 0) if (s.xp_points and s.xp_points > 0) else (int((s.current_score or 0) / 40) if (s.current_score or 0) > 0 else 0))
+                    # 🎯 Score Priority: current_score (BP) > xp_points (if they are actually different scales)
+                    # Mapping: 10000 BP -> 100%
+                    score = min(100, int((s.current_score or 0) / 100)) if (s.current_score or 0) > 0 else 0
+                    
+                    # 🎯 Level Priority: Prefer the updated 'current_level' over the model default 'current_proficiency_level'
+                    # If current_level is A1 and we have a better one in current_proficiency_level, we check.
+                    # But usually engine saves to current_level.
+                    level = s.current_level or s.current_proficiency_level or "A1"
+                    if level == "A1" and s.current_proficiency_level and s.current_proficiency_level != "A1":
+                        level = s.current_proficiency_level
+                    
                     conf = s.proficiency_confidence or s.confidence or 0
                     skill_matrix.append({
                         "name": s.skill.capitalize(),
                         "score": score,
-                        "level": s.current_proficiency_level or s.current_level or "A1",
+                        "level": level,
                         "confidence": conf,
                         "stability": "Stable" if conf > 0.7 else "Fragile",
                         "trend": "Improving",
@@ -251,7 +275,7 @@ class LearnerService:
                     "name": profile.full_name.split()[0] if (profile and profile.full_name) else "Learner",
                     "summary": f"Your {profile.overall_level or 'A1'} trajectory is stable. {weakest_skill['name'] if weakest_skill else 'Grammar'} shows the most growth potential today.",
                     "model_confidence": round((profile.proficiency_confidence or 0.88) * 100),
-                    "last_updated": "2 mins ago"
+                    "last_updated": datetime.now().strftime("%I:%M %p")
                 },
                 "skill_matrix": skill_matrix,
                 "error_model": error_patterns,
@@ -264,7 +288,7 @@ class LearnerService:
                         "tolerance_score": profile.pacing_score or 0.75,
                         "session_advice": "You are currently learning best with short, 8-minute high-intensity sessions."
                     },
-                    "confidence_trend": [60, 65, 62, 70, 75, 82, 88] # Historic trend
+                    "confidence_trend": [round(l.score * 100) for l in logs[-7:]] if logs else [0]
                 },
                 "best_next_move": best_move
             }

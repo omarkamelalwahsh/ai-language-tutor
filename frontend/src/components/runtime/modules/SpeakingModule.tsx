@@ -42,6 +42,26 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
 
   const isDisabled = isEvaluating || isTranscribing || isUploading || (feedback !== null && feedback.canAdvance);
 
+  useEffect(() => {
+    // Reset state when a new task is loaded
+    setMode(sessionMicPassed ? 'ready' : 'mic_check');
+    setUseTextFallback(false);
+    setTextInput('');
+    setVolume(0);
+    setDurationSec(0);
+    setErrorMsg('');
+    setValidationResult(null);
+    setAudioBlob(null);
+    setIsUploading(false);
+    setIsTranscribing(false);
+
+    const svc = AudioRecordingService.getInstance();
+    if (svc.getState() === 'recording') {
+      svc.cancelRecording();
+    }
+    stopTimer();
+  }, [task.id]);
+
 
   useEffect(() => {
     return () => {

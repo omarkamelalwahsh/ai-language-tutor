@@ -19,7 +19,7 @@ interface PlacementOnboardingProps {
   onComplete?: (battery: BatteryQuestion[]) => void;
 }
 
-export const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete }) => {
+const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const { user } = useData();
@@ -234,3 +234,5 @@ const SkillCard = ({ icon, title, desc }: { icon: React.ReactNode; title: string
     </div>
   </div>
 );
+
+export default PlacementOnboarding;

@@ -49,11 +49,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadSafe('onboarding_state', setOnboardingState);
   }, []);
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
 
   const refreshData = useCallback(async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) {
@@ -101,24 +101,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setProfile(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[DataContext] Error refreshing data:', err);
+      // 🔥 CRITICAL FIX: If we have an invalid session/refresh token, clear it 
+      // otherwise isInitializing stays true or we loop.
+      if (err?.message?.includes('Refresh Token Not Found') || err?.message?.includes('invalid refresh token')) {
+        console.warn('[DataContext] 🚨 Invalid Refresh Token detected. Clearing session.');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user_id');
+        setUser(null);
+        setProfile(null);
+      }
     } finally {
-      setIsRefreshing(false);
+      isRefreshingRef.current = false;
       // Ensure we unblock the UI if finished checking
       setIsInitializing(false);
     }
-  }, [isRefreshing]);
+  }, [loadLocalState]); // Removed isRefreshing and refreshData loop
 
   const initialize = useCallback(async () => {
     setIsInitializing(true);
     loadLocalState();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      localStorage.setItem('auth_token', session.access_token);
-      localStorage.setItem('auth_user_id', session.user.id);
-      await refreshData();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        localStorage.setItem('auth_token', session.access_token);
+        localStorage.setItem('auth_user_id', session.user.id);
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('[DataContext] Initialization failure recovery:', err);
+      setUser(null);
+      setProfile(null);
     }
     
     setIsInitializing(false);
@@ -142,26 +157,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, [loadLocalState, refreshData]);
+  }, []); // no deps - called once on mount via ref guard below
 
-  // Restored strict useEffect with dataLoadedRef safeguard
+  // ✅ FIXED: No user?.id or initialize in deps - both cause re-run loops.
+  // dataLoadedRef guards against double-mount in StrictMode.
   useEffect(() => {
     if (dataLoadedRef.current) return;
-    
+    dataLoadedRef.current = true;
+
+    // Hard safety timeout: guarantee isInitializing becomes false in 4s no matter what
+    const safetyTimer = setTimeout(() => {
+      console.warn('[DataContext] ⚠️ Safety timeout: forcing isInitializing=false');
+      setIsInitializing(false);
+    }, 4000);
+
     const runInit = async () => {
       try {
         await initialize();
-        dataLoadedRef.current = true;
       } catch (err) {
         console.error('[DataContext] Initialization failed:', err);
       } finally {
         setIsInitializing(false);
+        clearTimeout(safetyTimer);
       }
     };
 
     runInit();
-    // Only re-run if the user identity changes
-  }, [user?.id, initialize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ← intentionally empty: run once on mount only
 
   const setSessionResult = (result: AssessmentSessionResult, outcome: AssessmentOutcome, evals: TaskEvaluation[]) => {
     setAssessmentResult(result);

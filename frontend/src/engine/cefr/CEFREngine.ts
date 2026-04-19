@@ -19,28 +19,28 @@ export class CEFREngine {
   // ═══════════════════════════════════════════════════════════════
 
   /**
-   * Maps a raw percentage score to a CEFR level using the standardized scale.
+   * Maps a raw percentage score to a CEFR level using the Professional International Scale.
    * Applies Math.round() before threshold comparison to ensure boundary accuracy.
    * 
-   * Scale:
-   *   0-20%  → A1
-   *   21-40% → A2
-   *   41-60% → B1
-   *   61-80% → B2
-   *   81-90% → C1
-   *   91-100% → C2
+   * Professional Scale (Meeting-Ready):
+   *   0-20%   → A1 (Beginner)
+   *   21-40%  → A2 (Elementary)
+   *   41-54%  → B1 (Intermediate)
+   *   55-60%  → B1+ (Independent User)
+   *   61-75%  → B2 (Upper Intermediate)
+   *   76-85%  → C1 (Advanced)
+   *   86-100% → C2 (Proficiency)
    */
-  public static mapPercentageToLevel(rawPercentage: number): CEFRLevel {
+  public static mapPercentageToLevel(rawPercentage: number): CEFRLevel | string {
     const pct = Math.round(rawPercentage);
 
-    for (const entry of ASSESSMENT_CONFIG.CEFR_SCALE) {
-      if (pct >= entry.min && pct <= entry.max) {
-        return entry.level as CEFRLevel;
-      }
-    }
-
-    // Safety fallback
-    if (pct <= 0) return 'A1';
+    // 🎯 Full Professional Scale — no caps, no shortcuts
+    if (pct <= 20) return 'A1';
+    if (pct <= 40) return 'A2';
+    if (pct <= 54) return 'B1';
+    if (pct <= 60) return 'B1+';
+    if (pct <= 75) return 'B2';
+    if (pct <= 85) return 'C1';
     return 'C2';
   }
 
@@ -61,33 +61,49 @@ export class CEFREngine {
     return 'C2';
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Overall State Computation (Updated for Battery)
-  // ═══════════════════════════════════════════════════════════════
-
   /**
    * Computes the overall assessment state from all individual skill states.
-   * Now uses percentage-based mapping when scores are in 0-100 range.
+   * 
+   * Implements the Weighted Cumulative Average:
+   *   Global Score = Σ(S_skill_j × K_j) / 6
+   * 
+   * Where K_j is the confidence factor for each skill.
+   * Division by 6 ensures skills with no data (confidence=0) naturally
+   * pull the average down, reflecting insufficient evidence.
    */
   public static computeOverall(skills: Record<SkillName, SkillState>): OverallState {
+    const EXPECTED_SKILL_COUNT = 6; // reading, listening, grammar, vocabulary, writing, speaking
     const skillList = Object.values(skills);
     
-    let avgScore = 0;
-    let avgConfidence = 0;
+    let weightedSum = 0;
+    let totalConfidence = 0;
     
-    if (skillList.length > 0) {
-      avgScore = skillList.reduce((sum, s) => sum + s.score, 0) / skillList.length;
-      avgConfidence = skillList.reduce((sum, s) => sum + s.confidence, 0) / skillList.length;
+    for (const s of skillList) {
+      if (s.confidence > 0) {
+        weightedSum += s.score * s.confidence;
+        totalConfidence += s.confidence;
+      }
     }
     
+    // 🎯 STRICT ISOLATION: Divide ONLY by the skills that have evidence
+    const activeSkills = skillList.filter(s => s.confidence > 0);
+    const activeCount = activeSkills.length;
+
+    const avgScore = totalConfidence > 0 
+      ? weightedSum / totalConfidence // This gives the average weighted performance
+      : 0;
+
+    const avgConfidence = activeCount > 0 
+      ? totalConfidence / activeCount 
+      : 0;
+    
     // Determine if scores are in 0-1 range (legacy) or 0-100 range (battery)
-    const isPercentageScale = avgScore > 1.5; // Heuristic: if avg > 1.5, it's percentage
+    const isPercentageScale = avgScore > 1.5;
     const overallLevel = isPercentageScale 
       ? this.mapPercentageToLevel(avgScore)
       : this.mapScoreToLevel(avgScore);
     
     // Status logic
-    const coreSkills: SkillName[] = ['listening', 'reading'];
     const batterySkills = ['listening', 'reading', 'grammar', 'vocabulary'] as SkillName[];
     const relevantSkills = batterySkills.filter(s => skills[s]);
     const isInsufficient = relevantSkills.some(s => skills[s]?.status === 'insufficient_data');

@@ -3,9 +3,10 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background-color: #f5f5f7;
-  color: #1d1d1f;
+  background-color: #020617;
+  color: #ffffff;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 @theme {
@@ -33,19 +34,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism utilities */
+/* Glassmorphism utilities with Hardware Acceleration */
 .glass {
   background: rgba(24, 24, 27, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .glass-card {
   background: linear-gradient(145deg, rgba(24, 24, 27, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.prestige-gpu {
+  will-change: transform, opacity, background-color;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.4));
 }
 
 /* Custom scrollbar for a sleek look */

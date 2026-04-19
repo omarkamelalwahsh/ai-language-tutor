@@ -13,7 +13,7 @@ export class SpeechToTextService {
   public static async transcribe(audioBlob: Blob): Promise<TranscriptionResult> {
     try {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('file', audioBlob, 'recording.webm');
       // The API key is managed securely on the backend in the serverless function.
 
       console.log(`[SpeechToTextService] Sending audio for transcription (${(audioBlob.size / 1024).toFixed(1)} KB)`);

@@ -9,13 +9,19 @@ interface UserLeaderboardViewProps {
   currentUserId?: string;
 }
 
-export const UserLeaderboardView: React.FC<UserLeaderboardViewProps> = ({ onBack, currentUserId = "u3" }) => {
+export const UserLeaderboardView: React.FC<UserLeaderboardViewProps> = ({ onBack }) => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // In a real app we might fetch a "public" limited version of the leaderboard,
-    // but here we just reuse the mock service and format it nicely.
-    AdminService.getLeaderboard().then(data => setEntries(data.slice(0, 50)));
+    // Get real ID from Supabase session
+    import('../lib/supabaseClient').then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) setUserId(user.id);
+      });
+    });
+
+    AdminService.getLeaderboard().then(data => setEntries(data));
   }, []);
 
   return (
@@ -44,8 +50,7 @@ export const UserLeaderboardView: React.FC<UserLeaderboardViewProps> = ({ onBack
             ) : (
               <div className="flex flex-col gap-2">
                 {entries.map((entry, i) => {
-                  const isCurrentUser = entry.userId === currentUserId;
-                  const isTop3 = entry.rank <= 3;
+                  const isCurrentUser = entry.userId === userId;
                   
                   return (
                     <motion.div 
@@ -94,3 +99,5 @@ export const UserLeaderboardView: React.FC<UserLeaderboardViewProps> = ({ onBack
     </div>
   );
 };
+
+export default UserLeaderboardView;

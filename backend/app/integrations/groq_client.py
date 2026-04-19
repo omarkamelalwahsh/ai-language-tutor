@@ -74,13 +74,16 @@ CEFR QUALITY CRITERIA (use these as primary anchor):
 - C1: Nuanced reasoning, contrastive analysis, precise academic register, complex syntax.
 - C2: Near-native precision, sophisticated rhetoric, effortless complexity.
 
-STRICT INSTRUCTION (DECOUPLED ASSESSMENT):
-Ignore numeric point totals or gamification XP. Evaluate based purely on linguistic complexity, discourse markers, grammatical range, and semantic accuracy.
+STRICT INSTRUCTION (EVIDENCE-FIRST ASSESSMENT):
+1. IGNORE USER LEVEL ANCHORS: While the current band is {current_level}, you MUST prioritize the actual evidence in the response. If an A1 user produces B2-level grammar/vocab, you MUST detect B2. Do NOT be biased by the current level.
+2. DECOUPLED ASSESSMENT: Evaluate based purely on linguistic complexity, discourse markers, grammatical range, and semantic accuracy.
 
-DUAL SCORING:
+DUAL SCORING & SUB-METRICS:
 - task_completion_score: Did the user address ALL parts of the prompt? (0.0-1.0)
 - language_quality_score: Pure CEFR linguistic quality regardless of task coverage. (0.0-1.0)
 - overall_score = 0.4 * task_completion_score + 0.6 * language_quality_score
+- vocabulary_score: Lexical range, precision, and CEFR-appropriateness of vocabulary. (0.0-1.0)
+- grammar_score: Range and accuracy of grammatical structures used. (0.0-1.0)
 
 Current band: {current_level}.
 
@@ -91,8 +94,10 @@ OUTPUT FORMAT (strict JSON):
   "task_completion_score": float (0.0-1.0),
   "language_quality_score": float (0.0-1.0),
   "overall_score": float (0.0-1.0),
+  "vocabulary_score": float (0.0-1.0),
+  "grammar_score": float (0.0-1.0),
   "detected_level": string (CEFR level),
-  "confidence_score": float (0.0-1.0, required to anchor responses),
+  "confidence_score": float (0.0-1.0),
   "reasoning": "string (detailed step-by-step logic for the assigned scores and CEFR tier selection)",
   "reasoning_summary": string (1-2 sentence justification referencing specific CEFR evidence),
   "feedback": string (pedagogical note for the learner)

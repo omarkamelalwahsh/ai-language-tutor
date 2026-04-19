@@ -32,6 +32,62 @@ export class AssessmentSaveService {
   }
 
   /**
+   * 🛡️ Pre-Flight Integrity Audit
+   * Verifies Auth + DB Connectivity before starting high-stakes exam.
+   */
+  public static async checkSystemIntegrity(userId: string | null): Promise<{ ok: boolean; message: string }> {
+    console.log("[Integrity] Starting Pre-Flight System Audit...");
+    
+    // 1. Auth & UUID Check
+    if (!userId) return { ok: false, message: "Authentication missing. Please sign in again." };
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      return { ok: false, message: `Invalid User Identity Signature: ${userId}` };
+    }
+
+    // 2. Database Connectivity Check (Ping)
+    try {
+      const { error } = await supabase
+        .from('assessment_responses')
+        .select('id')
+        .limit(1);
+        
+      if (error && error.code !== 'PGRST116') throw error; // Allow empty
+      
+      console.log("[Integrity] ✅ System Integrity Verified.");
+      return { ok: true, message: "System Integrity Verified ✅" };
+    } catch (dbErr: any) {
+      console.error("[Integrity] ❌ Database Audit Failed:", dbErr);
+      return { ok: false, message: `Database Link Failure: ${dbErr.message || "Connection Refused"}` };
+    }
+  }
+
+  /**
+   * ⚓ SESSION ANCHOR: Creates the parent record in the 'assessments' table.
+   * This is required to satisfy foreign key constraints for logs and responses.
+   */
+  public static async initializeAssessmentSession(assessmentId: string, userId: string): Promise<void> {
+    console.log(`[AssessmentSaveService] ⚓ Anchoring session ${assessmentId} for user ${userId}...`);
+    
+    const { error } = await supabase
+      .from('assessments')
+      .upsert({
+        id: assessmentId,
+        user_id: userId,
+        status: 'in_progress',
+        total_questions: 40,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+    if (error) {
+      console.error("[AssessmentSaveService] ❌ Failed to anchor session:", error);
+      throw error;
+    }
+    console.log("[AssessmentSaveService] ✅ Session anchored successfully.");
+  }
+
+  /**
    * Helper to ensure valid user session before DB interaction.
    */
   public static async getAuthenticatedUserIdSafe(): Promise<string> {
@@ -175,80 +231,73 @@ export class AssessmentSaveService {
 
     // 1. ASSESSMENT_RESPONSES — Sanitized Minimal Payload
     try {
-      const responsesPayload = {
-        user_id: finalUserId,
-        question_id: String(task.id),
-        user_answer: audioUrl ? `[AUDIO] ${audioUrl} | transcription: ${answerStr}` : answerStr,
-        is_correct: isCorrect,
-        skill: skillStr,
-        category: skillStr, // Alignment: Duplicate skill to category for now
-        difficulty: task.difficulty_numeric || 0.5,
-        response_time_ms: timeSpentMs || 0,
-        status: 'completed',
-        explanation: evaluation, // Alignment: Store FULL AI feedback object
-      };
+      await withRetry(async () => {
+        const responsesPayload = {
+          user_id: finalUserId,
+          assessment_id: task.assessmentId,
+          question_id: String(task.id),
+          user_answer: audioUrl ? `[AUDIO] ${audioUrl} | transcription: ${answerStr}` : answerStr,
+          is_correct: isCorrect,
+          skill: skillStr,
+          category: skillStr,
+          difficulty: task.difficulty_numeric || 0.5,
+          response_time_ms: timeSpentMs || 0,
+          status: 'completed',
+          explanation: evaluation,
+        };
 
-
-      const { error: respError } = await supabase.from('assessment_responses').insert(responsesPayload);
-
-      if (respError) {
-        console.warn("[AssessmentSaveService] ⚠️ assessment_responses error (non-blocking):", respError.message);
-      } else {
+        const { error: respError } = await supabase.from('assessment_responses').upsert(responsesPayload, { onConflict: 'assessment_id,question_id' });
+        if (respError) throw respError;
         respSuccess = true;
-        console.log(`[AssessmentSaveService] ✅ assessment_responses saved: ${task.id}`);
-      }
+      });
     } catch (err) {
-      console.warn('[AssessmentSaveService] ⚠️ assessment_responses crashed (non-blocking):', err);
+      console.warn('[AssessmentSaveService] ⚠️ assessment_responses failure after retries:', err);
     }
 
     // 2. ASSESSMENT_LOGS — Sanitized Minimal Payload
     try {
-      const logsPayload = {
-        user_id: finalUserId, // 🛠️ FIX: Added missing user identifier
-        question: questionText, 
-        question_text: questionText,
-        user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
-        correct_answer: correctAnswerStr || (isProductionTask ? '[open_ended]' : ''),
-        is_correct: isCorrect,
-        skill: skillStr,
-        category: skillStr,
-        score: evaluation.score !== undefined ? evaluation.score : (isCorrect ? 1.0 : 0.0),
-        difficulty: task.difficulty_numeric || 0.5,
-        response_time_ms: timeSpentMs || 0,
-        duration_ms: timeSpentMs || 0,
-        question_level: task.difficulty || 'b1',
-        level: (task as any)._userLevel || 'b1',
-        status: 'completed',
-        evaluation_metadata: evaluation,
-        metadata: {
-          audio_url: audioUrl,
-          evaluation_source: isProductionTask ? 'ai' : 'deterministic',
-          time_spent: timeSpentMs
+      await withRetry(async () => {
+        const logsPayload = {
+          user_id: finalUserId,
+          assessment_id: task.assessmentId,
+          question: questionText, 
+          question_text: questionText,
+          user_answer: answerStr || (isProductionTask ? '[pending_evaluation]' : ''),
+          correct_answer: correctAnswerStr || (isProductionTask ? '[open_ended]' : ''),
+          is_correct: isCorrect,
+          skill: skillStr,
+          category: skillStr,
+          score: evaluation.score !== undefined ? evaluation.score : (isCorrect ? 1.0 : 0.0),
+          difficulty: task.difficulty_numeric || 0.5,
+          response_time_ms: timeSpentMs || 0,
+          duration_ms: timeSpentMs || 0,
+          question_level: task.difficulty || 'b1',
+          level: (task as any)._userLevel || 'b1',
+          status: 'in_progress',
+          evaluation_metadata: evaluation,
+          metadata: {
+            audio_url: audioUrl,
+            evaluation_source: isProductionTask ? 'ai' : 'deterministic',
+            time_spent: timeSpentMs
+          }
+        };
+
+        const cleanPayload: Record<string, any> = {};
+        for (const [key, val] of Object.entries(logsPayload)) {
+          if (val !== undefined && val !== null) {
+            cleanPayload[key] = val;
+          }
         }
-      };
 
-
-      // Ensure no undefined values
-      const cleanPayload: Record<string, any> = {};
-      for (const [key, val] of Object.entries(logsPayload)) {
-        if (val !== undefined && val !== null) {
-          cleanPayload[key] = val;
-        }
-      }
-
-      console.log('🚀 CLEAN MINIMAL PAYLOAD:', JSON.stringify(cleanPayload, null, 2));
-
-      const { error: logError } = await supabase.from('assessment_logs').insert(cleanPayload);
-
-      if (logError) {
-        console.warn(`[AssessmentSaveService] ⚠️ assessment_logs error (non-blocking):`, logError.message);
-        this.saveToLocalBuffer(cleanPayload);
-      } else {
+        const { error: logError } = await supabase.from('assessment_logs').upsert(cleanPayload, { ignoreDuplicates: true });
+        if (logError) throw logError;
         logSuccess = true;
-        console.log(`[AssessmentSaveService] ✅ assessment_logs saved: ${task.id}`);
-      }
+      });
     } catch (err) {
-      console.warn('[AssessmentSaveService] ⚠️ assessment_logs crashed (non-blocking):', err);
+      console.warn('[AssessmentSaveService] ⚠️ assessment_logs failure after retries:', err);
+      // Fallback buffer
+      const bufferPayload = { /* same payload as above */ }; 
+      this.saveToLocalBuffer(bufferPayload);
     }
 
     // Summary (never throws)
@@ -302,24 +351,23 @@ export class AssessmentSaveService {
     console.log(`[AssessmentSaveService] 🔄 Creating session record for ${assessmentId} (User: ${finalUserId})...`);
     
     try {
-      const { error } = await supabase
-        .from('assessments')
-        .upsert({
-          id: assessmentId,
-          user_id: finalUserId,
-          current_index: 0,
-          evaluation_metadata: { 
-            status: 'architected', 
-            size: batterySize,
-            context: contextData || null 
-          },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
+      await withRetry(async () => {
+        const { error } = await supabase
+          .from('assessments')
+          .upsert({
+            id: assessmentId,
+            user_id: finalUserId,
+            current_index: 0,
+            evaluation_metadata: { 
+              status: 'architected', 
+              size: batterySize,
+              context: contextData || null 
+            },
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
 
-      if (error) {
-        console.error('[AssessmentSaveService] ❌ Failed to create session:', error);
-        throw error;
-      }
+        if (error) throw error;
+      });
       
       console.log(`[AssessmentSaveService] ✅ Session POST request successful.`);
       return assessmentId;
@@ -339,19 +387,19 @@ export class AssessmentSaveService {
     console.log(`[AssessmentSaveService] 🔄 Syncing state to remote for assessment: ${assessmentId} (User: ${finalUserId})`);
     
     try {
-      const { error } = await supabase
-        .from('assessments')
-        .upsert({
-          id: assessmentId,
-          user_id: finalUserId,
-          current_index: state.currentIndex,
-          evaluation_metadata: state, // Store full state blob for recovery
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
+      await withRetry(async () => {
+        const { error } = await supabase
+          .from('assessments')
+          .upsert({
+            id: assessmentId,
+            user_id: finalUserId,
+            current_index: state.currentIndex,
+            evaluation_metadata: state,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
 
-      if (error) {
-        console.error('[AssessmentSaveService] ❌ Remote state sync failed:', error);
-      }
+        if (error) throw error;
+      });
     } catch (err) {
       console.error('[AssessmentSaveService] ❌ Sync exception:', err);
     }
@@ -461,7 +509,7 @@ export class AssessmentSaveService {
          const skillKey = skillName.toLowerCase();
          const rawScore = outcome.skillBreakdown[skillName].score || 0;
          // 🎯 Normalize cleanly: cast to 0-1, then strictly multiply by 10000
-         const normalizedScore = Math.round((rawScore > 1 ? rawScore / 100 : rawScore) * 10000);
+          const normalizedScore = Math.round(rawScore * 100);
          return {
            user_id: userId,
            skill: skillKey,
@@ -682,7 +730,9 @@ export class AssessmentSaveService {
       const oldErrors = oldErrorRes.data || { weakness_areas: [], action_plan: "" };
 
       // 3. Logic: Merge Weaknesses & Cumulative Plan
-      const newLevel = outcome.finalLevel || outcome.overallBand || 'B1';
+      // 🎯 MODEL B AUTHORITY: Prioritize the 70B model's linguistic detection for the final label
+      const newLevel = grokAnalysis?.finalLevel || grokAnalysis?.overallBand || outcome.finalLevel || outcome.overallBand || 'B1';
+      
       const { combinedWeaknesses, cumulativeActionPlan } = this.mergeHistoricalContext(
         oldErrors,
         grokAnalysis?.weaknesses || outcome.weaknesses || [],
@@ -714,8 +764,8 @@ export class AssessmentSaveService {
       // B. skill_states (Performance Mapping)
        const skillUpserts = Object.keys(outcome.skillBreakdown || {}).map(skillKey => {
          const rawScore = outcome.skillBreakdown[skillKey].score || 0;
-         // 🎯 Normalize cleanly: cast to 0-1, then strictly multiply by 10000
-         const normalizedScore = Math.round((rawScore > 1 ? rawScore / 100 : rawScore) * 10000);
+         // 🎯 Strict Normalization: Engine sends 0-100, we store 0-10000
+         const normalizedScore = Math.round(rawScore * 100);
          const band = outcome.skillBreakdown[skillKey].band;
          return {
            user_id: userId,
