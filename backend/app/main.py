@@ -3,7 +3,7 @@ import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import assessments, chat, media, questions, leaderboard, learner
+from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth
 from app.core.config import settings
 
 app = FastAPI(
@@ -46,6 +46,7 @@ app.include_router(media.router, prefix=f"{settings.API_V1_STR}", tags=["Media"]
 app.include_router(questions.router, prefix=f"{settings.API_V1_STR}/questions", tags=["Questions"])
 app.include_router(leaderboard.router, prefix=f"{settings.API_V1_STR}/leaderboard", tags=["Leaderboard"])
 app.include_router(learner.router, prefix=f"{settings.API_V1_STR}/learner", tags=["Learner"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 
 if __name__ == "__main__":
     import uvicorn
