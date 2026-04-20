@@ -38,14 +38,14 @@ const MasteryBadge = ({ level, label, arLabel, confidence }: { level: string, la
     className="relative group cursor-default"
   >
     <div className="absolute inset-0 bg-cyan-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-cyan-500/40 transition-all" />
-    <div className="relative bg-slate-950/60 backdrop-blur-3xl border-2 border-cyan-500/30 rounded-[2.5rem] p-8 text-center overflow-hidden">
+    <div className="relative bg-white dark:bg-gray-900/60 border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 text-center overflow-hidden">
       <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400 mb-2">Core Mastery</p>
-      <h3 className="text-8xl font-black text-white leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+      <h3 className="text-8xl font-black text-slate-900 dark:text-slate-50 leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
         {level}
       </h3>
       <div className="mt-4 space-y-1">
-        <p className="text-xl font-black text-white uppercase tracking-tight">{label}</p>
+        <p className="text-xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">{label}</p>
         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{arLabel}</p>
       </div>
       
@@ -77,11 +77,11 @@ const ChasingLightButton = ({ children, loading, onClick, className = "", varian
       className={`relative group p-[2px] rounded-2xl overflow-hidden transition-all active:scale-95 ${className}`}
     >
       <div className={`absolute inset-[-1000%] animate-[spin_4s_linear_infinite] ${colors[variant === 'cyan' ? 'cyan' : 'indigo']} opacity-30 group-hover:opacity-100 transition-opacity`} />
-      <div className={`relative w-full h-full bg-slate-950/80 backdrop-blur-xl rounded-[14px] px-8 py-5 flex items-center justify-center gap-3 border border-white/5 group-hover:bg-slate-900/40 transition-colors`}>
+      <div className={`relative w-full h-full bg-slate-50 dark:bg-gray-950/80 backdrop-blur-xl rounded-[14px] px-8 py-5 flex items-center justify-center gap-3 border border-slate-200 dark:border-gray-800 group-hover:bg-white dark:bg-gray-900/40 transition-colors duration-300`}>
         {loading ? (
           <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
         ) : (
-          <span className="text-white font-black uppercase tracking-[0.2em] drop-shadow-glow flex items-center gap-3">
+          <span className="text-slate-900 dark:text-slate-50 font-black uppercase tracking-[0.2em] shadow-sm dark:shadow-md flex items-center gap-3">
             {children}
           </span>
         )}
@@ -208,10 +208,10 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white selection:bg-cyan-500/30 overflow-x-hidden prestige-gpu">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 selection:bg-cyan-500/30 overflow-x-hidden prestige-gpu transition-colors duration-300">
       {/* Background Atmosphere */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[160px]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[160px]" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[140px]" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSdub2lzZUZpbHRlcic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzMnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbm9pc2VGaWx0ZXIpJy8+PC9zdmc+')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
         <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -221,7 +221,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
       <div className="w-full relative z-10 border-b border-white/5 bg-slate-950/20 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+            <div className="w-10 h-10 bg-blue-600 dark:bg-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -232,7 +232,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
           <div className="flex items-center gap-6">
              <div className="text-right hidden md:block">
                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocol Version</p>
-               <p className="text-xs font-bold text-white uppercase tracking-widest">3.1 - Career Copilot</p>
+               <p className="text-xs font-bold text-slate-900 dark:text-slate-50 uppercase tracking-widest">3.1 - Career Copilot</p>
              </div>
              <motion.div 
                animate={{ opacity: [0.5, 1, 0.5] }}
@@ -263,7 +263,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
             />
 
             {/* Radar Analysis */}
-            <div className="bg-slate-950/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px]">
+            <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px]">
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Skill Calibration</h3>
                 <BarChart3 className="text-indigo-400 w-4 h-4" />
@@ -304,11 +304,11 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
-               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
+               <div className="bg-white dark:bg-gray-900/5 border border-slate-200 dark:border-gray-800 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Diagnostic Points</p>
                   <p className="text-2xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]">{totalPoints}</p>
                </div>
-               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
+               <div className="bg-white dark:bg-gray-900/5 border border-slate-200 dark:border-gray-800 rounded-3xl p-6 text-center group hover:bg-white/10 transition-all">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Success Rate</p>
                   <p className="text-2xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{Math.round((history.filter((h:any)=>h.correct).length / Math.max(1, history.length)) * 100)}%</p>
                </div>
@@ -356,12 +356,12 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                        <motion.div 
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#020617] border-2 border-cyan-500/50 p-6 rounded-[2rem] shadow-[0_0_30px_rgba(0,255,255,0.2)] text-center w-64 relative group"
+                        className="bg-white dark:bg-gray-900 border-2 border-cyan-500/50 p-6 rounded-[2rem] shadow-[0_0_30px_rgba(0,255,255,0.2)] text-center w-64 relative group"
                        >
                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
                            End Goal
                          </div>
-                         <h4 className="font-black text-white text-xl">C2 TOTAL MASTERY</h4>
+                         <h4 className="font-black text-slate-900 dark:text-slate-50 text-xl">C2 TOTAL MASTERY</h4>
                          <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mt-1">Native Proficiency</p>
                        </motion.div>
                     </div>
@@ -372,8 +372,8 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
                     {/* Start Node */}
                     <div className="flex justify-center -mt-8">
-                        <div className="bg-indigo-600 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(79,70,229,0.3)] text-center w-72 border-b-4 border-slate-950/30">
-                         <h4 className="font-black text-white text-xl uppercase italic tracking-tighter">Diagnostic Origin</h4>
+                        <div className="bg-blue-600 dark:bg-blue-600 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(79,70,229,0.3)] text-center w-72 border-b-4 border-slate-950/30">
+                         <h4 className="font-black text-slate-900 dark:text-slate-50 text-xl uppercase italic tracking-tighter">Diagnostic Origin</h4>
                          <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mt-1">Initial Level: {normalizeBand(result?.overall?.estimatedLevel || 'A1')}</p>
                        </div>
                     </div>
@@ -416,7 +416,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                      </div>
                      <div>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Growth Vector {i+1}</p>
-                        <h4 className="text-sm font-black text-white">{area}</h4>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-slate-50">{area}</h4>
                      </div>
                   </div>
                 ))}
@@ -460,14 +460,14 @@ const RoadmapSteps = (nodes: any[], isArchitecting: boolean) => {
             initial={{ opacity: 0, x: step.align === 'left' ? -20 : 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.2 }}
-            className="bg-slate-950/60 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-cyan-500/30 transition-all shadow-2xl"
+            className="bg-slate-950/60 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-cyan-500/30 transition-all shadow-sm dark:shadow-md"
           >
             <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-cyan-400 shrink-0 group-hover:bg-cyan-500 group-hover:text-slate-900 transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)]">
               {React.cloneElement(step.icon as any, { size: 24 })}
             </div>
             <div className="text-left overflow-hidden">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">MILESTONE {i + 1}</p>
-              <h5 className="text-sm font-black text-white line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
+              <h5 className="text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
             </div>
           </motion.div>
         </div>

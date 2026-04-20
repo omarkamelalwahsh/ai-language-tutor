@@ -52,7 +52,7 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
     <div id="question-analysis" className="space-y-8 animate-in fade-in duration-700 scroll-mt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-6 gap-4">
         <div className="flex items-center gap-3">
-          <Search className="text-indigo-600" size={24} />
+          <Search className="text-blue-600 dark:text-blue-400" size={24} />
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Step-by-Step Analysis</h2>
         </div>
         
@@ -64,7 +64,7 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
                onClick={() => setFilter(cat)}
                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 ${
                  filter === cat 
-                   ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200' 
+                   ? 'bg-blue-600 dark:bg-blue-600 border-indigo-600 text-white shadow-lg shadow-indigo-200' 
                    : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-300'
                }`}
              >
@@ -79,7 +79,7 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
           const isCorrect = q.result === 'Correct';
 
           return (
-            <div key={idx} className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all border-l-4 group" 
+            <div key={idx} className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-sm dark:shadow-md transition-all border-l-4 group" 
                  style={{ borderLeftColor: isCorrect ? '#10b981' : '#f43f5e' }}>
               
               <div className="p-6">
@@ -114,14 +114,14 @@ const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
                 {/* AI Insights Section */}
                 <div className="space-y-4">
                   <div className="flex gap-4 p-2">
-                    <div className="mt-1 bg-indigo-50 p-2 rounded-lg"><MessageSquare size={16} className="text-indigo-500" /></div>
+                    <div className="mt-1 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg"><MessageSquare size={16} className="text-indigo-500" /></div>
                     <div>
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">AI Interpretation</h4>
                       <p className="text-sm text-slate-600 leading-relaxed font-medium">{q.ai_interpretation}</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 bg-indigo-50/40 p-5 rounded-2xl border border-indigo-100/50 shadow-inner">
+                  <div className="flex gap-4 bg-blue-50 dark:bg-blue-900/30/40 p-5 rounded-2xl border border-indigo-100/50 shadow-inner">
                     <div className="mt-1 bg-amber-100 p-2 rounded-lg"><Lightbulb size={16} className="text-amber-600" /></div>
                     <div>
                       <h4 className="text-xs font-black text-indigo-900 uppercase tracking-widest mb-1">What this tells us</h4>

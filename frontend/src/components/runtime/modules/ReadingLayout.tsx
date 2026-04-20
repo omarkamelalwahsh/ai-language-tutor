@@ -12,8 +12,8 @@ interface ReadingLayoutProps {
 }
 
 const BADGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  reading: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-indigo-50 text-indigo-700' },
-  grammar: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-indigo-50 text-indigo-700' },
+  reading: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-blue-50 dark:bg-blue-900/30 text-indigo-700' },
+  grammar: { label: 'Reading Passage', icon: <BookOpen size={16} className="font-bold" />, color: 'bg-blue-50 dark:bg-blue-900/30 text-indigo-700' },
   writing:  { label: 'Writing Task — Reference Text', icon: <Pen size={16} className="font-bold" />, color: 'bg-emerald-50 text-emerald-700' },
 };
 
@@ -59,7 +59,7 @@ export const ReadingLayout: React.FC<ReadingLayoutProps> = ({
                   i < (currentQuestionIndex % totalInBundle) 
                     ? 'w-6 bg-emerald-500' 
                     : i === (currentQuestionIndex % totalInBundle)
-                    ? 'w-10 bg-indigo-600'
+                    ? 'w-10 bg-blue-600 dark:bg-blue-600'
                     : 'w-6 bg-slate-200'
                 }`}
               />

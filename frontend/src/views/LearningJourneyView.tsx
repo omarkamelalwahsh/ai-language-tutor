@@ -35,7 +35,7 @@ const ADAPTIVE_INTERVENTIONS: any[] = [];
 // ---------------------------------------------------------------------------
 
 const Breadcrumb = ({ items }: { items: string[] }) => (
-  <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 bg-slate-900/40 px-3 py-1.5 rounded-full border border-slate-800/50 backdrop-blur-sm self-start">
+  <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400-text mb-4 bg-white dark:bg-gray-900/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-gray-800 backdrop-blur-sm self-start">
     {items.map((item, i) => (
       <React.Fragment key={item}>
         <span className={i === items.length - 1 ? 'text-indigo-400' : ''}>{item}</span>
@@ -54,7 +54,7 @@ const SkillRing = ({ skill, percentage, color }: { skill: string, percentage: nu
     <div className="flex flex-col items-center gap-2 group">
       <div className="relative flex items-center justify-center w-12 h-12">
         <svg className="w-full h-full transform -rotate-90">
-          <circle cx="24" cy="24" r={radius} fill="none" stroke="#1E293B" strokeWidth="4" />
+          <circle cx="24" cy="24" r={radius} fill="none" stroke="currentColor" strokeWidth="4" className="text-border" />
           <motion.circle 
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
@@ -64,7 +64,7 @@ const SkillRing = ({ skill, percentage, color }: { skill: string, percentage: nu
             style={{ filter: `drop-shadow(0 0 4px ${color}80)` }}
           />
         </svg>
-        <span className="absolute text-[10px] font-black text-slate-200">{percentage}%</span>
+        <span className="absolute text-[10px] font-black text-slate-900 dark:text-slate-50">{percentage}%</span>
       </div>
       <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500 group-hover:text-slate-300 transition-colors text-center">{skill}</span>
     </div>
@@ -79,7 +79,7 @@ const CefrProgressBar = ({ currentLevel }: { currentLevel: string }) => {
   return (
     <div className="w-full max-w-2xl mt-8 px-4">
       <div className="flex items-center justify-between relative">
-        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-slate-800 -translate-y-1/2 z-0">
+        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-border -translate-y-1/2 z-0">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${(activeIndex / (levels.length - 1)) * 100}%` }}
@@ -95,9 +95,9 @@ const CefrProgressBar = ({ currentLevel }: { currentLevel: string }) => {
             <div key={level} className="relative z-10 flex flex-col items-center">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 transition-all duration-500
                 ${isPast ? 'bg-indigo-900 border-indigo-500/50 text-indigo-300' : ''}
-                ${isActive ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-110' : ''}
+                ${isActive ? 'bg-blue-600 dark:bg-blue-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-110' : ''}
                 ${isTarget && !isActive ? 'bg-slate-900 border-indigo-500/30 text-indigo-400 ring-2 ring-indigo-500/20' : ''}
-                ${!isPast && !isActive && !isTarget ? 'bg-[#0F172A] border-slate-800 text-slate-600' : ''}
+                ${!isPast && !isActive && !isTarget ? 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400-text' : ''}
               `}>
                 {level}
               </div>
@@ -122,11 +122,11 @@ const WindingPath = () => {
         <path 
            d="M 280 0 C 280 150, 480 150, 480 300 C 480 450, 280 450, 280 600 C 280 750, 480 750, 480 900 C 480 1050, 280 1050, 280 1200"
            fill="none" 
-           stroke="#1E293B" 
+           stroke="currentColor" 
            strokeWidth="8" 
            strokeLinecap="round"
            strokeDasharray="1 20"
-           className="hidden lg:block"
+           className="text-border hidden lg:block"
         />
         {/* Animated glow path */}
         <motion.path 
@@ -141,7 +141,7 @@ const WindingPath = () => {
            className="opacity-30 hidden lg:block"
         />
         {/* Mobile vertical line fallback */}
-        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#1E293B" strokeWidth="4" strokeDasharray="8 8" className="lg:hidden" />
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="currentColor" className="text-border lg:hidden" strokeWidth="4" strokeDasharray="8 8" />
         
         <defs>
           <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
@@ -215,7 +215,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Activity size={40} className="text-indigo-500 animate-spin" />
           <p className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">Architecting Roadmap...</p>
@@ -225,10 +225,10 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
       
       {/* Ambient backgrounds */}
-      <div className="fixed top-0 left-1/2 w-[1000px] h-[600px] bg-indigo-600/5 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="fixed top-0 left-1/2 w-[1000px] h-[600px] bg-blue-600 dark:bg-blue-600/5 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       
       <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-12 relative z-10">
         
@@ -273,13 +273,13 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
             
             <div className="flex flex-col gap-32 relative z-10">
               {isCalibration ? (
-                <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-900/40 border border-slate-800 rounded-[3rem] mt-20">
+                <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-100 dark:bg-slate-800/40 transition-colors duration-300">
                   <Brain size={60} className="text-indigo-400 mb-6 opacity-50" />
-                  <h3 className="text-2xl font-black text-white mb-2">Awaiting Diagnostic Signal</h3>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 mb-2">Awaiting Diagnostic Signal</h3>
                   <p className="text-slate-400 max-w-md">Complete your first assessment to allow the 70B Model to architect your personalized linguistic trajectory.</p>
                   <button 
                     onClick={onStartSession}
-                    className="mt-8 px-8 py-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-500 transition shadow-xl"
+                    className="mt-8 px-8 py-3 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-xl hover:bg-indigo-500 transition shadow-sm dark:shadow-md"
                   >
                     Start Diagnostic
                   </button>
@@ -307,7 +307,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                          <div className={`
                            relative w-20 h-20 md:w-28 md:h-28 rounded-[2.5rem] flex items-center justify-center transition-all duration-500
                            ${node.status === 'completed' ? 'bg-slate-900 border border-emerald-500/30' : ''}
-                           ${node.status === 'active' ? 'bg-indigo-600 border-2 border-indigo-400 shadow-2xl scale-110 z-20' : ''}
+                           ${node.status === 'active' ? 'bg-blue-600 dark:bg-blue-600 border-2 border-indigo-400 shadow-sm dark:shadow-md scale-110 z-20' : ''}
                            ${node.status === 'locked' ? 'bg-slate-950 border border-slate-800' : ''}
                          `}>
                            <div className="flex flex-col items-center">
@@ -321,12 +321,12 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
                       {/* Node Details Card */}
                       <div className={`
-                         max-w-sm w-full bg-[#0F172A]/40 backdrop-blur-xl border border-slate-800/50 p-6 rounded-3xl hover:bg-slate-900/60 transition group-hover:border-slate-700
-                         ${node.status === 'active' ? 'ring-1 ring-indigo-500/30 bg-slate-900/80 shadow-2xl' : ''}
+                         max-w-sm w-full bg-white dark:bg-gray-900 transition-colors duration-300
+                         ${node.status === 'active' ? 'ring-1 ring-indigo-500/30 bg-slate-900/80 shadow-sm dark:shadow-md' : ''}
                       `}>
                          <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-black tracking-tight text-white">{parseLinguisticContent(node.title)}</h3>
-                            {node.status === 'active' && <Sparkles size={16} className="text-amber-400 drop-shadow-glow" />}
+                            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{parseLinguisticContent(node.title)}</h3>
+                            {node.status === 'active' && <Sparkles size={16} className="text-amber-400 shadow-sm dark:shadow-md" />}
                          </div>
                          
                          <p className="text-xs text-slate-400 font-medium leading-relaxed mb-4">
@@ -342,7 +342,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                          {node.status === 'active' && (
                            <button 
                              onClick={onStartSession}
-                             className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2"
+                             className="w-full py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2"
                            >
                              Continue Journey <ArrowRight size={14} />
                            </button>
@@ -365,7 +365,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
               accent
             />
 
-            <div className="bg-[#0F172A]/60 backdrop-blur-xl border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl">
+            <div className="bg-[#0F172A]/60 backdrop-blur-xl border border-slate-800 p-8 rounded-[2.5rem] shadow-sm dark:shadow-md">
                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-8 flex items-center gap-2">
                  <Target size={16} className="text-indigo-400" /> Readiness Matrix
                </h4>
@@ -389,7 +389,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
             <motion.div 
                whileHover={{ y: -5 }}
-               className="bg-[#0F172A]/80 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl cursor-pointer group"
+               className="bg-[#0F172A]/80 border border-slate-800 p-8 rounded-[2.5rem] shadow-sm dark:shadow-md cursor-pointer group"
                onClick={onStartSession}
             >
                <div className="flex justify-between items-center mb-4">
@@ -411,7 +411,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             
             <div>
-              <h3 className="text-2xl font-black tracking-tight text-white mb-8 flex items-center gap-3">
+              <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-50 mb-8 flex items-center gap-3">
                  <MapPin className="text-indigo-400" /> Current Stop Goals
               </h3>
               <div className="space-y-4">
@@ -422,16 +422,16 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
             </div>
 
             <div>
-              <h3 className="text-2xl font-black tracking-tight text-white mb-8 flex items-center gap-3">
+              <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-50 mb-8 flex items-center gap-3">
                  <Sparkles className="text-amber-400" /> Adaptive Interventions
               </h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 {ADAPTIVE_INTERVENTIONS.map(item => (
-                   <div key={item.id} className="p-5 bg-slate-900 border border-slate-800 rounded-3xl hover:border-slate-700 transition">
+                   <div key={item.id} className="p-5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 shadow-sm transition-colors duration-300 rounded-3xl hover:border-slate-700 transition">
                       <div className="w-10 h-10 rounded-xl bg-slate-950 mb-4 flex items-center justify-center">
                          <item.icon size={20} className="text-indigo-400" />
                       </div>
-                      <h4 className="text-sm font-black text-white mb-1">{item.title}</h4>
+                      <h4 className="text-sm font-black text-slate-900 dark:text-slate-50 mb-1">{item.title}</h4>
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{item.desc}</p>
                    </div>
                 ))}
@@ -459,17 +459,17 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
 const SummaryBadge = ({ label, value, active }: { label: string, value: string, active?: boolean }) => (
   <div className={`p-4 rounded-2xl border flex flex-col justify-center min-w-[120px] transition-all
-    ${active ? 'bg-indigo-600/10 border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-slate-900 border-slate-800'}
+    ${active ? 'bg-blue-600 dark:bg-blue-600/10 border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50'}
   `}>
     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{label}</span>
-    <span className={`text-2xl font-black ${active ? 'text-indigo-400' : 'text-white'}`}>{value}</span>
+    <span className={`text-2xl font-black ${active ? 'text-indigo-400' : 'text-slate-900 dark:text-slate-50'}`}>{value}</span>
   </div>
 );
 
 const ContextCard = ({ icon, title, content, accent }: any) => (
   <div className={`
-    p-8 rounded-[2.5rem] border shadow-2xl relative overflow-hidden transition-all
-    ${accent ? 'bg-indigo-600/10 border-indigo-500/20' : 'bg-[#0F172A]/60 border-slate-800'}
+    p-8 rounded-[2.5rem] border shadow-sm dark:shadow-md relative overflow-hidden transition-all
+    ${accent ? 'bg-blue-600 dark:bg-blue-600/10 border-indigo-500/20' : 'bg-[#0F172A]/60 border-slate-800'}
   `}>
     <div className="absolute top-0 right-0 p-8 opacity-5">
        {React.cloneElement(icon, { size: 120 })}
@@ -484,12 +484,12 @@ const ContextCard = ({ icon, title, content, accent }: any) => (
 );
 
 const GoalItem = ({ title, desc }: any) => (
-  <div className="flex gap-4 p-5 bg-slate-900 border border-slate-800 rounded-3xl group hover:border-slate-600 transition">
+  <div className="flex gap-4 p-5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 shadow-sm transition-colors duration-300 rounded-3xl group hover:border-slate-600 transition">
     <div className="mt-1">
       <div className="w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-indigo-500/10" />
     </div>
     <div>
-      <h4 className="text-sm font-black text-white mb-1 group-hover:text-indigo-400 transition">{title}</h4>
+      <h4 className="text-sm font-black text-slate-900 dark:text-slate-50 mb-1 group-hover:text-indigo-400 transition">{title}</h4>
       <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>
     </div>
   </div>

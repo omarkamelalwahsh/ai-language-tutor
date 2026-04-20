@@ -100,7 +100,7 @@ export const VisualErrorProfile = () => {
       >
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-50 via-white to-white" />
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
+          <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
             <Target className="w-10 h-10 text-indigo-300" />
           </div>
           <h3 className="text-2xl font-bold text-slate-800 mb-2">No Diagnostic Data Yet</h3>
@@ -116,17 +116,17 @@ export const VisualErrorProfile = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-8 pb-10 w-full rounded-2xl bg-white border border-slate-100 shadow-xl overflow-hidden relative"
+      className="p-8 pb-10 w-full rounded-2xl bg-white border border-slate-100 shadow-sm dark:shadow-md overflow-hidden relative"
     >
       {/* Decorative Glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 dark:bg-blue-900/30/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
               <span className="p-2 bg-indigo-100/50 rounded-xl">
-                <Target className="w-6 h-6 text-indigo-600" />
+                <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </span>
               Visual Error Profile
             </h3>

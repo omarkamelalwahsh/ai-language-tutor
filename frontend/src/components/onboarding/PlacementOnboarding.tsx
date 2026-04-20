@@ -65,7 +65,7 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-sm dark:shadow-md overflow-hidden border border-slate-200">
         
         {/* Progress Bar */}
         <div className="h-1.5 w-full bg-slate-100 flex">

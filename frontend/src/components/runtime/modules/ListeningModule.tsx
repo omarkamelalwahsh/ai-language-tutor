@@ -34,20 +34,20 @@ export const ListeningModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalu
       {task.supportSettings.allowTranscript && (
         <button
           onClick={() => setShowTranscript(!showTranscript)}
-          className="self-start flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-bold transition-colors"
+          className="self-start flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-indigo-800 font-bold transition-colors"
         >
           <FileText className="w-4 h-4" /> {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
         </button>
       )}
       {showTranscript && (
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 italic leading-relaxed">
+        <div className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-4 rounded-2xl border border-slate-200 dark:border-gray-800 text-sm text-slate-500 dark:text-slate-400 italic leading-relaxed">
           {transcript}
         </div>
       )}
 
       {/* Comprehension Input */}
-      <div className="bg-white border border-slate-200 p-6 rounded-3xl">
-        <h4 className="text-sm font-bold text-slate-800 mb-3">Your Answer</h4>
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 p-6 rounded-3xl transition-colors duration-300">
+        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Your Answer</h4>
         <textarea
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
@@ -59,7 +59,7 @@ export const ListeningModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalu
           <button
             onClick={() => onSubmit({ answer, replayCount, transcriptUsed: showTranscript })}
             disabled={answer.trim().length === 0 || isDisabled}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors"
+            className="px-6 py-2.5 bg-foreground text-background hover:opacity-90 disabled:bg-slate-100 dark:bg-slate-800 disabled:text-slate-400 dark:text-slate-500 text-background font-bold rounded-xl transition-colors"
           >
             Submit Answer
           </button>

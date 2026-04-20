@@ -24,13 +24,13 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
   const nextLevel = currentIndex !== -1 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : 'the next level';
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-slate-50 p-6 text-center">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-6 text-center">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-8 relative overflow-hidden"
+        className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm dark:shadow-md border border-slate-100 space-y-8 relative overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-60" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/30 rounded-full blur-3xl -mr-16 -mt-16 opacity-60" />
         
         {/* Icon Animation */}
         <div className="relative mx-auto w-24 h-24">
@@ -43,20 +43,20 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
 
         {/* Text Content */}
         <div className="space-y-3 relative z-10">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Coming Soon</h2>
-          <p className="text-slate-500 font-medium leading-relaxed">
-            We're fine-tuning your personalized tasks based on your <span className="text-indigo-600 font-bold">{currentLevel} to {nextLevel} roadmap</span>.
+          <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight">Coming Soon</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+            We're fine-tuning your personalized tasks based on your <span className="text-blue-600 dark:text-blue-400 font-bold">{currentLevel} to {nextLevel} roadmap</span>.
           </p>
         </div>
 
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 tracking-widest uppercase">
+        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-full border border-indigo-100 tracking-widest uppercase">
           <Brain className="w-3 h-3" /> AI Journey Engine: Building...
         </div>
 
         <button 
           onClick={onExit}
-          className="w-full bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-slate-200"
+          className="w-full bg-foreground text-background hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-surface/20"
         >
           Back to Journey
         </button>
@@ -118,12 +118,12 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   // 4. Return Loading Shell (Must be AFTER all hooks)
   if (!activeResult) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 animate-pulse mb-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-blue-600 dark:bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm dark:shadow-md shadow-indigo-100 animate-pulse mb-6">
           <Loader2 className="w-8 h-8 text-white animate-spin" />
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">Syncing Session...</h2>
-        <p className="text-slate-500 font-medium">Preparing your personalized learning environment.</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Preparing your personalized learning environment.</p>
       </div>
     );
   }
@@ -215,32 +215,32 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     const totalTime = uniqueResults.reduce((sum, r) => sum + r.responseTimeMs, 0);
 
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 py-12">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex items-center justify-center p-6 py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl max-w-4xl w-full border border-slate-100 my-8"
+          className="w-full max-w-2xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 shadow-sm dark:shadow-md transition-colors duration-300 p-10 rounded-[2.5rem]"
         >
           <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-emerald-100">
+            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
               <Trophy className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Answer Review Sheet</h2>
-            <p className="text-slate-500">Let's review your performance in detail.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 mb-2">Answer Review Sheet</h2>
+            <p className="text-slate-500 dark:text-slate-400">Let's review your performance in detail.</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+            <div className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-4 rounded-xl text-center border border-slate-200 dark:border-gray-800 transition-colors duration-300">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto mb-2" />
               <p className="text-2xl font-extrabold text-slate-900">{uniqueResults.length}</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tasks</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+            <div className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-4 rounded-xl text-center border border-slate-200 dark:border-gray-800 transition-colors duration-300">
               <BarChart2 className="w-5 h-5 text-indigo-500 mx-auto mb-2" />
               <p className="text-2xl font-extrabold text-slate-900">{avgScore}%</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg Score</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+            <div className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-4 rounded-xl text-center border border-slate-200 dark:border-gray-800 transition-colors duration-300">
               <Clock className="w-5 h-5 text-amber-500 mx-auto mb-2" />
               <p className="text-2xl font-extrabold text-slate-900">{(totalTime / 1000 / 60).toFixed(1)}m</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Time</p>
@@ -248,7 +248,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
           </div>
 
           <div className="space-y-6 mb-10">
-            <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Detailed Task Answers</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 border-b pb-4">Detailed Task Answers</h3>
             {uniqueResults.map((r, i) => {
               const review = r.reviewData;
               if (!review) return null;
@@ -257,17 +257,17 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
               const isPartial = review.result === 'partial';
               
               return (
-                <div key={r.taskId} className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div key={r.taskId} className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   {/* Card Header */}
                   <div className={`p-4 border-b flex items-center justify-between ${isCorrect ? 'bg-emerald-50/50 border-emerald-100' : isPartial ? 'bg-amber-50/50 border-amber-100' : 'bg-rose-50/50 border-rose-100'}`}>
                     <div className="flex gap-4 items-center flex-wrap">
                       <span className="text-xs font-bold uppercase tracking-widest bg-slate-800 text-white px-3 py-1 rounded-full">{review.skill}</span>
                       <div className="flex gap-1.5 items-center">
-                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Level:</span>
+                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target Level:</span>
                          <span className="text-xs font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm">{review.questionLevel}</span>
                       </div>
                       <div className="flex gap-1.5 items-center">
-                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Level:</span>
+                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Level:</span>
                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded shadow-sm ${review.answerLevel !== review.questionLevel ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200' : 'bg-slate-200 text-slate-700'}`}>{review.answerLevel}</span>
                       </div>
                     </div>
@@ -283,10 +283,10 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                   <div className="p-5 space-y-5">
                      <div>
                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Prompt</p>
-                       <p className="text-slate-800 font-medium text-[15px]">{review.prompt}</p>
+                       <p className="text-slate-800 dark:text-slate-200 font-medium text-[15px]">{review.prompt}</p>
                      </div>
 
-                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 ring-1 ring-black/5">
+                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 transition-colors duration-300 ring-1 ring-black/5">
                        <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1.5">Your Answer</p>
                        <p className="text-slate-900 font-medium">{review.userAnswer}</p>
                      </div>
@@ -319,7 +319,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                          </div>
                        )}
                        {review.explanation.levelNote && (
-                         <div className="flex items-start gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                         <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-900/30/50 p-3 rounded-xl border border-indigo-100/50">
                            <BarChart2 className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0"/>
                            <p className="text-indigo-900 text-sm leading-relaxed max-w-3xl"><strong className="text-indigo-950 mr-1">Level Note:</strong>{review.explanation.levelNote}</p>
                          </div>
@@ -345,7 +345,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
           <button
             onClick={onExit}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold tracking-wide uppercase py-4 rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98]"
+            className="w-full bg-foreground text-background font-extrabold tracking-wide uppercase py-4 rounded-xl transition-all shadow-sm dark:shadow-md hover:opacity-90 active:scale-[0.98] transition-colors duration-300"
           >
             Finish Review
           </button>
@@ -364,38 +364,38 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 sm:p-6">
-      <div className="w-full max-w-4xl bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] rounded-[2rem] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] mt-2 border border-slate-100 relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center p-4 sm:p-6">
+      <div className="w-full max-w-4xl bg-white dark:bg-gray-900 shadow-sm dark:shadow-md rounded-[2rem] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] mt-2 border border-slate-200 dark:border-gray-800 relative transition-colors duration-300">
         
         {/* Universal Task Header */}
-        <header className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-xl sticky top-0 z-10">
+        <header className="px-6 py-5 border-b border-slate-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-10 transition-colors duration-300">
           <div className="flex items-center gap-4">
-            <button onClick={onExit} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors text-slate-500 border border-slate-200">
+            <button onClick={onExit} className="p-2.5 bg-slate-50 dark:bg-gray-950 hover:bg-white dark:bg-gray-900-hover/50 rounded-full transition-colors text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-gray-800 transition-colors duration-300">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold tracking-widest uppercase bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold tracking-widest uppercase bg-blue-50 dark:bg-blue-900/30 text-indigo-700 px-2 py-0.5 rounded-md">
                    {currentTask.targetSkill} Practice
                 </span>
-                <span className="text-xs text-slate-400 font-bold tracking-widest uppercase">
+                <span className="text-xs text-slate-900 dark:text-slate-50 font-extrabold transition-colors duration-300 tracking-widest uppercase">
                    Task {currentTaskIndex + 1} of {tasks.length}
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">{currentTask.learningObjective}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50 tracking-tight">{currentTask.learningObjective}</h2>
             </div>
           </div>
 
           {/* Progress bar */}
           <div className="hidden sm:block w-32">
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden transition-colors duration-300">
               <div className="h-full bg-indigo-500 transition-all" style={{ width: `${((currentTaskIndex + 1) / tasks.length) * 100}%` }} />
             </div>
           </div>
         </header>
 
         {/* Dynamic Module Area */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50/30 relative">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 dark:bg-gray-950 transition-colors duration-300/30 relative">
           <AnimatePresence mode="wait">
             <motion.div
                key={`${currentTask.taskId}-${retryCount}`}
@@ -407,7 +407,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             >
               {/* Task Prompt Framing */}
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-800 leading-relaxed mb-4">{currentTask.prompt}</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 leading-relaxed mb-4">{currentTask.prompt}</h3>
                 <div className="flex gap-2">
                    {currentTask.difficultyTarget && <span className="bg-slate-100 text-slate-600 px-3 py-1 text-xs font-bold rounded-lg border border-slate-200">Target: {currentTask.difficultyTarget}</span>}
                    {retryCount > 0 && <span className="bg-amber-50 text-amber-700 px-3 py-1 text-xs font-bold rounded-lg border border-amber-200">Attempt {retryCount + 1}</span>}
@@ -439,7 +439,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                    <h4 className={`text-lg font-bold mb-1 ${feedback.feedbackType === 'praise' ? 'text-emerald-900' : 'text-amber-900'}`}>{feedback.feedbackType === 'praise' ? 'Great job!' : 'Let\'s refine this.'}</h4>
                    <p className={`text-base font-medium mb-3 ${feedback.feedbackType === 'praise' ? 'text-emerald-800' : 'text-amber-800'}`}>{feedback.primaryMessage}</p>
                    {feedback.suggestedRetryConstraint && (
-                     <div className="inline-block bg-amber-100/50 border border-amber-200 text-amber-900 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
+                    <div className="inline-block bg-amber-500/10 border border-amber-500/20 text-amber-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
                        Constraint: {feedback.suggestedRetryConstraint}
                      </div>
                    )}

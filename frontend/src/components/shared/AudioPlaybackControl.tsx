@@ -158,7 +158,7 @@ export const AudioPlaybackControl: React.FC<AudioPlaybackControlProps> = ({
   const isPlayReady = !!audioUrl || useTTS;
 
   return (
-    <div className={`bg-indigo-50 border border-indigo-100 p-6 rounded-3xl w-full ${className}`}>
+    <div className={`bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 p-6 rounded-3xl w-full transition-colors duration-300 ${className}`}>
       {/* Hidden Audio Element with Pre-loading enabled for Production-ready speed */}
       {audioUrl && (
         <audio 
@@ -175,17 +175,17 @@ export const AudioPlaybackControl: React.FC<AudioPlaybackControlProps> = ({
           <button 
              onClick={togglePlay}
              disabled={!isPlayReady}
-             className="w-14 h-14 flex items-center justify-center bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition shadow-[0_4px_20px_rgba(79,70,229,0.3)] disabled:opacity-50"
+             className="w-14 h-14 flex items-center justify-center bg-blue-600 dark:bg-blue-600 text-white rounded-full hover:bg-indigo-700 transition shadow-[0_4px_20px_rgba(79,70,229,0.3)] disabled:opacity-50"
              aria-label={isPlaying ? 'Pause Audio' : 'Play Audio'}
           >
              {isPlaying ? <Pause className="w-6 h-6 fill-current"/> : <Play className="w-6 h-6 fill-current ml-1"/>}
           </button>
           <div>
-            <div className="text-sm font-bold text-indigo-900 mb-1">Speaker Audio</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-slate-50 mb-1">Speaker Audio</div>
             {useTTS ? (
-              <div className="text-xs text-indigo-600 font-medium">Text-to-Speech Engine</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Text-to-Speech Engine</div>
             ) : (
-              <div className="text-xs text-indigo-600">{formatTime(currentTime)} / {formatTime(duration || 0)}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{formatTime(currentTime)} / {formatTime(duration || 0)}</div>
             )}
           </div>
         </div>
@@ -194,7 +194,7 @@ export const AudioPlaybackControl: React.FC<AudioPlaybackControlProps> = ({
           {allowSlowAudio && (
             <button 
               onClick={handleSlowPlayback} 
-              className="px-3 py-1 bg-white border border-indigo-100 text-indigo-700 text-xs font-bold rounded-lg hover:bg-indigo-100 transition"
+              className="px-3 py-1 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-gray-800 text-indigo-500 text-xs font-bold rounded-lg hover:bg-white dark:bg-gray-900-hover transition-colors"
               aria-label="Toggle Slow Playback"
             >
               {playbackRate === 0.75 ? '1x' : '0.75x'}
@@ -204,18 +204,18 @@ export const AudioPlaybackControl: React.FC<AudioPlaybackControlProps> = ({
              <button 
                onClick={handleReplay} 
                disabled={!isPlayReady}
-               className="p-2 bg-white border border-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-100 relative transition disabled:opacity-50"
+               className="p-2 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-gray-800 text-indigo-500 rounded-lg hover:bg-white dark:bg-gray-900-hover relative transition-colors disabled:opacity-50"
                aria-label="Replay Audio"
               >
                <RotateCcw className="w-4 h-4" />
-               <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{replayCount}</span>
+               <span className="absolute -top-2 -right-2 bg-blue-600 dark:bg-blue-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{replayCount}</span>
              </button>
           )}
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-indigo-200 rounded-full overflow-hidden relative">
+      <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative transition-colors duration-300">
         <div 
           className={`h-full bg-indigo-500 transition-all ${useTTS && isPlaying ? 'animate-pulse w-full' : ''}`} 
           style={{ width: useTTS && isPlaying ? '100%' : `${progress}%` }} 

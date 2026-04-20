@@ -21,7 +21,7 @@ export const AdminLeaderboardView: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 mb-1 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-indigo-600" /> Learner Rankings
+            <Trophy className="w-6 h-6 text-blue-600 dark:text-blue-400" /> Learner Rankings
           </h2>
           <p className="text-slate-500 text-sm">Comprehensive view of all active learners and their progress metrics.</p>
         </div>
@@ -98,7 +98,7 @@ export const AdminLeaderboardView: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-indigo-600 text-sm">{user.level}</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{user.level}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
@@ -107,7 +107,7 @@ export const AdminLeaderboardView: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                    <button className="p-2 text-slate-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
                       <ChevronRight className="w-5 h-5" />
                     </button>
                     <button className="p-2 text-slate-400 hover:text-slate-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100">

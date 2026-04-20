@@ -106,7 +106,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 py-12 px-4 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50">
         <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4" />
         <h2 className="text-xl font-bold text-slate-700 animate-pulse">Loading Detailed Report...</h2>
       </div>
@@ -144,10 +144,10 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
     : dbResponses;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white py-16 px-4 md:px-8 relative overflow-x-hidden selection:bg-cyan-500/30 prestige-gpu">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 py-16 px-4 md:px-8 relative overflow-x-hidden selection:bg-cyan-500/30 prestige-gpu transition-colors duration-300">
       {/* Background Atmosphere */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[160px]" />
         <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-600/5 rounded-full blur-[140px]" />
         {/* Noise Overlay */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSdub2lzZUZpbHRlcic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzMnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbm9pc2VGaWx0ZXIpJy8+PC9zdmc+')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
@@ -163,16 +163,16 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
               onClick={() => onBack ? onBack() : navigate(-1)}
               className="flex items-center gap-3 text-slate-500 hover:text-white font-black uppercase tracking-[0.2em] text-[10px] transition-all group"
             >
-              <div className="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:bg-indigo-600 transition-colors">
+              <div className="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:bg-blue-600 dark:bg-blue-600 transition-colors">
                 <ArrowLeft className="w-4 h-4 text-white" />
               </div>
               Back to Analysis
             </button>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic">Diagnostic <span className="text-cyan-400">Log.</span></h1>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-50 tracking-tighter uppercase italic">Diagnostic <span className="text-cyan-400">Log.</span></h1>
           </div>
           <div className="text-left md:text-right">
             <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] mb-1">Linguistic Search Records</p>
-            <p className="text-2xl font-black text-white tracking-tight">{mappedList.length} <span className="text-slate-700">MODELS EVALUATED</span></p>
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">{mappedList.length} <span className="text-slate-700">MODELS EVALUATED</span></p>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
               <motion.div 
                 key={item.question_id + idx} 
                 variants={staggerItem}
-                className={`relative bg-slate-950/40 backdrop-blur-3xl rounded-[2.5rem] border overflow-hidden transition-all duration-500 group will-change-contents ${
+                className={`relative bg-white dark:bg-gray-900/40 backdrop-blur-3xl rounded-[2.5rem] border overflow-hidden transition-all duration-500 group will-change-contents ${
                   isCorrect ? 'border-emerald-500/10 hover:border-emerald-500/30' : 'border-rose-500/10 hover:border-rose-500/30'
                 }`}
               >
@@ -229,7 +229,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                               "{ (item as any).stimulus }"
                             </div>
                           )}
-                          {item.prompt && <p className="text-white font-black text-2xl leading-tight tracking-tight">{item.prompt}</p>}
+                          {item.prompt && <p className="text-slate-900 dark:text-slate-50 font-black text-2xl leading-tight tracking-tight">{item.prompt}</p>}
                        </div>
                      </div>
                    )}
@@ -240,7 +240,7 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                         <div className="absolute inset-0 bg-cyan-500/5 blur-xl opacity-0 group-hover/response:opacity-100 transition-opacity" />
                         <div className="relative bg-black/40 p-8 rounded-[2rem] border border-white/5 shadow-inner ring-1 ring-white/5 h-full">
                           <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] mb-4">Your Answer</p>
-                          <p className="text-white font-bold text-xl leading-relaxed">
+                          <p className="text-slate-900 dark:text-slate-50 font-bold text-xl leading-relaxed">
                             {item.user_answer || <span className="text-slate-700 italic">No output captured</span>}
                           </p>
                         </div>

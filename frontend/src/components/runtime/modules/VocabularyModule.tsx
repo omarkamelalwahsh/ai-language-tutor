@@ -39,8 +39,8 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
     <div className="flex flex-col gap-6 items-center">
       {/* Recognition Mode (Multiple Choice) */}
       {!useProductionMode && (
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm w-full max-w-2xl text-center">
-           <h3 className="text-xl font-medium text-slate-600 leading-relaxed mb-8">
+        <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm w-full max-w-2xl text-center transition-colors duration-300">
+           <h3 className="text-xl font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-8">
               {task.prompt.split('____').map((part, i, arr) => (
                 <React.Fragment key={i}>
                   {part}
@@ -61,8 +61,8 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
                   disabled={isDisabled}
                   className={`px-5 py-3 rounded-xl border-2 font-bold transition-all ${
                     selectedAnswer === opt 
-                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700' 
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      ? 'border-indigo-600 bg-blue-50 dark:bg-blue-900/30 text-indigo-700' 
+                      : 'border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-slate-500 dark:text-slate-400 hover:border-slate-300 transition-colors duration-300'
                   }`}
                 >
                   {opt}
@@ -74,9 +74,9 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
 
       {/* Production Mode (Type Answer) */}
       {useProductionMode && (
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm w-full max-w-2xl">
+        <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm w-full max-w-2xl transition-colors duration-300">
           <div className="text-center mb-6">
-            <h3 className="text-xl font-medium text-slate-600 leading-relaxed">
+            <h3 className="text-xl font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
               {task.prompt.split('____').map((part, i, arr) => (
                 <React.Fragment key={i}>
                   {part}
@@ -96,7 +96,7 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
               onChange={(e) => setTypedAnswer(e.target.value)}
               placeholder="Type the correct word or phrase..."
               disabled={isDisabled}
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg text-slate-800 placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="flex-1 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-3 text-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-900 dark:text-slate-50/20 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-300"
               onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
             />
           </div>
@@ -106,7 +106,7 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
       {/* Mode Toggle */}
       <button
         onClick={() => { setUseProductionMode(!useProductionMode); setSelectedAnswer(''); setTypedAnswer(''); }}
-        className="text-sm text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-2 transition-colors"
+        className="text-sm text-blue-600 dark:text-blue-400 hover:text-indigo-800 font-bold flex items-center gap-2 transition-colors"
       >
         <Keyboard className="w-4 h-4" /> {useProductionMode ? 'Switch to Multiple Choice' : 'Want to type? Use Production Mode'}
       </button>
@@ -115,7 +115,7 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
       <button
         onClick={handleSubmit}
         disabled={(useProductionMode ? typedAnswer.trim().length === 0 : selectedAnswer === '') || isDisabled}
-        className="w-full max-w-2xl py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all shadow-sm"
+        className="w-full max-w-2xl py-4 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all shadow-sm"
       >
         Check Contextual Fit
       </button>

@@ -37,7 +37,7 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
       <motion.section variants={staggerItem} className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/30 shadow-xl">
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/30 shadow-sm dark:shadow-md">
              <Rocket className="w-12 h-12 text-white" />
           </div>
           <div>
@@ -56,7 +56,7 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
           {/* Starting Point Card */}
           <motion.div variants={staggerItem} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm h-full">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl border border-indigo-100">
                 <MapPin className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Starting Point</h3>
@@ -64,7 +64,7 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
             
             <div className="flex items-center justify-between mb-8">
               <div className="text-center">
-                <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mb-3 mx-auto shadow-xl shadow-indigo-200">
+                <div className="w-20 h-20 bg-blue-600 dark:bg-blue-600 rounded-3xl flex items-center justify-center mb-3 mx-auto shadow-sm dark:shadow-md shadow-indigo-200">
                   <span className="text-2xl font-extrabold text-white">{currentLevel}</span>
                 </div>
                 <p className="text-sm font-bold text-slate-400 capitalize">Assessed Level</p>
@@ -72,7 +72,7 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
               
               <div className="flex-1 px-8">
                  <div className="h-px bg-slate-200 w-full relative">
-                   <div className="absolute top-1/2 left-0 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-600" />
+                   <div className="absolute top-1/2 left-0 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-600" />
                    <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-200" />
                  </div>
               </div>
@@ -126,7 +126,7 @@ export const NewLearnerJourneyView: React.FC<NewLearnerJourneyViewProps> = ({ le
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                  <span className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">Upcoming Milestone</span>
-                 <span className="text-indigo-600 font-bold">Start Your Streak</span>
+                 <span className="text-blue-600 dark:text-blue-400 font-bold">Start Your Streak</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                  <div className="h-full bg-slate-200 w-[5%]" />

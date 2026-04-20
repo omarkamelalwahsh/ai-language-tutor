@@ -31,7 +31,7 @@ export class PrestigeErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-8 text-center overscroll-none">
+        <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center p-8 text-center overscroll-none transition-colors duration-300">
           {/* Background Decor */}
           <div className="absolute inset-0 pointer-events-none opacity-20">
              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-600/20 rounded-full blur-[120px]" />
@@ -45,10 +45,10 @@ export class PrestigeErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+              <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tighter uppercase italic">
                 Protocol <span className="text-rose-500">Desynchronized.</span>
               </h2>
-              <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
                 The AI model encountered a structural runtime anomaly. 
                 Restability protocol is required to restore neural connectivity.
               </p>
@@ -64,7 +64,7 @@ export class PrestigeErrorBoundary extends Component<Props, State> {
               className="w-full relative group p-[2px] rounded-xl overflow-hidden transition-all active:scale-95"
             >
               <div className="absolute inset-[-1000%] animate-[spin_4s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#f43f5e_0%,#4F46E5_50%,#f43f5e_100%)] opacity-50" />
-              <div className="relative w-full h-full bg-slate-900 rounded-[10px] px-8 py-4 flex items-center justify-center gap-3 border border-white/10 group-hover:bg-slate-800 transition-colors">
+              <div className="relative w-full h-full bg-white dark:bg-gray-900 rounded-[10px] px-8 py-4 flex items-center justify-center gap-3 border border-slate-200 dark:border-gray-800 group-hover:bg-white dark:bg-gray-900-hover transition-colors">
                 <RefreshCw className="w-5 h-5 text-rose-400 group-hover:rotate-180 transition-transform duration-500" />
                 <span className="text-white font-black uppercase tracking-widest text-xs">Initialization Core Recovery</span>
               </div>

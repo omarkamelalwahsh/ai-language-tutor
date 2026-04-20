@@ -69,18 +69,18 @@ export const MicrophonePreCheck: React.FC<PreCheckProps> = ({ onPassed, onCancel
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 border-2 border-slate-200 rounded-3xl bg-white w-full">
-      <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4 border border-indigo-100">
+    <div className="flex flex-col items-center justify-center p-8 border-2 border-slate-200 dark:border-gray-800 rounded-3xl bg-white dark:bg-gray-900 w-full transition-colors duration-300">
+      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 border border-indigo-100">
         <Mic className="w-8 h-8 text-indigo-500" />
       </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">Microphone Check</h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-2">Microphone Check</h3>
       
       {mode === 'idle' && (
         <>
-          <p className="text-slate-500 text-center mb-6 max-w-sm">We need to check your microphone before you can complete speaking tasks.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-center mb-6 max-w-sm">We need to check your microphone before you can complete speaking tasks.</p>
           <div className="flex gap-3">
-             <button onClick={onCancel} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">Skip for now</button>
-             <button onClick={handleStartTest} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">Test Microphone</button>
+             <button onClick={onCancel} className="px-6 py-3 font-bold text-slate-500 dark:text-slate-400 hover:bg-white dark:bg-gray-900-hover rounded-xl transition-colors">Skip for now</button>
+             <button onClick={handleStartTest} className="px-6 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">Test Microphone</button>
           </div>
         </>
       )}
@@ -88,7 +88,7 @@ export const MicrophonePreCheck: React.FC<PreCheckProps> = ({ onPassed, onCancel
       {mode === 'requesting' && (
         <div className="flex flex-col items-center gap-3">
            <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
-           <p className="text-indigo-600 font-bold">Please allow microphone access...</p>
+           <p className="text-blue-600 dark:text-blue-400 font-bold">Please allow microphone access...</p>
         </div>
       )}
 
@@ -96,7 +96,7 @@ export const MicrophonePreCheck: React.FC<PreCheckProps> = ({ onPassed, onCancel
         <div className="flex flex-col items-center gap-4">
            <p className="text-red-500 font-bold animate-pulse">Say something! Testing...</p>
            {/* Visualizer bar */}
-           <div className="w-full max-w-[200px] h-3 bg-slate-100 rounded-full overflow-hidden">
+           <div className="w-full max-w-[200px] h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden transition-colors duration-300">
               <div 
                 className="h-full bg-emerald-500 transition-all duration-75" 
                 style={{ width: `${Math.max(5, volume * 100)}%` }} 
@@ -106,14 +106,14 @@ export const MicrophonePreCheck: React.FC<PreCheckProps> = ({ onPassed, onCancel
       )}
 
       {mode === 'playback' && (
-        <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-           <p className="text-slate-700 font-bold">Recording finished.</p>
-           <button onClick={handlePlayBack} className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl transition-colors">
+        <div className="flex flex-col items-center gap-4 w-full max-w-sm text-center">
+           <p className="text-slate-900 dark:text-slate-50 font-bold">Recording finished.</p>
+           <button onClick={handlePlayBack} className="w-full flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/30 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl transition-colors">
               <Play className="w-5 h-5 fill-current" /> Play Back Test
            </button>
-           <p className="text-sm text-slate-500 mt-2">Could you hear yourself clearly?</p>
+           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Could you hear yourself clearly?</p>
            <div className="flex w-full gap-3">
-              <button onClick={handleStartTest} className="flex-1 py-3 text-slate-600 hover:bg-slate-50 font-bold rounded-xl border border-slate-200 transition-colors">No, try again</button>
+              <button onClick={handleStartTest} className="flex-1 py-3 text-slate-500 dark:text-slate-400 hover:bg-white dark:bg-gray-900-hover font-bold rounded-xl border border-slate-200 dark:border-gray-800 transition-colors">No, try again</button>
               <button onClick={handleConfirm} className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-colors">Yes, sounds good</button>
            </div>
         </div>
@@ -135,7 +135,7 @@ export const MicrophonePreCheck: React.FC<PreCheckProps> = ({ onPassed, onCancel
            </div>
            <div className="flex w-full gap-3">
               <button onClick={onCancel} className="flex-1 py-3 bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold rounded-xl transition-colors">Skip task</button>
-              <button onClick={handleStartTest} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+              <button onClick={handleStartTest} className="flex-1 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
                  <RefreshCcw className="w-4 h-4" /> Try Again
               </button>
            </div>

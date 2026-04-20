@@ -4,11 +4,13 @@ import { AnimatePresence, motion } from 'motion/react';
 
 // Context
 import { DataProvider, useData } from './context/DataContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { supabase } from './lib/supabaseClient';
 
 // Components
 import { NeuralPulseLoader } from './components/common/NeuralPulseLoader';
 import { PrestigeErrorBoundary } from './components/common/PrestigeErrorBoundary';
+import ThemeToggle from './components/ThemeToggle';
 import { DashboardService } from './services/DashboardService';
 import { useMemo } from 'react';
 
@@ -43,10 +45,10 @@ const DevModeOverlay = ({ result, show, onClose }: { result: any; show: boolean;
         <motion.div
           initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="w-full max-w-md h-full bg-slate-50 border-l border-slate-200 shadow-2xl flex flex-col pt-6"
+          className="w-full max-w-md h-full bg-slate-50 border-l border-slate-200 shadow-sm dark:shadow-md flex flex-col pt-6"
         >
           <div className="flex justify-between items-center px-6 pb-4 border-b border-slate-200">
-            <div className="flex items-center gap-2 text-indigo-600">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
               <Code className="w-5 h-5" />
               <h3 className="font-mono font-bold">Data Capture JSON</h3>
             </div>
@@ -249,9 +251,7 @@ function AppRoutes() {
   };
 
   return (
-    <div className="bg-[#020617] min-h-screen w-full text-white selection:bg-cyan-500/30 overflow-x-hidden relative">
-
-
+    <div className="bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 min-h-screen w-full selection:bg-cyan-500/30 overflow-x-hidden relative transition-colors duration-300">
       <PrestigeErrorBoundary key="main-error-boundary">
         <Suspense fallback={<NeuralPulseLoader status="Synthesizing Knowledge Node..." />}>
           <Routes>
@@ -400,10 +400,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <DataProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </DataProvider>
+    <ThemeProvider>
+      <DataProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </DataProvider>
+    </ThemeProvider>
   );
 }

@@ -252,15 +252,15 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
     <div className="flex flex-col items-center justify-center gap-6 w-full max-w-2xl mx-auto">
       {/* Voice Mode */}
       {!useTextFallback && mode !== 'mic_check' && (
-        <div className="flex flex-col items-center justify-center p-8 border-2 border-slate-200 rounded-3xl bg-white w-full h-[320px] relative shadow-sm">
+        <div className="flex flex-col items-center justify-center p-8 border-2 border-slate-200 dark:border-gray-800 rounded-3xl bg-white dark:bg-gray-900 w-full h-[320px] relative shadow-sm transition-colors duration-300">
           
           {(mode === 'ready' || mode === 'recording') && (
             <>
               <div className="text-center mb-6">
-                <p className="text-slate-500 font-medium mb-1">Speak your answer clearly</p>
+                <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">Speak your answer clearly</p>
                 <div className="h-6 mt-2">
                    {mode === 'recording' && (
-                     <span className="font-mono text-lg font-bold text-slate-700">{formatTime(durationSec)}</span>
+                     <span className="font-mono text-lg font-bold text-slate-800 dark:text-slate-200">{formatTime(durationSec)}</span>
                    )}
                 </div>
               </div>
@@ -270,7 +270,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                   <button
                     onClick={handleStartRecording}
                     disabled={isDisabled}
-                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 font-bold z-10"
+                    className="relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-blue-600 dark:bg-blue-600 hover:bg-indigo-500 text-white shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 font-bold z-10"
                   >
                     <Mic className="w-8 h-8 mb-1" />
                     <span>Start</span>
@@ -288,7 +288,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                 
                 {/* 🌈 Dynamic Visualizer: Production-grade feedback */}
                 <div 
-                   className="w-48 h-2 bg-slate-100 rounded-full overflow-hidden mt-6 transition-all duration-500" 
+                   className="w-48 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-6 transition-all duration-500" 
                    style={{ opacity: mode === 'recording' ? 1 : 0, transform: mode === 'recording' ? 'scaleY(1.5)' : 'scaleY(1)' }}
                  >
                   <div 
@@ -315,7 +315,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                 <button 
                   onClick={handleRerecord} 
                   disabled={isDisabled}
-                  className="flex-1 py-3 bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-white dark:bg-gray-900-hover font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   <RefreshCcw className="w-5 h-5" /> Retake
                 </button>
@@ -345,8 +345,8 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                 <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-2">
                   <Mic className="w-8 h-8 text-emerald-500" />
                 </div>
-                <p className="text-xl font-bold text-slate-800">Recording Submitted</p>
-                <p className="text-slate-500">Waiting for feedback...</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-50">Recording Submitted</p>
+                <p className="text-slate-500 dark:text-slate-400">Waiting for feedback...</p>
              </div>
           )}
           
@@ -360,7 +360,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
 
       {/* Text Fallback Mode */}
       {useTextFallback && (
-        <div className="w-full bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="w-full bg-white dark:bg-gray-900 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors duration-300">
           <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-800 text-sm flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -373,16 +373,16 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Type out exactly what you would say..."
-              className="w-full h-32 resize-none outline-none text-lg text-slate-800 placeholder:text-slate-300 bg-transparent"
+              className="w-full h-32 resize-none outline-none text-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-900 dark:text-slate-50/20 bg-transparent transition-colors duration-300"
               disabled={isDisabled}
             />
           </div>
-          <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
-            <span className="text-xs font-bold text-slate-400">{textInput.length} characters</span>
+          <div className="p-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-950 flex justify-between items-center transition-colors duration-300">
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500">{textInput.length} characters</span>
             <button
               onClick={handleTextSubmit}
               disabled={textInput.trim().length === 0 || isDisabled}
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+              className="px-6 py-2.5 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
             >
               {isEvaluating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Typing'}
             </button>
@@ -394,7 +394,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
       <button
         onClick={() => { setUseTextFallback(!useTextFallback); setErrorMsg(''); }}
         disabled={isTranscribing || isEvaluating}
-        className="text-sm text-slate-500 hover:text-slate-800 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+        className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
       >
         {useTextFallback ? (
            <><Mic className="w-4 h-4" /> Try using microphone instead</>

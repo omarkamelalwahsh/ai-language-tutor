@@ -30,10 +30,10 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
   onBack,
 }) => {
   return (
-    <FadeTransition className="min-h-screen bg-white flex flex-col items-center">
+    <FadeTransition className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center transition-colors duration-300">
       {/* Dynamic Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-[120px] opacity-60" />
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-50 dark:bg-blue-900/30 rounded-full blur-[120px] opacity-60" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-50 rounded-full blur-[120px] opacity-60" />
       </div>
 
@@ -51,15 +51,15 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-lg shadow-indigo-200"
+                className="inline-flex items-center gap-2 bg-blue-600 dark:bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-lg shadow-indigo-200"
               >
                 <Sparkles className="w-3 h-3" />
                 Stage 2: Proficiency Scan
               </motion.div>
-              <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
-                Let's architect your <span className="text-indigo-600">perfect path.</span>
+              <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-slate-50 tracking-tight leading-[1.1] mb-6">
+                Let's architect your <span className="text-blue-600 dark:text-blue-400">perfect path.</span>
               </h1>
-              <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-lg">
+              <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-lg">
                 Your profile is set! Now, we need 8 minutes of your time to map your current English mastery across all core skills.
               </p>
             </div>
@@ -67,7 +67,7 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
             <div className="space-y-4">
                {outcomes.map((outcome, i) => (
                 <div key={i} className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 bg-slate-50 text-indigo-600 rounded-2xl flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform shadow-sm">
+                  <div className="w-12 h-12 bg-slate-50 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform shadow-sm">
                     {outcome.icon}
                   </div>
                   <p className="text-slate-700 font-bold">{outcome.text}</p>
@@ -79,14 +79,14 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
             <div className="hidden lg:flex flex-col gap-4 pt-4">
               <button
                 onClick={onStartAssessment}
-                className="group relative w-full max-w-sm bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:shadow-[0_25px_50px_rgba(79,70,229,0.4)] active:scale-[0.98] flex items-center justify-center gap-3 text-xl overflow-hidden"
+                className="group relative w-full max-w-sm bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:shadow-[0_25px_50px_rgba(79,70,229,0.4)] active:scale-[0.98] flex items-center justify-center gap-3 text-xl overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 Start Diagnostic
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </button>
               {onBack && (
-                <button onClick={onBack} className="text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors text-left pl-2">
+                <button onClick={onBack} className="text-slate-400 hover:text-blue-600 dark:text-blue-400 font-bold text-sm transition-colors text-left pl-2">
                   ← Back to goals
                 </button>
               )}
@@ -96,7 +96,7 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
           {/* Right Column: Interactive Card */}
           <motion.div variants={staggerItem} className="relative">
             <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 rounded-[3rem] blur-2xl" />
-            <div className="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 relative">
+            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 md:p-10 shadow-sm dark:shadow-md shadow-slate-200/50 border border-slate-200 dark:border-gray-800 relative">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8">What we'll analyze</h3>
               
               <div className="grid gap-4">
@@ -106,14 +106,14 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + (idx * 0.1) }}
-                    className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-white transition-all group"
+                    className="flex items-center gap-5 p-5 rounded-3xl bg-white dark:bg-gray-900-hover border border-slate-200 dark:border-gray-800 transition-all group"
                   >
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
                       {skill.icon}
                     </div>
                     <div>
                       <h4 className="font-black text-slate-900 leading-tight">{skill.label}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">{skill.desc}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{skill.desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -131,7 +131,7 @@ export const PreAssessmentIntroView: React.FC<PreAssessmentIntroViewProps> = ({
             <div className="lg:hidden mt-8 space-y-4">
               <button
                 onClick={onStartAssessment}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 text-lg"
+                className="w-full bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white font-black py-5 px-8 rounded-2xl transition-all shadow-sm dark:shadow-md shadow-indigo-100 flex items-center justify-center gap-3 text-lg"
               >
                 Start Diagnostic
                 <ArrowRight className="w-5 h-5" />

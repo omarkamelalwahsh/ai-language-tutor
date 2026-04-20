@@ -121,7 +121,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
 
 /** Maps session count to a Tailwind intensity class. */
 function intensityClass(sessionCount: number): string {
-  if (sessionCount >= 3) return 'bg-indigo-600 text-white';
+  if (sessionCount >= 3) return 'bg-blue-600 dark:bg-blue-600 text-white';
   if (sessionCount >= 2) return 'bg-indigo-500 text-white';
   return 'bg-indigo-200 text-indigo-700';
 }

@@ -50,7 +50,7 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
   }, [onboardingState, taskResults, assessmentOutcome, onComplete]);
 
   return (
-    <FadeTransition className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <FadeTransition className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
       <motion.div
         animate={{
           background: [
@@ -75,12 +75,12 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
             className="w-28 h-28 rounded-full border-[3px] border-blue-100 border-b-blue-500 border-l-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white border border-indigo-100 rounded-full flex items-center justify-center shadow-[0_15px_30px_rgba(79,70,229,0.2)]">
-            <Brain className="w-8 h-8 text-indigo-600" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-full flex items-center justify-center shadow-[0_15px_30px_rgba(79,70,229,0.2)]">
+            <Brain className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-8 tracking-tight leading-tight">
+        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-8 tracking-tight leading-tight">
           Analyzing your results<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
             with Pedagogical Precision
@@ -94,7 +94,7 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-4 text-slate-700 font-medium bg-white px-6 py-4 rounded-2xl border border-indigo-100 shadow-[0_10px_25px_-5px_rgba(79,70,229,0.1)]"
+              className="flex items-center gap-4 text-slate-800 dark:text-slate-200 font-medium bg-white dark:bg-gray-900 px-6 py-4 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-[0_10px_25px_-5px_rgba(79,70,229,0.1)]"
             >
               {React.createElement(MILESTONES[currentMilestone].icon, { 
                 className: `w-5 h-5 ${MILESTONES[currentMilestone].color}` 
@@ -108,7 +108,7 @@ export const AnalyzingView: React.FC<AnalyzingViewProps> = ({ onboardingState, t
               <div 
                 key={i} 
                 className={`h-1.5 rounded-full transition-all duration-500 ${
-                  i === currentMilestone ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-200'
+                  i === currentMilestone ? 'w-8 bg-blue-600 dark:bg-blue-600' : 'w-2 bg-slate-200'
                 }`} 
               />
             ))}

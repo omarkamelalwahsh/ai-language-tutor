@@ -21,8 +21,8 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
   const filteredEntries = entries.filter(e => e.displayName.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col px-4 py-6 border-r border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 flex flex-col md:flex-row transition-colors duration-300">
+      <aside className="w-full md:w-64 bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50 flex flex-col px-4 py-6 border-r border-slate-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center gap-3 px-3 mb-10">
           <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
@@ -37,7 +37,7 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
           <button onClick={onNavigateDashboard} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
             <LayoutDashboard className="w-5 h-5" /> Overview
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-indigo-600 text-white transition-all">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-blue-600 dark:bg-blue-600 text-white transition-all">
             <Crown className="w-5 h-5" /> Leaderboard
           </button>
         </nav>
@@ -53,10 +53,10 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
       </aside>
 
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <header className="mb-8 p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <header className="mb-8 p-6 bg-white dark:bg-gray-900 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors duration-300">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Global Leaderboard</h2>
-            <p className="text-slate-500 font-medium text-sm mt-1">Manage and rank all learners across the organization.</p>
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Global Leaderboard</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">Manage and rank all learners across the organization.</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -69,17 +69,17 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors">
+            <button className="p-2 border border-slate-200 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 transition-colors">
               <Filter className="w-4 h-4" />
             </button>
           </div>
         </header>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                   <th className="px-6 py-4">Rank</th>
                   <th className="px-6 py-4">Learner</th>
                   <th className="px-6 py-4">Team</th>
@@ -97,10 +97,10 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
                     animate={{opacity: 1, y: 0}} 
                     transition={{delay: index * 0.05}}
                     key={entry.userId} 
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-white dark:bg-gray-900-hover/50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${entry.rank === 1 ? 'bg-amber-100 text-amber-600' : entry.rank === 2 ? 'bg-slate-200 text-slate-600' : entry.rank === 3 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-500'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${entry.rank === 1 ? 'bg-amber-100 text-amber-600' : entry.rank === 2 ? 'bg-slate-200 text-slate-600' : entry.rank === 3 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-500 dark:text-slate-400'}`}>
                         {entry.rank}
                       </div>
                     </td>
@@ -112,11 +112,11 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
                       {entry.teamName || '-'}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-block px-2 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-md border border-indigo-100">
+                      <span className="inline-block px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-indigo-700 text-xs font-bold rounded-md border border-indigo-100">
                         {entry.level}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center font-bold text-indigo-600 tabular-nums">
+                    <td className="px-6 py-4 text-center font-bold text-blue-600 dark:text-blue-400 tabular-nums">
                       {entry.score.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-orange-500 tabular-nums">
@@ -133,7 +133,7 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
               </tbody>
             </table>
             {filteredEntries.length === 0 && (
-              <div className="text-center py-12 text-slate-500 font-medium text-sm">No learners found matching '{searchTerm}'.</div>
+              <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium text-sm">No learners found matching '{searchTerm}'.</div>
             )}
           </div>
         </div>

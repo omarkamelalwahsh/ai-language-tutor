@@ -5,6 +5,7 @@ import { FadeTransition } from '../lib/animations';
 import { UserRole } from '../types/app';
 import { supabase } from '../lib/supabaseClient';
 import { DB_SCHEMA } from '../constants/dbSchema';
+import ThemeToggle from '../components/ThemeToggle';
 
 export interface AuthViewProps {
   onLogin: (role: UserRole, onboardingComplete: boolean) => void;
@@ -129,9 +130,9 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
   };
 
   return (
-    <FadeTransition className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden">
+    <FadeTransition className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
       {/* ── Background Mesh Glows ── */}
-      <div className="absolute top-[-20%] right-[-15%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-[-20%] right-[-15%] w-[600px] h-[600px] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-15%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -144,18 +145,22 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
         Back
       </button>
 
+      <div className="absolute top-8 right-8 z-20">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+          className="bg-white dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-800 dark:text-slate-200 rounded-[2.5rem] shadow-sm dark:shadow-md overflow-hidden"
         >
           {/* ── Header ── */}
           <div className="p-10 pb-6 text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/20">
-               {role === 'admin' ? <Shield className="w-8 h-8 text-white" /> : <UserIcon className="w-8 h-8 text-white" />}
+               {role === 'admin' ? <Shield className="w-8 h-8 text-slate-900 dark:text-slate-50" /> : <UserIcon className="w-8 h-8 text-slate-900 dark:text-slate-50" />}
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
               {role === 'admin' ? 'Admin Override' : (isLogin ? 'Welcome Back' : 'Initialize Account')}
             </h2>
             <p className="text-slate-500 font-medium text-sm">
@@ -172,14 +177,14 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
               <button
                 type="button"
                 onClick={() => { setIsLogin(true); setError(''); }}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${isLogin ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${isLogin ? 'bg-white/10 text-slate-900 dark:text-slate-50 shadow-sm border border-white/10' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 Sign In
               </button>
               <button
                 type="button"
                 onClick={() => { setIsLogin(false); setError(''); }}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${!isLogin ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${!isLogin ? 'bg-white/10 text-slate-900 dark:text-slate-50 shadow-sm border border-white/10' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 Sign Up
               </button>
@@ -210,7 +215,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                     <UserIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
                     <input
                       type="text" required value={name} onChange={e => setName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/10 focus:bg-white/10 focus:border-cyan-500/50 transition-all font-bold tracking-tight"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-slate-900 dark:text-slate-50 placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/10 focus:bg-white/10 focus:border-cyan-500/50 transition-all font-bold tracking-tight"
                       placeholder="Enter Full Name"
                     />
                   </div>
@@ -223,7 +228,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                   <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
                   <input
                     type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/10 focus:bg-white/10 focus:border-cyan-500/50 transition-all font-bold tracking-tight"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-slate-900 dark:text-slate-50 placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/10 focus:bg-white/10 focus:border-cyan-500/50 transition-all font-bold tracking-tight"
                     placeholder="learner@email.com"
                   />
                 </div>
@@ -238,7 +243,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                   <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                   <input
                     type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/10 focus:border-indigo-500/50 transition-all font-bold tracking-tight"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-slate-900 dark:text-slate-50 placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/10 focus:border-indigo-500/50 transition-all font-bold tracking-tight"
                     placeholder="••••••••"
                   />
                 </div>
@@ -251,7 +256,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                     <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                     <input
                       type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/10 focus:border-indigo-500/50 transition-all font-bold tracking-tight"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-slate-900 dark:text-slate-50 placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/10 focus:border-indigo-500/50 transition-all font-bold tracking-tight"
                       placeholder="Repeat Password"
                     />
                   </div>
@@ -267,7 +272,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                     <button 
                       type="button"
                       onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                      className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-colors"
+                      className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 dark:text-slate-50 transition-colors"
                     >
                       {isLogin ? "No account? Create one" : "Already have an account? Sign in"}
                     </button>

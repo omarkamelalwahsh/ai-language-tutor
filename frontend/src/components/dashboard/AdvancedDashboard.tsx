@@ -44,6 +44,7 @@ import { DashboardSkeleton } from './DashboardSkeleton';
 import { NeuralPulseLoader } from '../common/NeuralPulseLoader';
 import { VisualErrorProfile } from './VisualErrorProfile';
 import { normalizeBand } from '../../lib/cefr-utils';
+import ThemeToggle from '../ThemeToggle';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
@@ -197,11 +198,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     if (isGlobalLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
 
     return (
-        <div className="flex h-screen bg-[#020617] text-white font-sans overflow-hidden relative selection:bg-blue-500/30">
+        <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
             {/* 🌌 Dynamic Atmospheric Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
             </div>
 
             {/* Auto-Sync Banner */}
@@ -211,7 +212,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         initial={{ opacity: 0, scale: 0.9, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-slate-200 text-slate-700 px-6 py-2 rounded-full shadow-sm font-bold text-sm flex items-center gap-2"
+                        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50 px-6 py-2 rounded-full shadow-sm font-bold text-sm flex items-center gap-2 transition-colors duration-300"
                     >
                         <RefreshCcw className="w-4 h-4 text-blue-500 animate-spin" /> Syncing Real-time Profile...
                     </motion.div>
@@ -226,7 +227,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
+                        className="fixed inset-0 bg-slate-50 dark:bg-gray-950/60 backdrop-blur-sm z-[100] md:hidden transition-colors duration-300"
                     >
                         <motion.aside 
                             initial={{ x: '-100%' }}
@@ -234,7 +235,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-72 h-full bg-[#0B1437]/95 backdrop-blur-xl p-6 shadow-2xl flex flex-col border-r border-white/5"
+                            className="w-72 h-full bg-white dark:bg-gray-900/95 backdrop-blur-xl p-6 shadow-sm dark:shadow-md flex flex-col border-r border-slate-200 dark:border-gray-800"
                         >
                             <SidebarContent activeTab={activeTab} onTabChange={(id) => { handleTabChange(id); setIsMobileMenuOpen(false); }} onLogout={onLogout} navigate={navigate} />
                         </motion.aside>
@@ -243,13 +244,13 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
             </AnimatePresence>
 
             {/* 1. Sidebar (Desktop) */}
-            <aside className="w-64 bg-[#0B1437]/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-white/5 shadow-2xl">
+            <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-sm dark:shadow-md">
                 <SidebarContent activeTab={activeTab} onTabChange={handleTabChange} onLogout={onLogout} navigate={navigate} />
             </aside>
 
             {/* 2. Main Content Area */}
             <main className="flex-1 flex flex-col overflow-hidden relative">
-                <header className="h-[72px] bg-white/5 backdrop-blur-xl flex items-center justify-between px-8 shrink-0 relative z-20 border-b border-white/5">
+                <header className="h-[72px] bg-white dark:bg-gray-900/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0 relative z-20 border-b border-slate-200 dark:border-gray-800">
                     <div className="flex items-center gap-4">
                         {/* Mobile Menu Toggle */}
                         <button 
@@ -273,6 +274,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <ThemeToggle />
                         <button className="relative p-2 bg-white/5 rounded-full border border-white/10 text-white/60 hover:text-white transition shadow-sm hover:shadow active:scale-95">
                             <Bell size={18} />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#0B1437]"></span>
@@ -346,7 +348,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 const GlassCard = ({ children, className = "", hover = true, glow = false }: any) => (
     <motion.div
         whileHover={hover ? { y: -4, scale: 1.01 } : {}}
-        className={`relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-2xl ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
+        className={`relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-sm dark:shadow-md ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
     >
         {glow && <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />}
         {children}
@@ -413,7 +415,7 @@ const JourneyPortal = ({ journeyData }: { journeyData: JourneyData | null }) => 
                 {nodes.map((node, i) => (
                     <div key={i} className={`flex items-start gap-4 transition-all duration-300 ${node.is_locked ? 'opacity-30' : 'hover:translate-x-1'}`}>
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-colors
-                            ${node.status === 'active' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/40' : 'bg-white/5 border-white/10 text-white/40'}
+                            ${node.status === 'active' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/40' : 'bg-white dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400'}
                         `}>
                             {getIcon(node.type)}
                         </div>
@@ -558,7 +560,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                     
                     {/* Hero Action Panel */}
                     <motion.div variants={itemVariants}>
-                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl group">
+                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-sm dark:shadow-md group">
                             <div className="relative z-10">
                                 <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">
                                     AI Selection: Best Next Move
@@ -573,7 +575,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                                 <div className="flex flex-wrap items-center gap-8">
                                     <button 
                                         onClick={() => navigate('/runtime')}
-                                        className="px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-2xl flex items-center gap-3 decoration-indigo-500"
+                                        className="px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-sm dark:shadow-md flex items-center gap-3 decoration-indigo-500"
                                     >
                                         Start Session <ArrowRight size={18} />
                                     </button>
@@ -801,14 +803,14 @@ const KPICard = ({ label, value, icon, color, trend }: any) => (
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-[#0B1437]/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl">
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">{label}</p>
+            <div className="bg-white dark:bg-gray-900/80 backdrop-blur-xl border border-slate-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm dark:shadow-md">
+                <p className="text-[10px] font-black text-slate-900 dark:text-slate-50/20 uppercase tracking-widest mb-2">{label}</p>
                 <div className="space-y-2">
                     {payload.map((entry: any, index: number) => (
                         <div key={index} className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-xs font-bold text-white capitalize">{entry.name}:</span>
-                            <span className="text-xs font-black text-white">{entry.value}%</span>
+                            <span className="text-xs font-bold text-slate-900 dark:text-slate-50 capitalize">{entry.name}:</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-slate-50">{entry.value}%</span>
                         </div>
                     ))}
                 </div>
@@ -827,8 +829,8 @@ const SidebarContent = ({ activeTab, onTabChange, onLogout, navigate }: any) => 
                 <Trophy size={20} className="text-white" fill="currentColor" />
             </div>
             <div>
-                <h1 className="text-xl font-black text-white leading-tight tracking-tight">Language AI</h1>
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
+                <h1 className="text-xl font-black text-slate-900 dark:text-slate-50 leading-tight tracking-tight">Language AI</h1>
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
             </div>
         </div>
 
@@ -852,10 +854,10 @@ const NavItem = ({ icon, label, active, onClick, isDanger }: any) => (
     <button
         onClick={onClick}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${active
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
+                ? 'bg-blue-600/20 text-blue-600 border border-blue-500/30 shadow-lg shadow-blue-500/10'
                 : isDanger
-                    ? 'text-white/30 hover:bg-rose-500/10 hover:text-rose-400'
-                    : 'text-white/40 hover:bg-white/5 hover:text-white'
+                    ? 'text-slate-900 dark:text-slate-50/30 hover:bg-rose-500/10 hover:text-rose-400'
+                    : 'text-slate-400 dark:text-slate-500 hover:bg-white dark:bg-gray-900-hover hover:text-slate-900 dark:text-slate-50'
             }`}
     >
         {icon}
@@ -882,7 +884,7 @@ const LoadingSkeleton = () => (
 );
 const JourneyTab = ({ onStartSession, result }: any) => {
     return (
-        <div className="h-full overflow-y-auto rounded-3xl overflow-hidden border border-slate-200 shadow-xl">
+        <div className="h-full overflow-y-auto rounded-3xl overflow-hidden border border-slate-200 shadow-sm dark:shadow-md">
             <LearningJourneyView 
                 result={result} 
                 onStartSession={onStartSession} 
@@ -929,7 +931,7 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Mastery Distribution Radar */}
                     <GlassCard className="p-8 flex flex-col" glow>
-                        <h3 className="text-xl font-black text-white mb-6">Mastery Distribution</h3>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-6">Mastery Distribution</h3>
                         <div className="flex-1 min-h-[300px] relative">
                             <ResponsiveContainer width="100%" height={300}>
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
@@ -944,7 +946,7 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                     {/* Skill Deep Dive */}
                     <GlassCard className="p-8">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-black text-white">Logic Mapping</h3>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-slate-50">Logic Mapping</h3>
                             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
                                 <Database size={18} />
                             </div>
@@ -952,8 +954,8 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                         <div className="space-y-6">
                             {(errorProfile.weakness_areas || []).slice(0, 3).map((w: string, i: number) => (
                                 <div key={i} className="group/dive">
-                                    <p className="text-[14px] font-black text-white mb-1">{w}</p>
-                                    <p className="text-[12px] font-medium text-white/40 leading-relaxed">
+                                    <p className="text-[14px] font-black text-slate-900 dark:text-slate-50 mb-1">{w}</p>
+                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 leading-relaxed">
                                         {errorProfile.common_mistakes?.[i] || "Analyzing pattern persistence..."}
                                     </p>
                                     <div className="w-full h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
@@ -974,18 +976,18 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <Zap size={80} className="text-blue-500" />
                     </div>
-                    <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center">
                             <Sparkles size={18} />
                         </div>
                         Linguistic Action Plan
                     </h3>
-                    <p className="text-[15px] font-medium text-white/60 leading-[1.8] mb-8 max-w-2xl">
+                    <p className="text-[15px] font-medium text-slate-500 dark:text-slate-400 leading-[1.8] mb-8 max-w-2xl">
                         {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect."}
                     </p>
                     <div className="flex flex-wrap gap-3">
                         {(errorProfile.weakness_areas || ['Grammar Repairs', 'Speech Pacing', 'Vocab Expansion']).slice(0, 5).map((tag: string) => (
-                            <span key={tag} className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white/40">
+                            <span key={tag} className="px-4 py-2 bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                 {tag}
                             </span>
                         ))}
@@ -996,7 +998,7 @@ const AnalyticsTab = ({ supabaseData }: any) => {
             {/* Event Log Sidebar */}
             <div className="lg:col-span-4 h-full">
                 <GlassCard className="p-8 h-full">
-                    <h3 className="text-xl font-black text-white mb-8">Parallel Event Log</h3>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-8">Parallel Event Log</h3>
                     <div className="space-y-8 relative before:absolute before:left-[7px] before:top-4 before:bottom-4 before:w-[2px] before:bg-white/5">
                         {eventLog.map(event => (
                             <div key={event.id} className="flex gap-6 relative z-10 group cursor-default">
@@ -1004,9 +1006,9 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                     ${event.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'}`} 
                                 />
                                 <div>
-                                    <h4 className="text-[14px] font-bold text-white group-hover:text-blue-400 transition-colors">{event.title}</h4>
-                                    <p className="text-[12px] font-medium text-white/40 mb-1">{event.desc}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-white/20">
+                                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 mb-1">{event.desc}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-50/20">
                                         {new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -1027,8 +1029,8 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
             <div className="lg:col-span-8 flex flex-col gap-8 h-full">
                 <GlassCard className="p-8 flex-1 flex flex-col" glow>
                     <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-xl font-black text-white">Assessment History</h3>
-                        <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{history.length} Dimensions Logged</span>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50">Assessment History</h3>
+                        <span className="text-[10px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-[0.2em]">{history.length} Dimensions Logged</span>
                     </div>
 
                     <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
@@ -1036,29 +1038,29 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
                             history.map((session: any) => (
                                 <div key={session.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group lg:flex items-center justify-between">
                                     <div className="flex items-center gap-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center justify-center shadow-lg group-hover:border-blue-500/30 transition-colors">
-                                            <span className="text-[9px] font-black text-white/30 uppercase leading-none mb-1">
+                                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 flex flex-col items-center justify-center shadow-lg group-hover:border-blue-500/30 transition-colors">
+                                            <span className="text-[9px] font-black text-slate-900 dark:text-slate-50/30 uppercase leading-none mb-1">
                                                 {new Date(session.createdAt).toLocaleString('default', { month: 'short' })}
                                             </span>
-                                            <span className="text-xl font-black text-white leading-none">
+                                            <span className="text-xl font-black text-slate-900 dark:text-slate-50 leading-none">
                                                 {new Date(session.createdAt).getDate()}
                                             </span>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-3 mb-1">
-                                                <h4 className="font-bold text-white text-[16px] leading-none">AI Diagnostics</h4>
+                                                <h4 className="font-bold text-slate-900 dark:text-slate-50 text-[16px] leading-none">AI Diagnostics</h4>
                                                 <span className="text-[10px] bg-blue-500/20 text-blue-400 font-black px-2 py-0.5 rounded border border-blue-500/30">
                                                     {session.overallLevel}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] font-medium text-white/40 uppercase tracking-widest">
+                                            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                                                 Session Entropy: {session.id.substring(0, 8)}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="mt-4 lg:mt-0 flex items-center gap-8">
                                         <div className="flex flex-col items-end">
-                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2">Confidence Score</span>
+                                            <span className="text-[9px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-widest mb-2">Confidence Score</span>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
                                                     <motion.div 
@@ -1067,14 +1069,14 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
                                                         className="h-full bg-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
                                                     />
                                                 </div>
-                                                <span className="text-xs font-black text-white/60">{Math.round((session.confidence || 0) * 100)}%</span>
+                                                <span className="text-xs font-black text-slate-500 dark:text-slate-400">{Math.round((session.confidence || 0) * 100)}%</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="h-64 flex flex-col items-center justify-center text-white/10">
+                            <div className="h-64 flex flex-col items-center justify-center text-slate-900 dark:text-slate-50/10">
                                 <History size={48} strokeWidth={1} className="mb-4 opacity-20" />
                                 <p className="text-sm font-black uppercase tracking-widest">Awaiting First Execution</p>
                             </div>
@@ -1088,11 +1090,11 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
                     <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-6">
                         <TrendingUp size={22} />
                     </div>
-                    <h3 className="text-lg font-black text-white mb-2">Progress Velocity</h3>
-                    <p className="text-white/40 text-sm font-medium mb-8 leading-relaxed">Your linguistic baseline is expanding. Current trajectory predicts target reach in 1.4 months.</p>
-                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Max Proficiency Level</p>
-                        <p className="text-4xl font-black text-white">{history[0]?.overallLevel || 'B1'}</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-slate-50 mb-2">Progress Velocity</h3>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm font-medium mb-8 leading-relaxed">Your linguistic baseline is expanding. Current trajectory predicts target reach in 1.4 months.</p>
+                    <div className="p-5 rounded-2xl bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800">
+                        <p className="text-[10px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-widest mb-1.5">Max Proficiency Level</p>
+                        <p className="text-4xl font-black text-slate-900 dark:text-slate-50">{history[0]?.overallLevel || 'B1'}</p>
                     </div>
                 </GlassCard>
             </div>
@@ -1159,15 +1161,15 @@ const SettingsTab = ({ supabaseData, refresh }: any) => {
         <GlassCard className="p-8 flex flex-col group relative">
             <div className="flex items-start justify-between mb-8">
                 <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-all">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-900 dark:text-slate-50/20 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-all">
                         {icon}
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
                             <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none">{label}</span>
-                            <h3 className="text-xl font-black text-white tracking-tight leading-none">{title}</h3>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 tracking-tight leading-none">{title}</h3>
                         </div>
-                        <p className="text-sm text-white/40 mt-2 font-medium">{subtitle}</p>
+                        <p className="text-sm text-slate-400 dark:text-slate-500 mt-2 font-medium">{subtitle}</p>
                     </div>
                 </div>
             </div>
@@ -1179,18 +1181,18 @@ const SettingsTab = ({ supabaseData, refresh }: any) => {
         <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 pb-32">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-3xl font-black text-white tracking-tight">Engine Parameters</h2>
-                    <p className="text-white/40 font-medium">Fine-tune your trajectory across 5 dimensions.</p>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight">Engine Parameters</h2>
+                    <p className="text-slate-400 dark:text-slate-500 font-medium">Fine-tune your trajectory across 5 dimensions.</p>
                 </div>
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
                   disabled={isSaving}
-                  className={`px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl
+                  className={`px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-sm dark:shadow-md
                     ${isSaving 
-                        ? 'bg-white/5 text-white/20 cursor-not-allowed' 
-                        : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-500/40 active:scale-95'}
+                        ? 'bg-white/5 text-slate-900 dark:text-slate-50/20 cursor-not-allowed' 
+                        : 'bg-blue-600 text-slate-900 dark:text-slate-50 hover:bg-blue-500 shadow-blue-500/40 active:scale-95'}
                   `}
                 >
                     {isSaving ? 'Synchronizing...' : 'Apply Overrides'}
@@ -1201,11 +1203,11 @@ const SettingsTab = ({ supabaseData, refresh }: any) => {
                     <select 
                         value={settings.why}
                         onChange={(e) => setSettings({...settings, why: e.target.value as any})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 font-bold text-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500 transition appearance-none cursor-pointer"
+                        className="w-full bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 rounded-xl px-4 py-4 font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition appearance-none cursor-pointer"
                     >
-                        <option value="casual" className="bg-[#020617]">Casual Learner</option>
-                        <option value="serious" className="bg-[#020617]">Academic Performance</option>
-                        <option value="professional" className="bg-[#020617]">Professional Career</option>
+                        <option value="casual" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Casual Learner</option>
+                        <option value="serious" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Academic Performance</option>
+                        <option value="professional" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Professional Career</option>
                     </select>
                 </SettingCard>
                 
@@ -1224,10 +1226,10 @@ const SettingsTab = ({ supabaseData, refresh }: any) => {
                                         ${settings.pace === opt.id ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-white/5 hover:border-white/10'}
                                     `}
                                 >
-                                    <h4 className={`font-black uppercase tracking-widest text-xs mb-2 ${settings.pace === opt.id ? 'text-blue-400' : 'text-white/60'}`}>
+                                    <h4 className={`font-black uppercase tracking-widest text-xs mb-2 ${settings.pace === opt.id ? 'text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                         {opt.label}
                                     </h4>
-                                    <p className="text-[11px] text-white/30 font-bold">{opt.desc}</p>
+                                    <p className="text-[11px] text-slate-900 dark:text-slate-50/30 font-bold">{opt.desc}</p>
                                     {settings.pace === opt.id && <div className="absolute top-0 right-0 p-3"><Zap size={14} className="text-blue-400" /></div>}
                                 </button>
                             ))}
@@ -1254,13 +1256,13 @@ const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'lock
                      style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} 
                   />
                   <div 
-                     className={`absolute top-0 w-full h-full flex flex-col items-center justify-center text-white
+                     className={`absolute top-0 w-full h-full flex flex-col items-center justify-center text-slate-900 dark:text-slate-50
                        ${isLocked ? 'bg-[#1E293B]' : 'bg-gradient-to-br from-amber-400 to-amber-500 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]'}
                      `}
                      style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}
                   >
                       <div className={`w-[96%] h-[96%] flex items-center justify-center ${isLocked ? 'bg-[#1e293b]' : 'bg-gradient-to-br from-amber-400 to-amber-500'}`} style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
-                          {isLocked ? <Lock size={20} className="text-slate-400" /> : <BookOpen size={24} className="text-white drop-shadow-md" />}
+                          {isLocked ? <Lock size={20} className="text-slate-400" /> : <BookOpen size={24} className="text-slate-900 dark:text-slate-50 drop-shadow-md" />}
                       </div>
                   </div>
                </div>

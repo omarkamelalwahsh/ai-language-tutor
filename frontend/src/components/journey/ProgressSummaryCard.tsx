@@ -24,7 +24,7 @@ export const ProgressSummaryCard: React.FC<ProgressSummaryCardProps> = ({ progre
       className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm"
     >
       <div className="flex items-center gap-2 mb-5">
-        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl border border-indigo-100">
           <TrendingUp className="w-5 h-5" />
         </div>
         <h3 className="text-lg font-bold text-slate-900">Level Progress</h3>
@@ -33,7 +33,7 @@ export const ProgressSummaryCard: React.FC<ProgressSummaryCardProps> = ({ progre
       {/* Level badges */}
       <div className="flex items-center justify-between mb-4">
         <div className="text-center">
-          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mb-1.5 mx-auto shadow-md shadow-indigo-200/50">
+          <div className="w-14 h-14 bg-blue-600 dark:bg-blue-600 rounded-2xl flex items-center justify-center mb-1.5 mx-auto shadow-md shadow-indigo-200/50">
             <span className="text-lg font-extrabold text-white">{currentLevel}</span>
           </div>
           <p className="text-xs font-bold text-slate-400">{levelLabel(currentLevel)}</p>
@@ -41,7 +41,7 @@ export const ProgressSummaryCard: React.FC<ProgressSummaryCardProps> = ({ progre
 
         {/* Progress arrow */}
         <div className="flex-1 mx-4 flex flex-col items-center gap-1">
-          <span className="text-2xl font-extrabold text-indigo-600">{progressPercent}%</span>
+          <span className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{progressPercent}%</span>
           <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"

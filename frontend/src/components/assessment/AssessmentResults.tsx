@@ -54,7 +54,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
 
         {/* Hero Header */}
         <motion.header variants={staggerItem} className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-bold border border-indigo-100">
+          <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-indigo-700 px-4 py-2 rounded-full text-sm font-bold border border-indigo-100">
             <Sparkles className="w-4 h-4" /> Assessment Complete
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Your Personalized Path is Ready</h1>
@@ -68,7 +68,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
           <div className="text-center md:text-left flex-1">
             <p className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Your Starting Level</p>
             <div className="flex items-center gap-4 mb-4">
-              <span className="text-6xl font-black text-indigo-600">{model.overallLevel}</span>
+              <span className="text-6xl font-black text-blue-600 dark:text-blue-400">{model.overallLevel}</span>
               <ArrowRight className="w-6 h-6 text-slate-300" />
               <span className="text-2xl font-bold text-slate-400">{targetLevel}</span>
             </div>
@@ -100,11 +100,11 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id as any)}
-              className={`pb-3 text-sm font-bold tracking-wide uppercase transition-colors relative ${activeSection === tab.id ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`pb-3 text-sm font-bold tracking-wide uppercase transition-colors relative ${activeSection === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {tab.label}
               {activeSection === tab.id && (
-                <motion.div layoutId="resultTab" className="absolute bottom-0 left-0 w-full h-[3px] bg-indigo-600 rounded-t-full" />
+                <motion.div layoutId="resultTab" className="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 dark:bg-blue-600 rounded-t-full" />
               )}
             </button>
           ))}
@@ -122,7 +122,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
                     <div key={skillId} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3 text-slate-700 font-bold capitalize">
-                          <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100">{skillIcons[skillId]}</div>
+                          <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400 border border-indigo-100">{skillIcons[skillId]}</div>
                           {skillId}
                         </div>
                         <span className="text-2xl font-black text-slate-900">{dim.level}</span>
@@ -141,7 +141,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
 
               {/* Growth Zones & Strengths */}
               <div className="grid md:grid-cols-2 gap-5">
-                <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+                <div className="bg-blue-50 dark:bg-blue-900/30/50 p-6 rounded-2xl border border-indigo-100">
                   <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><Target className="w-4 h-4" /> Growth Zones</h3>
                   <ul className="space-y-2">
                     {model.interpretation.growthZones.map((z, i) => (
@@ -192,7 +192,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
               </div>
 
               {/* Session 1 Preview */}
-              <div className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
+              <div className="bg-blue-50 dark:bg-blue-900/30/50 rounded-2xl p-6 border border-indigo-100">
                 <h3 className="text-indigo-900 font-bold mb-2 flex items-center gap-2"><Star className="w-4 h-4" /> Session 1 Preview</h3>
                 <p className="text-indigo-800 text-sm mb-3">Your first session will focus on <strong>{plan.recommendedSessionBlueprint.focusSkill}</strong>{plan.recommendedSessionBlueprint.secondarySkill ? ` with some ${plan.recommendedSessionBlueprint.secondarySkill}` : ''}.</p>
                 <div className="flex flex-wrap gap-2">
@@ -231,7 +231,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
                       ))}
                     </ul>
                   </div>
-                  <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-5 rounded-xl border border-indigo-100">
                     <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">What You'll Build Toward ({targetLevel})</h4>
                     <ul className="space-y-1.5 text-sm text-indigo-800">
                       <li className="flex gap-2"><MapPin className="w-3 h-3 mt-1 text-indigo-400 flex-shrink-0" />Confident everyday communication</li>
@@ -255,7 +255,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
                       <div className="flex flex-col items-center">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 ${m.status === 'done' ? 'bg-emerald-500 border-emerald-500' : m.status === 'current' ? 'bg-white border-indigo-600' : 'bg-slate-100 border-slate-200'}`}>
                           {m.status === 'done' && <CheckCircle2 className="w-4 h-4 text-white" />}
-                          {m.status === 'current' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                          {m.status === 'current' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-600" />}
                         </div>
                         {i < arr.length - 1 && <div className={`w-0.5 flex-1 my-1 ${m.status === 'done' ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
                       </div>
@@ -275,7 +275,7 @@ export const LearnerInterpretation: React.FC<AssessmentResultsProps> = ({
         <motion.div variants={staggerItem} className="flex flex-col sm:flex-row gap-4 pt-4">
           <button
             onClick={onStartSession}
-            className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(79,70,229,0.25)] active:scale-[0.98]"
           >
             Start Session 1 <ChevronRight className="w-5 h-5" />
           </button>

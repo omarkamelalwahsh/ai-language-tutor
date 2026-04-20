@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 const GlassCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
   <motion.div 
     whileHover={{ y: -5, transition: { duration: 0.2 } }}
-    className={`bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group ${className}`}
+    className={`bg-white dark:bg-gray-900/5 border-slate-200 dark:border-gray-800 rounded-[2rem] p-8 shadow-sm dark:shadow-md relative overflow-hidden group ${className}`}
   >
     {/* Ambient Glow */}
     <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] group-hover:bg-indigo-500/20 transition-colors" />
@@ -48,16 +48,16 @@ const SkillCard = ({ skill }: { skill: any }) => (
             strokeDasharray="226" strokeLinecap="round" 
           />
         </svg>
-        <span className="absolute text-xl font-black text-white">{skill.score}%</span>
+        <span className="absolute text-xl font-black text-slate-900 dark:text-slate-50">{skill.score}%</span>
       </div>
       <div>
-        <h3 className="text-xl font-black text-white tracking-tight">{skill.name}</h3>
-        <p className="text-sm text-white/40 font-medium">{skill.level} Proficiency</p>
+        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 tracking-tight">{skill.name}</h3>
+        <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">{skill.level} Proficiency</p>
       </div>
     </div>
 
     <div className="space-y-3 mt-2">
-        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-white/20">
+        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-50/20">
             <span>Trend</span>
             <span className="text-indigo-400 flex items-center gap-1">
                 <TrendingUp size={12} /> {skill.trend}
@@ -83,13 +83,13 @@ const ErrorCard = ({ error }: { error: any }) => (
                 <AlertCircle size={20} />
             </div>
             <div>
-                <h4 className="text-white font-bold">{error.type}</h4>
-                <p className="text-xs text-white/40 uppercase font-black tracking-widest mt-1">{error.count} Occurrences</p>
+                <h4 className="text-slate-900 dark:text-slate-50 font-bold">{error.type}</h4>
+                <p className="text-xs text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mt-1">{error.count} Occurrences</p>
             </div>
         </div>
         <div className="flex items-center gap-3">
             <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border ${
-                error.status === 'Improving' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-white/5 border-white/10 text-white/40'
+                error.status === 'Improving' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-white/5 border-white/10 text-slate-400 dark:text-slate-500'
             }`}>
                 {error.status}
             </span>
@@ -108,13 +108,13 @@ export const LearnerProfileView: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center py-12 px-4 scroll-smooth transition-colors duration-300">
         <div className="flex flex-col items-center gap-6">
             <div className="relative">
                 <Brain size={60} className="text-indigo-500 animate-pulse" />
                 <div className="absolute inset-0 bg-indigo-500/20 blur-3xl animate-pulse" />
             </div>
-          <p className="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse">Syncing Neural Models...</p>
+          <p className="text-slate-900 dark:text-slate-50/20 font-black uppercase tracking-[0.3em] animate-pulse">Syncing Neural Models...</p>
         </div>
       </div>
     );
@@ -122,11 +122,11 @@ export const LearnerProfileView: React.FC = () => {
 
   if (error || !data) {
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8">
+        <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-8">
             <GlassCard className="max-w-md text-center">
-                <AlertTriangle size={48} className="text-rose-500 mx-auto mb-6" />
-                <h2 className="text-2xl font-black text-white mb-2">Sync Interrupted</h2>
-                <p className="text-white/40 mb-6">We couldn't reach your intelligence profile. Please check your connection.</p>
+                <AlertTriangle size={48} className="text-slate-500 dark:text-slate-400 mx-auto mb-6" />
+                <h2 className="text-2xl font-black text-slate-900 dark:text-slate-50 mb-2">Sync Interrupted</h2>
+                <p className="text-slate-400 dark:text-slate-500 mb-6">We couldn't reach your intelligence profile. Please check your connection.</p>
                 <button onClick={() => window.location.reload()} className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-white/90 transition">Retry Sync</button>
             </GlassCard>
         </div>
@@ -134,10 +134,10 @@ export const LearnerProfileView: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-inter selection:bg-indigo-500/30 overflow-x-hidden pb-40">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 transition-colors duration-300 font-inter selection:bg-indigo-500/30 overflow-x-hidden pb-40">
       
       {/* Ambient backgrounds */}
-      <div className="fixed top-0 left-1/4 w-[1000px] h-[800px] bg-indigo-600/5 rounded-full blur-[150px] -translate-y-1/2 pointer-events-none" />
+      <div className="fixed top-0 left-1/4 w-[1000px] h-[800px] bg-blue-600 dark:bg-blue-600/5 rounded-full blur-[150px] -translate-y-1/2 pointer-events-none" />
       <div className="fixed bottom-0 right-1/4 w-[800px] h-[600px] bg-blue-600/5 rounded-full blur-[150px] translate-y-1/2 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-6 pt-12">
@@ -146,7 +146,7 @@ export const LearnerProfileView: React.FC = () => {
         <header className="flex items-center justify-between mb-16">
             <button 
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2 group text-white/40 hover:text-white transition-colors"
+                className="flex items-center gap-2 group text-slate-400 dark:text-slate-500 hover:text-white transition-colors"
             >
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
                     <ArrowRight size={18} className="rotate-180" />
@@ -156,7 +156,7 @@ export const LearnerProfileView: React.FC = () => {
 
             <div className="flex items-center gap-6">
                 <div className="text-right">
-                    <p className="text-[10px] text-white/20 uppercase font-black tracking-widest mb-1">Model State</p>
+                    <p className="text-[10px] text-slate-900 dark:text-slate-50/20 uppercase font-black tracking-widest mb-1">Model State</p>
                     <p className="text-sm font-bold text-emerald-400 flex items-center gap-2 justify-end">
                         <CheckCircle2 size={14} /> Synchronized
                     </p>
@@ -176,7 +176,7 @@ export const LearnerProfileView: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="grid lg:grid-cols-3 gap-8"
             >
-                <GlassCard className="lg:col-span-2 flex flex-col md:flex-row gap-8 items-center bg-indigo-600/5">
+                <GlassCard className="lg:col-span-2 flex flex-col md:flex-row gap-8 items-center bg-blue-600 dark:bg-blue-600/5">
                     <div className="relative flex-shrink-0">
                         <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-500/20 p-2">
                              <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${data.identity.name}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
@@ -190,7 +190,7 @@ export const LearnerProfileView: React.FC = () => {
                             <h1 className="text-4xl font-black tracking-tighter">I'm {data.identity.name}</h1>
                             <span className="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black tracking-widest uppercase">Learner #01</span>
                         </div>
-                        <p className="text-xl text-white/60 leading-relaxed max-w-2xl font-medium">
+                        <p className="text-xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl font-medium">
                             {data.identity.summary}
                         </p>
                     </div>
@@ -198,10 +198,10 @@ export const LearnerProfileView: React.FC = () => {
 
                 <GlassCard className="flex flex-col justify-between">
                     <div>
-                        <p className="text-[10px] text-white/20 uppercase font-black tracking-[0.2em] mb-4">Neural Architecture</p>
+                        <p className="text-[10px] text-slate-900 dark:text-slate-50/20 uppercase font-black tracking-[0.2em] mb-4">Neural Architecture</p>
                         <div className="flex items-end justify-between mb-2">
                             <span className="text-4xl font-black text-indigo-400 tracking-tighter">{data.identity.model_confidence}%</span>
-                            <span className="text-xs text-white/40 font-bold mb-1">Model Confidence</span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold mb-1">Model Confidence</span>
                         </div>
                         <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
                             <motion.div 
@@ -212,7 +212,7 @@ export const LearnerProfileView: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
-                        <div className="text-xs font-bold text-white/30 flex items-center gap-2">
+                        <div className="text-xs font-bold text-slate-900 dark:text-slate-50/30 flex items-center gap-2">
                             <Clock size={14} /> Refreshed {data.identity.last_updated}
                         </div>
                         <button className="flex items-center gap-2 text-xs font-black uppercase text-indigo-400 hover:text-indigo-300 transition shrink-0">
@@ -230,7 +230,7 @@ export const LearnerProfileView: React.FC = () => {
                     <Activity size={24} className="text-indigo-500" /> Skill Model Matrix
                 </h2>
                 <div className="h-px bg-white/5 flex-1 mx-8 hidden md:block" />
-                <p className="text-[10px] text-white/40 font-black uppercase tracking-widest italic">Updated Real-time</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest italic">Updated Real-time</p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {data.skill_matrix.map((skill, idx) => (
@@ -278,12 +278,12 @@ export const LearnerProfileView: React.FC = () => {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5">
                             <p className="text-4xl font-black mb-1">{data.cognitive_state.retention_queue.due_count}</p>
-                            <p className="text-xs uppercase font-black text-white/30 tracking-widest">Items Due Today</p>
+                            <p className="text-xs uppercase font-black text-slate-900 dark:text-slate-50/30 tracking-widest">Items Due Today</p>
                         </div>
                         <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5">
                              <div className="flex -space-x-2 mb-3">
                                 {data.cognitive_state.retention_queue.high_risk.map((item, i) => (
-                                    <div key={item} className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-[#050505] bg-indigo-500 shadow-xl z-[${10-i}]`}>
+                                    <div key={item} className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-[#050505] bg-indigo-500 shadow-sm dark:shadow-md z-[${10-i}]`}>
                                         {item[0]}
                                     </div>
                                 ))}
@@ -291,7 +291,7 @@ export const LearnerProfileView: React.FC = () => {
                             <p className="text-xs uppercase font-black text-rose-400 tracking-widest">Fragile items</p>
                         </div>
                     </div>
-                    <p className="mt-6 text-sm text-white/40 leading-relaxed font-medium">
+                    <p className="mt-6 text-sm text-slate-400 dark:text-slate-500 leading-relaxed font-medium">
                         Based on your current 88% model confidence, these items are entering the "Risk of Forgetting" zone.
                     </p>
                 </GlassCard>
@@ -315,7 +315,7 @@ export const LearnerProfileView: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-black mb-1">Optimal State</p>
-                            <p className="text-sm text-white/40 font-medium">{data.cognitive_state.pacing.session_advice}</p>
+                            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">{data.cognitive_state.pacing.session_advice}</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -332,9 +332,9 @@ export const LearnerProfileView: React.FC = () => {
             transition={{ type: "spring", damping: 20, stiffness: 100, delay: 1 }}
             className="group"
         >
-            <div className="bg-white text-black p-6 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(255,255,255,0.2)] flex items-center justify-between relative overflow-hidden">
+            <div className="max-w-xl w-full bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 shadow-sm dark:shadow-md shadow-slate-200/50 border border-slate-200 dark:border-gray-800 flex flex-col min-h-[600px] relative overflow-hidden">
                 {/* Glow Effect */}
-                <div className="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-blue-50 dark:bg-blue-900/30 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="relative z-10 flex items-center gap-6">
                     <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center animate-pulse">
@@ -362,7 +362,7 @@ export const LearnerProfileView: React.FC = () => {
 
 const SummaryBadge = ({ label, value, active = false }: { label: string, value: string, active?: boolean }) => (
     <div className={`px-4 py-2 rounded-2xl border ${
-        active ? 'bg-indigo-500/20 border-indigo-500/20 text-indigo-400' : 'bg-white/5 border-white/10 text-white/40'
+        active ? 'bg-indigo-500/20 border-indigo-500/20 text-indigo-400' : 'bg-white/5 border-white/10 text-slate-400 dark:text-slate-500'
     }`}>
         <p className="text-[8px] font-black uppercase tracking-widest mb-0.5 opacity-50">{label}</p>
         <p className="text-sm font-black">{value}</p>
