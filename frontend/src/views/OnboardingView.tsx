@@ -90,11 +90,13 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 flex flex-col items-center py-12 px-4 scroll-smooth transition-colors duration-300">
       {/* 1. Progress Indicator */}
       <div className="max-w-md w-full mb-12 flex justify-between relative mt-4">
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 transform -translate-y-1/2" />
+        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-slate-200 dark:bg-gray-800 -z-10 transform -translate-y-1/2" />
         {steps.map((s) => (
-          <div key={s.id} className="flex flex-col items-center gap-2">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${
-              step >= s.id ? 'bg-white border-indigo-600 text-blue-600 dark:text-blue-400' : 'bg-slate-100 border-slate-200 text-slate-400'
+          <div key={s.id} className="flex flex-col items-center gap-3">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-premium ${
+              step >= s.id 
+                ? 'bg-white dark:bg-gray-900 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400' 
+                : 'bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-800 text-slate-300 dark:text-slate-600'
             }`}>
               {s.icon}
             </div>
@@ -106,7 +108,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
       </div>
 
       {/* 2. Main Card */}
-      <div className="max-w-xl w-full bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 shadow-sm dark:shadow-md shadow-slate-200/50 border border-slate-200 dark:border-gray-800 flex flex-col min-h-[600px] relative overflow-hidden">
+      <div className="max-w-xl w-full bg-white dark:bg-gray-900 rounded-[3rem] p-10 md:p-14 shadow-premium dark:shadow-md border border-slate-200 dark:border-gray-800 flex flex-col min-h-[600px] relative overflow-hidden transition-all duration-300">
         
         <AnimatePresence mode="wait">
           {/* PHASE 1: VISION */}
@@ -125,25 +127,33 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               
               <div className="grid gap-4">
                 {[
-                  { id: 'casual', label: 'Casual Learning', desc: 'Travel, hobbies, and meeting people.', icon: <BookOpen size={22}/> },
-                  { id: 'professional', label: 'Career Growth', desc: 'Workplace communication & networking.', icon: <Award size={22}/> },
-                  { id: 'serious', label: 'Full Mastery', desc: 'Academic and deep technical fluency.', icon: <Target size={22}/> }
+                  { id: 'casual', label: 'Casual Learning', description: 'Travel, hobbies, and meeting people.', icon: <BookOpen size={22}/> },
+                  { id: 'professional', label: 'Career Growth', description: 'Workplace communication & networking.', icon: <Award size={22}/> },
+                  { id: 'serious', label: 'Full Mastery', description: 'Academic and deep technical fluency.', icon: <Target size={22}/> }
                 ].map((goal) => (
                   <button 
                     key={goal.id}
-                    onClick={() => setState({...state, goal: goal.id as any})}
-                    className={`flex items-center gap-5 p-5 rounded-2xl border-2 text-left transition-all ${
-                      state.goal === goal.id ? 'border-indigo-600 bg-blue-50 dark:bg-blue-900/30/30 ring-4 ring-indigo-50 shadow-inner' : 'border-slate-100 hover:bg-slate-50'
+                    onClick={() => setState({...state, goal: goal.id as GoalId})}
+                    className={`p-6 rounded-3xl border-2 transition-all text-left shadow-premium hover:scale-[1.01] ${
+                      state.goal === goal.id 
+                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-600 dark:border-blue-400' 
+                        : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700'
                     }`}
                   >
-                    <div className={`p-4 rounded-2xl border transition-all ${state.goal === goal.id ? 'bg-white border-indigo-200 text-blue-600 dark:text-blue-400 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                    <div className={`p-4 rounded-2xl border transition-all mb-4 inline-block ${state.goal === goal.id ? 'bg-white border-blue-100 text-blue-600 dark:text-blue-400 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
                       {goal.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-black text-slate-800 text-lg leading-tight">{goal.label}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{goal.desc}</p>
+                      <div className="flex items-center justify-between">
+                        <h3 className={`font-black text-xl mb-1 ${state.goal === goal.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                          {goal.label}
+                        </h3>
+                        {state.goal === goal.id && <CheckCircle2 size={24} className="text-blue-600 dark:text-blue-400" />}
+                      </div>
+                      <p className={`text-sm leading-relaxed ${state.goal === goal.id ? 'text-blue-700/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                        {goal.description}
+                      </p>
                     </div>
-                    {state.goal === goal.id && <CheckCircle2 size={24} className="text-blue-600 dark:text-blue-400" />}
                   </button>
                 ))}
               </div>
@@ -151,12 +161,12 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               {state.goal && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">
-                      {goalContextConfigs[state.goal].question}
+                       {goalContextConfigs[state.goal].question}
                    </label>
                    <select 
                       value={state.goalContext || ''}
                       onChange={(e) => setState({...state, goalContext: e.target.value})}
-                      className="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl text-slate-800 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-gray-700 p-5 rounded-2xl text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest focus:outline-none focus:border-blue-600 transition-colors shadow-sm"
                    >
                      <option value="" disabled>Select your context...</option>
                      {goalContextConfigs[state.goal].options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -181,15 +191,15 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               </header>
 
               <div className="grid grid-cols-2 gap-4">
-                 <div>
+                  <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">I Speak</label>
-                    <div className="p-4 bg-slate-50 rounded-xl border-2 border-slate-100 font-black text-slate-800 flex items-center gap-3">
+                    <div className="p-4 bg-slate-50 dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm font-black text-slate-800 dark:text-white flex items-center gap-3">
                        <Globe size={18} className="text-blue-500" /> Arabic
                     </div>
                  </div>
                  <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block">Learning</label>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/30/50 rounded-xl border-2 border-indigo-100 font-black text-blue-600 dark:text-blue-400 flex items-center gap-3">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/40 rounded-2xl border border-blue-100 dark:border-blue-800 shadow-sm font-black text-blue-600 dark:text-blue-400 flex items-center gap-3">
                        <Award size={18} className="text-blue-600 dark:text-blue-400" /> English
                     </div>
                  </div>
@@ -198,7 +208,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               <div>
                  <div className="flex justify-between items-center mb-4">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Preferred Topics</label>
-                    <span className="text-[10px] font-bold text-indigo-500">Pick any 3+</span>
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Pick any 3+</span>
                  </div>
                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1 no-scrollbar">
                     {(() => {
@@ -214,12 +224,12 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                                 : [...state.topics, topic.id];
                               setState({...state, topics: newTopics as TopicId[]});
                             }}
-                            className={`p-3 rounded-2xl border-2 text-left transition-all ${
-                              isSelected ? 'bg-blue-600 dark:bg-blue-600 border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-800 dark:text-slate-200 hover:border-indigo-200'
+                            className={`p-3 rounded-2xl border-2 text-left transition-all hover:scale-[1.02] ${
+                              isSelected ? 'bg-blue-600 border-blue-600 shadow-premium' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-800 dark:text-slate-200 hover:border-slate-300'
                             }`}
                           >
                              <span className="text-lg block mb-1">{topic.emoji}</span>
-                             <span className={`text-[10px] font-black leading-tight block ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-50'}`}>
+                             <span className={`text-[10px] font-black leading-tight block ${isSelected ? 'text-white' : 'text-slate-800 dark:text-slate-50 uppercase tracking-tighter'}`}>
                                {topic.label}
                              </span>
                           </button>
@@ -264,12 +274,12 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                               : [...state.focusSkills, s.id];
                             setState({...state, focusSkills: newSkills});
                           }}
-                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
-                            isSelected ? 'bg-slate-900 border-slate-900 text-white shadow-sm dark:shadow-md' : 'bg-slate-50 border-slate-100 text-slate-500 dark:text-slate-400 hover:border-indigo-200'
+                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all hover:scale-[1.01] ${
+                            isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-premium' : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'
                           }`}
                         >
-                           <div className={`p-2 rounded-xl ${isSelected ? 'bg-slate-800' : 'bg-white shadow-sm'}`}>{s.icon}</div>
-                           <span className="text-xs font-black uppercase tracking-wider">{s.label}</span>
+                           <div className={`p-2 rounded-xl transition-colors ${isSelected ? 'bg-blue-700' : 'bg-white dark:bg-gray-900 shadow-sm'}`}>{s.icon}</div>
+                           <span className="text-[10px] font-black uppercase tracking-widest">{s.label}</span>
                         </button>
                       )
                     })}
@@ -287,20 +297,20 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                       <button
                         key={opt.id}
                         onClick={() => setState({...state, sessionIntensity: opt.id as any})}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                          state.sessionIntensity === opt.id ? 'bg-blue-50 dark:bg-blue-900/30 border-indigo-600 ring-2 ring-indigo-50' : 'bg-white dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-800 dark:text-slate-200'
+                        className={`w-full flex items-center justify-between p-5 rounded-3xl border-2 transition-all hover:scale-[1.01] shadow-premium ${
+                          state.sessionIntensity === opt.id ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-600 dark:border-blue-400' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-800 dark:text-slate-200 hover:border-slate-300'
                         }`}
                       >
-                         <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${state.sessionIntensity === opt.id ? 'bg-blue-600 dark:bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                         <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl transition-colors ${state.sessionIntensity === opt.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-50 dark:bg-gray-800 text-slate-400'}`}>
                                {opt.icon}
                             </div>
                             <div className="text-left">
-                               <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{opt.label}</p>
-                               <p className="text-[10px] text-slate-400 font-bold">{opt.meta}</p>
+                               <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{opt.label}</p>
+                               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">{opt.meta}</p>
                             </div>
                          </div>
-                         {state.sessionIntensity === opt.id && <CheckCircle2 size={18} className="text-blue-600 dark:text-blue-400" />}
+                         {state.sessionIntensity === opt.id && <CheckCircle2 size={24} className="text-blue-600 dark:text-blue-400" />}
                       </button>
                     ))}
                  </div>
@@ -310,17 +320,17 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
         </AnimatePresence>
 
         {/* 3. Footer Bar */}
-        <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center">
+        <div className="mt-12 pt-10 border-t border-slate-100 dark:border-gray-800 flex justify-between items-center">
            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Architecture Step</span>
-              <span className="text-sm font-black text-blue-600 dark:text-blue-400">{step} <span className="text-slate-200">/</span> {totalSteps}</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Architecture State</span>
+              <span className="text-sm font-black text-blue-600 dark:text-blue-400">{step} <span className="text-slate-200 dark:text-gray-700">/</span> {totalSteps}</span>
            </div>
 
-           <div className="flex items-center gap-3">
+           <div className="flex items-center gap-4">
               {step > 1 && (
                 <button 
                   onClick={() => setStep(step - 1)}
-                  className="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-slate-600 transition"
+                  className="px-8 py-4 rounded-xl text-xs font-black text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 transition-all uppercase tracking-widest"
                 >
                   Back
                 </button>
@@ -328,9 +338,9 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               <button 
                 onClick={handleNext}
                 disabled={isSaving || (step === 1 && !state.goalContext) || (step === 2 && state.topics.length < 3) || (step === 3 && state.focusSkills.length === 0)}
-                className="flex items-center gap-3 bg-foreground text-background px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-lg hover:shadow-indigo-200/50 disabled:opacity-30 disabled:grayscale transition-colors duration-300"
+                className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-premium hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale"
               >
-                {isSaving ? 'Saving...' : step === 3 ? 'Complete Setup' : 'Continue'} <ChevronRight size={16}/>
+                {isSaving ? 'Processing...' : step === 3 ? 'Initialize Model' : 'Forward Evolution'} <ChevronRight size={18}/>
               </button>
            </div>
         </div>

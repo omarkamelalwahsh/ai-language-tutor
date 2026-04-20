@@ -38,21 +38,21 @@ const skillIcons: Record<string, React.ReactNode> = {
 // --- Custom Components for Technical Prestige ---
 
 const StatusGlowBadge = ({ isCorrect }: { isCorrect: boolean }) => (
-  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-[0_0_15px_rgba(0,0,0,0.2)] ${
+  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
     isCorrect 
-      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-      : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+      : 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-sm'
   }`}>
-    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isCorrect ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'}`} />
-    <span className="text-[10px] font-black uppercase tracking-widest">{isCorrect ? 'Verified' : 'Flagged'}</span>
+    <div className={`w-2 h-2 rounded-full ${isCorrect ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
+    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isCorrect ? 'Verified' : 'Review'}</span>
   </div>
 );
 
 const getBadgeStyles = (level?: string | any) => {
   const lvlStr = String(level || 'A1');
-  if (lvlStr.includes('C')) return 'border-emerald-500/50 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]';
-  if (lvlStr.includes('B')) return 'border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]';
-  return 'border-indigo-500/50 text-indigo-400 shadow-[0_0_10px_rgba(79,70,229,0.2)]';
+  if (lvlStr.includes('C')) return 'border-emerald-200 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm';
+  if (lvlStr.includes('B')) return 'border-blue-200 dark:border-blue-500/50 text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-sm';
+  return 'border-slate-200 dark:border-slate-500/50 text-slate-500 dark:text-slate-400 bg-white dark:bg-transparent shadow-sm';
 };
 
 export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ evaluations, assessmentId, onBack }) => {
@@ -106,9 +106,9 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-slate-700 animate-pulse">Loading Detailed Report...</h2>
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center text-slate-900 dark:text-slate-50">
+        <div className="w-12 h-12 border-4 border-blue-100 dark:border-blue-900/30 border-t-blue-600 rounded-full animate-spin mb-4" />
+        <h2 className="text-xl font-bold text-slate-700 dark:text-slate-400 animate-pulse">Loading Detailed Report...</h2>
       </div>
     );
   }
@@ -144,35 +144,31 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
     : dbResponses;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 py-16 px-4 md:px-8 relative overflow-x-hidden selection:bg-cyan-500/30 prestige-gpu transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 py-16 px-4 md:px-8 relative overflow-x-hidden selection:bg-blue-500/30 transition-colors duration-300">
       {/* Background Atmosphere */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[160px]" />
-        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-600/5 rounded-full blur-[140px]" />
-        {/* Noise Overlay */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSdub2lzZUZpbHRlcic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzMnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbm9pc2VGaWx0ZXIpJy8+PC9zdmc+')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100 dark:bg-blue-600/10 rounded-full blur-[160px]" />
+        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-100 dark:bg-cyan-600/5 rounded-full blur-[140px]" />
+        <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
       <div className="w-full max-w-5xl mx-auto space-y-12 relative z-10">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
-          <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-10">
+          <div className="space-y-6">
             <button 
               onClick={() => onBack ? onBack() : navigate(-1)}
-              className="flex items-center gap-3 text-slate-500 hover:text-white font-black uppercase tracking-[0.2em] text-[10px] transition-all group"
+              className="flex items-center gap-3 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-white font-black uppercase tracking-[0.2em] text-[10px] transition-all group bg-white dark:bg-white/5 px-4 py-2 rounded-xl shadow-premium border border-slate-200 dark:border-transparent"
             >
-              <div className="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:bg-blue-600 dark:bg-blue-600 transition-colors">
-                <ArrowLeft className="w-4 h-4 text-white" />
-              </div>
-              Back to Analysis
+              <ArrowLeft className="w-4 h-4" />
+              Back to Assessment
             </button>
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-50 tracking-tighter uppercase italic">Diagnostic <span className="text-cyan-400">Log.</span></h1>
+            <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-slate-50 tracking-tighter uppercase italic">Diagnostic <span className="text-blue-600 dark:text-blue-400">Log.</span></h1>
           </div>
           <div className="text-left md:text-right">
-            <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] mb-1">Linguistic Search Records</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">{mappedList.length} <span className="text-slate-700">MODELS EVALUATED</span></p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-600 font-black uppercase tracking-[0.4em] mb-1">Search Records</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight">{mappedList.length} <span className="text-slate-300 dark:text-slate-700">MODELS</span></p>
           </div>
         </div>
 
@@ -191,26 +187,26 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
               <motion.div 
                 key={item.question_id + idx} 
                 variants={staggerItem}
-                className={`relative bg-white dark:bg-gray-900/40 backdrop-blur-3xl rounded-[2.5rem] border overflow-hidden transition-all duration-500 group will-change-contents ${
-                  isCorrect ? 'border-emerald-500/10 hover:border-emerald-500/30' : 'border-rose-500/10 hover:border-rose-500/30'
+                className={`relative bg-white dark:bg-gray-900/40 backdrop-blur-3xl rounded-[3rem] border overflow-hidden transition-all duration-500 group shadow-premium ${
+                  isCorrect ? 'border-emerald-100 hover:border-emerald-300 dark:border-emerald-500/10 dark:hover:border-emerald-500/30' : 'border-rose-100 hover:border-rose-300 dark:border-rose-500/10 dark:hover:border-rose-500/30'
                 }`}
               >
                 {/* Status Indicator Bar */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${isCorrect ? 'bg-emerald-500/50' : 'bg-rose-500/50'}`} />
 
                 {/* Card Header */}
-                <div className="p-6 md:px-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/5 bg-white/[0.02]">
+                <div className="p-8 md:px-12 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
                   <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-2xl border border-white/10">
-                       <div className="text-indigo-400">{skillIcons[item.skill] || <BrainCircuit className="w-4 h-4" />}</div>
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">{item.skill}</span>
+                    <div className="flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm transition-all duration-300 group-hover:bg-slate-50">
+                       <div className="text-blue-600 dark:text-blue-400">{skillIcons[item.skill] || <BrainCircuit className="w-4 h-4" />}</div>
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-slate-200">{item.skill}</span>
                     </div>
-                    <div className={`px-4 py-1.5 rounded-xl border-2 bg-black/20 font-black text-xs transition-all ${badgeStyle}`}>
+                    <div className={`px-5 py-2.5 rounded-2xl border font-black text-xs transition-all duration-300 ${badgeStyle}`}>
                        {item?.answer_level || 'A1'}
                     </div>
                     {item.score !== undefined && (
-                      <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-black text-slate-300">
-                        Score: <span className={item.score >= 0.5 ? 'text-emerald-400' : 'text-rose-400'}>{Math.round(item.score * 100)}%</span>
+                      <div className="px-5 py-2.5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-black text-slate-500 dark:text-slate-300 shadow-sm">
+                        Score <span className={item.score >= 0.5 ? 'text-emerald-500' : 'text-rose-500'}>{Math.round(item.score * 100)}%</span>
                       </div>
                     )}
                   </div>
@@ -222,10 +218,10 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                    
                    {(item.prompt || (item as any).stimulus) && (
                      <div className="space-y-4">
-                       <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Diagnostic Stimulus</p>
+                       <p className="text-[10px] font-black text-slate-500 dark:text-slate-600 uppercase tracking-[0.3em]">Diagnostic Stimulus</p>
                        <div className="relative">
                           {(item as any).stimulus && (
-                            <div className="p-6 bg-white/5 border-l-4 border-indigo-500/50 rounded-r-2xl text-slate-300 text-lg italic leading-relaxed mb-4">
+                            <div className="p-6 bg-slate-100 dark:bg-white/5 border-l-4 border-blue-600 dark:border-blue-400 rounded-r-2xl text-slate-600 dark:text-slate-300 text-lg italic leading-relaxed mb-4">
                               "{ (item as any).stimulus }"
                             </div>
                           )}
@@ -235,20 +231,19 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                    )}
 
                    {/* Response Visualization */}
-                   <div className="grid md:grid-cols-2 gap-4">
+                   <div className="grid md:grid-cols-2 gap-6">
                      <div className="relative group/response">
-                        <div className="absolute inset-0 bg-cyan-500/5 blur-xl opacity-0 group-hover/response:opacity-100 transition-opacity" />
-                        <div className="relative bg-black/40 p-8 rounded-[2rem] border border-white/5 shadow-inner ring-1 ring-white/5 h-full">
-                          <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] mb-4">Your Answer</p>
-                          <p className="text-slate-900 dark:text-slate-50 font-bold text-xl leading-relaxed">
-                            {item.user_answer || <span className="text-slate-700 italic">No output captured</span>}
+                        <div className="relative bg-slate-50 dark:bg-black/40 p-8 md:p-10 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-inner transition-all duration-300 group-hover/response:bg-white h-full">
+                          <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.4em] mb-4">Output Captured</p>
+                          <p className="text-slate-900 dark:text-slate-50 font-black text-xl leading-relaxed">
+                            {item.user_answer || <span className="text-slate-400 italic">Unprocessed</span>}
                           </p>
                         </div>
                      </div>
                      {!isCorrect && item.correct_answer && (
-                       <div className="relative bg-emerald-500/5 p-8 rounded-[2rem] border border-emerald-500/10 shadow-inner ring-1 ring-emerald-500/10 h-full">
-                         <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em] mb-4">Correct Answer</p>
-                         <p className="text-emerald-300 font-bold text-xl leading-relaxed italic">
+                       <div className="relative bg-emerald-50 content-[''] p-8 md:p-10 rounded-[2.5rem] border border-emerald-100 dark:bg-emerald-500/5 dark:border-emerald-500/10 shadow-inner h-full">
+                         <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.4em] mb-4">Target Model</p>
+                         <p className="text-emerald-700 dark:text-emerald-300 font-bold text-xl leading-relaxed italic">
                            "{item.correct_answer}"
                          </p>
                        </div>
@@ -256,16 +251,16 @@ export const AssessmentReviewView: React.FC<AssessmentReviewViewProps> = ({ eval
                    </div>
 
                    {/* AI Pedagogical Analysis */}
-                   <div className="pt-10 border-t border-white/5">
-                      <div className="flex items-start gap-6">
-                        <div className={`w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center shadow-lg ${
-                          isCorrect ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                   <div className="pt-10 border-t border-slate-100 dark:border-white/5">
+                      <div className="flex items-start gap-8">
+                        <div className={`w-16 h-16 rounded-[1.5rem] shrink-0 flex items-center justify-center shadow-premium ${
+                          isCorrect ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
                         }`}>
-                          {isCorrect ? <CheckCircle2 className="w-7 h-7"/> : <AlertTriangle className="w-7 h-7"/>}
+                          {isCorrect ? <CheckCircle2 size={32}/> : <AlertTriangle size={32}/>}
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-500 mb-2">Pedagogical Calibration Analysis</h4>
-                          <p className="text-slate-300 text-lg leading-relaxed font-medium max-w-3xl">
+                          <h4 className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-400 mb-2">Pedagogical Synthesis Analysis</h4>
+                          <p className="text-slate-700 dark:text-slate-300 text-xl leading-relaxed font-black tracking-tight max-w-4xl">
                             {typeof item.explanation === 'object' 
                               ? (item.explanation.note || JSON.stringify(item.explanation)) 
                               : item.explanation}

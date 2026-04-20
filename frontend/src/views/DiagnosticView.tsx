@@ -57,15 +57,15 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
   writing:    { icon: <Pen size={14} />,         color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', label: 'Writing' },
   speaking:   { icon: <Mic size={14} />,         color: 'text-amber-600',   bg: 'bg-amber-50 border-amber-200',    label: 'Speaking' },
   vocabulary: { icon: <Zap size={14} />,         color: 'text-rose-600',    bg: 'bg-rose-50 border-rose-200',      label: 'Vocabulary' },
-  grammar:    { icon: <BookOpen size={14} />,    color: 'text-blue-600 dark:text-blue-400',  bg: 'bg-blue-50 dark:bg-blue-900/30 border-indigo-200',  label: 'Grammar' },
+  grammar:    { icon: <BookOpen size={14} />,    color: 'text-blue-600 dark:text-blue-400',  bg: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',  label: 'Grammar' },
 };
 
 // Block info - 4 sequential skill blocks across 40 questions
 const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: string }> = {
   1: { label: 'Reading & Grammar', icon: <BookOpen size={16} />, color: 'text-blue-600 dark:text-blue-400' },
-  2: { label: 'Writing', icon: <Pen size={16} />, color: 'text-emerald-600' },
-  3: { label: 'Listening', icon: <Headphones size={16} />, color: 'text-sky-600' },
-  4: { label: 'Speaking', icon: <Mic size={16} />, color: 'text-amber-600' },
+  2: { label: 'Writing', icon: <Pen size={16} />, color: 'text-emerald-600 dark:text-emerald-400' },
+  3: { label: 'Listening', icon: <Headphones size={16} />, color: 'text-sky-600 dark:text-sky-400' },
+  4: { label: 'Speaking', icon: <Mic size={16} />, color: 'text-amber-600 dark:text-amber-400' },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -144,14 +144,14 @@ const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; pro
   };
 
   return (
-    <div className="mb-10 p-8 bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50">
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner">
+    <div className="mb-10 p-8 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50 rounded-[2.5rem] shadow-premium transition-all">
+      <div className="w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner mb-6">
         <Headphones size={40} />
       </div>
       
-      <div className="space-y-2">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Listening Task</h3>
-        <p className="text-slate-500 text-sm">Listen carefully, then select the best answer below.</p>
+      <div className="space-y-1 mb-8">
+        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">Listening Task</h3>
+        <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">Listen carefully, then select the best answer below.</p>
       </div>
 
       {/* Hidden native audio element for real audio files */}
@@ -169,11 +169,11 @@ const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; pro
 
       {/* Custom Audio Controls */}
       <div className="w-full max-w-md">
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200/50 dark:border-gray-800">
           {/* Play/Pause Button */}
           <button
             onClick={handlePlayPause}
-            className="w-14 h-14 rounded-full bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-200 transition-all active:scale-95 flex-shrink-0"
+            className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white flex items-center justify-center shadow-premium dark:shadow-md transition-all active:scale-95 flex-shrink-0"
           >
             {isPlaying ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" className="ml-0.5" />}
           </button>
@@ -182,18 +182,18 @@ const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; pro
           <div className="flex-1 min-w-0">
             {useTTS ? (
               <div className="space-y-1">
-                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">AI Text-to-Speech</p>
-                <p className="text-[10px] text-slate-400">{isPlaying ? '🔊 Speaking...' : 'Press play to listen'}</p>
+                <p className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">AI Text-to-Speech</p>
+                <p className="text-[10px] font-bold text-slate-400">{isPlaying ? '🔊 Speaking...' : 'Press play to listen'}</p>
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-600 dark:bg-blue-600 rounded-full transition-all duration-300"
+                    className="h-full bg-blue-600 rounded-full transition-all duration-300"
                     style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] font-bold text-slate-400 tabular-nums">
+                <div className="flex justify-between text-[10px] font-black text-slate-400 tabular-nums uppercase tracking-widest">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration)}</span>
                 </div>
@@ -204,7 +204,7 @@ const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; pro
           {/* Restart Button */}
           <button
             onClick={handleRestart}
-            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all flex-shrink-0"
+            className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 dark:text-slate-500 flex items-center justify-center transition-all flex-shrink-0 border border-slate-200/50 dark:border-transparent"
             title="Replay"
           >
             <RotateCcw size={16} />
@@ -442,16 +442,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   if (integrityStatus === 'failed') {
     return (
       <div className="h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center p-12 text-center transition-colors duration-300">
-        <div className="w-20 h-20 bg-rose-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-sm dark:shadow-md shadow-rose-500/20">
+        <div className="w-20 h-20 bg-rose-600 dark:bg-rose-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-premium dark:shadow-md shadow-rose-500/20">
           <AlertTriangle color="white" size={40} />
         </div>
         <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 mb-4 italic tracking-tight uppercase">System Integrity Failure</h2>
-        <p className="text-slate-400 max-w-md mx-auto mb-8 font-medium">
+        <p className="text-slate-400 dark:text-slate-500 max-w-md mx-auto mb-8 font-black uppercase tracking-widest text-[10px]">
           {integrityError || "A critical connection error prevented the assessment from starting."}
         </p>
         <button 
           onClick={() => window.location.reload()}
-          className="px-8 py-4 bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50 rounded-2xl font-black hover:bg-white dark:bg-gray-900-hover transition-all active:scale-95"
+          className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-2xl font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-all active:scale-95 text-xs border border-slate-200 dark:border-slate-700"
         >
           Retry Connection Audit
         </button>
@@ -498,42 +498,37 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     <>
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* 🔍 DEBUG BADGE */}
-          <div className="mr-2 px-2.5 py-1.5 bg-blue-50/80 border border-blue-100 rounded-lg flex items-center gap-1.5 shadow-sm">
-             <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Debug:</span>
-             <span className="text-[10px] font-black text-blue-700 uppercase">
-               {debugLevel} ({debugZone})
+          {/* 🔍 DEBUG BADGE (Subtle) */}
+          <div className="mr-2 px-2.5 py-1.5 bg-slate-100 dark:bg-blue-900/30 border border-slate-200 dark:border-blue-900/50 rounded-lg flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
+             <span className="text-[9px] font-black text-slate-400 dark:text-blue-500 uppercase tracking-tighter">BETA_V3</span>
+             <span className="mx-1 w-px h-2 bg-slate-300 dark:bg-blue-800" />
+             <span className="text-[10px] font-black text-slate-500 dark:text-blue-300 uppercase">
+               {debugLevel}
              </span>
-             <span className="mx-1 w-px h-2 bg-blue-200" />
-             <span className="text-[10px] font-black text-emerald-600">d={debugNumeric}</span>
-             <span className="mx-1 w-px h-2 bg-blue-200" />
-             <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.skill}</span>
-             <span className="mx-1 w-px h-2 bg-blue-200" />
-             <span className="text-[10px] font-bold text-blue-700 uppercase">{currentTask.response_mode}</span>
           </div>
 
-          <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${skillInfo.bg} ${skillInfo.color}`}>
+          <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest shadow-premium ${skillInfo.bg} ${skillInfo.color}`}>
             {skillInfo.icon} {skillInfo.label}
           </span>
           {zoneInfo && (
-            <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider shadow-sm ${zoneInfo.bg} ${zoneInfo.color}`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest shadow-premium ${zoneInfo.bg} ${zoneInfo.color}`}>
               {zoneInfo.icon} {zoneInfo.label}
             </span>
           )}
         </div>
         <div className="flex flex-col items-end">
-          <div className="px-3 py-1 bg-slate-200/50 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest">
+          <div className="px-3 py-1 bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100 dark:border-blue-500/20 shadow-sm">
             Diagnostic Phase
           </div>
-          <div className="mt-1 text-[9px] font-bold text-slate-400">
-            {progress.answered + 1} of {progress.total} Data Points
+          <div className="mt-1 text-[9px] font-black text-slate-400 uppercase tracking-tighter">
+            {progress.answered + 1} / {progress.total} Data Points
           </div>
         </div>
       </div>
 
       {/* NON-LISTENING STIMULUS (Reading without split, or grammar context) */}
       {!isSplitLayout && currentTask.stimulus && currentTask.skill !== 'listening' && (
-        <div className="mb-10 p-7 bg-white rounded-[2rem] border border-slate-200/60 shadow-sm text-lg italic text-slate-500 dark:text-slate-400 leading-relaxed">
+        <div className="mb-10 p-8 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-[2rem] shadow-premium text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed font-serif">
           {currentTask.stimulus}
         </div>
       )}
@@ -582,13 +577,21 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             {currentTask.options!.map((opt, i) => (
               <label 
                 key={i} 
-                className={`block w-full p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                className={`block w-full p-6 rounded-2xl border-2 cursor-pointer transition-all ${
                   selectedOption === opt 
-                    ? 'border-indigo-600 bg-blue-50 dark:bg-blue-900/30 ring-4 ring-indigo-50' 
-                    : 'bg-white border-slate-100 hover:border-indigo-200 hover:bg-slate-50'
+                    ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 shadow-premium dark:shadow-none' 
+                    : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 hover:border-slate-300 dark:hover:border-blue-700 hover:bg-slate-50 shadow-premium transition-colors'
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      selectedOption === opt ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-slate-300 dark:border-gray-600'
+                    }`}>
+                      {selectedOption === opt && <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />}
+                    </div>
+                    <span className="text-xl font-black text-slate-800 dark:text-slate-200 tracking-tight">{opt}</span>
+                  </div>
                   <input 
                     type="radio"
                     name="mcq-option"
@@ -598,10 +601,14 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
                       setSelectedOption(opt);
                       setTimeout(() => handleNextTask(opt), 400);
                     }}
-                    className="w-5 h-5 accent-indigo-600"
+                    className="hidden"
                     disabled={isEvaluating}
                   />
-                  <span className="text-lg font-bold text-slate-700">{opt}</span>
+                  {selectedOption === opt && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                      <CheckCircle2 size={24} className="text-blue-600 dark:text-blue-400" />
+                    </motion.div>
+                  )}
                 </div>
               </label>
             ))}
@@ -625,18 +632,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               <textarea 
                 value={textValue} 
                 onChange={e => setTextValue(e.target.value)} 
-                placeholder={isWritingTask ? "Write your answer here..." : "Type your spoken response here..."} 
-                className="w-full h-64 p-8 rounded-[2rem] bg-white border-2 border-slate-200 focus:border-indigo-500 outline-none text-slate-700 text-xl font-medium resize-none shadow-sm" 
+                placeholder={isWritingTask ? "Formulate your response..." : "Transcription of your spoken output..."} 
+                className="w-full h-72 p-10 rounded-[3rem] bg-white dark:bg-gray-900 border-2 border-slate-200 dark:border-gray-800 focus:border-blue-600 dark:focus:border-blue-400 outline-none text-slate-800 dark:text-slate-200 text-2xl font-medium resize-none shadow-premium transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700" 
                 disabled={isEvaluating}
               />
-              <div className="absolute bottom-6 right-6 text-[10px] font-black text-slate-400/80 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">{textValue.length} characters</div>
+              <div className="absolute bottom-10 right-10 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-full border border-slate-100 dark:border-transparent">{textValue.length} / 500</div>
             </div>
             <button 
               onClick={() => handleNextTask(textValue)} 
               disabled={textValue.length < 5 || isEvaluating} 
-              className="w-full py-5 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 text-white rounded-[1.5rem] font-black text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-600/20 active:scale-[0.98]"
+              className="w-full py-6 bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white rounded-[2rem] font-black text-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-premium hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-3"
             >
-              {isEvaluating ? 'Evaluating...' : 'Submit Answer'}
+              {isEvaluating ? 'Syncing Result...' : 'Finalize Response'} <ArrowRight size={20} />
             </button>
           </div>
         )}
@@ -645,16 +652,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   );
 
   const renderFooter = () => (
-    <div className="mt-12 flex justify-between items-center bg-slate-100/50 p-4 rounded-2xl">
-      <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-        <Shield size={14} /> Encrypted Session
+    <div className="mt-12 flex justify-between items-center bg-blue-50/50 dark:bg-white/5 p-5 rounded-[2rem] border border-blue-100 dark:border-transparent">
+      <div className="flex items-center gap-2 text-[10px] font-black text-blue-400 dark:text-slate-500 uppercase tracking-widest">
+        <Shield size={14} /> SECURE PROTOCOL v3
       </div>
       <button 
         onClick={handleSkip}
         disabled={isEvaluating}
-        className="px-4 py-2 text-slate-400 font-black text-xs hover:text-blue-600 dark:text-blue-400 rounded-xl flex items-center gap-1.5"
+        className="px-6 py-2.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center gap-1.5 transition-all hover:bg-white dark:hover:bg-white/5 shadow-sm hover:shadow-premium"
       >
-        <SkipForward size={12} /> Skip Question
+        <SkipForward size={14} /> Skip Step
       </button>
     </div>
   );
@@ -662,23 +669,23 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   return (
 
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-gray-950 overflow-hidden font-sans prestige-gpu transition-colors duration-300">
-      <header className="shrink-0 px-6 h-16 flex items-center gap-6 bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50">
-        <button onClick={() => setShowQuitDialog(true)} className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all">
-          <X size={18} />
+      <header className="shrink-0 px-8 h-20 flex items-center gap-8 bg-white dark:bg-gray-900 border-b border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50 shadow-sm relative z-20">
+        <button onClick={() => setShowQuitDialog(true)} className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm">
+          <X size={20} />
         </button>
-        <div className="flex-1 flex items-center gap-4">
-          <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-            <motion.div className="h-full bg-gradient-to-r from-blue-600 to-indigo-700" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
+        <div className="flex-1 flex items-center gap-6">
+          <div className="flex-1 h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-200 dark:border-transparent">
+            <motion.div className="h-full bg-blue-600" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
-          <span className="text-xs font-black text-slate-500 tabular-nums tracking-tighter">
-            {progress.answered + 1} / {progress.total}
+          <span className="text-xs font-black text-slate-500 tabular-nums tracking-widest uppercase">
+            {progress.percentage}%
           </span>
         </div>
         {/* SKIP BUTTON */}
         <button 
           onClick={handleSkip}
           disabled={isEvaluating}
-          className="flex items-center gap-1.5 px-4 py-2 text-slate-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/30 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
+          className="flex items-center gap-2 px-6 py-2.5 bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 border border-slate-200 dark:border-transparent shadow-sm"
         >
           <SkipForward size={14} /> Skip
         </button>
@@ -688,13 +695,13 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         {showBlockTransition && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50">
             <div className="text-center space-y-6">
-              <div className="w-28 h-28 rounded-[2.5rem] bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mx-auto shadow-sm dark:shadow-md shadow-indigo-100/50">
+              <div className="w-28 h-28 rounded-[2.5rem] bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mx-auto shadow-sm dark:shadow-md">
                 <span className={BLOCK_INFO[showBlockTransition]?.color || "text-blue-600 dark:text-blue-400"}>
                   {BLOCK_INFO[showBlockTransition]?.icon && React.cloneElement(BLOCK_INFO[showBlockTransition]?.icon as React.ReactElement, { size: 48 })}
                 </span>
               </div>
               <div className="space-y-1">
-                <p className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px]">Processing Phase {showBlockTransition} of 4</p>
+                <p className="text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.2em] text-[10px]">Processing Phase {showBlockTransition} of 4</p>
                 <h2 className="text-5xl font-black text-slate-800 dark:text-slate-200 tracking-tight">{BLOCK_INFO[showBlockTransition]?.label}</h2>
               </div>
             </div>
@@ -725,13 +732,18 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
 
       <AnimatePresence>
         {showQuitDialog && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-3xl p-8 max-w-xs w-full text-center space-y-6">
-              <h3 className="text-xl font-black text-slate-800 dark:text-slate-200">End Assessment?</h3>
-              <p className="text-sm text-slate-500">Leaving will lose your current progress.</p>
-              <div className="flex flex-col gap-2">
-                <button onClick={() => setShowQuitDialog(false)} className="py-3 bg-blue-600 dark:bg-blue-600 text-white rounded-xl font-bold">Resume</button>
-                <button onClick={() => navigate('/dashboard')} className="py-3 text-slate-400 font-bold">Quit</button>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-6">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 max-w-sm w-full text-center space-y-8 shadow-2xl border border-slate-200 dark:border-slate-800">
+              <div className="w-20 h-20 bg-rose-50 dark:bg-rose-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-2">
+                <AlertTriangle className="text-rose-600 dark:text-rose-500" size={40} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">End Assessment?</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">Exiting now will terminate your session and all current diagnostic data will be purged.</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button onClick={() => setShowQuitDialog(false)} className="py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-premium transition-all hover:scale-[1.02] active:scale-95 text-xs">Stay & Finish</button>
+                <button onClick={() => navigate('/dashboard')} className="py-4 text-slate-400 hover:text-rose-500 font-black uppercase tracking-widest transition-all text-[10px]">Terminate Session</button>
               </div>
             </motion.div>
           </div>
@@ -755,33 +767,33 @@ const AnalyzingTransitionView = ({ isSaving, saveError }: any) => {
   );
   
   return (
-    <div className="h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center space-y-8 p-12 text-center prestige-gpu">
+    <div className="h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center space-y-12 p-12 text-center prestige-gpu">
       <motion.div 
         animate={saveError ? { rotate: [0, -10, 10, -10, 10, 0] } : { rotate: 360 }} 
         transition={saveError ? { duration: 0.5 } : { duration: 3, repeat: Infinity, ease: "linear" }} 
-        className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-sm dark:shadow-md ${saveError ? 'bg-rose-500 shadow-rose-200' : 'bg-blue-600 dark:bg-blue-600 shadow-indigo-200'}`}
+        className={`w-28 h-28 rounded-[2.5rem] flex items-center justify-center shadow-premium ${saveError ? 'bg-rose-600 shadow-rose-200' : 'bg-blue-600 shadow-blue-200 dark:shadow-none'}`}
       >
-        {saveError ? <AlertTriangle color="white" size={40} /> : <Brain color="white" size={40} />}
+        {saveError ? <AlertTriangle color="white" size={48} /> : <Brain color="white" size={48} />}
       </motion.div>
-      <div className="space-y-2">
-        <h2 className="text-3xl font-black text-slate-800 dark:text-slate-200">{saveError ? 'Analysis Error' : 'Calculating precise profile...'}</h2>
-        <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-          {saveError || 'Aggregating 40-question responses across all skills.'}
+      <div className="space-y-3">
+        <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">{saveError ? 'ANALYSIS_ERR: 0x51' : 'SYNCHRONIZING PROFILE'}</h2>
+        <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-black uppercase tracking-widest text-[10px]">
+          {saveError || 'AGGREGATING 40-QUESTION METRICS ACROSS LINGUISTIC TWIN MODEL.'}
         </p>
       </div>
       {saveError && (
-        <div className="flex gap-4 pt-4">
+        <div className="flex flex-col md:flex-row gap-6 pt-8">
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-2xl font-bold flex items-center gap-2 transition-all"
+            className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 rounded-2xl font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-all text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-3"
           >
-            <RefreshCcw size={18} /> Retry Analysis
+            <RefreshCcw size={18} /> RELOAD CORE
           </button>
           <a 
             href="/dashboard"
-            className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-rose-200 transition-all active:scale-95"
+            className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-all text-xs flex items-center gap-3"
           >
-            Go to Dashboard <ArrowRight size={18} />
+            DASHBOARD_RECOVERY <ArrowRight size={18} />
           </a>
         </div>
       )}

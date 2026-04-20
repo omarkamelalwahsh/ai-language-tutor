@@ -23,22 +23,22 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 flex flex-col md:flex-row transition-colors duration-300">
       <aside className="w-full md:w-64 bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50 flex flex-col px-4 py-6 border-r border-slate-200 dark:border-gray-800 transition-colors duration-300">
-        <div className="flex items-center gap-3 px-3 mb-10">
-          <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-3 px-3 mb-12">
+          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-premium">
+            <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">Admin Console</h1>
-            <p className="text-xs text-slate-400">B2B Dashboard</p>
+            <h1 className="text-xl font-black tracking-tighter uppercase italic">Control<span className="text-blue-600">.</span></h1>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sys_Admin</p>
           </div>
         </div>
 
         <nav className="space-y-2 flex-1">
-          <button onClick={onNavigateDashboard} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+          <button onClick={onNavigateDashboard} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-all">
             <LayoutDashboard className="w-5 h-5" /> Overview
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-blue-600 dark:bg-blue-600 text-white transition-all">
-            <Crown className="w-5 h-5" /> Leaderboard
+          <button className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white shadow-premium transition-all">
+            <Crown className="w-5 h-5" /> Rankings
           </button>
         </nav>
 
@@ -53,41 +53,41 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
       </aside>
 
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <header className="mb-8 p-6 bg-white dark:bg-gray-900 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors duration-300">
+        <header className="mb-10 p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-slate-200 dark:border-gray-800 shadow-premium flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all duration-300">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Global Leaderboard</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">Manage and rank all learners across the organization.</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight uppercase italic italic">Global <span className="text-blue-600">Rankings.</span></h2>
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em] mt-1">Cross-Organization Performance Metrics</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-600 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-600 transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search learners..." 
-                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                placeholder="PROBE_LEARNER_ID..." 
+                className="pl-12 pr-6 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition-all w-64 shadow-inner"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-2 border border-slate-200 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 transition-colors">
-              <Filter className="w-4 h-4" />
+            <button className="p-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-transparent rounded-2xl text-slate-400 hover:text-blue-600 dark:text-slate-400 hover:shadow-premium transition-all">
+              <Filter className="w-5 h-5" />
             </button>
           </div>
         </header>
 
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors duration-300">
+        <div className="bg-white dark:bg-gray-900 rounded-[3rem] border border-slate-200 dark:border-gray-800 shadow-premium overflow-hidden transition-all duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
-                  <th className="px-6 py-4">Rank</th>
-                  <th className="px-6 py-4">Learner</th>
-                  <th className="px-6 py-4">Team</th>
-                  <th className="px-6 py-4 text-center">Level</th>
-                  <th className="px-6 py-4 text-center">Score</th>
-                  <th className="px-6 py-4 text-center">Streak</th>
-                  <th className="px-6 py-4 text-center">Modules</th>
-                  <th className="px-6 py-4 text-right">Last Active</th>
+                <tr className="bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 text-slate-400 dark:text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">
+                  <th className="px-8 py-6">RANK</th>
+                  <th className="px-8 py-6">IDENTIFIER</th>
+                  <th className="px-8 py-6">AFFILIATION</th>
+                  <th className="px-8 py-6 text-center">MASTERY</th>
+                  <th className="px-8 py-6 text-center">ACCUMULATION</th>
+                  <th className="px-8 py-6 text-center">CONSISTENCY</th>
+                  <th className="px-8 py-6 text-center">MODULES</th>
+                  <th className="px-8 py-6 text-right">LAST_SYNC</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -97,35 +97,35 @@ export const AdminLeaderboardView: React.FC<AdminLeaderboardViewProps> = ({ onNa
                     animate={{opacity: 1, y: 0}} 
                     transition={{delay: index * 0.05}}
                     key={entry.userId} 
-                    className="hover:bg-white dark:bg-gray-900-hover/50 transition-colors"
+                    className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 dark:border-white/5"
                   >
-                    <td className="px-6 py-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${entry.rank === 1 ? 'bg-amber-100 text-amber-600' : entry.rank === 2 ? 'bg-slate-200 text-slate-600' : entry.rank === 3 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-500 dark:text-slate-400'}`}>
+                    <td className="px-8 py-6">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shadow-sm ${entry.rank === 1 ? 'bg-amber-400 text-white shadow-amber-400/20' : entry.rank === 2 ? 'bg-slate-200 text-slate-600' : entry.rank === 3 ? 'bg-orange-400 text-white shadow-orange-400/20' : 'bg-slate-50 text-slate-400'}`}>
                         {entry.rank}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-slate-900">{entry.displayName}</div>
-                      <div className="text-xs text-slate-400 font-mono">{entry.userId}</div>
+                    <td className="px-8 py-6">
+                      <div className="font-black text-slate-900 dark:text-slate-100 tracking-tight">{entry.displayName}</div>
+                      <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">{entry.userId}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 font-medium">
-                      {entry.teamName || '-'}
+                    <td className="px-8 py-6 text-xs text-slate-500 font-black uppercase tracking-widest">
+                      {entry.teamName || 'External'}
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-block px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-indigo-700 text-xs font-bold rounded-md border border-indigo-100">
+                    <td className="px-8 py-6 text-center">
+                      <span className="inline-block px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-blue-100 dark:border-blue-900/50">
                         {entry.level}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                      {entry.score.toLocaleString()}
+                    <td className="px-8 py-6 text-center font-black text-slate-900 dark:text-slate-100 tabular-nums italic">
+                      {entry.score.toLocaleString()} <span className="text-[9px] not-italic text-slate-300">XP</span>
                     </td>
-                    <td className="px-6 py-4 text-center font-bold text-orange-500 tabular-nums">
-                      {entry.streak} 🔥
+                    <td className="px-8 py-6 text-center font-black text-orange-500 tabular-nums uppercase text-[10px] tracking-widest">
+                      {entry.streak} Day Streak
                     </td>
-                    <td className="px-6 py-4 text-center text-sm font-medium text-slate-600">
-                      {entry.completedModules}
+                    <td className="px-8 py-6 text-center text-xs font-black text-slate-500 uppercase">
+                      {entry.completedModules} Units
                     </td>
-                    <td className="px-6 py-4 text-right text-xs text-slate-400 font-medium">
+                    <td className="px-8 py-6 text-right text-[9px] text-slate-400 font-black uppercase tracking-widest">
                       {entry.lastActivityAt}
                     </td>
                   </motion.tr>

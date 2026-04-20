@@ -201,8 +201,8 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
             {/* 🌌 Dynamic Atmospheric Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
             </div>
 
             {/* Auto-Sync Banner */}
@@ -235,7 +235,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-72 h-full bg-white dark:bg-gray-900/95 backdrop-blur-xl p-6 shadow-sm dark:shadow-md flex flex-col border-r border-slate-200 dark:border-gray-800"
+                            className="w-72 h-full bg-white dark:bg-gray-900/95 backdrop-blur-xl p-6 shadow-premium dark:shadow-md flex flex-col border-r border-slate-200 dark:border-gray-800"
                         >
                             <SidebarContent activeTab={activeTab} onTabChange={(id) => { handleTabChange(id); setIsMobileMenuOpen(false); }} onLogout={onLogout} navigate={navigate} />
                         </motion.aside>
@@ -244,7 +244,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
             </AnimatePresence>
 
             {/* 1. Sidebar (Desktop) */}
-            <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-sm dark:shadow-md">
+            <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-premium dark:shadow-md">
                 <SidebarContent activeTab={activeTab} onTabChange={handleTabChange} onLogout={onLogout} navigate={navigate} />
             </aside>
 
@@ -255,19 +255,19 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         {/* Mobile Menu Toggle */}
                         <button 
                             onClick={() => setIsMobileMenuOpen(true)}
-                            className="p-2 -ml-2 rounded-xl bg-white/5 border border-white/10 text-white/60 md:hidden hover:bg-white/10 transition shadow-sm active:scale-95"
+                            className="p-2 -ml-2 rounded-xl bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 md:hidden hover:bg-slate-200 dark:hover:bg-gray-700 transition shadow-sm active:scale-95"
                         >
                             <Layout size={20} />
                         </button>
 
-                        <div className="flex items-center gap-2 text-sm font-bold text-white/40 capitalize bg-white/5 px-4 py-2 rounded-full border border-white/10 shadow-sm">
-                            <span className={`transition-colors cursor-pointer hover:text-white ${activeTab === 'home' ? 'text-white' : ''}`} onClick={() => handleTabChange('home')}>
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-400 dark:text-slate-500 capitalize bg-slate-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-slate-200 dark:border-gray-800 shadow-sm">
+                            <span className={`transition-colors cursor-pointer hover:text-slate-900 dark:hover:text-slate-50 ${activeTab === 'home' ? 'text-slate-900 dark:text-slate-50' : ''}`} onClick={() => handleTabChange('home')}>
                                 {activeTab === 'home' ? 'Home' : 'My Path'}
                             </span>
                             {activeTab !== 'home' && (
                                 <>
-                                    <ChevronRight size={14} className="text-white/20" />
-                                    <span className="text-white/80">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
+                                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-700" />
+                                    <span className="text-slate-800 dark:text-slate-200">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
                                 </>
                             )}
                         </div>
@@ -275,26 +275,26 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
-                        <button className="relative p-2 bg-white/5 rounded-full border border-white/10 text-white/60 hover:text-white transition shadow-sm hover:shadow active:scale-95">
+                        <button className="relative p-2 bg-slate-50 dark:bg-gray-800 rounded-full border border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition shadow-premium hover:shadow-md active:scale-95">
                             <Bell size={18} />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#0B1437]"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-gray-900"></span>
                         </button>
 
                         <div className="hidden md:block text-right">
-                            <p className="text-sm font-bold text-white leading-none">{displayName}</p>
-                            <p className="text-[10px] text-white/40 uppercase font-black mt-1">
+                            <p className="text-sm font-bold text-slate-900 dark:text-slate-50 leading-none">{displayName}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black mt-1">
                                 {normalizeBand(supabaseData?.profile?.overall_level || 'A1')}
                             </p>
                         </div>
 
                         <div 
                             onClick={() => navigate('/profile')}
-                            className="w-10 h-10 rounded-full bg-white/10 overflow-hidden border-2 border-white/10 shadow-sm hover:shadow-md transition cursor-pointer active:scale-95"
+                            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-gray-800 overflow-hidden border-2 border-slate-200 dark:border-gray-800 shadow-sm hover:shadow-md transition cursor-pointer active:scale-95"
                         >
                             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
                         </div>
 
-                        <button onClick={onLogout} className="p-2 ml-2 rounded-xl bg-white/5 text-white/40 hover:bg-rose-500/20 hover:text-rose-400 transition-all border border-white/10 group shadow-sm active:scale-95" title="Sign Out">
+                        <button onClick={onLogout} className="p-2 ml-2 rounded-xl bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-slate-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 hover:text-rose-600 dark:hover:text-rose-400 transition-all border border-slate-200 dark:border-gray-800 group shadow-sm active:scale-95" title="Sign Out">
                             <LogOut size={20} className="group-hover:translate-x-0.5 transition-transform" />
                         </button>
                     </div>
@@ -348,9 +348,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 const GlassCard = ({ children, className = "", hover = true, glow = false }: any) => (
     <motion.div
         whileHover={hover ? { y: -4, scale: 1.01 } : {}}
-        className={`relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-sm dark:shadow-md ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
+        className={`relative bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-premium dark:shadow-md ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
     >
-        {glow && <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />}
+        {glow && <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />}
         {children}
     </motion.div>
 );
@@ -366,7 +366,7 @@ const AnimatedGauge = ({ value, label, size = 80, strokeWidth = 8, color = "#3B8
                 <svg className="w-full h-full -rotate-90">
                     <circle 
                         cx={size / 2} cy={size / 2} r={radius}
-                        stroke="rgba(255,255,255,0.05)" strokeWidth={strokeWidth} fill="transparent"
+                        stroke="rgba(203, 213, 225, 0.2)" strokeWidth={strokeWidth} fill="transparent"
                     />
                     <motion.circle 
                         cx={size / 2} cy={size / 2} r={radius}
@@ -375,14 +375,14 @@ const AnimatedGauge = ({ value, label, size = 80, strokeWidth = 8, color = "#3B8
                         initial={{ strokeDashoffset: circumference }}
                         animate={{ strokeDashoffset: offset }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                        className="drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-black text-white">{Math.round(value || 0)}%</span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white">{Math.round(value || 0)}%</span>
                 </div>
             </div>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{label}</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">{label}</span>
         </div>
     );
 };
@@ -408,20 +408,20 @@ const JourneyPortal = ({ journeyData }: { journeyData: JourneyData | null }) => 
     return (
         <GlassCard className="p-6 flex flex-col gap-4 group cursor-pointer" glow onClick={() => navigate('/journey')}>
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-white tracking-widest uppercase">Journey Portal</h3>
-                <Sparkles size={16} className="text-blue-400 animate-pulse" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-widest uppercase">Journey Portal</h3>
+                <Sparkles size={16} className="text-blue-500 dark:text-blue-400 animate-pulse" />
             </div>
-            <div className="flex flex-col gap-3 relative before:absolute before:left-[17px] before:top-4 before:bottom-4 before:w-[1px] before:bg-white/10">
+            <div className="flex flex-col gap-3 relative before:absolute before:left-[17px] before:top-4 before:bottom-4 before:w-[1px] before:bg-slate-200 dark:before:bg-white/10">
                 {nodes.map((node, i) => (
-                    <div key={i} className={`flex items-start gap-4 transition-all duration-300 ${node.is_locked ? 'opacity-30' : 'hover:translate-x-1'}`}>
+                    <div key={i} className={`flex items-start gap-4 transition-all duration-300 ${node.is_locked ? 'opacity-30 grayscale' : 'hover:translate-x-1'}`}>
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-colors
-                            ${node.status === 'active' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/40' : 'bg-white dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400'}
+                            ${node.status === 'active' ? 'bg-blue-600 border-blue-400 text-white shadow-premium shadow-blue-500/20' : 'bg-slate-50 dark:bg-gray-900/50 border-slate-200 dark:border-gray-800 text-slate-400 dark:text-slate-400'}
                         `}>
                             {getIcon(node.type)}
                         </div>
                         <div className="pt-1">
-                            <p className="text-[13px] font-bold text-white/90 leading-none mb-1">{node.title}</p>
-                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                            <p className="text-[13px] font-bold text-slate-900 dark:text-white/90 leading-none mb-1">{node.title}</p>
+                            <p className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">
                                 {node.status === 'active' ? 'Current Objective' : node.status}
                             </p>
                         </div>
@@ -447,7 +447,7 @@ const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | nu
 
     return (
         <div className="flex flex-col gap-4">
-            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-2 mb-2">Learner Intelligence Feed</h3>
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] px-2 mb-2">Learner Intelligence Feed</h3>
             <div className="space-y-3">
                 {insights.map((insight, i) => (
                     <motion.div 
@@ -455,13 +455,13 @@ const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | nu
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.2 }}
-                        className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group cursor-default"
+                        className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group cursor-default shadow-sm"
                     >
                         <div className="flex items-center gap-2 mb-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{insight.model}</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                            <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">{insight.model}</span>
                         </div>
-                        <p className="text-[12px] font-medium text-white/70 leading-relaxed group-hover:text-white transition-colors">{insight.text}</p>
+                        <p className="text-[12px] font-medium text-slate-600 dark:text-white/70 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{insight.text}</p>
                     </motion.div>
                 ))}
             </div>
@@ -528,28 +528,32 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                     label="Learning Momentum" 
                     value={`${kpis?.momentum || 0}%`} 
                     icon={<Zap size={18} />} 
-                    color="text-indigo-400" 
+                    color="text-indigo-600 dark:text-indigo-400" 
+                    bgColor="bg-indigo-50 dark:bg-indigo-500/10"
                     trend="+12% from last week"
                 />
                 <KPICard 
                     label="Weekly Study Time" 
                     value={`${kpis?.weekly_minutes || 0}m`} 
                     icon={<Clock size={18} />} 
-                    color="text-blue-400"
+                    color="text-blue-600 dark:text-blue-400"
+                    bgColor="bg-blue-50 dark:bg-blue-500/10"
                     trend="Target: 120m"
                 />
                 <KPICard 
                     label="Active Errors" 
                     value={kpis?.active_errors || 0} 
                     icon={<AlertCircle size={18} />} 
-                    color="text-rose-400"
+                    color="text-rose-600 dark:text-rose-400"
+                    bgColor="bg-rose-50 dark:bg-rose-500/10"
                     trend="Priority high"
                 />
                 <KPICard 
                     label="Due Reviews" 
                     value={kpis?.due_reviews || 0} 
                     icon={<Brain size={18} />} 
-                    color="text-emerald-400"
+                    color="text-emerald-600 dark:text-emerald-400"
+                    bgColor="bg-emerald-50 dark:bg-emerald-500/10"
                     trend="Retention stable"
                 />
             </div>
@@ -575,7 +579,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                                 <div className="flex flex-wrap items-center gap-8">
                                     <button 
                                         onClick={() => navigate('/runtime')}
-                                        className="px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-sm dark:shadow-md flex items-center gap-3 decoration-indigo-500"
+                                        className="px-10 py-5 bg-white text-blue-600 dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-premium dark:shadow-md flex items-center gap-3"
                                     >
                                         Start Session <ArrowRight size={18} />
                                     </button>
@@ -602,8 +606,8 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                         <GlassCard className="p-10" glow>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                                 <div>
-                                    <h3 className="text-xl font-black text-white tracking-tight">Skill Trajectory</h3>
-                                    <p className="text-sm text-white/40 font-medium whitespace-nowrap">Progress across primary linguistic dimensions.</p>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Skill Trajectory</h3>
+                                    <p className="text-sm text-slate-400 dark:text-white/40 font-medium whitespace-nowrap">Progress across primary linguistic dimensions.</p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-4">
                                     {[
@@ -617,12 +621,12 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                                             onClick={() => toggleSkill(skill.id)}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95
                                                 ${visibleSkills.includes(skill.id) 
-                                                    ? 'bg-white/5 border-white/10 opacity-100' 
+                                                    ? 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 opacity-100' 
                                                     : 'bg-transparent border-transparent opacity-30 grayscale'}
                                             `}
                                         >
                                             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skill.color }} />
-                                            <span className="text-[10px] font-black uppercase text-white/60 tracking-widest">{skill.label}</span>
+                                            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/60 tracking-widest">{skill.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -637,13 +641,13 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                                                 dataKey="date" 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 700 }}
+                                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                                                 dy={10}
                                             />
                                             <YAxis 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 700 }}
+                                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                                                 domain={[0, 100]}
                                             />
                                             <Tooltip content={<CustomTooltip />} />
@@ -711,28 +715,28 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                     {/* Today's Stats & State */}
                     <motion.div variants={itemVariants}>
                         <GlassCard className="p-8">
-                            <h3 className="text-sm font-black text-white/20 uppercase tracking-[0.2em] mb-6">Learning State</h3>
+                            <h3 className="text-sm font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-6">Learning State</h3>
                             <div className="space-y-6">
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-white/60">Pacing</span>
-                                        <span className="text-xs font-black text-indigo-400">OPTIMAL</span>
+                                        <span className="text-xs font-bold text-slate-500 dark:text-white/60">Pacing</span>
+                                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">OPTIMAL</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} className="h-full bg-indigo-500" />
+                                    <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} className="h-full bg-indigo-600" />
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-white/60">Confidence</span>
-                                        <span className="text-xs font-black text-emerald-400">STABLE</span>
+                                        <span className="text-xs font-bold text-slate-500 dark:text-white/60">Confidence</span>
+                                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">STABLE</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-500" />
+                                    <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-600" />
                                     </div>
                                 </div>
                             </div>
-                            <p className="mt-6 text-xs text-white/40 font-medium leading-relaxed">
+                            <p className="mt-6 text-xs text-slate-500 dark:text-white/40 font-medium leading-relaxed">
                                 You're currently excelling in high-intensity verbal tasks. The system has increased challenge difficulty by 12%.
                             </p>
                         </GlassCard>
@@ -745,21 +749,21 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
                             <div className="space-y-3">
                                 {actionPanel?.queue?.length > 0 ? (
                                     actionPanel.queue.map((item: any) => (
-                                        <div key={item?.id || Math.random()} className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer">
+                                        <div key={item?.id || Math.random()} className="p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer shadow-premium">
                                             <div className="flex items-center gap-4">
-                                                <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
+                                                <div className="p-2 bg-blue-50 dark:bg-indigo-500/10 rounded-xl text-blue-600 dark:text-indigo-400">
                                                     <Zap size={16} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-white">{parseLinguisticContent(item?.title)}</h4>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-0.5">{item?.type}</p>
+                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{parseLinguisticContent(item?.title)}</h4>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 mt-0.5">{item?.type}</p>
                                                 </div>
                                             </div>
-                                            <ChevronRight size={16} className="text-white/20 group-hover:translate-x-1 transition-transform" />
+                                            <ChevronRight size={16} className="text-slate-400 dark:text-white/20 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-10 text-center border border-dashed border-white/10 rounded-3xl opacity-20 italic text-xs uppercase tracking-widest">
+                                    <div className="p-10 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-3xl opacity-20 italic text-xs uppercase tracking-widest">
                                         Queue Empty
                                     </div>
                                 )}
@@ -769,9 +773,9 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
 
                     {/* Recursive Intelligence Insight */}
                     <motion.div variants={itemVariants}>
-                        <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10">
-                            <h3 className="text-sm font-black text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
-                            <p className="text-sm text-white/60 leading-relaxed italic font-medium">
+                        <div className="p-8 rounded-[2rem] bg-blue-50 dark:bg-indigo-500/5 border border-blue-100 dark:border-indigo-500/10">
+                            <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
+                            <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium">
                                 "{dashboardData?.intelligence_feed?.action_plan || "Calculating next optimal drift in your linguistic matrix..."}"
                             </p>
                         </div>
@@ -785,17 +789,17 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
 
 // --- Custom Components for Clean Dashboard ---
 
-const KPICard = ({ label, value, icon, color, trend }: any) => (
+const KPICard = ({ label, value, icon, color, bgColor, trend }: any) => (
     <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}>
         <GlassCard className="p-6 md:p-8" glow>
             <div className="flex justify-between items-start mb-4">
-                <div className={`p-2 rounded-xl bg-white/5 ${color} border border-white/5`}>
+                <div className={`p-2 rounded-xl ${bgColor} ${color} border border-slate-100 dark:border-white/5`}>
                     {icon}
                 </div>
             </div>
-            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">{label}</p>
-            <p className="text-3xl font-black text-white mb-2 tracking-tighter">{value}</p>
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{trend}</p>
+            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-1">{label}</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tighter">{value}</p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{trend}</p>
         </GlassCard>
     </motion.div>
 );
@@ -825,12 +829,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const SidebarContent = ({ activeTab, onTabChange, onLogout, navigate }: any) => (
     <>
         <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 group" onClick={() => onTabChange('home')}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 shadow-premium shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
                 <Trophy size={20} className="text-white" fill="currentColor" />
             </div>
             <div>
                 <h1 className="text-xl font-black text-slate-900 dark:text-slate-50 leading-tight tracking-tight">Language AI</h1>
-                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
+                <p className="text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
             </div>
         </div>
 
@@ -854,10 +858,10 @@ const NavItem = ({ icon, label, active, onClick, isDanger }: any) => (
     <button
         onClick={onClick}
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${active
-                ? 'bg-blue-600/20 text-blue-600 border border-blue-500/30 shadow-lg shadow-blue-500/10'
+                ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 border border-blue-100 dark:border-blue-500/30 shadow-premium dark:shadow-blue-500/10'
                 : isDanger
-                    ? 'text-slate-900 dark:text-slate-50/30 hover:bg-rose-500/10 hover:text-rose-400'
-                    : 'text-slate-400 dark:text-slate-500 hover:bg-white dark:bg-gray-900-hover hover:text-slate-900 dark:text-slate-50'
+                    ? 'text-slate-500 dark:text-slate-50/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400'
+                    : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-slate-50'
             }`}
     >
         {icon}
@@ -935,9 +939,9 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                         <div className="flex-1 min-h-[300px] relative">
                             <ResponsiveContainer width="100%" height={300}>
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                    <PolarGrid stroke="rgba(255,255,255,0.1)" strokeDasharray="4 4" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 700 }} />
-                                    <Radar name="Mastery" dataKey="current" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.4} />
+                                    <PolarGrid stroke="currentColor" className="text-slate-200 dark:text-white/10" strokeDasharray="4 4" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} />
+                                    <Radar name="Mastery" dataKey="current" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.2} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
@@ -958,11 +962,11 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                                     <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 leading-relaxed">
                                         {errorProfile.common_mistakes?.[i] || "Analyzing pattern persistence..."}
                                     </p>
-                                    <div className="w-full h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
+                                    <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full mt-3 overflow-hidden">
                                         <motion.div 
                                             initial={{ width: 0 }}
                                             animate={{ width: `${80 - (i * 20)}%` }}
-                                            className="h-full bg-blue-500/50"
+                                            className="h-full bg-blue-600/40 dark:bg-blue-500/50"
                                         />
                                     </div>
                                 </div>
@@ -999,16 +1003,16 @@ const AnalyticsTab = ({ supabaseData }: any) => {
             <div className="lg:col-span-4 h-full">
                 <GlassCard className="p-8 h-full">
                     <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-8">Parallel Event Log</h3>
-                    <div className="space-y-8 relative before:absolute before:left-[7px] before:top-4 before:bottom-4 before:w-[2px] before:bg-white/5">
+                    <div className="space-y-8 relative before:absolute before:left-[7px] before:top-4 before:bottom-4 before:w-[2px] before:bg-slate-100 dark:before:bg-white/5">
                         {eventLog.map(event => (
                             <div key={event.id} className="flex gap-6 relative z-10 group cursor-default">
-                                <div className={`w-4 h-4 rounded-full border-2 border-[#020617] mt-1 shadow-lg transition-transform group-hover:scale-125
+                                <div className={`w-4 h-4 rounded-full border-2 border-slate-50 dark:border-[#020617] mt-1 shadow-premium transition-transform group-hover:scale-125
                                     ${event.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'}`} 
                                 />
                                 <div>
-                                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-400 transition-colors">{event.title}</h4>
-                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 mb-1">{event.desc}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-50/20">
+                                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                    <p className="text-[12px] font-medium text-slate-500 dark:text-slate-500 mb-1">{event.desc}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-50/20">
                                         {new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -1036,10 +1040,10 @@ const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: an
                     <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
                         {history.length > 0 ? (
                             history.map((session: any) => (
-                                <div key={session.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group lg:flex items-center justify-between">
+                                <div key={session.id} className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 transition-all group lg:flex items-center justify-between shadow-premium">
                                     <div className="flex items-center gap-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 flex flex-col items-center justify-center shadow-lg group-hover:border-blue-500/30 transition-colors">
-                                            <span className="text-[9px] font-black text-slate-900 dark:text-slate-50/30 uppercase leading-none mb-1">
+                                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900/5 border-slate-200 dark:border-gray-800 flex flex-col items-center justify-center shadow-premium group-hover:border-blue-500/30 transition-colors">
+                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-50/30 uppercase leading-none mb-1">
                                                 {new Date(session.createdAt).toLocaleString('default', { month: 'short' })}
                                             </span>
                                             <span className="text-xl font-black text-slate-900 dark:text-slate-50 leading-none">

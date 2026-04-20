@@ -29,7 +29,7 @@ export const NeuralPulseLoader: React.FC<NeuralPulseLoaderProps> = ({
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ 
                 scale: [0.8, 1.5, 2],
-                opacity: [0, 0.5, 0]
+                opacity: [0, 0.3, 0]
               }}
               transition={{
                 duration: 3,
@@ -37,7 +37,9 @@ export const NeuralPulseLoader: React.FC<NeuralPulseLoaderProps> = ({
                 delay: i * 1,
                 ease: "easeOut"
               }}
-              className="absolute inset-0 rounded-full border border-indigo-500/30"
+              className={`absolute inset-0 rounded-full border stroke-[0.5px] ${
+                i % 2 === 0 ? 'border-blue-400/30' : 'border-teal-400/30'
+              } dark:border-blue-500/30`}
             />
           ))}
 
@@ -45,33 +47,33 @@ export const NeuralPulseLoader: React.FC<NeuralPulseLoaderProps> = ({
           <motion.div
             animate={{ 
               boxShadow: [
-                "0 0 20px rgba(79, 70, 229, 0.2)",
-                "0 0 50px rgba(79, 70, 229, 0.5)",
-                "0 0 20px rgba(79, 70, 229, 0.2)"
+                "0 2px 10px 0 rgba(148, 163, 184, 0.1)",
+                "0 4px 20px 0 rgba(148, 163, 184, 0.15)",
+                "0 2px 10px 0 rgba(148, 163, 184, 0.1)"
               ],
-              scale: [1, 1.05, 1]
+              scale: [1, 1.02, 1]
             }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="w-24 h-24 bg-blue-600 dark:bg-blue-600 rounded-[2rem] flex items-center justify-center relative z-10 border border-indigo-400/30"
+            className="w-24 h-24 bg-white dark:bg-blue-600 rounded-[2rem] flex items-center justify-center relative z-10 border border-slate-200 dark:border-blue-400/30"
           >
-            <BrainCircuit className="w-12 h-12 text-white" />
+            <BrainCircuit className="w-12 h-12 text-blue-600 dark:text-white" />
           </motion.div>
         </div>
 
         {/* Status Text with Scanning Effect */}
         <div className="text-center space-y-3 relative z-10">
           <h2 className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tighter uppercase italic flex items-center gap-2">
-            AI <span className="text-indigo-400">Tutor</span> Protocol
+            AI <span className="text-blue-600 dark:text-blue-400">Tutor</span> Protocol
           </h2>
           <div className="flex flex-col items-center gap-1">
              <p className="text-[10px] font-black tracking-[0.5em] text-slate-500 uppercase">
                 {status}
              </p>
-             <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+             <div className="w-32 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mt-2">
                <motion.div 
                  animate={{ x: [-128, 128] }}
                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                 className="w-full h-full bg-indigo-500"
+                 className="w-full h-full bg-blue-600"
                />
              </div>
           </div>

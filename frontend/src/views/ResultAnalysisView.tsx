@@ -37,37 +37,37 @@ const MasteryBadge = ({ level, label, arLabel, confidence }: { level: string, la
     animate={{ opacity: 1, scale: 1 }}
     className="relative group cursor-default"
   >
-    <div className="absolute inset-0 bg-cyan-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-cyan-500/40 transition-all" />
-    <div className="relative bg-white dark:bg-gray-900/60 border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 text-center overflow-hidden">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400 mb-2">Core Mastery</p>
-      <h3 className="text-8xl font-black text-slate-900 dark:text-slate-50 leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+    <div className="absolute inset-0 bg-blue-500/10 dark:bg-cyan-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-blue-500/20 dark:group-hover:bg-cyan-500/40 transition-all" />
+    <div className="relative bg-white dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 text-center overflow-hidden shadow-premium">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 dark:bg-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 dark:text-cyan-400 mb-2">Core Mastery</p>
+      <h3 className="text-8xl font-black text-slate-900 dark:text-slate-50 leading-none tracking-tighter shadow-sm dark:shadow-none">
         {level}
       </h3>
       <div className="mt-4 space-y-1">
         <p className="text-xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">{label}</p>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{arLabel}</p>
+        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{arLabel}</p>
       </div>
       
       {/* Confidence Bar */}
       <div className="mt-8 flex items-center justify-center gap-3">
-         <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+         <div className="flex-1 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${confidence * 100}%` }}
-              className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500"
+              className="h-full bg-blue-600 transition-all"
             />
          </div>
-         <span className="text-[10px] font-black text-cyan-400">{Math.round(confidence * 100)}% DETECTED</span>
+         <span className="text-[10px] font-black text-blue-600 dark:text-cyan-400">{Math.round(confidence * 100)}% DETECTED</span>
       </div>
     </div>
   </motion.div>
 );
 
-const ChasingLightButton = ({ children, loading, onClick, className = "", variant = "cyan" }: { children: React.ReactNode, loading?: boolean, onClick?: () => void, className?: string, variant?: 'cyan' | 'indigo' }) => {
+const ChasingLightButton = ({ children, loading, onClick, className = "", variant = "cyan" }: { children: React.ReactNode, loading?: boolean, onClick?: () => void, className?: string, variant?: 'cyan' | 'blue' }) => {
   const colors = {
     cyan: "bg-[conic-gradient(from_90deg_at_50%_50%,#00FFFF_0%,#4F46E5_50%,#00FFFF_100%)]",
-    indigo: "bg-[conic-gradient(from_90deg_at_50%_50%,#4F46E5_0%,#C084FC_50%,#4F46E5_100%)]"
+    blue: "bg-[conic-gradient(from_90deg_at_50%_50%,#2563eb_0%,#60a5fa_50%,#2563eb_100%)]"
   };
 
   return (
@@ -76,7 +76,7 @@ const ChasingLightButton = ({ children, loading, onClick, className = "", varian
       disabled={loading}
       className={`relative group p-[2px] rounded-2xl overflow-hidden transition-all active:scale-95 ${className}`}
     >
-      <div className={`absolute inset-[-1000%] animate-[spin_4s_linear_infinite] ${colors[variant === 'cyan' ? 'cyan' : 'indigo']} opacity-30 group-hover:opacity-100 transition-opacity`} />
+      <div className={`absolute inset-[-1000%] animate-[spin_4s_linear_infinite] ${colors[variant === 'cyan' ? 'cyan' : 'blue']} opacity-30 group-hover:opacity-100 transition-opacity`} />
       <div className={`relative w-full h-full bg-slate-50 dark:bg-gray-950/80 backdrop-blur-xl rounded-[14px] px-8 py-5 flex items-center justify-center gap-3 border border-slate-200 dark:border-gray-800 group-hover:bg-white dark:bg-gray-900/40 transition-colors duration-300`}>
         {loading ? (
           <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
@@ -221,12 +221,12 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
       <div className="w-full relative z-10 border-b border-white/5 bg-slate-950/20 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-600 dark:bg-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-white dark:bg-blue-600 rounded-xl flex items-center justify-center shadow-premium dark:shadow-[0_0_20px_rgba(79,70,229,0.3)] border border-slate-200 dark:border-transparent">
+              <ShieldCheck className="w-6 h-6 text-blue-600 dark:text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tighter uppercase">Unified Mastery Analysis</h1>
-              <p className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase">Quantified Linguistic Intelligence</p>
+              <h1 className="text-lg font-black tracking-tighter uppercase text-slate-900 dark:text-slate-50">Unified Mastery Analysis</h1>
+              <p className="text-[10px] font-black tracking-[0.3em] text-slate-400 dark:text-slate-500 uppercase">Quantified Linguistic Intelligence</p>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -263,10 +263,10 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
             />
 
             {/* Radar Analysis */}
-            <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px]">
+            <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px] shadow-premium">
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Skill Calibration</h3>
-                <BarChart3 className="text-indigo-400 w-4 h-4" />
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400">Skill Calibration</h3>
+                <BarChart3 className="text-blue-600 dark:text-blue-400 w-4 h-4" />
               </div>
               
               <div className="h-full w-full -mt-10">
@@ -280,10 +280,10 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                     <Radar
                       name="Learner"
                       dataKey="A"
-                      stroke="#00FFFF"
+                      stroke="#3B82F6"
                       strokeWidth={2}
-                      fill="#4F46E5"
-                      fillOpacity={0.3}
+                      fill="#3B82F6"
+                      fillOpacity={0.2}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -296,7 +296,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                     <span className="text-[10px] font-black text-slate-500 uppercase">Peak Performance</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
                     <span className="text-[10px] font-black text-slate-500 uppercase">Growth Potential</span>
                  </div>
               </div>
@@ -317,14 +317,14 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
           {/* ================= RIGHT COLUMN (JOURNEY) ================= */}
           <div className="space-y-8">
-            <div className="bg-slate-950/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 md:p-14 relative overflow-hidden">
+            <div className="bg-white dark:bg-slate-950/40 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-premium">
                {/* Roadmap Header */}
                <div className="mb-14 flex items-center justify-between relative z-10">
                  <div>
-                   <h3 className="text-3xl font-black tracking-tighter uppercase bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Journey Roadmap</h3>
-                   <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mt-1">AI Optimized Trajectory</p>
+                   <h3 className="text-3xl font-black tracking-tighter uppercase text-slate-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:to-slate-500 dark:bg-clip-text">Journey Roadmap</h3>
+                   <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.4em] mt-1">AI Optimized Trajectory</p>
                  </div>
-                 <Sparkles className="text-cyan-400 w-8 h-8 animate-pulse" />
+                 <Sparkles className="text-blue-500 dark:text-cyan-400 w-8 h-8 animate-pulse" />
                </div>
 
                <div className="relative z-10 py-10">
@@ -335,11 +335,11 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                           d="M 200 600 L 300 480 L 100 360 L 300 240 L 200 120"
                           fill="none"
                           stroke="url(#pathGradient)"
-                          strokeWidth="4"
-                          strokeDasharray="10 10"
+                          strokeWidth="2"
+                          strokeDasharray="6 6"
                           initial={{ pathLength: 0 }}
                           animate={{ pathLength: 1 }}
-                          transition={{ duration: 2 }}
+                          transition={{ duration: 2.5, ease: "easeInOut" }}
                         />
                         <defs>
                           <linearGradient id="pathGradient" x1="0" y1="0" x2="0" y2="1">
@@ -372,9 +372,9 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
                     {/* Start Node */}
                     <div className="flex justify-center -mt-8">
-                        <div className="bg-blue-600 dark:bg-blue-600 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(79,70,229,0.3)] text-center w-72 border-b-4 border-slate-950/30">
-                         <h4 className="font-black text-slate-900 dark:text-slate-50 text-xl uppercase italic tracking-tighter">Diagnostic Origin</h4>
-                         <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mt-1">Initial Level: {normalizeBand(result?.overall?.estimatedLevel || 'A1')}</p>
+                        <div className="bg-blue-600 dark:bg-blue-600 p-6 rounded-[2rem] shadow-premium dark:shadow-[0_0_40px_rgba(79,70,229,0.3)] text-center w-72 border-b-4 border-blue-800 dark:border-slate-950/30">
+                         <h4 className="font-black text-white text-xl uppercase italic tracking-tighter">Diagnostic Origin</h4>
+                         <p className="text-[10px] font-black text-blue-100 dark:text-slate-400 uppercase tracking-widest mt-1">Initial Level: {normalizeBand(result?.overall?.estimatedLevel || 'A1')}</p>
                        </div>
                     </div>
                   </div>
@@ -394,7 +394,7 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
                   
                   <ChasingLightButton
                     onClick={() => onReview ? onReview() : document.getElementById('question-analysis')?.scrollIntoView({ behavior: 'smooth' })}
-                    variant="indigo"
+                    variant="blue"
                     className="flex-1"
                   >
                     <RefreshCw size={20} />
@@ -410,12 +410,12 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
             {/* Skill focus area */}
             <div className="grid md:grid-cols-2 gap-6">
                 {(report?.growth_areas || weaknesses).slice(0, 2).map((area: string, i: number) => (
-                  <div key={i} className="bg-slate-950 border border-white/5 p-6 rounded-[2rem] flex items-center gap-6 group hover:border-cyan-500/30 transition-all">
-                     <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-all">
+                  <div key={i} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 p-6 rounded-[2rem] flex items-center gap-6 group hover:border-blue-500/30 dark:hover:border-cyan-500/30 transition-all shadow-premium">
+                     <div className="w-12 h-12 bg-blue-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-blue-600 dark:text-cyan-400 group-hover:bg-blue-600 dark:group-hover:bg-cyan-500 group-hover:text-white dark:group-hover:text-slate-950 transition-all">
                         <Sparkles size={24} />
                      </div>
                      <div>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Growth Vector {i+1}</p>
+                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Growth Vector {i+1}</p>
                         <h4 className="text-sm font-black text-slate-900 dark:text-slate-50">{area}</h4>
                      </div>
                   </div>
@@ -460,13 +460,13 @@ const RoadmapSteps = (nodes: any[], isArchitecting: boolean) => {
             initial={{ opacity: 0, x: step.align === 'left' ? -20 : 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.2 }}
-            className="bg-slate-950/60 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-cyan-500/30 transition-all shadow-sm dark:shadow-md"
+            className="bg-white dark:bg-slate-950/60 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-blue-500/30 dark:hover:border-cyan-500/30 transition-all shadow-premium"
           >
-            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-cyan-400 shrink-0 group-hover:bg-cyan-500 group-hover:text-slate-900 transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+            <div className="w-14 h-14 bg-blue-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-blue-600 dark:text-cyan-400 shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-cyan-500 group-hover:text-white dark:group-hover:text-slate-900 transition-all">
               {React.cloneElement(step.icon as any, { size: 24 })}
             </div>
             <div className="text-left overflow-hidden">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">MILESTONE {i + 1}</p>
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">MILESTONE {i + 1}</p>
               <h5 className="text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
             </div>
           </motion.div>

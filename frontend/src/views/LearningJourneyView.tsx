@@ -35,10 +35,10 @@ const ADAPTIVE_INTERVENTIONS: any[] = [];
 // ---------------------------------------------------------------------------
 
 const Breadcrumb = ({ items }: { items: string[] }) => (
-  <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400-text mb-4 bg-white dark:bg-gray-900/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-gray-800 backdrop-blur-sm self-start">
+  <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 bg-white dark:bg-gray-900/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-gray-800 backdrop-blur-sm self-start shadow-premium">
     {items.map((item, i) => (
       <React.Fragment key={item}>
-        <span className={i === items.length - 1 ? 'text-indigo-400' : ''}>{item}</span>
+        <span className={i === items.length - 1 ? 'text-blue-600 dark:text-indigo-400' : ''}>{item}</span>
         {i < items.length - 1 && <ChevronRight size={10} />}
       </React.Fragment>
     ))}
@@ -54,19 +54,19 @@ const SkillRing = ({ skill, percentage, color }: { skill: string, percentage: nu
     <div className="flex flex-col items-center gap-2 group">
       <div className="relative flex items-center justify-center w-12 h-12">
         <svg className="w-full h-full transform -rotate-90">
-          <circle cx="24" cy="24" r={radius} fill="none" stroke="currentColor" strokeWidth="4" className="text-border" />
+          <circle cx="24" cy="24" r={radius} fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-gray-800" />
           <motion.circle 
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
             transition={{ duration: 1.5, ease: "easeOut" }}
             cx="24" cy="24" r={radius} fill="none" stroke={color} strokeWidth="4" 
             strokeDasharray={circumference} strokeLinecap="round" 
-            style={{ filter: `drop-shadow(0 0 4px ${color}80)` }}
+            style={{ filter: `drop-shadow(0 0 4px ${color}40)` }}
           />
         </svg>
         <span className="absolute text-[10px] font-black text-slate-900 dark:text-slate-50">{percentage}%</span>
       </div>
-      <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500 group-hover:text-slate-300 transition-colors text-center">{skill}</span>
+      <span className="text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-slate-300 transition-colors text-center">{skill}</span>
     </div>
   );
 };
@@ -79,12 +79,12 @@ const CefrProgressBar = ({ currentLevel }: { currentLevel: string }) => {
   return (
     <div className="w-full max-w-2xl mt-8 px-4">
       <div className="flex items-center justify-between relative">
-        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-border -translate-y-1/2 z-0">
+        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-slate-200 dark:bg-border -translate-y-1/2 z-0">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${(activeIndex / (levels.length - 1)) * 100}%` }}
             transition={{ duration: 1.5, delay: 0.5 }}
-            className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+            className="h-full bg-blue-600 dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-500 shadow-premium dark:shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
           />
         </div>
         {levels.map((level, idx) => {
@@ -94,18 +94,18 @@ const CefrProgressBar = ({ currentLevel }: { currentLevel: string }) => {
           return (
             <div key={level} className="relative z-10 flex flex-col items-center">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 transition-all duration-500
-                ${isPast ? 'bg-indigo-900 border-indigo-500/50 text-indigo-300' : ''}
-                ${isActive ? 'bg-blue-600 dark:bg-blue-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-110' : ''}
-                ${isTarget && !isActive ? 'bg-slate-900 border-indigo-500/30 text-indigo-400 ring-2 ring-indigo-500/20' : ''}
-                ${!isPast && !isActive && !isTarget ? 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400-text' : ''}
+                ${isPast ? 'bg-slate-100 dark:bg-indigo-900 border-slate-200 dark:border-indigo-500/50 text-slate-400 dark:text-indigo-300' : ''}
+                ${isActive ? 'bg-blue-600 dark:bg-blue-600 border-blue-400 dark:border-indigo-400 text-white shadow-premium dark:shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-110' : ''}
+                ${isTarget && !isActive ? 'bg-white dark:bg-slate-900 border-blue-500/30 dark:border-indigo-500/30 text-blue-600 dark:text-indigo-400 ring-2 ring-blue-500/10 dark:ring-indigo-500/20' : ''}
+                ${!isPast && !isActive && !isTarget ? 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400' : ''}
               `}>
                 {level}
               </div>
               {isActive && (
-                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-7 text-[9px] uppercase tracking-widest font-black text-indigo-400">Current</motion.span>
+                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-7 text-[9px] uppercase tracking-widest font-black text-blue-600 dark:text-indigo-400">Current</motion.span>
                )}
               {isTarget && !isActive && (
-                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-7 text-[9px] uppercase tracking-widest font-black text-indigo-400">Target</motion.span>
+                 <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-7 text-[9px] uppercase tracking-widest font-black text-blue-600 dark:text-indigo-400">Target</motion.span>
                )}
             </div>
           );
@@ -126,7 +126,7 @@ const WindingPath = () => {
            strokeWidth="8" 
            strokeLinecap="round"
            strokeDasharray="1 20"
-           className="text-border hidden lg:block"
+           className="text-slate-200 dark:text-slate-800 hidden lg:block"
         />
         {/* Animated glow path */}
         <motion.path 
@@ -136,18 +136,18 @@ const WindingPath = () => {
            d="M 280 0 C 280 150, 480 150, 480 300 C 480 450, 280 450, 280 600 C 280 750, 480 750, 480 900 C 480 1050, 280 1050, 280 1200"
            fill="none" 
            stroke="url(#glowGradient)" 
-           strokeWidth="4" 
+           strokeWidth="2" 
            strokeLinecap="round"
-           className="opacity-30 hidden lg:block"
+           className="opacity-20 hidden lg:block"
         />
         {/* Mobile vertical line fallback */}
-        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="currentColor" className="text-border lg:hidden" strokeWidth="4" strokeDasharray="8 8" />
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="currentColor" className="text-slate-200 dark:text-gray-800 lg:hidden" strokeWidth="4" strokeDasharray="8 8" />
         
         <defs>
           <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop stopColor="#4F46E5" offset="0%" />
-            <stop stopColor="#818CF8" offset="50%" />
-            <stop stopColor="#4F46E5" offset="100%" />
+            <stop stopColor="#2563eb" offset="0%" />
+            <stop stopColor="#5eead4" offset="50%" />
+            <stop stopColor="#2563eb" offset="100%" />
           </linearGradient>
         </defs>
     </svg>
@@ -225,7 +225,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-500/30 overflow-x-hidden transition-colors duration-300">
       
       {/* Ambient backgrounds */}
       <div className="fixed top-0 left-1/2 w-[1000px] h-[600px] bg-blue-600 dark:bg-blue-600/5 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -237,7 +237,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           <div className="flex items-center gap-4 mb-4">
              <button 
                onClick={onViewDashboard}
-               className="flex items-center gap-2 px-4 py-1.5 bg-slate-900/60 hover:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400 border border-slate-800/50 rounded-full backdrop-blur-sm transition active:scale-95 group"
+               className="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800/50 rounded-full backdrop-blur-sm transition active:scale-95 group shadow-premium"
              >
                 <ArrowRight size={12} className="rotate-180 group-hover:-translate-x-0.5 transition-transform" /> Back to Dashboard
              </button>
@@ -246,10 +246,10 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4">
-                Bridge from <span className="text-indigo-400">{currentLevel}</span> to <span className="text-indigo-400">{targetLevel}</span>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-slate-900 dark:text-slate-50">
+                Bridge from <span className="text-blue-600 dark:text-indigo-400">{currentLevel}</span> to <span className="text-blue-600 dark:text-indigo-400">{targetLevel}</span>
               </h1>
-              <p className="text-lg text-slate-400 font-medium max-w-xl">
+              <p className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-xl">
                 AI-architected transformation path balancing theoretical foundation with real-time error repair.
               </p>
             </motion.div>
@@ -273,15 +273,15 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
             
             <div className="flex flex-col gap-32 relative z-10">
               {isCalibration ? (
-                <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-100 dark:bg-slate-800/40 transition-colors duration-300">
-                  <Brain size={60} className="text-indigo-400 mb-6 opacity-50" />
+                <div className="flex flex-col items-center justify-center text-center p-16 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-[3rem] shadow-premium transition-colors duration-300">
+                  <Brain size={60} className="text-blue-600 dark:text-indigo-400 mb-6 opacity-50" />
                   <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 mb-2">Awaiting Diagnostic Signal</h3>
-                  <p className="text-slate-400 max-w-md">Complete your first assessment to allow the 70B Model to architect your personalized linguistic trajectory.</p>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-md font-medium">Complete your first assessment to allow the 70B Model to architect your personalized linguistic trajectory.</p>
                   <button 
                     onClick={onStartSession}
-                    className="mt-8 px-8 py-3 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-xl hover:bg-indigo-500 transition shadow-sm dark:shadow-md"
+                    className="mt-8 px-10 py-4 bg-blue-600 text-white font-black rounded-2xl hover:scale-105 transition shadow-premium flex items-center gap-3 uppercase tracking-widest text-xs"
                   >
-                    Start Diagnostic
+                    Start Diagnostic <Sparkles size={16} />
                   </button>
                 </div>
               ) : (
@@ -302,7 +302,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                       {/* Node Visual Bubble */}
                       <div className="relative">
                          {node.status === 'active' && (
-                           <div className="absolute inset-0 bg-indigo-500 rounded-[2rem] blur-[30px] opacity-30 animate-pulse" />
+                           <div className="absolute inset-0 bg-blue-500 dark:bg-indigo-500 rounded-[2rem] blur-[30px] opacity-20 dark:opacity-30 animate-pulse" />
                          )}
                          <div className={`
                            relative w-20 h-20 md:w-28 md:h-28 rounded-[2.5rem] flex items-center justify-center transition-all duration-500
@@ -321,8 +321,8 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
                       {/* Node Details Card */}
                       <div className={`
-                         max-w-sm w-full bg-white dark:bg-gray-900 transition-colors duration-300
-                         ${node.status === 'active' ? 'ring-1 ring-indigo-500/30 bg-slate-900/80 shadow-sm dark:shadow-md' : ''}
+                         max-w-sm w-full p-8 rounded-[2rem] bg-white dark:bg-gray-900 transition-colors duration-300 border border-slate-200 dark:border-slate-800
+                         ${node.status === 'active' ? 'ring-1 ring-blue-500/30 dark:ring-indigo-500/30 bg-white dark:bg-slate-900/80 shadow-premium dark:shadow-md' : 'shadow-premium'}
                       `}>
                          <div className="flex justify-between items-start mb-4">
                             <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{parseLinguisticContent(node.title)}</h3>
@@ -359,15 +359,15 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           <aside className="sticky top-12 flex flex-col gap-6">
             
             <ContextCard 
-              icon={<Brain className="text-indigo-400" />} 
+              icon={<Brain className="text-blue-600 dark:text-indigo-400" />} 
               title="Adaptive Logic"
               content={dashboardData?.intelligence_feed?.action_plan || "Architecting your linguistic trajectory based on real-time diagnostic markers."}
               accent
             />
 
-            <div className="bg-[#0F172A]/60 backdrop-blur-xl border border-slate-800 p-8 rounded-[2.5rem] shadow-sm dark:shadow-md">
-               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-8 flex items-center gap-2">
-                 <Target size={16} className="text-indigo-400" /> Readiness Matrix
+            <div className="bg-white dark:bg-[#0F172A]/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-premium dark:shadow-md">
+               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-8 flex items-center gap-2">
+                 <Target size={16} className="text-blue-600 dark:text-indigo-400" /> Readiness Matrix
                </h4>
                <div className="grid grid-cols-3 gap-y-8 gap-x-4">
                   {dashboardData?.skills?.slice(0, 3).map((s: any) => (
@@ -380,8 +380,8 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                     </>
                   )}
                </div>
-               <div className="mt-8 pt-8 border-t border-slate-800/50">
-                  <p className="text-xs text-slate-400 font-medium italic">
+               <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium italic">
                     Focus on Listening exercises in the next 3 nodes to stabilize B1 readiness.
                   </p>
                </div>
@@ -389,16 +389,16 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
             <motion.div 
                whileHover={{ y: -5 }}
-               className="bg-[#0F172A]/80 border border-slate-800 p-8 rounded-[2.5rem] shadow-sm dark:shadow-md cursor-pointer group"
+               className="bg-white dark:bg-[#0F172A]/80 border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-premium dark:shadow-md cursor-pointer group"
                onClick={onStartSession}
             >
                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
-                    <Zap className="text-amber-400 fill-amber-400" size={16} /> Due Review
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
+                    <Zap className="text-amber-500 fill-amber-500" size={16} /> Due Review
                   </h4>
-                  <span className="text-[10px] bg-amber-400/10 text-amber-400 px-2 py-0.5 rounded-md font-bold border border-amber-400/20">12 Item Bloom</span>
+                  <span className="text-[10px] bg-amber-400/10 text-amber-500 px-2 py-0.5 rounded-md font-bold border border-amber-400/20">12 Item Bloom</span>
                </div>
-               <p className="text-sm text-slate-400 font-medium leading-relaxed group-hover:text-slate-200 transition">
+               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed group-hover:text-blue-600 dark:group-hover:text-slate-200 transition">
                   Detected vocabulary decay in 12 key B1 lexemes. Recommend 5-min recall spurt.
                </p>
             </motion.div>
@@ -458,26 +458,26 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 // --- Sub-Components ---
 
 const SummaryBadge = ({ label, value, active }: { label: string, value: string, active?: boolean }) => (
-  <div className={`p-4 rounded-2xl border flex flex-col justify-center min-w-[120px] transition-all
-    ${active ? 'bg-blue-600 dark:bg-blue-600/10 border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50'}
+  <div className={`p-4 rounded-2xl border flex flex-col justify-center min-w-[120px] transition-all shadow-premium
+    ${active ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-200 dark:border-indigo-500/30' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50'}
   `}>
     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{label}</span>
-    <span className={`text-2xl font-black ${active ? 'text-indigo-400' : 'text-slate-900 dark:text-slate-50'}`}>{value}</span>
+    <span className={`text-2xl font-black ${active ? 'text-blue-600 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-50'}`}>{value}</span>
   </div>
 );
 
 const ContextCard = ({ icon, title, content, accent }: any) => (
   <div className={`
-    p-8 rounded-[2.5rem] border shadow-sm dark:shadow-md relative overflow-hidden transition-all
-    ${accent ? 'bg-blue-600 dark:bg-blue-600/10 border-indigo-500/20' : 'bg-[#0F172A]/60 border-slate-800'}
+    p-8 rounded-[2.5rem] border shadow-premium dark:shadow-md relative overflow-hidden transition-all
+    ${accent ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-100 dark:border-indigo-500/20' : 'bg-white dark:bg-[#0F172A]/60 border-slate-200 dark:border-slate-800'}
   `}>
     <div className="absolute top-0 right-0 p-8 opacity-5">
        {React.cloneElement(icon, { size: 120 })}
     </div>
-    <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+    <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4 flex items-center gap-2">
       {icon} {title}
     </h4>
-    <p className="text-[15px] font-medium text-slate-300 leading-relaxed relative z-10">
+    <p className="text-[15px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed relative z-10">
       {content}
     </p>
   </div>

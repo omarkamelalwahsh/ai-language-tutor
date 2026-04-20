@@ -28,14 +28,14 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm dark:shadow-md border border-slate-100 space-y-8 relative overflow-hidden"
+        className="max-w-md w-full bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-sm dark:shadow-md border border-slate-100 dark:border-gray-800 space-y-8 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/30 rounded-full blur-3xl -mr-16 -mt-16 opacity-60" />
         
         {/* Icon Animation */}
         <div className="relative mx-auto w-24 h-24">
-          <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-4xl animate-bounce">🚀</span>
           </div>
@@ -50,13 +50,13 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
         </div>
 
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-full border border-indigo-100 tracking-widest uppercase">
+        <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-full border border-blue-100 dark:border-blue-800 tracking-widest uppercase">
           <Brain className="w-3 h-3" /> AI Journey Engine: Building...
         </div>
 
         <button 
           onClick={onExit}
-          className="w-full bg-foreground text-background hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-surface/20"
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest transition shadow-sm active:scale-95"
         >
           Back to Journey
         </button>
