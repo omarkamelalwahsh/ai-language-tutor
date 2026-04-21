@@ -33,7 +33,8 @@ import {
     Headphones,
     LayoutDashboard,
     ShieldCheck,
-    Layers
+    Layers,
+    Calendar
 } from 'lucide-react';
 import { LearningJourneyView } from '../../views/LearningJourneyView';
 import { 
@@ -45,11 +46,16 @@ import { NeuralPulseLoader } from '../common/NeuralPulseLoader';
 import { VisualErrorProfile } from './VisualErrorProfile';
 import { normalizeBand } from '../../lib/cefr-utils';
 import ThemeToggle from '../ThemeToggle';
+import { BrainMatrixCard } from '../profile/BrainMatrixCard';
+import { SkillTrajectoryCard } from '../profile/SkillTrajectoryCard';
+import { RoadmapGridCard } from '../profile/RoadmapGridCard';
+import { ErrorProfileCard } from '../profile/ErrorProfileCard';
 
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessment';
 import { learnerService, DashboardData, JourneyData } from '../../services/learnerService';
+import { useLearnerProfile } from '../../hooks/useLearnerProfile';
 
 // --- Types ---
 interface AdvancedDashboardProps {
@@ -318,6 +324,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                         onStartSession={props.onStartSession} 
                                         displayName={displayName} 
                                         dashboardData={mergedDashboardData} 
+                                        journeyData={journeyData}
+                                        onTabChange={handleTabChange}
+                                        supabaseData={supabaseData}
                                     />
                                 )
                             )}
@@ -469,47 +478,123 @@ const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | nu
     );
 };
 
-const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
+const ProfileSkillCard = ({ skill }: { skill: any }) => (
+    <GlassCard className="flex flex-col gap-4 p-6" glow>
+        <div className="flex justify-between items-start">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400">
+                <Target size={20} />
+            </div>
+            <span className={`text-[9px] uppercase font-black tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${
+                skill.stability === 'Stable' 
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 text-amber-600 dark:text-amber-400'
+            }`}>
+                {skill.stability || 'Analyzing'}
+            </span>
+        </div>
+        <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="5" className="text-slate-100 dark:text-gray-800" />
+                    <motion.circle 
+                        initial={{ strokeDashoffset: 176 }}
+                        animate={{ strokeDashoffset: 176 - ((skill.score || 0) / 100) * 176 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        cx="32" cy="32" r="28" fill="none" stroke="#2563eb" strokeWidth="5" 
+                        strokeDasharray="176" strokeLinecap="round" 
+                        className="drop-shadow-[0_0_4px_rgba(37,99,235,0.2)]"
+                    />
+                </svg>
+                <span className="absolute text-lg font-black text-slate-900 dark:text-white">{skill.score || 0}%</span>
+            </div>
+            <div className="min-w-0">
+                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight truncate">{skill.name}</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{skill.level || 'A1'} Proficiency</p>
+            </div>
+        </div>
+        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20">
+            <span>Trend</span>
+            <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                <TrendingUp size={11} /> {skill.trend || 'Calibrating'}
+            </span>
+        </div>
+    </GlassCard>
+);
+
+const ProfileErrorCard = ({ error }: { error: any }) => (
+    <div className="flex items-center justify-between p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group/err shadow-premium">
+        <div className="flex items-center gap-4">
+            <div className={`p-2.5 rounded-xl ${
+                error.severity === 'High' 
+                    ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' 
+                    : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            }`}>
+                <AlertCircle size={18} />
+            </div>
+            <div>
+                <h4 className="text-slate-900 dark:text-white font-bold text-sm">{error.type}</h4>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mt-0.5">{error.count} Occurrences</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-3">
+            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-xl border shadow-sm ${
+                error.status === 'Improving' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400' 
+                    : 'bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-800 text-slate-400'
+            }`}>
+                {error.status}
+            </span>
+            <div className={`w-2 h-2 rounded-full ${error.severity === 'High' ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`} />
+        </div>
+    </div>
+);
+
+const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData }: any) => {
     const navigate = useNavigate();
-    const [visibleSkills, setVisibleSkills] = React.useState<string[]>(['speaking', 'writing', 'reading', 'listening']);
-
-    const toggleSkill = (skill: string) => {
-        setVisibleSkills(prev => 
-            prev.includes(skill) 
-                ? prev.filter(s => s !== skill) 
-                : [...prev, skill]
-        );
-    };
-
-    const parseLinguisticContent = (content: string) => {
-        if (!content) return "";
-        const trimmed = content.trim();
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-            try {
-                const parsed = JSON.parse(trimmed);
-                return parsed.scenario || parsed.description || parsed.title || parsed.task || content;
-            } catch (e) {
-                return content;
-            }
-        }
-        return content;
-    };
-
+    const { data: profileData } = useLearnerProfile();
     const kpis = dashboardData?.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
-    const actionPanel = dashboardData?.action_panel || { hero: null, queue: [] };
     const trends = dashboardData?.trends || [];
     const skills = dashboardData?.skills || [];
+    const journey = journeyData || dashboardData?.journey || { nodes: [] };
+
+    // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
+    // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
+    const matrixData = (profileData?.skill_matrix || skills || []).map((s: any) => {
+        const skillName = s.name || s.skill || s.subject || '';
+        const scoreVal = s.score !== undefined ? s.score : (s.masteryScore || s.currentScore || (s.current_score !== undefined ? s.current_score : 0));
+        
+        return {
+            subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+            name: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+            score: scoreVal,
+            A: scoreVal,
+            level: s.level || s.currentLevel || s.overall_level || 'A1',
+            stability: s.stability || (scoreVal > 70 ? 'Stable' : 'Fragile'),
+            trend: s.trend || (scoreVal > 50 ? 'Improving' : 'Stagnant'),
+            fullMark: 100
+        };
+    });
+
+    // 🧠 Calculate "Skills Co-residence" - how evenly skills are growing together
+    const scores = matrixData.map(m => m.score);
+    const avgScore = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+    const variance = scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / (scores.length || 1);
+    const coResidence = Math.max(0, Math.min(100, Math.round(100 - Math.sqrt(variance))));
+
+    const errorData = (profileData?.error_model || []).map((e: any) => ({
+        subject: e.type || e.subject,
+        A: e.severity === 'High' ? 90 : (e.severity === 'Medium' ? 60 : 30),
+        fullMark: 100
+    })).concat((dashboardData?.error_profile?.weakness_areas || []).map((w: string) => ({
+        subject: w,
+        A: 50,
+        fullMark: 100
+    })));
 
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
     };
-
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
         visible: { y: 0, opacity: 1 }
@@ -522,265 +607,163 @@ const HomeTab = ({ onStartSession, displayName, dashboardData }: any) => {
             animate="visible"
             className="w-full max-w-7xl mx-auto px-4 md:px-0 space-y-10 pb-40"
         >
-            {/* 1. KPI Top Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPICard 
-                    label="Learning Momentum" 
-                    value={`${kpis?.momentum || 0}%`} 
-                    icon={<Zap size={18} />} 
-                    color="text-indigo-600 dark:text-indigo-400" 
-                    bgColor="bg-indigo-50 dark:bg-indigo-500/10"
-                    trend="+12% from last week"
-                />
-                <KPICard 
-                    label="Weekly Study Time" 
-                    value={`${kpis?.weekly_minutes || 0}m`} 
-                    icon={<Clock size={18} />} 
-                    color="text-blue-600 dark:text-blue-400"
-                    bgColor="bg-blue-50 dark:bg-blue-500/10"
-                    trend="Target: 120m"
-                />
-                <KPICard 
-                    label="Active Errors" 
-                    value={kpis?.active_errors || 0} 
-                    icon={<AlertCircle size={18} />} 
-                    color="text-rose-600 dark:text-rose-400"
-                    bgColor="bg-rose-50 dark:bg-rose-500/10"
-                    trend="Priority high"
-                />
-                <KPICard 
-                    label="Due Reviews" 
-                    value={kpis?.due_reviews || 0} 
-                    icon={<Brain size={18} />} 
-                    color="text-emerald-600 dark:text-emerald-400"
-                    bgColor="bg-emerald-50 dark:bg-emerald-500/10"
-                    trend="Retention stable"
-                />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* 2. Main Action Hub (Left) */}
-                <div className="lg:col-span-8 space-y-8">
+            {/* 1. MISSION CONTROL ROADMAP (The only primary card) */}
+            <motion.div variants={itemVariants}>
+                {(() => {
+                    const allNodes = Array.isArray(journey) ? journey : (journey.nodes || []);
                     
-                    {/* Hero Action Panel */}
-                    <motion.div variants={itemVariants}>
-                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-sm dark:shadow-md group">
-                            <div className="relative z-10">
-                                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">
-                                    AI Selection: Best Next Move
-                                </span>
-                                <h2 className="text-4xl font-black tracking-tighter mb-4 max-w-lg">
-                                    {parseLinguisticContent(actionPanel?.hero?.title || "Initialize Intelligence Model")}
-                                </h2>
-                                <p className="text-white/70 text-lg font-medium mb-12 max-w-xl leading-relaxed">
-                                    {parseLinguisticContent(actionPanel?.hero?.why || "Connect your profile to start receiving personalized linguistic recommendations.")}
+                    if (allNodes.length === 0) {
+                        return (
+                            <div className="w-full p-12 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center min-h-[400px] text-center">
+                                <div className="w-20 h-20 mb-6">
+                                    <NeuralPulseLoader status="Architecting Path..." />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Neural Path Calibration</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+                                    Our AI Architect is synthesizing your assessment evidence to construct your optimized sequence.
                                 </p>
-                                
-                                <div className="flex flex-wrap items-center gap-8">
-                                    <button 
-                                        onClick={() => navigate('/runtime')}
-                                        className="px-10 py-5 bg-white text-blue-600 dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-premium dark:shadow-md flex items-center gap-3"
-                                    >
-                                        Start Session <ArrowRight size={18} />
-                                    </button>
-                                    <div className="flex items-center gap-6 text-white/40">
-                                        <div className="flex items-center gap-2">
-                                            <Clock size={16} /> <span className="text-xs font-bold">{actionPanel.hero?.duration || '8 min'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <ShieldCheck size={16} /> <span className="text-xs font-bold">{actionPanel.hero?.type || 'Guided'}</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                        );
+                    }
 
-                            {/* Decorative brain */}
-                            <Brain size={240} className="absolute bottom-[-60px] right-[-60px] text-white/5 -rotate-12 transition-transform duration-1000 group-hover:rotate-0" />
-                            {/* Halo */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-white/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                    const activeIdx = allNodes.findIndex((n: any) => n.status === 'active' || n.status === 'current');
+                    const startIdx = activeIdx >= 0 ? Math.max(0, activeIdx - 1) : 0; // Show a bit of history
+                    const focusedNodes = allNodes.slice(startIdx, startIdx + 4);
+                    
+                    // Map CEFR level to roadmap index (A1=0, A2=1, B1=2, B2=3, C1=4, C2=5)
+                    const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+                    const userLevelStr = supabaseData?.profile?.overall_level || dashboardData?.profile?.overall_level || 'A1';
+                    const levelIndex = cefrLevels.indexOf(userLevelStr);
+                    const finalCurrentIndex = levelIndex >= 0 ? levelIndex : 0;
+                    
+                    return (
+                        <RoadmapGridCard 
+                            nodes={focusedNodes} 
+                            onViewFullJourney={() => navigate('/journey')}
+                            totalNodesCount={allNodes.length}
+                            currentIndex={finalCurrentIndex}
+                            skillsMatrix={matrixData}
+                            dashData={dashboardData}
+                        />
+                    );
+                })()}
+            </motion.div>
+
+
+
+            {/* 2. KPI ROW */}
+            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <KPICard label="Momentum" value={`${kpis?.momentum || 0}%`} icon={<Zap size={18} />} color="text-indigo-600" bgColor="bg-indigo-50 dark:bg-indigo-500/10" />
+                <KPICard label="Weekly Minutes" value={`${kpis?.weekly_minutes || 0}m`} icon={<Clock size={18} />} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-500/10" />
+                <KPICard label="Active Errors" value={`${kpis?.active_errors || 0}`} icon={<AlertCircle size={18} />} color="text-rose-600" bgColor="bg-rose-50 dark:bg-rose-500/10" />
+                <KPICard label="Due Reviews" value={`${kpis?.due_reviews || 0}`} icon={<Target size={18} />} color="text-amber-600" bgColor="bg-amber-50 dark:bg-amber-500/10" />
+            </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* 3. Main Analysis Column (Left) */}
+                <div className="lg:col-span-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div className="min-h-[380px]"><BrainMatrixCard data={matrixData} /></div>
+                        <div className="min-h-[380px]"><ErrorProfileCard data={errorData.slice(0, 6)} /></div>
+                    </div>
+                    
+                    <div className="min-h-[320px]"><SkillTrajectoryCard data={trends} /></div>
+
+                    {/* Skill Model Matrix from Profile */}
+                    {profileData?.skill_matrix && profileData.skill_matrix.length > 0 && (
+                        <div>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+                                    <Activity size={22} className="text-blue-600 dark:text-blue-400" /> Skill Model Matrix
+                                </h2>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest italic hidden md:block">Updated Real-time</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {profileData.skill_matrix.map((skill: any, idx: number) => (
+                                    <motion.div key={skill.name} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
+                                        <ProfileSkillCard skill={skill} />
+                                    </motion.div>
+                                ))}
+                            </div>
                         </div>
-                    </motion.div>
+                    )}
 
-                    {/* Skill Analytics Chart */}
-                    <motion.div variants={itemVariants}>
-                        <GlassCard className="p-10" glow>
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Skill Trajectory</h3>
-                                    <p className="text-sm text-slate-400 dark:text-white/40 font-medium whitespace-nowrap">Progress across primary linguistic dimensions.</p>
+                    {/* Error Model + Cognitive State from Profile */}
+                    {profileData && (
+                        <div className="grid lg:grid-cols-2 gap-8">
+                            <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Error Queue</h2>
+                                    <span className="px-2 py-0.5 bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-md text-[10px] font-black uppercase">Active Friction</span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4">
-                                    {[
-                                        { id: 'speaking', label: 'Speaking', color: '#6366F1' },
-                                        { id: 'writing', label: 'Writing', color: '#3B82F6' },
-                                        { id: 'reading', label: 'Reading', color: '#10B981' },
-                                        { id: 'listening', label: 'Listening', color: '#F59E0B' }
-                                    ].map(skill => (
-                                        <button 
-                                            key={skill.id}
-                                            onClick={() => toggleSkill(skill.id)}
-                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all active:scale-95
-                                                ${visibleSkills.includes(skill.id) 
-                                                    ? 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 opacity-100' 
-                                                    : 'bg-transparent border-transparent opacity-30 grayscale'}
-                                            `}
-                                        >
-                                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: skill.color }} />
-                                            <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/60 tracking-widest">{skill.label}</span>
-                                        </button>
+                                <div className="flex flex-col gap-3">
+                                    {(profileData.error_model || []).map((err: any, idx: number) => (
+                                        <motion.div key={err.type} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
+                                            <ProfileErrorCard error={err} />
+                                        </motion.div>
                                     ))}
+                                    {(!profileData.error_model || profileData.error_model.length === 0) && (
+                                        <p className="text-sm text-slate-400 dark:text-slate-500 italic">No recurring error patterns detected yet.</p>
+                                    )}
                                 </div>
                             </div>
-
-                            <div className="h-[350px] min-h-[350px] w-full mt-4 flex items-center justify-center relative min-w-0 overflow-hidden">
-                                {trends.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                                        <LineChart data={trends}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                            <XAxis 
-                                                dataKey="date" 
-                                                axisLine={false} 
-                                                tickLine={false} 
-                                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                                                dy={10}
-                                            />
-                                            <YAxis 
-                                                axisLine={false} 
-                                                tickLine={false} 
-                                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                                                domain={[0, 100]}
-                                            />
-                                            <Tooltip content={<CustomTooltip />} />
-                                            
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="speaking" 
-                                                name="Speaking"
-                                                stroke="#6366F1" 
-                                                strokeWidth={4} 
-                                                dot={false}
-                                                hide={!visibleSkills.includes('speaking')}
-                                                activeDot={{ r: 6, fill: '#6366F1', stroke: '#fff', strokeWidth: 2 }}
-                                                animationDuration={1500}
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="writing" 
-                                                name="Writing"
-                                                stroke="#3B82F6" 
-                                                strokeWidth={4} 
-                                                dot={false}
-                                                hide={!visibleSkills.includes('writing')}
-                                                activeDot={{ r: 6, fill: '#3B82F6', stroke: '#fff', strokeWidth: 2 }}
-                                                animationDuration={1500}
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="reading" 
-                                                name="Reading"
-                                                stroke="#10B981" 
-                                                strokeWidth={4} 
-                                                dot={false}
-                                                hide={!visibleSkills.includes('reading')}
-                                                activeDot={{ r: 6, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }}
-                                                animationDuration={1500}
-                                            />
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="listening" 
-                                                name="Listening"
-                                                stroke="#F59E0B" 
-                                                strokeWidth={4} 
-                                                dot={false}
-                                                hide={!visibleSkills.includes('listening')}
-                                                activeDot={{ r: 6, fill: '#F59E0B', stroke: '#fff', strokeWidth: 2 }}
-                                                animationDuration={1500}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-4 text-white/20">
-                                        <Activity size={40} className="animate-pulse" />
-                                        <p className="text-xs font-black uppercase tracking-[0.2em]">Gathering Linguistic Data...</p>
+                            <div className="space-y-6">
+                                <GlassCard className="p-6" hover={false}>
+                                    <h3 className="text-lg font-black mb-4 flex items-center gap-3 text-slate-900 dark:text-white">
+                                        <Calendar size={18} className="text-blue-600 dark:text-blue-400" /> Retention Model
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <p className="text-3xl font-black mb-1 text-slate-900 dark:text-white">{profileData.cognitive_state?.retention_queue?.due_count || 0}</p>
+                                            <p className="text-[9px] uppercase font-black text-slate-400 dark:text-white/30 tracking-widest">Due Today</p>
+                                        </div>
+                                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <div className="flex -space-x-2 mb-2">
+                                                {(profileData.cognitive_state?.retention_queue?.high_risk || []).slice(0, 4).map((item: string, i: number) => (
+                                                    <div key={item} className="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-black border-2 border-white dark:border-gray-900 bg-blue-600 text-white shadow-sm">{item[0]}</div>
+                                                ))}
+                                            </div>
+                                            <p className="text-[9px] uppercase font-black text-rose-500 dark:text-rose-400 tracking-widest">Fragile</p>
+                                        </div>
                                     </div>
-                                )}
+                                </GlassCard>
                             </div>
-                        </GlassCard>
-                    </motion.div>
+                        </div>
+                    )}
+
                 </div>
 
-                {/* 3. Intelligence Overlay (Right) */}
-                <div className="lg:col-span-4 space-y-8">
-                    
-                    {/* Today's Stats & State */}
-                    <motion.div variants={itemVariants}>
-                        <GlassCard className="p-8">
-                            <h3 className="text-sm font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-6">Learning State</h3>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-slate-500 dark:text-white/60">Pacing</span>
-                                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">OPTIMAL</span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} className="h-full bg-indigo-600" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-slate-500 dark:text-white/60">Confidence</span>
-                                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">STABLE</span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-600" />
-                                    </div>
-                                </div>
-                            </div>
-                            <p className="mt-6 text-xs text-slate-500 dark:text-white/40 font-medium leading-relaxed">
-                                You're currently excelling in high-intensity verbal tasks. The system has increased challenge difficulty by 12%.
-                            </p>
-                        </GlassCard>
-                    </motion.div>
-
-                    {/* Quick Queue */}
-                    <motion.div variants={itemVariants}>
-                        <GlassCard className="p-0 border-none bg-transparent shadow-none" hover={false}>
-                            <h3 className="text-sm font-black text-white/20 uppercase tracking-[0.2em] mb-4 px-2">Minor Tasks Queue</h3>
-                            <div className="space-y-3">
-                                {actionPanel?.queue?.length > 0 ? (
-                                    actionPanel.queue.map((item: any) => (
-                                        <div key={item?.id || Math.random()} className="p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group flex items-center justify-between cursor-pointer shadow-premium">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-2 bg-blue-50 dark:bg-indigo-500/10 rounded-xl text-blue-600 dark:text-indigo-400">
-                                                    <Zap size={16} />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{parseLinguisticContent(item?.title)}</h4>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 mt-0.5">{item?.type}</p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight size={16} className="text-slate-400 dark:text-white/20 group-hover:translate-x-1 transition-transform" />
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-10 text-center border border-dashed border-slate-200 dark:border-white/10 rounded-3xl opacity-20 italic text-xs uppercase tracking-widest">
-                                        Queue Empty
-                                    </div>
-                                )}
-                            </div>
-                        </GlassCard>
-                    </motion.div>
-
-                    {/* Recursive Intelligence Insight */}
-                    <motion.div variants={itemVariants}>
-                        <div className="p-8 rounded-[2rem] bg-blue-50 dark:bg-indigo-500/5 border border-blue-100 dark:border-indigo-500/10">
-                            <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
-                            <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium">
-                                "{dashboardData?.intelligence_feed?.action_plan || "Calculating next optimal drift in your linguistic matrix..."}"
-                            </p>
+                {/* 4. Action & Intelligence Sidebar (Right) */}
+                <div className="lg:col-span-4 space-y-8 sticky top-6">
+                    {/* Action CTA */}
+                    <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 text-white relative overflow-hidden shadow-sm dark:shadow-md group">
+                        <div className="relative z-10">
+                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest mb-4 inline-block">
+                                Deep Practice Focus
+                            </span>
+                            <h3 className="text-xl font-black tracking-tighter mb-3 leading-snug">
+                                {profileData?.best_next_move || dashboardData?.action_panel?.hero?.title || "Deep Practice: Concept Integration"}
+                            </h3>
+                            <button 
+                                onClick={() => navigate('/runtime')}
+                                className="w-full mt-4 px-8 py-4 bg-white text-blue-600 font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-premium flex items-center justify-center gap-3"
+                            >
+                                Start Session <ArrowRight size={18} />
+                            </button>
                         </div>
-                    </motion.div>
+                        <Brain size={120} className="absolute bottom-[-30px] right-[-30px] text-white/5 -rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
+                    </div>
 
+                    <GlassCard className="p-8" hover={false}>
+                        <IntelligenceFeed dashboardData={dashboardData} />
+                    </GlassCard>
+
+                    <GlassCard className="p-8 bg-blue-50 dark:bg-indigo-500/5 border-blue-100 dark:border-indigo-500/10" hover={false}>
+                        <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
+                        <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium">
+                            "{dashboardData?.intelligence_feed?.action_plan || "Calculating next optimal drift in your linguistic matrix..."}"
+                        </p>
+                    </GlassCard>
                 </div>
             </div>
         </motion.div>
@@ -840,7 +823,7 @@ const SidebarContent = ({ activeTab, onTabChange, onLogout, navigate }: any) => 
 
         <nav className="space-y-1.5 flex-1">
             <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => onTabChange('home')} />
-            <NavItem icon={<Brain size={18} />} label="AI Brain Profile" onClick={() => navigate('/profile')} />
+
             <NavItem icon={<MapIcon size={18} />} label="My Journey" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
             <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
             <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
@@ -936,11 +919,28 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                     {/* Mastery Distribution Radar */}
                     <GlassCard className="p-8 flex flex-col" glow>
                         <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-6">Mastery Distribution</h3>
-                        <div className="flex-1 min-h-[300px] relative">
-                            <ResponsiveContainer width="100%" height={300}>
-                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
+                        <div className="h-[300px] w-full relative min-w-0 min-h-0 overflow-hidden">
+                            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                                <RadarChart 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius="70%" 
+                                    data={skillData}
+                                    margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
+                                >
                                     <PolarGrid stroke="currentColor" className="text-slate-200 dark:text-white/10" strokeDasharray="4 4" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} />
+                                    <PolarAngleAxis 
+                                        dataKey="subject" 
+                                        tick={({ payload, x, y }: any) => {
+                                            const s = skills.find((i: any) => (i.skillId || i.skill || '').toLowerCase() === payload.value.toLowerCase());
+                                            return (
+                                                <g transform={`translate(${x},${y})`}>
+                                                    <text x={0} y={0} dy={-10} textAnchor="middle" className="fill-slate-400 dark:fill-white/40 text-[9px] font-black uppercase tracking-widest">{payload.value}</text>
+                                                    <text x={0} y={5} textAnchor="middle" className="fill-blue-600 dark:fill-blue-400 text-[10px] font-black">{s?.level || s?.currentLevel || 'A1'}</text>
+                                                </g>
+                                            );
+                                        }} 
+                                    />
                                     <Radar name="Mastery" dataKey="current" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.2} />
                                 </RadarChart>
                             </ResponsiveContainer>

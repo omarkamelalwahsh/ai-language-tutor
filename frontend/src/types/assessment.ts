@@ -59,6 +59,7 @@ export type SkillAssessmentStatus = "insufficient_data" | "emerging" | "stable" 
 export type SkillAssessmentResult = {
   skill: SkillName;
   estimatedLevel: CefrLevel;
+  level?: CefrLevel;
   confidence: {
     band: ConfidenceBand;
     score: number; // 0..1

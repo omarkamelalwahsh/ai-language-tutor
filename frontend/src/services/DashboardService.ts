@@ -43,6 +43,7 @@ export class DashboardService {
                 isPriority: res?.status === 'fragile' || res?.status === 'insufficient_data',
                 hasReviewPressure: (res?.weaknesses?.length || 0) > 0,
                 confidenceBand: res?.confidence?.band || 'low',
+                level: res?.level || 'A1'
               };
             })
         : [],
@@ -55,7 +56,11 @@ export class DashboardService {
         fragility: 'medium' as const,
       })) : [],
       weeklyRhythm: { streakDays: 0, sessionsThisWeek: 0, momentumState: 'building' },
-      achievements: []
+      achievements: [],
+      error_profile: {
+        weakness_areas: result?.skills ? Object.values(result.skills).flatMap(s => s?.weaknesses || []).slice(0, 5) : [],
+        error_rates: []
+      }
     };
   }
 

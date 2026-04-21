@@ -93,7 +93,10 @@ export const useSupabaseDashboard = () => {
     setData(prev => ({ ...prev, isLoading: true }));
     
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Use getSession() (cached, no network call, no Navigator Lock) instead of 
+      // getUser() to prevent lock contention with AssessmentSaveService.warmupAuth()
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      const user = session?.user;
 
       if (authError || !user) {
         setData(prev => ({ ...prev, isLoading: false, error: 'Not authenticated' }));
@@ -300,7 +303,8 @@ export const useSupabaseDashboard = () => {
 
     // 🚀 VERCEL & AI REALTIME FIX: Listen for background Syncs / AI completing!
     let channel: any = null;
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (!user || !isMounted) return;
         channel = supabase
             .channel('dashboard-sync')

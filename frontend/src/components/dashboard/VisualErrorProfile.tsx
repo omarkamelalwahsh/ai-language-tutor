@@ -143,8 +143,8 @@ export const VisualErrorProfile = () => {
           </div>
         </div>
 
-        <div className="h-[450px] w-full flex-1">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[450px] w-full flex-1 min-h-[300px]">
+          <ResponsiveContainer width="99%" height="99%" minWidth={10} minHeight={10} debounce={100}>
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
               <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
               <PolarAngleAxis 

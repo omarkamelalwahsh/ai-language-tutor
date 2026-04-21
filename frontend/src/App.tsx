@@ -383,12 +383,8 @@ function AppRoutes() {
                 </ProtectedRoute>
               } />
 
-              {/* Profile */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <LearnerProfileView />
-                </ProtectedRoute>
-              } />
+              {/* Profile → Redirects to unified Dashboard */}
+              <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

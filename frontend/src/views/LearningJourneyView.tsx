@@ -45,7 +45,7 @@ const Breadcrumb = ({ items }: { items: string[] }) => (
   </nav>
 );
 
-const SkillRing = ({ skill, percentage, color }: { skill: string, percentage: number, color: string }) => {
+const SkillRing = ({ skill, percentage, color }: { skill: string, percentage: number, color: string, key?: number | string }) => {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -247,10 +247,10 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-slate-900 dark:text-slate-50">
-                Bridge from <span className="text-blue-600 dark:text-indigo-400">{currentLevel}</span> to <span className="text-blue-600 dark:text-indigo-400">{targetLevel}</span>
+                Bridging the Gap: <span className="text-blue-600 dark:text-indigo-400">{currentLevel}</span> <span className="opacity-50">→</span> <span className="text-blue-600 dark:text-indigo-400">{targetLevel}</span>
               </h1>
               <p className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-xl">
-                AI-architected transformation path balancing theoretical foundation with real-time error repair.
+                <span className="text-blue-500 font-bold dark:text-indigo-400">Consolidation & Fluency.</span> AI-architected transformation path balancing theoretical foundation with real-time error repair.
               </p>
             </motion.div>
 
@@ -370,8 +370,8 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                  <Target size={16} className="text-blue-600 dark:text-indigo-400" /> Readiness Matrix
                </h4>
                <div className="grid grid-cols-3 gap-y-8 gap-x-4">
-                  {dashboardData?.skills?.slice(0, 3).map((s: any) => (
-                    <SkillRing key={s.name} skill={s.name} percentage={s.score} color={s.score > 70 ? "#10B981" : s.score > 40 ? "#F59E0B" : "#EF4444"} />
+                  {dashboardData?.skills?.slice(0, 3).map((s: any, idx: number) => (
+                    <SkillRing key={idx} skill={s.skillId || s.name || s.subject} percentage={s.currentScore || s.score} color={(s.currentScore || s.score) > 70 ? "#10B981" : (s.currentScore || s.score) > 40 ? "#F59E0B" : "#EF4444"} />
                   )) || (
                     <>
                       <SkillRing skill="Speaking" percentage={0} color="#10B981" />

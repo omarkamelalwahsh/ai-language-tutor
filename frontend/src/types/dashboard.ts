@@ -58,6 +58,15 @@ export interface AdvancedDashboardPayload {
   focusAreas: string[];
   reviewQueue: ReviewItemPayload[];
   achievements: AchievementPayload[];
+  error_profile?: {
+    weakness_areas: string[];
+    error_rates: any[];
+  };
+  intelligence_feed?: {
+    action_plan: string;
+    recent_insights?: any[];
+  };
+  trends?: any[];
   isSyncing?: boolean; // Circuit Breaker state
   lastFullSync?: string;
   weeklyRhythm: {
