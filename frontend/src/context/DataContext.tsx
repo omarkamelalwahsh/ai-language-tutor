@@ -67,36 +67,44 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ONBOARDING GUARD: Allow profile sync even on onboarding paths to prevent redirect traps
       const isOnboarding = window.location.pathname.includes('/onboarding');
 
-      // Fetch Profile
-      const { data: profileData } = await supabase
+      // 🔍 RBAC & Identity Fetch: Check the core profiles table first
+      const { data: rbacProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      // 🔍 Student Analytics Fetch: Check learner_profiles for proficiency data
+      const { data: learnerData } = await supabase
         .from('learner_profiles')
         .select('*')
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
       
-      if (profileData) {
-        // 🧪 OPTIMISTIC MERGE: Only override with local flags if DB hasn't confirmed yet.
-        // Once DB says complete, we trust the DB and clear local overrides.
+      if (rbacProfile || learnerData) {
+        // SuperAdmins and Admins are considered "onboarded" by default
+        const isStaff = rbacProfile?.role === 1 || rbacProfile?.role === 2;
+
         const localOnboardingComplete = localStorage.getItem('onboarding_complete') === 'true';
         const localAssessmentComplete = localStorage.getItem('has_completed_assessment') === 'true';
 
         const mergedProfile = {
-          ...profileData,
-          // Only apply local override if DB is still false/null
-          onboarding_complete: profileData.onboarding_complete || localOnboardingComplete,
-          has_completed_assessment: profileData.has_completed_assessment || localAssessmentComplete
+          ...learnerData,
+          ...rbacProfile, // rbacProfile takes precedence for shared fields like full_name
+          onboarding_complete: isStaff || learnerData?.onboarding_complete || localOnboardingComplete,
+          has_completed_assessment: isStaff || learnerData?.has_completed_assessment || localAssessmentComplete
         };
 
         // 🧹 CLEANUP: If the DB has confirmed, clear local cache to prevent stale overrides
-        if (profileData.has_completed_assessment === true) {
+        if (mergedProfile.has_completed_assessment === true) {
           localStorage.removeItem('has_completed_assessment');
         }
-        if (profileData.onboarding_complete === true) {
+        if (mergedProfile.onboarding_complete === true) {
           localStorage.removeItem('onboarding_complete');
         }
 
         setProfile(mergedProfile);
-        // Trigger global refresh for dashboard components
+        console.log('[DataContext] Profile synced. Role:', mergedProfile.role);
         setRefreshTrigger(prev => prev + 1);
       } else {
         setProfile(null);

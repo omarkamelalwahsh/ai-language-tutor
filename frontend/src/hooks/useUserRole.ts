@@ -23,8 +23,13 @@ export function useUserRole(): UseUserRoleResult {
     staleTime: 60_000,
   });
 
+  const role = query.data?.role ?? null;
+  if (!query.isLoading && user?.id) {
+    console.log('[useUserRole] Resolved Role:', role, 'for user:', user.id);
+  }
+
   return {
-    role: (query.data?.role ?? null) as UserRole | null,
+    role: role as UserRole | null,
     profile: query.data ?? null,
     isLoading: query.isLoading,
     isError: query.isError,

@@ -64,6 +64,27 @@ const profileLabel = (p: { full_name: string | null; email: string | null } | nu
   return tag ? `${name} (${tag})` : name;
 };
 
+const fmtDeadline = (iso: string | null): string => {
+  if (!iso) return '—';
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms < 0) return 'Overdue';
+  const days = Math.floor(ms / 86_400_000);
+  if (days >= 1) return `${days}d`;
+  const hours = Math.floor(ms / 3_600_000);
+  return `${hours}h`;
+};
+
+const fmtRelative = (iso: string): string => {
+  const ms = Date.now() - new Date(iso).getTime();
+  const sec = Math.floor(ms / 1000);
+  if (sec < 60) return 'just now';
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return new Date(iso).toLocaleDateString();
+};
+
 // ============================================================================
 // Inner view (under toast provider)
 // ============================================================================

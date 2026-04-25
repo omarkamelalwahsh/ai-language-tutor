@@ -73,10 +73,13 @@ export const AdminTaskService = {
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
+
     if (error) {
-      console.error('[AdminTaskService] getMyProfile error', error);
+      console.error('[AdminTaskService] getMyProfile DB error:', error);
       return null;
     }
+    
+    console.log('[AdminTaskService] Found profile for:', user.id, 'Role:', data?.role);
     return data as AdminProfile | null;
   },
 

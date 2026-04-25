@@ -77,13 +77,30 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           localStorage.setItem('auth_token', data.session.access_token);
           localStorage.setItem('auth_user_id', data.user.id);
 
-          const { data: profile } = await supabase
-            .from(DB_SCHEMA.TABLES.PROFILES)
-            .select(DB_SCHEMA.COLUMNS.ONBOARDING)
+          // 🔍 RBAC CHECK: Check the new profiles table for the actual role
+          const { data: rbacProfile, error: rbacError } = await supabase
+            .from('profiles')
+            .select('role')
             .eq('id', data.user.id)
-            .single();
+            .maybeSingle();
 
-          onLogin('user', (profile as any)?.[DB_SCHEMA.COLUMNS.ONBOARDING] || false);
+          if (rbacError) console.error('[Auth] RBAC fetch error:', rbacError);
+          
+          const currentRole = rbacProfile?.role ?? 0;
+          console.log('[Auth] Login successful. ID:', data.user.id, 'Role:', currentRole);
+
+          // If Admin or SuperAdmin, bypass student onboarding and go to portal
+          if (currentRole === 1 || currentRole === 2) {
+            onLogin('admin', true);
+          } else {
+            const { data: profile } = await supabase
+              .from(DB_SCHEMA.TABLES.PROFILES)
+              .select(DB_SCHEMA.COLUMNS.ONBOARDING)
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            onLogin('user', (profile as any)?.[DB_SCHEMA.COLUMNS.ONBOARDING] || false);
+          }
         } else {
           const { data, error: signupError } = await supabase.auth.signUp({
             email,
