@@ -28,8 +28,11 @@ const AssessmentReviewView = lazy(() => import('./views/AssessmentReviewView'));
 const LearningJourneyView = lazy(() => import('./views/LearningJourneyView'));
 const SharedRuntime = lazy(() => import('./components/runtime/SharedRuntime'));
 const AdminDashboardView = lazy(() => import('./views/AdminDashboardView'));
+const SuperAdminDashboardView = lazy(() => import('./views/SuperAdminDashboardView'));
 const UserLeaderboardView = lazy(() => import('./views/UserLeaderboardView'));
 const LearnerProfileView = lazy(() => import('./views/LearnerProfileView'));
+import RoleProtectedRoute from './components/admin/RoleProtectedRoute';
+import RoleBasedRedirect from './components/admin/RoleBasedRedirect';
 
 // Legacy redirect components
 const PlacementOnboarding = lazy(() => import('./components/onboarding/PlacementOnboarding'));
@@ -261,16 +264,21 @@ function AppRoutes() {
               {/* Auth */}
               <Route path="/auth" element={
                 <PublicRoute>
-                  <AuthView 
-                    role="user" 
-                    onBack={() => navigate('/')} 
+                  <AuthView
+                    role="user"
+                    onBack={() => navigate('/')}
                     onLogin={(role: string, onboardingComplete: boolean) => {
-                      if (onboardingComplete) navigate('/dashboard');
+                      // /portal is the single role->dashboard decision point.
+                      // It reads public.profiles.role and sends 2->/super-admin, 1->/admin, 0->/dashboard.
+                      if (onboardingComplete) navigate('/portal');
                       else navigate('/onboarding');
-                    }} 
+                    }}
                   />
                 </PublicRoute>
               } />
+
+              {/* Role-based portal entry — redirects based on public.profiles.role */}
+              <Route path="/portal" element={<RoleBasedRedirect />} />
 
               {/* Onboarding */}
               <Route path="/onboarding" element={
@@ -372,15 +380,18 @@ function AppRoutes() {
                 </ProtectedRoute>
               } />
 
-              {/* Admin */}
+              {/* Admin - role 1 or 2 (SuperAdmin can also see Admin views) */}
               <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminDashboardView 
-                    onNavigateLeaderboard={() => {}} 
-                    onNavigateHome={() => {}}
-                    onLogout={handleLogout}
-                  />
-                </ProtectedRoute>
+                <RoleProtectedRoute required={[1, 2]}>
+                  <AdminDashboardView onLogout={handleLogout} />
+                </RoleProtectedRoute>
+              } />
+
+              {/* Super Admin - role 2 only */}
+              <Route path="/super-admin" element={
+                <RoleProtectedRoute required={2}>
+                  <SuperAdminDashboardView onLogout={handleLogout} />
+                </RoleProtectedRoute>
               } />
 
               {/* Profile → Redirects to unified Dashboard */}

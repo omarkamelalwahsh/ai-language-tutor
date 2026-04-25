@@ -279,11 +279,11 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                  )}
                  <button 
                    type="button" 
-                   onClick={() => setRole(role === 'admin' ? 'user' : 'admin')}
+                   onClick={() => window.location.assign('/admin')}
                    className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] text-slate-700 hover:text-cyan-400 transition-colors"
                  >
-                    {role === 'admin' ? <UserIcon size={12}/> : <Shield size={12}/>}
-                    {role === 'admin' ? 'Switch to Learner Portal' : 'Administrator Override'}
+                    <Shield size={12}/>
+                    Administrator Override
                  </button>
               </div>
             </form>

@@ -255,3 +255,43 @@ class UserAchievement(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     badge_name = Column(String, nullable=False)
     earned_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ============================================================================
+# Administration / RBAC schema (managed by alembic 38dcafcb01e1)
+# role: 0 = Student, 1 = Admin, 2 = SuperAdmin
+# ============================================================================
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), primary_key=True)
+    full_name = Column(String)
+    email = Column(String)
+    role = Column(sa.SmallInteger, nullable=False, server_default=text("0"))
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="SET NULL"))
+    avatar_url = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class Team(Base):
+    __tablename__ = "teams"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    team_name = Column(String, nullable=False, unique=True)
+    admin_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    title = Column(String, nullable=False)
+    description = Column(String)
+    assigned_to = Column(UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL"))
+    created_by = Column(UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL"))
+    status = Column(String, nullable=False, server_default=text("'pending'"))
+    deadline = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

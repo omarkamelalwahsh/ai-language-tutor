@@ -9,5 +9,8 @@ from app.models.domain import (
     LearningJourney,
     JourneyStep,
     UserSkill,
-    AssessmentLog
+    AssessmentLog,
+    Profile,
+    Team,
+    Task,
 )
