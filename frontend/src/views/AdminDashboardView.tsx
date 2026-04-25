@@ -264,8 +264,8 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
               </div>
             </header>
 
-            <div className="flex-1 min-h-[260px] relative z-10">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[260px] w-full min-h-[260px] relative z-10">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={BRAIN_MATRIX_SKILLS}>
                   <PolarGrid stroke="rgba(255,255,255,0.05)" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700 }} />
@@ -310,8 +310,8 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
               <p className="text-xs text-white/40 font-medium">7-day mastery trajectory · placeholder data</p>
             </div>
           </div>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-48 w-full min-h-[192px]">
+            <ResponsiveContainer width="100%" height="100%" debounce={100}>
               <LineChart data={STUDENT_GOAL_TIMELINE}>
                 <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} />

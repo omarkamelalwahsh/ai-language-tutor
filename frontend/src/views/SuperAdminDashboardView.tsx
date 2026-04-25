@@ -4,19 +4,22 @@ import {
   Settings, ShieldAlert, Users, UsersRound, Server, LogOut,
   Plus, Sparkles, Cpu, MemoryStick, Activity, ShieldCheck,
   AlertTriangle, CheckCircle2, Clock, MoreVertical,
-  ChevronRight, BarChart3, Database, Workflow
+  ChevronRight, BarChart3, Database, Workflow, Search,
+  UserX, UserPlus, Trash2, Loader2
 } from 'lucide-react';
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
 } from 'recharts';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AdminTaskService, TaskStatus,
-  TaskWithProfiles, TeamWithAdmin, SafetyLogEntry,
+  TaskWithProfiles, TeamWithAdmin, SafetyLogEntry, AdminProfile
 } from '../services/AdminTaskService';
+import { SuperAdminService } from '../services/SuperAdminService';
 import { useUserRole } from '../hooks/useUserRole';
 import { AdminToastProvider, useAdminToast } from '../components/admin/AdminToast';
 import { CreateTaskModal } from '../components/admin/CreateTaskModal';
+import { format } from 'date-fns';
 
 // ============================================================================
 // Visual constants (pixel-perfect to design)
@@ -93,6 +96,7 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const toast = useAdminToast();
   const { profile } = useUserRole();
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // ----- Queries -------------------------------------------------------------
   const overviewQuery = useQuery({
@@ -116,6 +120,33 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     queryFn: () => AdminTaskService.listSafetyLogs(6),
   });
 
+  const usersQuery = useQuery({
+    queryKey: ['superadmin', 'users'],
+    queryFn: () => SuperAdminService.getAllUsers(),
+  });
+
+  // Mutation for Role Change
+  const roleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: number }) => 
+      SuperAdminService.updateUserRole(userId, role as any),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['superadmin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['superadmin', 'overview'] });
+      toast.push({ 
+        kind: 'success', 
+        title: 'Clearance Updated', 
+        body: `User role has been successfully modified.` 
+      });
+    },
+    onError: (err: any) => {
+      toast.push({ 
+        kind: 'error', 
+        title: 'Command Failed', 
+        body: err.message || 'Could not update user clearance.' 
+      });
+    }
+  });
+
   // Realtime
   useEffect(() => {
     const unsub = AdminTaskService.subscribeTasks({
@@ -133,9 +164,23 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const tasks = tasksQuery.data ?? [];
   const teams = teamsQuery.data ?? [];
   const logs = logsQuery.data ?? [];
+  const users = usersQuery.data ?? [];
+  const filteredUsers = users.filter(u => {
+    const search = searchQuery.toLowerCase();
+    const nameMatch = u.full_name?.toLowerCase()?.includes(search) ?? false;
+    const emailMatch = u.email?.toLowerCase()?.includes(search) ?? false;
+    const idMatch = u.id?.toLowerCase()?.includes(search) ?? false;
+    return nameMatch || emailMatch || idMatch;
+  });
+
+  useEffect(() => {
+    console.log('[SuperAdmin] Rendering Dashboard. Users:', users.length, 'Logs:', logs.length);
+    if (usersQuery.error) console.error('[SuperAdmin] Users Query Error:', usersQuery.error);
+    if (logsQuery.error) console.error('[SuperAdmin] Logs Query Error:', logsQuery.error);
+  }, [users.length, logs.length, usersQuery.error, logsQuery.error]);
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden ${PAGE_BG} text-slate-300 font-sans selection:bg-cyan-500/30`}>
+    <div className={`flex min-h-screen w-full ${PAGE_BG} text-slate-300 font-sans selection:bg-cyan-500/30`}>
       {/* Sidebar */}
       <aside className="w-20 flex-shrink-0 border-r border-white/[0.05] flex flex-col items-center py-8 gap-10 bg-black/40 backdrop-blur-3xl z-20">
         <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]">
@@ -158,7 +203,8 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-10 py-10 flex flex-col gap-8 relative">
+      <main className="flex-1 px-6 md:px-10 py-10 flex flex-col gap-10 relative">
+        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-10">
         {/* Header */}
         <header className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
@@ -218,8 +264,8 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[260px] w-full min-h-[260px]">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <AreaChart data={GOAL_SPARK}>
                   <defs>
                     <linearGradient id="colorGoal" x1="0" y1="0" x2="0" y2="1">
@@ -257,8 +303,8 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="flex-1 min-h-[140px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[140px] w-full min-h-[140px]">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <AreaChart data={SERVER_LOAD}>
                   <Tooltip
                     contentStyle={{ backgroundColor: '#111114', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px' }}
@@ -383,16 +429,208 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6 min-h-[160px]">
             {logsQuery.isLoading ? (
-               Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-white/[0.02] rounded-2xl animate-pulse" />)
+               Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 bg-white/[0.02] rounded-3xl animate-pulse" />)
+            ) : logsQuery.isError ? (
+              <div className="col-span-2 py-10 text-center flex flex-col items-center gap-3 bg-red-500/5 border border-red-500/10 rounded-3xl">
+                <ShieldAlert className="text-red-500" size={24} />
+                <p className="text-sm text-red-400 font-bold">Failed to load safety logs</p>
+                <button 
+                  onClick={() => logsQuery.refetch()}
+                  className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+                >
+                  Retry Analysis
+                </button>
+              </div>
             ) : logs.length === 0 ? (
-              <p className="col-span-2 text-center py-10 text-xs text-white/20 border border-dashed border-white/10 rounded-3xl">No safety violations detected in current uptime cycle</p>
+              <p className="col-span-2 text-center py-20 text-xs text-white/20 border border-dashed border-white/10 rounded-3xl flex flex-col items-center gap-4">
+                <Sparkles size={32} className="opacity-10" />
+                No safety violations detected in current uptime cycle
+              </p>
             ) : (
               logs.map((log) => (
                 <SafetyLogCard key={log.id} log={log} />
               ))
             )}
+          </div>
+        </section>
+
+        {/* User Management Control Grid */}
+        <section className={`${CARD} p-8 rounded-[32px] flex flex-col gap-8 group hover:border-white/10 transition-all duration-500 relative overflow-hidden mb-12`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Users size={14} className="text-blue-400" />
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Personnel Directory</p>
+              </div>
+              <h3 className="text-white font-bold text-2xl tracking-tight">User Clearance Control</h3>
+            </div>
+
+            <div className="relative group/search">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/search:text-cyan-400 transition-colors" size={16} />
+              <input
+                type="text"
+                placeholder="Search Identity or Protocol..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:outline-none focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/5 transition-all w-full md:w-[320px] placeholder:text-white/10 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto -mx-2 px-2 min-h-[400px]">
+            <table className="w-full text-left border-separate border-spacing-y-3">
+              <thead>
+                <tr className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">
+                  <th className="px-6 py-4 font-black">Identity</th>
+                  <th className="px-6 py-4 font-black">Contact Channel</th>
+                  <th className="px-6 py-4 font-black">Current Clearance</th>
+                  <th className="px-6 py-4 font-black">Registration</th>
+                  <th className="px-6 py-4 font-black text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usersQuery.isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td colSpan={5} className="h-20 bg-white/[0.01] rounded-3xl mb-3 border border-white/[0.02]" />
+                    </tr>
+                  ))
+                ) : usersQuery.isError ? (
+                   <tr>
+                    <td colSpan={5} className="py-20 text-center flex flex-col items-center gap-4 bg-red-500/5 border border-red-500/10 rounded-[32px]">
+                      <ShieldAlert className="text-red-500" size={32} />
+                      <div>
+                        <p className="text-red-400 font-bold text-lg">Registry Access Denied</p>
+                        <p className="text-xs text-red-400/60 mt-1">Check your network connection or SuperAdmin clearance levels.</p>
+                      </div>
+                      <button 
+                        onClick={() => usersQuery.refetch()}
+                        className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all"
+                      >
+                        Retry Authentication
+                      </button>
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-32 text-center text-white/20 font-bold border border-dashed border-white/10 rounded-[32px] flex flex-col items-center gap-6">
+                      <Users size={48} className="opacity-10" />
+                      <div>
+                        <p className="text-lg">No matching identities found</p>
+                        <p className="text-xs mt-1 font-medium opacity-40">Adjust your search parameters or check the global directory</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr 
+                      key={user.id} 
+                      className="group/row bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/10 transition-all rounded-3xl"
+                    >
+                      <td className="px-6 py-5 rounded-l-3xl border-y border-l border-transparent group-hover/row:border-white/5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xs font-black text-white/40 border border-white/5">
+                            {(user.full_name || 'U')[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-white font-bold text-sm">{user.full_name || 'Anonymous'}</p>
+                            <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">ID: {user.id.slice(0, 8)}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 border-y border-transparent group-hover/row:border-white/5">
+                        <p className="text-sm text-white/60 font-medium">{user.email}</p>
+                      </td>
+                      <td className="px-6 py-5 border-y border-transparent group-hover/row:border-white/5">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                          user.role === 2 ? 'text-purple-400 border-purple-500/20 bg-purple-500/5' :
+                          user.role === 1 ? 'text-cyan-400 border-cyan-500/20 bg-cyan-500/5' :
+                          'text-slate-400 border-white/10 bg-white/5'
+                        }`}>
+                          {user.role === 2 ? 'SUPER_ADMIN' : user.role === 1 ? 'ADMIN' : 'STUDENT'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 border-y border-transparent group-hover/row:border-white/5">
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{format(new Date(user.created_at), 'MMM dd, yyyy')}</p>
+                      </td>
+                      <td className="px-6 py-5 rounded-r-3xl border-y border-r border-transparent group-hover/row:border-white/5 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                          {user.role === 0 && (
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  console.log('[SuperAdmin] Promoting Student to Admin:', user.id);
+                                  roleMutation.mutate({ userId: user.id, role: 1 });
+                                }}
+                                disabled={roleMutation.isPending}
+                                className="p-3 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl hover:bg-cyan-500 hover:text-black transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait"
+                                title="Promote to Admin"
+                              >
+                                {roleMutation.isPending && roleMutation.variables?.userId === user.id ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />} Admin
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  console.log('[SuperAdmin] Promoting Student to Super:', user.id);
+                                  roleMutation.mutate({ userId: user.id, role: 2 });
+                                }}
+                                disabled={roleMutation.isPending}
+                                className="p-3 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl hover:bg-purple-500 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait"
+                                title="Promote to SuperAdmin"
+                              >
+                                {roleMutation.isPending && roleMutation.variables?.userId === user.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Super
+                              </button>
+                            </div>
+                          )}
+                          
+                          {user.role === 1 && (
+                            <>
+                              <button 
+                                onClick={() => {
+                                  console.log('[SuperAdmin] Promoting Admin to Super:', user.id);
+                                  roleMutation.mutate({ userId: user.id, role: 2 });
+                                }}
+                                disabled={roleMutation.isPending}
+                                className="p-3 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl hover:bg-purple-500 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait"
+                                title="Promote to SuperAdmin"
+                              >
+                                {roleMutation.isPending && roleMutation.variables?.userId === user.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Make Super
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  console.log('[SuperAdmin] Demoting Admin to Student:', user.id);
+                                  roleMutation.mutate({ userId: user.id, role: 0 });
+                                }}
+                                disabled={roleMutation.isPending}
+                                className="p-3 bg-white/5 text-white/40 border border-white/10 rounded-xl hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait"
+                                title="Demote to Student"
+                              >
+                                {roleMutation.isPending && roleMutation.variables?.userId === user.id ? <Loader2 size={14} className="animate-spin" /> : <UserX size={14} />} Demote
+                              </button>
+                            </>
+                          )}
+
+                          {user.role === 2 && user.id !== profile?.id && (
+                            <button 
+                              onClick={() => roleMutation.mutate({ userId: user.id, role: 1 })}
+                              className="p-3 bg-white/5 text-white/40 border border-white/10 rounded-xl hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                              title="Demote to Admin"
+                            >
+                              <ShieldAlert size={14} /> Revoke Super
+                            </button>
+                          )}
+
+                          <button className="p-3 bg-white/5 text-white/20 border border-white/5 rounded-xl hover:text-red-400 hover:bg-red-400/10 transition-all">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -406,6 +644,7 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         {/* Decorative Background Glows */}
         <div className="fixed top-[-10%] right-[-5%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none z-0" />
         <div className="fixed bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none z-0" />
+        </div>
       </main>
     </div>
   );
