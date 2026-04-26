@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     SUPABASE_JWT_SECRET: str
     VITE_SUPABASE_URL: str
     VITE_SUPABASE_ANON_KEY: str
+    SUPABASE_SERVICE_ROLE_KEY: str
     
     # External APIs
     GROQ_API_KEY: str

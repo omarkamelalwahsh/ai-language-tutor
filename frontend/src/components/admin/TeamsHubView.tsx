@@ -53,13 +53,14 @@ const TeamsHubView: React.FC = () => {
 
   const teams = teamsQuery.data ?? [];
   const users = usersQuery.data ?? [];
-  const admins = users.filter(u => u.role >= 1);
+  // Show all accounts except the root admin for leader assignment
+  const assignableUsers = users.filter(u => !SuperAdminService.isRootAdmin(u.email));
   const members = membersQuery.data ?? [];
 
-  // Filtered admins for leader search
-  const filteredAdmins = admins.filter(a => {
+  // Filtered users for leader search
+  const filteredAssignableUsers = assignableUsers.filter(u => {
     const s = leaderSearch.toLowerCase();
-    return (a.full_name?.toLowerCase().includes(s) || a.email?.toLowerCase().includes(s));
+    return (u.full_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s));
   });
 
   // ── Mutations ───────────────────────────────────────────────────────
@@ -220,32 +221,34 @@ const TeamsHubView: React.FC = () => {
                 </select>
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-2 block">Leader (Admin)</span>
+                <span className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-2 block">Leader (User)</span>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={14} />
                   <input
                     value={leaderSearch}
                     onChange={e => { setLeaderSearch(e.target.value); setSelectedLeaderUser(''); }}
-                    placeholder="Search admin…"
+                    placeholder="Search users…"
                     className="w-full bg-black/40 border border-white/[0.06] rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-cyan-400/40 transition-all"
                   />
                 </div>
                 {leaderSearch && !selectedLeaderUser && (
                   <div className="mt-1 bg-[#0F1015] border border-white/10 rounded-xl max-h-40 overflow-y-auto">
-                    {filteredAdmins.length === 0 ? (
-                      <p className="p-3 text-xs text-white/30">No admins found</p>
-                    ) : filteredAdmins.slice(0, 6).map(a => (
+                    {filteredAssignableUsers.length === 0 ? (
+                      <p className="p-3 text-xs text-white/30">No users found</p>
+                    ) : filteredAssignableUsers.slice(0, 6).map(u => (
                       <button
-                        key={a.id}
-                        onClick={() => { setSelectedLeaderUser(a.id); setLeaderSearch(a.full_name || a.email || ''); }}
+                        key={u.id}
+                        onClick={() => { setSelectedLeaderUser(u.id); setLeaderSearch(u.full_name || u.email || ''); }}
                         className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
                       >
                         <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-[10px] font-black text-white/40">
-                          {(a.full_name || 'U')[0].toUpperCase()}
+                          {(u.full_name || 'U')[0].toUpperCase()}
                         </div>
-                        {a.full_name || a.email}
-                        <span className="text-[9px] ml-auto font-black uppercase tracking-widest text-cyan-400/60">
-                          {a.role === 2 ? 'Super' : 'Admin'}
+                        {u.full_name || u.email}
+                        <span className={`text-[9px] ml-auto font-black uppercase tracking-widest ${
+                          u.role === 2 ? 'text-purple-400' : u.role === 1 ? 'text-cyan-400' : 'text-white/20'
+                        }`}>
+                          {u.role === 2 ? 'Super' : u.role === 1 ? 'Admin' : 'Student'}
                         </span>
                       </button>
                     ))}

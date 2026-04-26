@@ -482,4 +482,30 @@ export const AdminTaskService = {
       .update({ last_seen_at: new Date().toISOString() })
       .eq('id', user.id);
   },
+
+  /** Logs an action for Tier 2 auditing (e.g., Deep Dive view) */
+  async logAuditAction(targetUserId: string, actionDetails: string): Promise<void> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    // As per requirement: "POST request to /api/audit-logs to record that Admin [X] accessed Member [Y]'s data."
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    
+    try {
+      await fetch(`${API_URL}/audit-logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          admin_id: session.user.id,
+          target_user_id: targetUserId,
+          action: actionDetails
+        })
+      });
+    } catch (e) {
+      console.error('Failed to log audit action via API', e);
+    }
+  },
 };

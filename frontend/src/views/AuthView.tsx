@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User as UserIcon, Loader2, ArrowLeft, Shield } from 'lucide-react';
 import { FadeTransition } from '../lib/animations';
@@ -8,11 +8,12 @@ import { DB_SCHEMA } from '../constants/dbSchema';
 import ThemeToggle from '../components/ThemeToggle';
 import { InviteService } from '../services/InviteService';
 import { popInviteToken, peekInviteToken } from './InviteAcceptView';
+import { NeuralPulseLoader } from '../components/common/NeuralPulseLoader';
 
 export interface AuthViewProps {
-  onLogin: (role: UserRole, onboardingComplete: boolean) => void;
-  onBack: () => void;
-  role: UserRole;
+  onLogin?: (role: UserRole, onboardingComplete: boolean) => void;
+  onBack?: () => void;
+  role?: UserRole;
 }
 
 /* ── Animated Submit Button ── */
@@ -34,29 +35,101 @@ const ChasingLightButton = ({ loading, children, className = '' }: { loading: bo
   </button>
 );
 
-export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) {
+export function AuthView({ onLogin, onBack, role: initialRole = 'user' }: AuthViewProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState<UserRole>(initialRole);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   
   // Form fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteMetadata, setInviteMetadata] = useState<{ team_id: string; role_level: number } | null>(null);
+
+  // Added logic for URL param ?token={token}
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      console.log('[Auth] Captured token from URL:', urlToken); // Requirement 4: Debugging
+      localStorage.setItem('pending_team_invite_token', urlToken);
+      setIsLogin(false); // Force to register page as per prompt
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/register');
+
+      // Requirement 1: Call backend to verify token before signup
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      fetch(`${API_URL}/invites/verify/${urlToken}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.team_id) {
+            console.log('[Auth] Invite verified. Metadata:', data);
+            setInviteMetadata(data);
+          }
+        })
+        .catch(err => console.error('[Auth] Token verification failed:', err));
+
+      // NEW: If user is ALREADY logged in, consume it immediately!
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          console.log('[Auth] User already logged in, auto-consuming token...');
+          setLoading(true);
+          consumePendingInvite(session.user.id, session.user.email || '')
+            .then(res => {
+               if (res?.navigatedTo) window.location.assign(res.navigatedTo);
+               else setLoading(false);
+            });
+        }
+      });
+    }
+  }, []);
 
   const pendingInviteToken = peekInviteToken();
 
-  const consumePendingInvite = async (): Promise<{ navigatedTo: string } | null> => {
-    const token = popInviteToken();
-    if (!token) return null;
+  const consumePendingInvite = async (user_id: string, user_email: string): Promise<{ navigatedTo: string } | null> => {
+    const token = peekInviteToken(); // Use peek first
+    if (!token) {
+      console.log('[Auth] No pending invite token found in storage.');
+      return null;
+    }
+    
+    console.log('[Auth] Attempting to consume invite token:', token, 'for user:', user_id);
+    
     try {
-      await InviteService.consumeInvite(token);
-      return { navigatedTo: '/admin' };
+      // Requirement 1 & 2: Use backend to verify and consume
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      
+      const response = await fetch(`${API_URL}/invites/assign-to-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          current_user_id: user_id,
+          email: user_email
+        })
+      });
+      
+      if (!response.ok) {
+        const err = await response.json();
+        console.error('[Auth] Backend invite consume error:', err.detail);
+        throw new Error(err.detail || 'Failed to consume invite');
+      }
+
+      const result = await response.json();
+      console.log('[Auth] Invite consumed successfully via backend:', result);
+      
+      setSuccessMsg('You have successfully joined the team!');
+      popInviteToken(); // ONLY NOW remove it from storage
+      
+      // Give the user a moment to see the success message
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return { navigatedTo: '/dashboard' };
     } catch (err: any) {
-      console.warn('[Auth] invite consume failed:', err?.message);
-      // Fall through; user lands on normal flow even if invite is bad.
+      console.error('[Auth] invite consume failed catch block:', err?.message);
+      setError(`Critical Error: Could not synchronize team invitation. ${err?.message}`);
       return null;
     }
   };
@@ -64,6 +137,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
 
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match');
@@ -104,7 +178,8 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           if (rbacError) console.error('[Auth] RBAC fetch error:', rbacError);
 
           // Consume pending invite first so the role check sees the upgraded role.
-          const inviteResult = await consumePendingInvite();
+          console.log('[Auth] Checking for pending invite after login...');
+          const inviteResult = await consumePendingInvite(data.user.id, email);
 
           const { data: refreshedProfile } = inviteResult
             ? await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle()
@@ -114,18 +189,20 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
 
           // If Admin or SuperAdmin, bypass student onboarding and go to portal
           if (currentRole === 1 || currentRole === 2) {
-            onLogin('admin', true);
+            console.log('[Auth] Redirecting to Admin/Portal (Role:', currentRole, ')');
+            onLogin?.('admin', true);
           } else {
+            console.log('[Auth] Standard user detected. Checking onboarding...');
             const { data: profile } = await supabase
               .from(DB_SCHEMA.TABLES.PROFILES)
               .select(DB_SCHEMA.COLUMNS.ONBOARDING)
               .eq('id', data.user.id)
               .maybeSingle();
 
-            onLogin('user', (profile as any)?.[DB_SCHEMA.COLUMNS.ONBOARDING] || false);
+            onLogin?.('user', (profile as any)?.[DB_SCHEMA.COLUMNS.ONBOARDING] || false);
           }
         } else {
-          const { data, error: signupError } = await supabase.auth.signUp({
+          let { data, error: signupError } = await supabase.auth.signUp({
             email,
             password,
             options: {
@@ -135,8 +212,29 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
               }
             }
           });
-          
-          if (signupError) throw signupError;
+          if (signupError) {
+            console.log('[Auth] Signup error encountered:', signupError.message);
+            // Seamless Join UX: If user is already registered, try to log them in instead!
+            if (signupError.message.toLowerCase().includes('already registered')) {
+              console.log('[Auth] User already registered. Attempting seamless login...');
+              const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+              });
+              
+              if (loginError) {
+                console.error('[Auth] Seamless login failed:', loginError.message);
+                // If login fails (e.g. wrong password), prompt them clearly
+                throw new Error("This email is already registered, but the password was incorrect. Please switch to 'Sign In' to join the team.");
+              }
+              
+              console.log('[Auth] Seamless login successful.');
+              // If login succeeds, treat it as a successful signup/login hybrid
+              data = loginData;
+            } else {
+              throw signupError;
+            }
+          }
           if (!data.session) {
              throw new Error("Please check your email to verify your account.");
           }
@@ -145,6 +243,7 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           localStorage.setItem('auth_user_id', data.user.id);
 
           const userId = data.user.id;
+          console.log('[Auth] Upserting learner profile for user:', userId);
           const { error: profileError } = await supabase
             .from('learner_profiles')
             .upsert({
@@ -161,11 +260,14 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
 
           // If a Team Admin invite is pending, consume it now — promotes the
           // newly signed-up user to role 1 + attaches them to the team.
-          const inviteResult = await consumePendingInvite();
+          console.log('[Auth] Checking for pending invite to consume...');
+          const inviteResult = await consumePendingInvite(userId, email);
           if (inviteResult) {
-            onLogin('admin', true);
+            console.log('[Auth] Invite consumed. Redirecting to admin...');
+            onLogin?.('admin', true);
           } else {
-            onLogin('user', false);
+            console.log('[Auth] No invite consumed. Proceeding as standard user.');
+            onLogin?.('user', false);
           }
         }
       }
@@ -176,6 +278,10 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
     }
   };
 
+  if (loading && peekInviteToken()) {
+    return <NeuralPulseLoader status="Synchronizing Invitation Protocol..." />;
+  }
+
   return (
     <FadeTransition className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
       {/* ── Background Mesh Glows ── */}
@@ -184,13 +290,15 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
       <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-purple-100/50 dark:bg-purple-600/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* ── Back Button ── */}
-      <button 
-        onClick={onBack}
-        className="absolute top-8 left-8 flex items-center text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-white transition-all z-20 font-black text-[10px] uppercase tracking-widest gap-2 bg-white dark:bg-white/5 px-4 py-2 rounded-xl shadow-sm border border-slate-200 dark:border-transparent"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Return
-      </button>
+      {onBack && (
+        <button 
+          onClick={onBack}
+          className="absolute top-8 left-8 flex items-center text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-white transition-all z-20 font-black text-[10px] uppercase tracking-widest gap-2 bg-white dark:bg-white/5 px-4 py-2 rounded-xl shadow-sm border border-slate-200 dark:border-transparent"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Return
+        </button>
+      )}
 
       <div className="absolute top-8 right-8 z-20">
         <ThemeToggle />
@@ -242,7 +350,12 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
             {pendingInviteToken && (
               <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-cyan-500 dark:text-cyan-400 text-xs font-bold flex items-center gap-2">
                 <Shield className="w-4 h-4 flex-shrink-0" />
-                <span>You've been invited as a Team Admin. Sign in or create your account to accept.</span>
+                <span>
+                  {inviteMetadata 
+                    ? `You've been invited to join a team as a ${inviteMetadata.role_level === 1 ? 'Team Admin' : 'Member'}.`
+                    : "You've been invited via a team link. Sign in or create your account to accept."
+                  }
+                </span>
               </div>
             )}
             <AnimatePresence mode="wait">
@@ -255,6 +368,17 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
                 >
                   <span className="w-2 h-2 rounded-full bg-rose-500 mr-2 flex-shrink-0 animate-pulse"></span>
                   {error}
+                </motion.div>
+              )}
+              {successMsg && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400 text-sm font-bold flex items-center overflow-hidden"
+                >
+                  <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
+                  {successMsg}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -8,17 +8,17 @@ import { useData } from '../context/DataContext';
 const INVITE_TOKEN_KEY = 'pending_team_invite_token';
 
 export function stashInviteToken(token: string) {
-  sessionStorage.setItem(INVITE_TOKEN_KEY, token);
+  localStorage.setItem(INVITE_TOKEN_KEY, token);
 }
 
 export function popInviteToken(): string | null {
-  const v = sessionStorage.getItem(INVITE_TOKEN_KEY);
-  sessionStorage.removeItem(INVITE_TOKEN_KEY);
+  const v = localStorage.getItem(INVITE_TOKEN_KEY);
+  localStorage.removeItem(INVITE_TOKEN_KEY);
   return v;
 }
 
 export function peekInviteToken(): string | null {
-  return sessionStorage.getItem(INVITE_TOKEN_KEY);
+  return localStorage.getItem(INVITE_TOKEN_KEY);
 }
 
 const InviteAcceptView: React.FC = () => {

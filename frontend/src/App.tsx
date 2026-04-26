@@ -108,9 +108,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isInitializing, profile } = useData();
+  const hasToken = new URLSearchParams(window.location.search).has('token') || !!sessionStorage.getItem('pending_team_invite_token');
+
   if (isInitializing) return <NeuralPulseLoader status="Authenticating Session..." />;
   
-  if (user) {
+  if (user && !hasToken) {
     const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
     const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
 
@@ -278,6 +280,19 @@ function AppRoutes() {
                 </PublicRoute>
               } />
 
+              <Route path="/register" element={
+                <PublicRoute>
+                  <AuthView
+                    role="user"
+                    onBack={() => navigate('/')}
+                    onLogin={(role: string, onboardingComplete: boolean) => {
+                      if (onboardingComplete) navigate('/portal');
+                      else navigate('/onboarding');
+                    }}
+                  />
+                </PublicRoute>
+              } />
+
               {/* Role-based portal entry — redirects based on public.profiles.role */}
               <Route path="/portal" element={<RoleBasedRedirect />} />
 
@@ -400,6 +415,9 @@ function AppRoutes() {
 
               {/* Team Admin invite acceptance — public; consumes token after auth */}
               <Route path="/invite/:token" element={<InviteAcceptView />} />
+
+              {/* Root redirects */}
+              <Route path="/" element={<Navigate to="/auth" replace />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

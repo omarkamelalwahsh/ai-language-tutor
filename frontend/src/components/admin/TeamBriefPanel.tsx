@@ -4,6 +4,8 @@ import { Users, Crown, Eye, Loader2, Activity, Clock, Shield } from 'lucide-reac
 import { useQuery } from '@tanstack/react-query';
 import { AdminTaskService } from '../../services/AdminTaskService';
 import { MemberDeepDiveModal } from './MemberDeepDiveModal';
+import { TeamAdminInviteModal } from './TeamAdminInviteModal';
+import { useUserRole } from '../../hooks/useUserRole';
 
 const fmtRelative = (iso: string | null): string => {
   if (!iso) return 'never';
@@ -27,6 +29,8 @@ const isOnline = (iso: string | null): boolean => {
 
 export const TeamBriefPanel: React.FC = () => {
   const [diveTarget, setDiveTarget] = useState<{ id: string; name: string } | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const { role } = useUserRole();
 
   const briefQuery = useQuery({
     queryKey: ['team', 'brief'],
@@ -62,6 +66,14 @@ export const TeamBriefPanel: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {(role === 1 || role === 2) && team && (
+              <button
+                onClick={() => setInviteModalOpen(true)}
+                className="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 px-4 py-2.5 rounded-xl text-[10px] font-black text-cyan-400 uppercase tracking-widest transition-all flex items-center gap-2"
+              >
+                + Invite Member
+              </button>
+            )}
             <div className="bg-white/[0.03] border border-white/5 px-3 py-2 rounded-xl">
               <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Members</div>
               <div className="text-white font-bold text-lg">{members.length}</div>
@@ -164,6 +176,12 @@ export const TeamBriefPanel: React.FC = () => {
         memberId={diveTarget?.id ?? null}
         memberName={diveTarget?.name ?? ''}
         onClose={() => setDiveTarget(null)}
+      />
+
+      <TeamAdminInviteModal
+        open={inviteModalOpen}
+        teamId={team?.id ?? null}
+        onClose={() => setInviteModalOpen(false)}
       />
     </>
   );

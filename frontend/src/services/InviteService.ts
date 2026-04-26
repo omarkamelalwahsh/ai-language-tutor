@@ -5,7 +5,7 @@ export interface TeamInvite {
   token: string;
   team_id: string;
   team_name?: string | null;
-  role: 1;
+  role: 0 | 1;
   created_by: string | null;
   created_at: string;
   expires_at: string | null;
@@ -34,17 +34,19 @@ const generateToken = (): string => {
 
 export const buildInviteUrl = (token: string): string => {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  return `${origin}/invite/${token}`;
+  return `${origin}/register?token=${token}`;
 };
 
 export const InviteService = {
   /**
-   * Root Admin only — RLS enforces.
    * Generates a one-time invite link that, when consumed, assigns the new user
-   * the Team Admin role (1) and attaches them to the specified team.
+   * the specified role and attaches them to the specified team.
+   * Root Admins can assign role 1 (Team Admin).
+   * Team Admins should assign role 0 (Member) to their own team.
    */
   async createInvite(opts: {
     teamId: string;
+    roleToAssign?: 0 | 1;
     expiresInDays?: number;
     note?: string;
   }): Promise<TeamInvite> {
@@ -61,7 +63,7 @@ export const InviteService = {
       .insert({
         token,
         team_id: opts.teamId,
-        role: 1,
+        role: opts.roleToAssign ?? 1,
         created_by: user.id,
         expires_at,
         note: opts.note ?? null,

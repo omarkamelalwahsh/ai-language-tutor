@@ -102,7 +102,7 @@ class LearnerService:
             due_reviews = sum(1 for s in skills if (s.proficiency_confidence or s.confidence or 0) < 0.5)
 
             # Momentum: Base (Streak * 10) + (Weekly Minutes / 60 * 5) capped at 100
-            profile_streak = profile.streak if profile else 0
+            profile_streak = profile.streak if (profile and profile.streak) else 0
             momentum = min(100, (profile_streak * 10) + (weekly_minutes // 12))
 
             # 8. Best Next Move (Action Panel)
@@ -114,9 +114,9 @@ class LearnerService:
             # 9. Construct Response
             return {
                 "profile": {
-                    "full_name": profile.full_name if profile else "Learner",
-                    "current_level": profile.overall_level or profile.current_proficiency_level or "A1" if profile else "A1",
-                    "xp_points": (profile.xp_points if profile.xp_points else profile.points) if profile else 0,
+                    "full_name": profile.full_name if (profile and profile.full_name) else "Learner",
+                    "current_level": (profile.overall_level or profile.current_proficiency_level or "A1") if profile else "A1",
+                    "xp_points": ((profile.xp_points if profile.xp_points else profile.points) if profile else 0),
                     "streak": profile_streak,
                 },
                 "kpis": {
@@ -273,8 +273,8 @@ class LearnerService:
             return {
                 "identity": {
                     "name": profile.full_name.split()[0] if (profile and profile.full_name) else "Learner",
-                    "summary": f"Your {profile.overall_level or 'A1'} trajectory is stable. {weakest_skill['name'] if weakest_skill else 'Grammar'} shows the most growth potential today.",
-                    "model_confidence": round((profile.proficiency_confidence or 0.88) * 100),
+                    "summary": f"Your {(profile.overall_level if profile else 'A1') or 'A1'} trajectory is stable. {weakest_skill['name'] if weakest_skill else 'Grammar'} shows the most growth potential today.",
+                    "model_confidence": round(((profile.proficiency_confidence if profile else 0.88) or 0.88) * 100),
                     "last_updated": datetime.now().strftime("%I:%M %p")
                 },
                 "skill_matrix": skill_matrix,
@@ -285,7 +285,7 @@ class LearnerService:
                         "high_risk": due_items[:3]
                     },
                     "pacing": {
-                        "tolerance_score": profile.pacing_score or 0.75,
+                        "tolerance_score": (profile.pacing_score if profile else 0.75) or 0.75,
                         "session_advice": "You are currently learning best with short, 8-minute high-intensity sessions."
                     },
                     "confidence_trend": [round(l.score * 100) for l in logs[-7:]] if logs else [0]

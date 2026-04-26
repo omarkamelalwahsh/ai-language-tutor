@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Eye, Loader2, ShieldAlert, MessageSquare, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { AdminTaskService } from '../../services/AdminTaskService';
-import { AuditService } from '../../services/AuditService';
 
 interface Props {
   open: boolean;
@@ -21,12 +20,10 @@ export const MemberDeepDiveModal: React.FC<Props> = ({ open, memberId, memberNam
   // Audit the access the moment the modal opens for a real member.
   useEffect(() => {
     if (!open || !memberId) return;
-    AuditService.log({
-      action: 'deep_dive_view',
-      targetType: 'profile',
-      targetId: memberId,
-      metadata: { member_name: memberName, opened_at: new Date().toISOString() },
-    });
+    AdminTaskService.logAuditAction(
+      memberId,
+      `Admin accessed deep data of Member ${memberName} (${memberId})`
+    );
   }, [open, memberId, memberName]);
 
   const diveQuery = useQuery({
