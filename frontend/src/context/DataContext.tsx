@@ -85,6 +85,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // SuperAdmins and Admins are considered "onboarded" by default
         const isStaff = rbacProfile?.role === 1 || rbacProfile?.role === 2;
 
+        // Bump last_seen_at for the Tier 1 brief view (fire-and-forget).
+        supabase
+          .from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', authUser.id)
+          .then(({ error }) => {
+            if (error) console.warn('[DataContext] last_seen_at bump failed:', error.message);
+          });
+
         const localOnboardingComplete = localStorage.getItem('onboarding_complete') === 'true';
         const localAssessmentComplete = localStorage.getItem('has_completed_assessment') === 'true';
 

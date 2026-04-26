@@ -12,14 +12,17 @@ import {
 } from 'recharts';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  AdminTaskService, TaskStatus,
+  AdminTaskService, TaskStatus, ROOT_ADMIN_EMAIL,
   TaskWithProfiles, TeamWithAdmin, SafetyLogEntry, AdminProfile
 } from '../services/AdminTaskService';
 import { SuperAdminService } from '../services/SuperAdminService';
 import { useUserRole } from '../hooks/useUserRole';
 import { AdminToastProvider, useAdminToast } from '../components/admin/AdminToast';
 import { CreateTaskModal } from '../components/admin/CreateTaskModal';
+import { TeamsHubView } from '../components/admin/TeamsHubView';
 import { format } from 'date-fns';
+
+type DashboardTab = 'overview' | 'teams';
 
 // ============================================================================
 // Visual constants (pixel-perfect to design)
@@ -97,6 +100,7 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const { profile } = useUserRole();
   const [modalOpen, setModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
   // ----- Queries -------------------------------------------------------------
   const overviewQuery = useQuery({
@@ -187,11 +191,11 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           <ShieldCheck size={24} />
         </div>
         <nav className="flex-1 flex flex-col gap-8">
-          <SidebarIcon icon={<Settings size={22} />} />
-          <SidebarIcon icon={<ShieldAlert size={22} />} />
-          <SidebarIcon icon={<Users size={22} />} />
-          <SidebarIcon icon={<UsersRound size={22} />} />
-          <SidebarIcon icon={<Server size={22} />} />
+          <SidebarIcon icon={<Settings size={22} />} active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} tooltip="Overview" />
+          <SidebarIcon icon={<ShieldAlert size={22} />} onClick={() => setActiveTab('overview')} tooltip="Security" />
+          <SidebarIcon icon={<Users size={22} />} onClick={() => setActiveTab('overview')} tooltip="Users" />
+          <SidebarIcon icon={<UsersRound size={22} />} active={activeTab === 'teams'} onClick={() => setActiveTab('teams')} tooltip="Teams Hub" />
+          <SidebarIcon icon={<Server size={22} />} tooltip="Server" />
         </nav>
         <button
           onClick={onLogout}
@@ -228,6 +232,11 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </div>
         </header>
 
+        {/* Tab Content */}
+        {activeTab === 'teams' ? (
+          <TeamsHubView />
+        ) : (
+        <>
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-6 relative z-10">
           <StatCard
@@ -557,6 +566,14 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       </td>
                       <td className="px-6 py-5 rounded-r-3xl border-y border-r border-transparent group-hover/row:border-white/5 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                          {/* ROOT ADMIN GUARD: hide all actions for root admin */}
+                          {SuperAdminService.isRootAdmin(user.email) ? (
+                            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                              <ShieldCheck size={14} className="text-amber-400" />
+                              <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">🛡️ ROOT — IMMORTAL</span>
+                            </div>
+                          ) : (
+                          <>
                           {user.role === 0 && (
                             <div className="flex gap-2">
                               <button 
@@ -621,9 +638,22 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                             </button>
                           )}
 
-                          <button className="p-3 bg-white/5 text-white/20 border border-white/5 rounded-xl hover:text-red-400 hover:bg-red-400/10 transition-all">
+                          <button 
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this user?')) {
+                                SuperAdminService.deleteUser(user.id)
+                                  .then(() => {
+                                    queryClient.invalidateQueries({ queryKey: ['superadmin', 'users'] });
+                                    toast.push({ kind: 'success', title: 'User Deleted', body: 'Account permanently removed.' });
+                                  })
+                                  .catch((err: any) => toast.push({ kind: 'error', title: 'Delete Failed', body: err.message }));
+                              }
+                            }}
+                            className="p-3 bg-white/5 text-white/20 border border-white/5 rounded-xl hover:text-red-400 hover:bg-red-400/10 transition-all"
+                          >
                             <Trash2 size={14} />
                           </button>
+                          </>)}
                         </div>
                       </td>
                     </tr>
@@ -640,6 +670,8 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           onClose={() => setModalOpen(false)}
           onCreated={(t) => toast.push({ kind: 'success', title: 'Dispatch Confirmed', body: `Task "${t.title}" is now active in the grid.` })}
         />
+        </> /* end overview tab */
+        )}
 
         {/* Decorative Background Glows */}
         <div className="fixed top-[-10%] right-[-5%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full pointer-events-none z-0" />
@@ -654,12 +686,21 @@ const SuperAdminInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 // Subcomponents
 // ============================================================================
 
-const SidebarIcon = ({ icon }: { icon: React.ReactNode }) => (
-  <div className="p-3 text-slate-600 hover:text-white transition-all cursor-pointer hover:bg-white/5 rounded-xl group relative">
+const SidebarIcon = ({ icon, active, onClick, tooltip }: { icon: React.ReactNode; active?: boolean; onClick?: () => void; tooltip?: string }) => (
+  <div
+    onClick={onClick}
+    className={`p-3 transition-all cursor-pointer rounded-xl group relative ${
+      active
+        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+        : 'text-slate-600 hover:text-white hover:bg-white/5'
+    }`}
+  >
     {icon}
-    <div className="absolute left-full ml-4 px-2 py-1 bg-white text-black text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-      Node Access
-    </div>
+    {tooltip && (
+      <div className="absolute left-full ml-4 px-2 py-1 bg-white text-black text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+        {tooltip}
+      </div>
+    )}
   </div>
 );
 

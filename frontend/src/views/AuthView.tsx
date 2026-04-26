@@ -6,6 +6,8 @@ import { UserRole } from '../types/app';
 import { supabase } from '../lib/supabaseClient';
 import { DB_SCHEMA } from '../constants/dbSchema';
 import ThemeToggle from '../components/ThemeToggle';
+import { InviteService } from '../services/InviteService';
+import { popInviteToken, peekInviteToken } from './InviteAcceptView';
 
 export interface AuthViewProps {
   onLogin: (role: UserRole, onboardingComplete: boolean) => void;
@@ -43,6 +45,21 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const pendingInviteToken = peekInviteToken();
+
+  const consumePendingInvite = async (): Promise<{ navigatedTo: string } | null> => {
+    const token = popInviteToken();
+    if (!token) return null;
+    try {
+      await InviteService.consumeInvite(token);
+      return { navigatedTo: '/admin' };
+    } catch (err: any) {
+      console.warn('[Auth] invite consume failed:', err?.message);
+      // Fall through; user lands on normal flow even if invite is bad.
+      return null;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,8 +102,14 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
             .maybeSingle();
 
           if (rbacError) console.error('[Auth] RBAC fetch error:', rbacError);
-          
-          const currentRole = rbacProfile?.role ?? 0;
+
+          // Consume pending invite first so the role check sees the upgraded role.
+          const inviteResult = await consumePendingInvite();
+
+          const { data: refreshedProfile } = inviteResult
+            ? await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle()
+            : { data: rbacProfile };
+          const currentRole = refreshedProfile?.role ?? rbacProfile?.role ?? 0;
           console.log('[Auth] Login successful. ID:', data.user.id, 'Role:', currentRole);
 
           // If Admin or SuperAdmin, bypass student onboarding and go to portal
@@ -136,7 +159,14 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
              console.error("[Auth] Initial profile upsert failed:", profileError);
           }
 
-          onLogin('user', false);
+          // If a Team Admin invite is pending, consume it now — promotes the
+          // newly signed-up user to role 1 + attaches them to the team.
+          const inviteResult = await consumePendingInvite();
+          if (inviteResult) {
+            onLogin('admin', true);
+          } else {
+            onLogin('user', false);
+          }
         }
       }
     } catch (err: any) {
@@ -209,6 +239,12 @@ export function AuthView({ onLogin, onBack, role: initialRole }: AuthViewProps) 
           )}
 
           <div className="px-10 pb-10">
+            {pendingInviteToken && (
+              <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-cyan-500 dark:text-cyan-400 text-xs font-bold flex items-center gap-2">
+                <Shield className="w-4 h-4 flex-shrink-0" />
+                <span>You've been invited as a Team Admin. Sign in or create your account to accept.</span>
+              </div>
+            )}
             <AnimatePresence mode="wait">
               {error && (
                 <motion.div

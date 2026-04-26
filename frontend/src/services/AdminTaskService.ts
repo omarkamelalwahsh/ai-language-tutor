@@ -1,5 +1,9 @@
 import { supabase } from '../lib/supabaseClient';
 
+// ----- Constants --------------------------------------------------------
+/** The root super-admin email — immutable at both DB and UI layers. */
+export const ROOT_ADMIN_EMAIL = 'omaralwahsh8719@gmail.com';
+
 // ----- Types ------------------------------------------------------------
 export type UserRole = 0 | 1 | 2; // 0=Student, 1=Admin, 2=SuperAdmin
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
@@ -13,6 +17,26 @@ export interface AdminProfile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  last_seen_at?: string | null;
+  is_team_leader?: boolean;
+}
+
+export interface TeamMemberBrief {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  role: UserRole;
+  is_team_leader: boolean;
+  last_seen_at: string | null;
+  created_at: string;
+}
+
+export interface MemberDeepDiveEntry {
+  id: string;
+  category: string | null;
+  ai_interpretation: string | null;
+  deep_insight: string | null;
+  created_at: string;
 }
 
 export interface AdminTask {
@@ -60,6 +84,13 @@ export interface SafetyLogEntry {
   category: string | null;
   ai_interpretation: string | null;
   deep_insight: string | null;
+  created_at: string;
+}
+
+export interface Team {
+  id: string;
+  team_name: string;
+  admin_id: string | null;
   created_at: string;
 }
 
@@ -313,5 +344,142 @@ export const AdminTaskService = {
     return () => {
       supabase.removeChannel(channel);
     };
+  },
+
+  // ----- Teams ----------------------------------------------------------
+
+  async createTeam(teamName: string): Promise<Team> {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert({ team_name: teamName.trim() })
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data as Team;
+  },
+
+  async deleteTeam(teamId: string): Promise<void> {
+    const { error } = await supabase
+      .from('teams')
+      .delete()
+      .eq('id', teamId);
+    if (error) throw error;
+  },
+
+  async getTeamMembers(teamId: string): Promise<AdminProfile[]> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('full_name', { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as AdminProfile[];
+  },
+
+  async assignTeamLeader(teamId: string, userId: string): Promise<void> {
+    // 1. Clear previous leader for this team
+    const { data: currentTeam } = await supabase
+      .from('teams')
+      .select('admin_id')
+      .eq('id', teamId)
+      .single();
+
+    if (currentTeam?.admin_id) {
+      await supabase
+        .from('profiles')
+        .update({ is_team_leader: false })
+        .eq('id', currentTeam.admin_id);
+    }
+
+    // 2. Set the new leader
+    const { error: teamErr } = await supabase
+      .from('teams')
+      .update({ admin_id: userId })
+      .eq('id', teamId);
+    if (teamErr) throw teamErr;
+
+    // 3. Mark the user as team leader and assign them to the team
+    const { error: profileErr } = await supabase
+      .from('profiles')
+      .update({ is_team_leader: true, team_id: teamId })
+      .eq('id', userId);
+    if (profileErr) throw profileErr;
+  },
+
+  async addMemberToTeam(userId: string, teamId: string): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ team_id: teamId })
+      .eq('id', userId);
+    if (error) throw error;
+  },
+
+  async removeMemberFromTeam(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ team_id: null, is_team_leader: false })
+      .eq('id', userId);
+    if (error) throw error;
+  },
+
+  async reassignTeamMembers(fromTeamId: string, toTeamId: string | null): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ team_id: toTeamId, is_team_leader: false })
+      .eq('team_id', fromTeamId);
+    if (error) throw error;
+  },
+
+  // ----- Team Admin: scoped Brief / Deep Dive ---------------------------
+  /**
+   * Tier 1 — Brief view of the caller's team. RLS scopes profile rows
+   * to the caller's team_id (or all rows for SuperAdmin).
+   */
+  async listMyTeamBrief(): Promise<{ team: Team | null; members: TeamMemberBrief[] }> {
+    const me = await AdminTaskService.getMyProfile();
+    if (!me?.team_id) return { team: null, members: [] };
+
+    const [teamRes, membersRes] = await Promise.all([
+      supabase.from('teams').select('*').eq('id', me.team_id).maybeSingle(),
+      supabase
+        .from('profiles')
+        .select('id, full_name, email, role, is_team_leader, last_seen_at, created_at')
+        .eq('team_id', me.team_id)
+        .order('full_name', { ascending: true }),
+    ]);
+
+    if (teamRes.error) throw teamRes.error;
+    if (membersRes.error) throw membersRes.error;
+
+    return {
+      team: (teamRes.data ?? null) as Team | null,
+      members: (membersRes.data ?? []) as TeamMemberBrief[],
+    };
+  },
+
+  /**
+   * Tier 2 — Deep Dive on a specific team member. Pulls the member's
+   * detailed interaction data (error analysis: questions, AI interpretation,
+   * insights). RLS rejects access if the target is not in the caller's team.
+   */
+  async getMemberDeepDive(memberId: string, limit = 50): Promise<MemberDeepDiveEntry[]> {
+    const { data, error } = await supabase
+      .from('user_error_analysis')
+      .select('id, category, ai_interpretation, deep_insight, created_at')
+      .eq('user_id', memberId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as MemberDeepDiveEntry[];
+  },
+
+  /** Updates the caller's own last_seen_at. Safe to call on every session start. */
+  async bumpLastSeen(): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from('profiles')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', user.id);
   },
 };

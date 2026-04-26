@@ -29,6 +29,7 @@ const LearningJourneyView = lazy(() => import('./views/LearningJourneyView'));
 const SharedRuntime = lazy(() => import('./components/runtime/SharedRuntime'));
 const AdminDashboardView = lazy(() => import('./views/AdminDashboardView'));
 const SuperAdminDashboardView = lazy(() => import('./views/SuperAdminDashboardView'));
+const InviteAcceptView = lazy(() => import('./views/InviteAcceptView'));
 const UserLeaderboardView = lazy(() => import('./views/UserLeaderboardView'));
 const LearnerProfileView = lazy(() => import('./views/LearnerProfileView'));
 import RoleProtectedRoute from './components/admin/RoleProtectedRoute';
@@ -396,6 +397,9 @@ function AppRoutes() {
 
               {/* Profile → Redirects to unified Dashboard */}
               <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Team Admin invite acceptance — public; consumes token after auth */}
+              <Route path="/invite/:token" element={<InviteAcceptView />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

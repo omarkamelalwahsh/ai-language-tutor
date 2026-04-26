@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminTaskService, AdminTask, TaskStatus } from '../services/AdminTaskService';
 import { useUserRole } from '../hooks/useUserRole';
 import { AdminToastProvider, useAdminToast } from '../components/admin/AdminToast';
+import { TeamBriefPanel } from '../components/admin/TeamBriefPanel';
 
 // ----- Constants & helpers -----------------------------------------------
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -72,6 +73,8 @@ const handleRAGUpload = async (payload: { kind: 'pdf' | 'text'; data: File | str
   return new Promise((res) => setTimeout(res, 600));
 };
 
+type AdminTab = 'tasks' | 'team';
+
 // ============================================================================
 // Inner view (consumes toast context)
 // ============================================================================
@@ -80,6 +83,7 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
   const toast = useAdminToast();
   const { profile, role } = useUserRole();
   const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>('team');
   const seenTaskIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => { setMounted(true); }, []);
@@ -156,10 +160,20 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
           <Shield size={20} />
         </div>
         <nav className="flex-1 flex flex-col gap-8">
-          <SidebarIcon icon={<ClipboardList size={22} />} active />
-          <SidebarIcon icon={<Users size={22} />} />
-          <SidebarIcon icon={<Brain size={22} />} />
-          <SidebarIcon icon={<MessageSquare size={22} />} />
+          <SidebarIcon
+            icon={<Users size={22} />}
+            active={activeTab === 'team'}
+            onClick={() => setActiveTab('team')}
+            tooltip="My Team"
+          />
+          <SidebarIcon
+            icon={<ClipboardList size={22} />}
+            active={activeTab === 'tasks'}
+            onClick={() => setActiveTab('tasks')}
+            tooltip="My Tasks"
+          />
+          <SidebarIcon icon={<Brain size={22} />} tooltip="Brain Matrix" />
+          <SidebarIcon icon={<MessageSquare size={22} />} tooltip="RAG" />
         </nav>
         <button onClick={onLogout} className="p-3 text-slate-600 hover:text-white transition-colors" aria-label="Logout">
           <LogOut size={22} />
@@ -186,6 +200,10 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
           </div>
         </header>
 
+        {activeTab === 'team' ? (
+          <TeamBriefPanel />
+        ) : (
+        <>
         {/* Top KPI row */}
         <div className="grid grid-cols-4 gap-4">
           <StatCard
@@ -324,6 +342,8 @@ const AdminDashboardInner: React.FC<{ onLogout: () => void }> = ({ onLogout }) =
 
         {/* RAG Knowledge Base Entry */}
         <RAGIngestionPanel />
+        </> /* end tasks tab */
+        )}
       </main>
     </div>
   );
@@ -482,9 +502,31 @@ const RAGIngestionPanel: React.FC = () => {
   );
 };
 
-const SidebarIcon = ({ icon, active }: { icon: React.ReactNode; active?: boolean }) => (
-  <div className={`p-3 rounded-xl transition-all cursor-pointer ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-600 hover:text-white hover:bg-white/5'}`}>
+const SidebarIcon = ({
+  icon,
+  active,
+  onClick,
+  tooltip,
+}: {
+  icon: React.ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+  tooltip?: string;
+}) => (
+  <div
+    onClick={onClick}
+    className={`p-3 rounded-xl transition-all cursor-pointer group relative ${
+      active
+        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+        : 'text-slate-600 hover:text-white hover:bg-white/5'
+    }`}
+  >
     {icon}
+    {tooltip && (
+      <div className="absolute left-full ml-3 px-2 py-1 bg-white text-black text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+        {tooltip}
+      </div>
+    )}
   </div>
 );
 
