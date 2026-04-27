@@ -61,7 +61,8 @@ export function AuthView({ onLogin, onBack, role: initialRole = 'user' }: AuthVi
       window.history.replaceState({}, document.title, '/register');
 
       // Requirement 1: Call backend to verify token before signup
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
       fetch(`${API_URL}/invites/verify/${urlToken}`)
         .then(res => res.json())
         .then(data => {
@@ -100,7 +101,8 @@ export function AuthView({ onLogin, onBack, role: initialRole = 'user' }: AuthVi
     
     try {
       // Requirement 1 & 2: Use backend to verify and consume
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
       
       const response = await fetch(`${API_URL}/invites/assign-to-user`, {
         method: 'POST',

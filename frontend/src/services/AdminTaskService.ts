@@ -489,7 +489,8 @@ export const AdminTaskService = {
     if (!session) return;
     
     // As per requirement: "POST request to /api/audit-logs to record that Admin [X] accessed Member [Y]'s data."
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
     
     try {
       await fetch(`${API_URL}/audit-logs`, {
