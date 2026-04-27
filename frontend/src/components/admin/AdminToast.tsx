@@ -47,9 +47,9 @@ const ToastCard: React.FC<{ toast: Toast; onDismiss: () => void }> = ({ toast, o
   }, [onDismiss]);
 
   const tone =
-    toast.kind === 'success' ? 'border-emerald-500/30 text-emerald-400'
-    : toast.kind === 'error' ? 'border-red-500/30 text-red-400'
-    : 'border-blue-500/30 text-blue-400';
+    toast.kind === 'success' ? 'border-emerald-300 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-300'
+    : toast.kind === 'error' ? 'border-red-300 text-red-700 dark:border-red-500/40 dark:text-red-300'
+    : 'border-cyan-300 text-cyan-700 dark:border-cyan-500/40 dark:text-cyan-300';
 
   const Icon = toast.kind === 'success' ? CheckCircle2 : Bell;
 
@@ -60,14 +60,22 @@ const ToastCard: React.FC<{ toast: Toast; onDismiss: () => void }> = ({ toast, o
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 40, scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className={`pointer-events-auto min-w-[280px] max-w-sm bg-[#111114]/95 backdrop-blur-xl border ${tone} rounded-2xl px-4 py-3 shadow-xl shadow-black/40 flex gap-3 items-start`}
+      className={`pointer-events-auto min-w-[280px] max-w-sm
+                  bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl
+                  border ${tone}
+                  rounded-2xl px-4 py-3
+                  shadow-sm dark:shadow-[0_0_20px_rgba(0,0,0,0.5)]
+                  flex gap-3 items-start`}
     >
       <Icon size={18} className="mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-bold tracking-tight">{toast.title}</p>
-        {toast.body && <p className="text-white/50 text-xs mt-0.5 leading-snug">{toast.body}</p>}
+        <p className="text-zinc-900 dark:text-zinc-50 text-sm font-bold tracking-tight">{toast.title}</p>
+        {toast.body && <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-0.5 leading-snug">{toast.body}</p>}
       </div>
-      <button onClick={onDismiss} className="text-white/30 hover:text-white/70 transition-colors">
+      <button
+        onClick={onDismiss}
+        className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+      >
         <X size={14} />
       </button>
     </motion.div>
