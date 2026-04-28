@@ -59,6 +59,24 @@ export interface Team {
   created_at: string;
 }
 
+export interface TaskWithProfiles extends AdminTask {
+  assigned_admin?: AdminProfile | null;
+  creator?: AdminProfile | null;
+}
+
+export interface TeamWithAdmin extends Team {
+  admin?: AdminProfile | null;
+  performance: number;
+}
+
+export interface SafetyLogEntry {
+  id: string;
+  category: string | null;
+  ai_interpretation: string | null;
+  created_at: string;
+  user_name: string;
+}
+
 // ----- Service ----------------------------------------------------------
 export const AdminTaskService = {
   async getMyProfile(): Promise<AdminProfile | null> {
@@ -271,5 +289,115 @@ export const AdminTaskService = {
     } catch (e) {
       console.error('Failed to log audit action via API', e);
     }
+  },
+
+  async getOverview(): Promise<{ totalStudents: number; totalAdmins: number; onlineAdmins: number }> {
+    const { data: profiles, error } = await supabase.from('profiles').select('role, last_seen_at');
+    if (error) throw error;
+
+    const totalStudents = profiles.filter(p => p.role === 0).length;
+    const totalAdmins = profiles.filter(p => p.role === 1 || p.role === 2).length;
+    
+    // Simple online heuristic: seen in last 5 minutes
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const onlineAdmins = profiles.filter(p => (p.role === 1 || p.role === 2) && p.last_seen_at && p.last_seen_at > fiveMinsAgo).length;
+
+    return { totalStudents, totalAdmins, onlineAdmins };
+  },
+
+  async listTasksWithProfiles(): Promise<TaskWithProfiles[]> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        assigned_admin:profiles!tasks_assigned_to_fkey(*),
+        creator:profiles!tasks_created_by_fkey(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[AdminTaskService] listTasksWithProfiles error:', error);
+      throw error;
+    }
+    return (data || []) as TaskWithProfiles[];
+  },
+
+  async listTeamsWithAdmin(): Promise<TeamWithAdmin[]> {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        admin:profiles!teams_admin_id_fkey(*)
+      `)
+      .order('team_name', { ascending: true });
+
+    if (error) {
+      console.error('[AdminTaskService] listTeamsWithAdmin error:', error);
+      throw error;
+    }
+
+    // Add synthetic performance for the dashboard (can be replaced with real metrics later)
+    return (data || []).map(t => ({
+      ...t,
+      performance: Math.floor(Math.random() * (98 - 85 + 1)) + 85 // Mock: 85% to 98%
+    })) as TeamWithAdmin[];
+  },
+
+  async listSafetyLogs(limit = 10): Promise<SafetyLogEntry[]> {
+    const { data: logs, error: logsError } = await supabase
+      .from('user_error_analysis')
+      .select('id, category, ai_interpretation, created_at, user_id')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (logsError) {
+      console.error('[AdminTaskService] listSafetyLogs error:', logsError);
+      throw logsError;
+    }
+
+    if (!logs || logs.length === 0) return [];
+
+    const userIds = Array.from(new Set(logs.map(l => l.user_id).filter(Boolean)));
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('[AdminTaskService] listSafetyLogs profile fetch error:', profilesError);
+      throw profilesError;
+    }
+
+    const profileMap = new Map(profiles?.map(p => [p.id, p]));
+
+    return logs.map((log: any) => {
+      const p = profileMap.get(log.user_id);
+      return {
+        id: log.id,
+        category: log.category,
+        ai_interpretation: log.ai_interpretation,
+        created_at: log.created_at,
+        user_name: p?.full_name || p?.email?.split('@')[0] || 'Unknown'
+      };
+    });
+  },
+
+  subscribeTasks(callbacks: { onInsert?: () => void; onUpdate?: () => void; onDelete?: () => void }) {
+    const channel = supabase
+      .channel('tasks-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && callbacks.onInsert) callbacks.onInsert();
+          if (payload.eventType === 'UPDATE' && callbacks.onUpdate) callbacks.onUpdate();
+          if (payload.eventType === 'DELETE' && callbacks.onDelete) callbacks.onDelete();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   },
 };
