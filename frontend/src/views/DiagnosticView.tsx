@@ -35,6 +35,7 @@ import { TaskResult, OnboardingState } from '../types/app';
 import { DifficultyZone } from '../config/assessment-config';
 import { SpeakingModule } from '../components/runtime/modules/SpeakingModule';
 import { ReadingLayout } from '../components/runtime/modules/ReadingLayout';
+import ThemeToggle from '../components/ThemeToggle';
 
 
 // --- Types ---
@@ -678,7 +679,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             <motion.div className="h-full bg-blue-600" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
           <span className="text-xs font-black text-slate-500 tabular-nums tracking-widest uppercase">
-            {progress.percentage}%
+            {Math.round(progress.percentage)}%
           </span>
         </div>
         {/* SKIP BUTTON */}
@@ -689,6 +690,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
         >
           <SkipForward size={14} /> Skip
         </button>
+        {/* THEME TOGGLE */}
+        <ThemeToggle />
       </header>
 
       <AnimatePresence mode="wait">

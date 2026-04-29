@@ -68,6 +68,10 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-sm dark:shadow-md overflow-hidden border border-slate-200">
         
         {/* Progress Bar */}
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Assessment Onboarding</span>
+          <span className="text-xs font-bold text-slate-500">Step {step} of 4</span>
+        </div>
         <div className="h-1.5 w-full bg-slate-100 flex">
           {[1, 2, 3, 4].map((s) => (
             <div 
@@ -78,7 +82,7 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
           ))}
         </div>
 
-        <div className="p-8 md:p-12">
+        <div className="p-6 md:p-8 lg:p-12">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div 
@@ -87,21 +91,18 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 exit={{ opacity: -20 }} 
                 key="s1"
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
-                  <ShieldCheck size={24} />
-                </div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-6">Welcome to your English placement test</h1>
-                <p className="text-slate-600 text-lg mb-8 leading-relaxed">
-                  This comprehensive assessment measures your current English level across speaking, writing, reading, and listening. 
-                  Your result will help us build the best learning journey for you.
+                <div className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Step 1: Overview</div>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Your English Level Assessment Starts Here</h1>
+                <p className="text-base md:text-lg text-slate-600 mb-8 leading-relaxed">
+                  Your score reflects the English you demonstrate. Higher levels require strong vocabulary, grammar, and control.
                 </p>
                 <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3 mb-8">
                   <ShieldCheck className="text-blue-600 shrink-0 mt-1" size={18} />
-                  <p className="text-sm text-blue-800">Takes about 20-30 minutes. Answer honestly for the most accurate result.</p>
+                  <p className="text-sm text-blue-800">There are no penalties — just answer naturally.</p>
                 </div>
                 <button 
                   onClick={nextStep} 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                  className="w-full md:w-auto md:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
                 >
                   Continue
                   <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -116,21 +117,22 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 exit={{ opacity: -20 }} 
                 key="s2"
               >
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">How your level is determined</h2>
-                <div className="space-y-4 text-slate-600 mb-8 leading-relaxed">
+                <div className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Step 2: Scoring</div>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">How your level is determined</h2>
+                <div className="space-y-4 text-base md:text-lg text-slate-600 mb-8 leading-relaxed">
                   <p>Your score is based on the English you actually demonstrate during the test.</p>
                   <p>To receive a high level (B2+), your answers must show advanced vocabulary, grammar, and language control.</p>
                   <div className="bg-amber-50 border-l-4 border-amber-400 p-5 mt-6 rounded-r-lg">
                     <p className="text-amber-900 font-medium text-sm">
-                      Using very short, simple, or incomplete answers may lower your result, even if your actual level is higher.
+                      Short or incomplete answers may lower your score — even if your level is higher.
                     </p>
                   </div>
                 </div>
                 <button 
                   onClick={nextStep} 
-                  className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-xl font-semibold transition-all"
+                  className="w-full md:w-auto md:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold transition-all"
                 >
-                  Got it
+                  Continue
                 </button>
               </motion.div>
             )}
@@ -142,15 +144,16 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 exit={{ opacity: -20 }} 
                 key="s3"
               >
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">Answering rules</h2>
+                <div className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Step 3: Rules</div>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">How to answer</h2>
                 <ul className="space-y-4 mb-8">
                   {[
-                    'Answer on your own', 
+                    'Answer independently', 
                     'Use English only', 
-                    'Write and speak in full, natural answers', 
+                    'Respond in full sentences', 
                     'Read and listen carefully'
                   ].map((rule, i) => (
-                    <li key={i} className="flex items-center gap-3 text-slate-700 font-medium">
+                    <li key={i} className="flex items-center gap-3 text-base md:text-lg text-slate-700 font-medium">
                       <CheckCircle className="text-green-500 w-5 h-5 flex-shrink-0" /> {rule}
                     </li>
                   ))}
@@ -158,12 +161,12 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 <div className="bg-red-50 p-4 rounded-lg border border-red-100 flex gap-3 mb-8">
                   <AlertTriangle className="text-red-600 shrink-0 mt-0.5" size={18} />
                   <p className="text-sm text-red-800 font-medium leading-tight">
-                    Do not use AI tools, translators, or copied answers. Assisted answers lead to an unsuitable learning path.
+                    Avoid using AI tools, translators, or copied answers to ensure accurate results.
                   </p>
                 </div>
                 <button 
                   onClick={nextStep} 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-semibold transition-all"
+                  className="w-full md:w-auto md:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl font-semibold transition-all"
                 >
                   Continue
                 </button>
@@ -177,25 +180,28 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 exit={{ opacity: -20 }} 
                 key="s4"
               >
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">Show your best in every skill</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Step 4: Final Review</div>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">Demonstrate your ability across all core skills.</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <SkillCard icon={<PenTool size={18} />} title="Writing" desc="Use full sentences." />
                   <SkillCard icon={<Mic size={18} />} title="Speaking" desc="Speak clearly and fully." />
                   <SkillCard icon={<BookOpen size={18} />} title="Reading" desc="Read with focus." />
-                  <SkillCard icon={<Headphones size={18} />} title="Listening" desc="Use headphones." />
+                  <SkillCard icon={<Headphones size={18} />} title="Listening" desc="Use headphones if possible." />
                 </div>
                 
-                <div className="bg-slate-50 p-4 rounded-xl mb-8 border border-slate-100 italic text-slate-500 text-xs text-center">
-                  "The height of your achievements is determined by the depth of your focus."
+                <div className="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-100 text-slate-600 text-sm text-center font-medium">
+                  Your results will shape your personalized learning path.
                 </div>
+
+                <p className="text-center font-bold text-slate-800 mb-8">You're ready. Let's begin your assessment.</p>
 
                 <button 
                   onClick={handleStartTest} 
                   disabled={isFetching && !battery}
-                  className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 shadow-lg ${
+                  className={`w-full md:w-auto md:min-w-[250px] py-4 px-8 rounded-xl font-bold transition-all flex items-center justify-center gap-3 shadow-lg mx-auto ${
                     isFetching && !battery
                       ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 text-white shadow-green-100'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
                   }`}
                 >
                   {isFetching && !battery ? (
@@ -205,7 +211,7 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                     </>
                   ) : (
                     <>
-                      Start placement test
+                      Start Assessment
                       <ChevronRight size={20} />
                     </>
                   )}
@@ -226,11 +232,11 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
 };
 
 const SkillCard = ({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) => (
-  <div className="p-4 border border-slate-100 bg-slate-50 rounded-xl flex items-center gap-4 hover:border-blue-200 transition-colors">
+  <div className="p-4 border border-slate-100 bg-slate-50 rounded-xl flex items-center gap-4 hover:border-blue-200 transition-colors w-full">
     <div className="p-2.5 bg-white rounded-lg shadow-sm text-blue-600">{icon}</div>
     <div>
-      <h4 className="font-bold text-slate-800 text-sm leading-none mb-1">{title}</h4>
-      <p className="text-[10px] text-slate-500 font-medium">{desc}</p>
+      <h4 className="font-bold text-slate-800 text-sm md:text-base leading-none mb-1">{title}</h4>
+      <p className="text-xs md:text-sm text-slate-500 font-medium">{desc}</p>
     </div>
   </div>
 );
