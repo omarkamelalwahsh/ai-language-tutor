@@ -30,13 +30,10 @@ export const SkillTrajectoryCard: React.FC<SkillTrajectoryCardProps> = ({ data, 
     };
 
     return (
-        <MissionControlCard className={`${className} !p-0`} title="Performance Trajectory">
-            <div className="p-8 pt-0">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                    <div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                             Skill Progress <TrendingUp size={18} className="text-blue-500" />
-                        </h3>
+        <MissionControlCard className={className} title="Performance Trajectory">
+            <div className="w-full">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div className="hidden md:block">
                         <p className="text-xs text-slate-400 dark:text-white/40 font-medium">Historical trends across linguistic dimensions.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -57,9 +54,9 @@ export const SkillTrajectoryCard: React.FC<SkillTrajectoryCardProps> = ({ data, 
                     </div>
                 </div>
 
-                <div className="h-[350px] w-full mt-4 flex items-center justify-center relative min-w-0">
+                <div className="w-full mt-4 h-[350px] relative overflow-hidden">
                     {data && data.length > 0 ? (
-                        <ResponsiveContainer width="100%" aspect={2} debounce={200}>
+                        <ResponsiveContainer width="100%" aspect={1.5} minWidth={0} minHeight={0}>
                             <LineChart data={data}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis 

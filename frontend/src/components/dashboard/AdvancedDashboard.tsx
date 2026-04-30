@@ -204,7 +204,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     if (isGlobalLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
+        <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-x-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
             {/* 🌌 Dynamic Atmospheric Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
@@ -479,12 +479,12 @@ const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | nu
 };
 
 const ProfileSkillCard = ({ skill }: { skill: any }) => (
-    <GlassCard className="flex flex-col gap-4 p-6" glow>
-        <div className="flex justify-between items-start">
-            <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400">
-                <Target size={20} />
+    <GlassCard className="flex flex-col gap-3 p-4 sm:p-6" glow>
+        <div className="flex justify-between items-start mb-1">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400">
+                <Target size={16} />
             </div>
-            <span className={`text-[9px] uppercase font-black tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${
+            <span className={`text-[8px] sm:text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border shadow-sm ${
                 skill.stability === 'Stable' 
                     ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                     : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 text-amber-600 dark:text-amber-400'
@@ -492,30 +492,30 @@ const ProfileSkillCard = ({ skill }: { skill: any }) => (
                 {skill.stability || 'Analyzing'}
             </span>
         </div>
-        <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 flex items-center justify-center">
+        <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0">
                 <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="5" className="text-slate-100 dark:text-gray-800" />
+                    <circle cx="50%" cy="50%" r="40%" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-gray-800" />
                     <motion.circle 
-                        initial={{ strokeDashoffset: 176 }}
-                        animate={{ strokeDashoffset: 176 - ((skill.score || 0) / 100) * 176 }}
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: (skill.score || 0) / 100 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        cx="32" cy="32" r="28" fill="none" stroke="#2563eb" strokeWidth="5" 
-                        strokeDasharray="176" strokeLinecap="round" 
+                        cx="50%" cy="50%" r="40%" fill="none" stroke="#2563eb" strokeWidth="4" 
+                        strokeLinecap="round" 
                         className="drop-shadow-[0_0_4px_rgba(37,99,235,0.2)]"
                     />
                 </svg>
-                <span className="absolute text-lg font-black text-slate-900 dark:text-white">{skill.score || 0}%</span>
+                <span className="absolute text-xs sm:text-lg font-black text-slate-900 dark:text-white">{skill.score || 0}%</span>
             </div>
             <div className="min-w-0">
-                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight truncate">{skill.name}</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{skill.level || 'A1'} Proficiency</p>
+                <h3 className="text-sm sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">{skill.name}</h3>
+                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 font-medium">{skill.level || 'A1'} Proficiency</p>
             </div>
         </div>
-        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20">
+        <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 mt-1">
             <span>Trend</span>
             <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                <TrendingUp size={11} /> {skill.trend || 'Calibrating'}
+                <TrendingUp size={10} /> {skill.trend || 'Calibrating'}
             </span>
         </div>
     </GlassCard>
@@ -662,12 +662,12 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* 3. Main Analysis Column (Left) */}
                 <div className="lg:col-span-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div className="min-h-[380px]"><BrainMatrixCard data={matrixData} /></div>
-                        <div className="min-h-[380px]"><ErrorProfileCard data={errorData.slice(0, 6)} /></div>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                        <BrainMatrixCard data={matrixData} />
+                        <ErrorProfileCard data={errorData.slice(0, 6)} />
                     </div>
                     
-                    <div className="min-h-[320px]"><SkillTrajectoryCard data={trends} /></div>
+                    <SkillTrajectoryCard data={trends} />
 
                     {/* Skill Model Matrix from Profile */}
                     {profileData?.skill_matrix && profileData.skill_matrix.length > 0 && (
@@ -678,7 +678,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                                 </h2>
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest italic hidden md:block">Updated Real-time</p>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {profileData.skill_matrix.map((skill: any, idx: number) => (
                                     <motion.div key={skill.name} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
                                         <ProfileSkillCard skill={skill} />

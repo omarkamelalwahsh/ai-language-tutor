@@ -263,19 +263,19 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
             />
 
             {/* Radar Analysis */}
-            <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-[2.5rem] p-8 relative overflow-hidden h-[480px] shadow-premium">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400">Skill Calibration</h3>
+            <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 relative overflow-hidden h-[380px] md:h-[480px] shadow-premium">
+              <div className="mb-4 md:mb-6 flex items-center justify-between">
+                <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400">Skill Calibration</h3>
                 <BarChart3 className="text-blue-600 dark:text-blue-400 w-4 h-4" />
               </div>
               
-              <div className="h-full w-full -mt-10">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[280px] md:h-full w-full -mt-8 md:-mt-10 min-h-[250px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
                     <PolarAngleAxis 
                       dataKey="subject" 
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} 
+                      tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 900 }} 
                     />
                     <Radar
                       name="Learner"
@@ -290,14 +290,14 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
               </div>
 
               {/* Skill Legend */}
-              <div className="absolute bottom-10 left-8 right-8 grid grid-cols-2 gap-4">
+              <div className="absolute bottom-6 md:bottom-10 left-6 md:left-8 right-6 md:right-8 grid grid-cols-2 gap-4">
                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase">Peak Performance</span>
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-cyan-400" />
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">Peak Performance</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase">Growth Potential</span>
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500" />
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">Growth Potential</span>
                  </div>
               </div>
             </div>
@@ -317,14 +317,14 @@ export const ResultAnalysisView: React.FC<ResultAnalysisViewProps> = ({
 
           {/* ================= RIGHT COLUMN (JOURNEY) ================= */}
           <div className="space-y-8">
-            <div className="bg-white dark:bg-slate-950/40 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-premium">
+            <div className="bg-white dark:bg-slate-950/40 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2rem] md:rounded-[3rem] p-8 md:p-14 relative overflow-hidden shadow-premium">
                {/* Roadmap Header */}
-               <div className="mb-14 flex items-center justify-between relative z-10">
+               <div className="mb-8 md:mb-14 flex items-center justify-between relative z-10">
                  <div>
-                   <h3 className="text-3xl font-black tracking-tighter uppercase text-slate-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:to-slate-500 dark:bg-clip-text">Journey Roadmap</h3>
+                   <h3 className="text-xl md:text-3xl font-black tracking-tighter uppercase text-slate-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:to-slate-500 dark:bg-clip-text">Journey Roadmap</h3>
                    <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.4em] mt-1">AI Optimized Trajectory</p>
                  </div>
-                 <Sparkles className="text-blue-500 dark:text-cyan-400 w-8 h-8 animate-pulse" />
+                 <Sparkles className="text-blue-500 dark:text-cyan-400 w-6 h-6 md:w-8 md:h-8 animate-pulse" />
                </div>
 
                <div className="relative z-10 py-10">
@@ -453,21 +453,21 @@ const RoadmapSteps = (nodes: any[], isArchitecting: boolean) => {
     }));
 
   return (
-    <div className="flex flex-col gap-24 relative">
+    <div className="flex flex-col gap-16 md:gap-24 relative">
        {steps.map((step, i) => (
         <div key={i} className={`flex w-full ${step.align === 'left' ? 'justify-start' : 'justify-end'} relative`}>
           <motion.div
             initial={{ opacity: 0, x: step.align === 'left' ? -20 : 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.2 }}
-            className="bg-white dark:bg-slate-950/60 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-6 rounded-[2rem] flex items-center gap-6 w-80 group hover:border-blue-500/30 dark:hover:border-cyan-500/30 transition-all shadow-premium"
+            className="bg-white dark:bg-slate-950/60 backdrop-blur-2xl border border-slate-200 dark:border-white/10 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] flex items-center gap-4 md:gap-6 w-full md:w-80 group hover:border-blue-500/30 dark:hover:border-cyan-500/30 transition-all shadow-premium"
           >
-            <div className="w-14 h-14 bg-blue-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-blue-600 dark:text-cyan-400 shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-cyan-500 group-hover:text-white dark:group-hover:text-slate-900 transition-all">
-              {React.cloneElement(step.icon as any, { size: 24 })}
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-50 dark:bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-600 dark:text-cyan-400 shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-cyan-500 group-hover:text-white dark:group-hover:text-slate-900 transition-all">
+              {React.cloneElement(step.icon as any, { size: 20 })}
             </div>
             <div className="text-left overflow-hidden">
-              <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">MILESTONE {i + 1}</p>
-              <h5 className="text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5 md:mb-1">MILESTONE {i + 1}</p>
+              <h5 className="text-xs md:text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-2 leading-tight uppercase tracking-tighter">{step.title}</h5>
             </div>
           </motion.div>
         </div>
