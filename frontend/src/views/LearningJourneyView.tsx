@@ -246,10 +246,10 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-slate-900 dark:text-slate-50">
+              <h1 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 text-slate-900 dark:text-slate-50 leading-tight">
                 Bridging the Gap: <span className="text-blue-600 dark:text-indigo-400">{currentLevel}</span> <span className="opacity-50">→</span> <span className="text-blue-600 dark:text-indigo-400">{targetLevel}</span>
               </h1>
-              <p className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-xl">
+              <p className="text-sm md:text-lg text-slate-500 dark:text-slate-400 font-medium max-w-xl">
                 <span className="text-blue-500 font-bold dark:text-indigo-400">Consolidation & Fluency.</span> AI-architected transformation path balancing theoretical foundation with real-time error repair.
               </p>
             </motion.div>
@@ -327,20 +327,20 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
 
                       {/* Node Details Card */}
                       <div className={`
-                         max-w-sm w-full p-8 rounded-[2rem] bg-white dark:bg-gray-900 transition-colors duration-300 border border-slate-200 dark:border-slate-800
+                         max-w-sm w-full p-6 md:p-8 rounded-[2rem] bg-white dark:bg-gray-900 transition-colors duration-300 border border-slate-200 dark:border-slate-800
                          ${node.status === 'active' ? 'ring-1 ring-blue-500/30 dark:ring-indigo-500/30 bg-white dark:bg-slate-900/80 shadow-premium dark:shadow-md' : 'shadow-premium'}
                       `}>
-                         <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50">{parseLinguisticContent(node.title)}</h3>
-                            {node.status === 'active' && <Sparkles size={16} className="text-amber-400 shadow-sm dark:shadow-md" />}
+                         <div className="flex justify-between items-start mb-3 md:mb-4">
+                            <h3 className="text-lg md:text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 leading-snug">{parseLinguisticContent(node.title)}</h3>
+                            {node.status === 'active' && <Sparkles size={16} className="text-amber-400 shadow-sm dark:shadow-md shrink-0 ml-2" />}
                          </div>
                          
-                         <p className="text-xs text-slate-400 font-medium leading-relaxed mb-4">
+                         <p className="text-[11px] md:text-xs text-slate-400 font-medium leading-relaxed mb-4">
                             {parseLinguisticContent(node.description)}
                          </p>
 
-                         <div className="flex flex-wrap gap-2 mb-6">
-                            <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-950/50 border border-slate-800 rounded-lg text-[10px] font-bold text-slate-500">
+                         <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
+                            <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-950/50 border border-slate-800 rounded-lg text-[9px] md:text-[10px] font-bold text-slate-500">
                                <Icon size={12} /> {node.skill_focus.toUpperCase()}
                             </div>
                          </div>
@@ -348,7 +348,7 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                          {node.status === 'active' && (
                            <button 
                              onClick={onStartSession}
-                             className="w-full py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2"
+                             className="w-full py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-500 text-white font-black text-[10px] md:text-xs uppercase tracking-widest rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2"
                            >
                              Continue Journey <ArrowRight size={14} />
                            </button>

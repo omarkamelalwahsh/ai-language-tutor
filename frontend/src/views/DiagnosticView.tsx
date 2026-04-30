@@ -694,29 +694,31 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
   return (
 
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-gray-950 overflow-hidden font-sans prestige-gpu transition-colors duration-300">
-      <header className="shrink-0 px-8 h-20 flex items-center gap-8 bg-white dark:bg-gray-900 border-b border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50 shadow-sm relative z-20">
-        <button onClick={() => setShowQuitDialog(true)} className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm">
-          <X size={20} />
+      <header className="shrink-0 px-4 md:px-8 h-16 md:h-20 flex items-center gap-3 md:gap-8 bg-white dark:bg-gray-900 border-b border-slate-200 dark:border-gray-800 text-slate-900 dark:text-slate-50 shadow-sm relative z-20">
+        <button onClick={() => setShowQuitDialog(true)} className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm">
+          <X size={18} />
         </button>
-        <div className="flex-1 flex items-center gap-6">
-          <div className="flex-1 h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-200 dark:border-transparent">
+        <div className="flex-1 flex items-center gap-3 md:gap-6">
+          <div className="flex-1 h-2 md:h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-200 dark:border-transparent">
             <motion.div className="h-full bg-blue-600" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
-          <span className="text-xs font-black text-slate-600 dark:text-slate-400 tabular-nums tracking-widest uppercase">
-            Question {progress.answered + 1} of {progress.total} • {skillInfo.label}
+          <span className="hidden sm:inline text-xs font-black text-slate-600 dark:text-slate-400 tabular-nums tracking-widest uppercase">
+            Question {progress.answered + 1} of {progress.total}
+          </span>
+          <span className="sm:hidden text-[10px] font-black text-slate-600 dark:text-slate-400 tabular-nums">
+            {progress.answered + 1}/{progress.total}
           </span>
         </div>
-        {/* SKIP BUTTON */}
-        <button 
-          onClick={handleSkip}
-          disabled={isEvaluating}
-          title="Skipped questions may affect accuracy of your result."
-          className="flex items-center justify-center min-h-[44px] gap-2 px-4 md:px-6 py-2.5 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 border border-slate-200 dark:border-transparent shadow-sm"
-        >
-          <SkipForward size={14} /> Skip
-        </button>
-        {/* THEME TOGGLE */}
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleSkip}
+            disabled={isEvaluating}
+            className="flex items-center justify-center min-h-[36px] md:min-h-[44px] gap-1.5 px-3 md:px-6 py-1.5 md:py-2.5 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-white/10 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 border border-slate-200 dark:border-transparent shadow-sm"
+          >
+            <SkipForward size={12} /> <span className="hidden xs:inline">Skip</span>
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       <AnimatePresence mode="wait">
