@@ -17,6 +17,38 @@ const BADGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color
   writing:  { label: 'Writing Task — Reference Text', icon: <Pen size={16} className="font-bold" />, color: 'bg-emerald-50 text-emerald-700' },
 };
 
+const cleanPromptText = (rawText: string) => {
+  if (!rawText) return "";
+  try {
+    const parsedData = JSON.parse(rawText);
+    if (parsedData && parsedData.scenario) return parsedData.scenario;
+    return parsedData.task || parsedData.description || rawText;
+  } catch (error) {
+    return rawText.replace(/^(Scenario|Task|Context):\s*/i, '');
+  }
+};
+
+const formatStimulusText = (text: string) => {
+  if (!text) return "";
+  const cleanedText = cleanPromptText(text);
+  let html = cleanedText
+    // Times (e.g. 10:00 AM, 14:30)
+    .replace(/\b(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)\b/g, '<strong class="font-bold underline decoration-blue-200 dark:decoration-blue-900 underline-offset-4">$1</strong>')
+    // Days
+    .replace(/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/g, '<strong class="font-bold underline decoration-blue-200 dark:decoration-blue-900 underline-offset-4">$1</strong>')
+    // Dates (e.g. October 12th)
+    .replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?\b/gi, '<strong class="font-bold underline decoration-blue-200 dark:decoration-blue-900 underline-offset-4">$&</strong>')
+    // Basic Markdown **bold** fallback
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>')
+    // Newlines to paragraph breaks with spacing
+    .split(/\n+/)
+    .filter(p => p.trim() !== '')
+    .map(p => `<p class="mb-5">${p}</p>`)
+    .join('');
+    
+  return html;
+};
+
 export const ReadingLayout: React.FC<ReadingLayoutProps> = ({ 
   stimulus, 
   children, 
@@ -37,9 +69,10 @@ export const ReadingLayout: React.FC<ReadingLayoutProps> = ({
           </div>
           
           <div className="prose prose-slate dark:prose-invert prose-lg max-w-none">
-            <div className="text-xl lg:text-2xl text-slate-700 dark:text-slate-300 leading-[1.8] font-medium selection:bg-indigo-100 dark:selection:bg-indigo-900 whitespace-pre-wrap">
-              {stimulus}
-            </div>
+            <div 
+              className="text-lg lg:text-xl text-slate-700 dark:text-slate-300 leading-[1.9] font-medium selection:bg-indigo-100 dark:selection:bg-indigo-900"
+              dangerouslySetInnerHTML={{ __html: formatStimulusText(stimulus) }}
+            />
           </div>
           
           {/* Subtle indicator that there is more content below if scrolling is needed */}

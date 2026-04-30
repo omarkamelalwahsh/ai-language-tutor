@@ -257,10 +257,12 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
           {(mode === 'ready' || mode === 'recording') && (
             <>
               <div className="text-center mb-6">
-                <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">Speak your answer clearly</p>
+                <p className="text-slate-600 dark:text-slate-400 font-bold mb-1">
+                   {mode === 'recording' ? 'Recording...' : 'Tap to start speaking'}
+                </p>
                 <div className="h-6 mt-2">
                    {mode === 'recording' && (
-                     <span className="font-mono text-lg font-bold text-slate-800 dark:text-slate-200">{formatTime(durationSec)}</span>
+                     <span className="font-mono text-lg font-bold text-rose-600 dark:text-rose-400 animate-pulse">{formatTime(durationSec)}</span>
                    )}
                 </div>
               </div>
@@ -332,7 +334,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
                   ) : isEvaluating ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
                   ) : (
-                    <><Send className="w-5 h-5" /> Submit</>
+                    <><Send className="w-5 h-5" /> Submit Answer</>
                   )}
                 </button>
 
@@ -372,8 +374,8 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Type out exactly what you would say..."
-              className="w-full h-32 resize-none outline-none text-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-900 dark:text-slate-50/20 bg-transparent transition-colors duration-300"
+              placeholder="Your spoken answer will appear here..."
+              className="w-full h-32 resize-none outline-none text-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 bg-transparent transition-colors duration-300"
               disabled={isDisabled}
             />
           </div>
@@ -384,7 +386,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
               disabled={textInput.trim().length === 0 || isDisabled}
               className="px-6 py-2.5 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
             >
-              {isEvaluating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Typing'}
+              {isEvaluating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Answer'}
             </button>
           </div>
         </div>
@@ -396,10 +398,10 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
         disabled={isTranscribing || isEvaluating}
         className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
       >
-        {useTextFallback ? (
+         {useTextFallback ? (
            <><Mic className="w-4 h-4" /> Try using microphone instead</>
         ) : (
-           <><Keyboard className="w-4 h-4" /> Can't use microphone? Type instead</>
+           <><Keyboard className="w-4 h-4" /> Prefer typing instead?</>
         )}
       </button>
     </div>

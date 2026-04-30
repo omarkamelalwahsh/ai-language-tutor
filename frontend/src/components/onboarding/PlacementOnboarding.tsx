@@ -9,7 +9,8 @@ import {
   AlertTriangle, 
   ShieldCheck,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
@@ -64,15 +65,30 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-sm dark:shadow-md overflow-hidden border border-slate-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300 relative">
+      
+      {/* Exit Button */}
+      <button 
+        onClick={async () => {
+          const { supabase } = await import('../../lib/supabaseClient');
+          await supabase.auth.signOut();
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = '/auth';
+        }}
+        className="fixed top-6 left-6 flex items-center gap-2 text-slate-400 hover:text-rose-500 transition-colors font-black uppercase tracking-widest text-[10px] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-200 dark:border-transparent shadow-sm z-50"
+      >
+        <X size={14} /> Exit & Logout
+      </button>
+
+      <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm dark:shadow-md overflow-hidden border border-slate-200 dark:border-gray-800">
         
         {/* Progress Bar */}
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center bg-slate-50 dark:bg-gray-900">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Assessment Onboarding</span>
           <span className="text-xs font-bold text-slate-500">Step {step} of 4</span>
         </div>
-        <div className="h-1.5 w-full bg-slate-100 flex">
+        <div className="h-1.5 w-full bg-slate-100 dark:bg-gray-800 flex">
           {[1, 2, 3, 4].map((s) => (
             <div 
               key={s} 
@@ -92,8 +108,8 @@ const PlacementOnboarding: React.FC<PlacementOnboardingProps> = ({ onComplete })
                 key="s1"
               >
                 <div className="text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Step 1: Overview</div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Your English Level Assessment Starts Here</h1>
-                <p className="text-base md:text-lg text-slate-600 mb-8 leading-relaxed">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 mb-6">Your English Level Assessment Starts Here</h1>
+                <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
                   Your score reflects the English you demonstrate. Higher levels require strong vocabulary, grammar, and control.
                 </p>
                 <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3 mb-8">

@@ -299,7 +299,19 @@ function AppRoutes() {
               {/* Onboarding */}
               <Route path="/onboarding" element={
                 <ProtectedRoute>
-                  <OnboardingView onComplete={(state: any) => { setOnboarding(state); navigate('/diagnostic/intro'); }} />
+                  <OnboardingView onComplete={(state: any) => { 
+                    setOnboarding(state); 
+                    // Update local profile so ProtectedRoute allows next steps immediately
+                    updateProfileLocally({
+                      learning_goal: state.goal,
+                      goal_context: state.goalContext,
+                      focus_skills: state.focusSkills,
+                      learning_topics: state.topics,
+                      native_language: state.nativeLanguage,
+                      target_language: state.targetLanguage
+                    });
+                    navigate('/diagnostic/intro'); 
+                  }} />
                 </ProtectedRoute>
               } />
 

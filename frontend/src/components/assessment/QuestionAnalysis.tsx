@@ -16,37 +16,17 @@ interface QuestionReviewProps {
   questions?: Question[];
 }
 
-const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions }) => {
+const QuestionAnalysis: React.FC<QuestionReviewProps> = ({ questions = [] }) => {
   const [filter, setFilter] = React.useState<string>('All');
   
-  // داتا تجريبية لو الـ Props لسه مش جاهزة
-  const sampleQuestions: Question[] = questions || [
-    {
-      id: "q-1",
-      question_number: 1,
-      skill_tested: "Reading/Vocabulary",
-      user_answer: "airport",
-      correct_answer: "airport",
-      result: "Correct",
-      ai_interpretation: "You correctly used context to identify a common everyday word. This suggests solid recognition of high-frequency vocabulary in practical situations.",
-      what_it_tells_us: "You are comfortable with familiar vocabulary when the context is clear."
-    },
-    {
-      id: "q-2",
-      question_number: 2,
-      skill_tested: "Grammar",
-      user_answer: "He go to work every day",
-      correct_answer: "He goes to work every day",
-      result: "Incorrect",
-      ai_interpretation: "You communicated the meaning successfully, but the verb form was incorrect. This suggests that basic subject-verb agreement is not yet fully automatic.",
-      what_it_tells_us: "You can express simple ideas, but grammar accuracy still needs strengthening."
-    }
-  ];
+  if (!questions || questions.length === 0) {
+    return null;
+  }
 
-  const categories = ['All', ...Array.from(new Set(sampleQuestions?.map(q => q.skill_tested) || []))];
+  const categories = ['All', ...Array.from(new Set(questions.map(q => q.skill_tested) || []))];
   const filteredQuestions = filter === 'All' 
-    ? sampleQuestions 
-    : sampleQuestions?.filter(q => q.skill_tested === filter) || [];
+    ? questions 
+    : questions.filter(q => q.skill_tested === filter);
 
   return (
     <div id="question-analysis" className="space-y-8 animate-in fade-in duration-700 scroll-mt-24">

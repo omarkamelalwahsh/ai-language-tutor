@@ -8,6 +8,7 @@ import {
 import { OnboardingState } from '../types/app';
 import { DB_SCHEMA } from '../constants/dbSchema';
 import { TOPIC_DEFINITIONS, TopicId, getSortedTopicsForGoal, GoalId } from '../data/topics';
+import ThemeToggle from '../components/ThemeToggle';
 
 const SUPPORTED_LANGUAGES = ['Arabic', 'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese'];
 
@@ -48,7 +49,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
   const [isSaving, setIsSaving] = useState(false);
   const [state, setState] = useState<OnboardingState>({
     goal: '' as GoalId,
-    nativeLanguage: 'Arabic',
+    nativeLanguage: 'English',
     targetLanguage: 'English',
     focusSkills: [],
     topics: [],
@@ -84,7 +85,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
       try {
         if (userId) {
           const { supabase } = await import('../lib/supabaseClient');
-          await supabase.from(DB_SCHEMA.TABLES.PROFILES).upsert({
+          const { error } = await supabase.from(DB_SCHEMA.TABLES.PROFILES).upsert({
             id: userId,
             [DB_SCHEMA.COLUMNS.LEVEL]: 'Pending',
             learning_goal: state.goal,
@@ -96,12 +97,17 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
             target_language: state.targetLanguage,
             updated_at: new Date().toISOString()
           });
+          
+          if (error) {
+            console.error("[OnboardingView] Upsert error:", error);
+          }
         }
       } catch (err) {
         console.warn("[OnboardingView] Profile upsert failed (non-blocking):", err);
       } finally {
         setIsSaving(false);
-        onComplete(state);
+        // Small delay to ensure state updates propagate before navigation
+        setTimeout(() => onComplete(state), 100);
       }
     }
   };
@@ -151,6 +157,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
       >
         <X size={14} /> Exit & Logout
       </button>
+
+      {/* Theme Toggle */}
+      <div className="fixed top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
 
       {/* Progress Stepper */}
       <div className="max-w-md w-full mb-12 flex justify-between relative mt-4">
@@ -259,7 +270,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                     onChange={(e) => setState({ ...state, nativeLanguage: e.target.value })}
                     className="w-full p-3 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl text-slate-800 dark:text-white font-semibold text-sm focus:outline-none focus:border-blue-500 transition-colors"
                   >
-                    {SUPPORTED_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    {SUPPORTED_LANGUAGES.map(l => (
+                      <option key={l} value={l} disabled={l !== 'English'}>
+                        {l} {l !== 'English' ? '(Soon)' : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -269,7 +284,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                     onChange={(e) => setState({ ...state, targetLanguage: e.target.value })}
                     className="w-full p-3 bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 rounded-2xl text-blue-700 dark:text-blue-300 font-semibold text-sm focus:outline-none focus:border-blue-600 transition-colors"
                   >
-                    {SUPPORTED_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    {SUPPORTED_LANGUAGES.map(l => (
+                      <option key={l} value={l} disabled={l !== 'English'}>
+                        {l} {l !== 'English' ? '(Soon)' : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

@@ -69,6 +69,27 @@ const BLOCK_INFO: Record<number, { label: string; icon: React.ReactNode; color: 
   4: { label: 'Speaking', icon: <Mic size={16} />, color: 'text-amber-600 dark:text-amber-400' },
 };
 
+// دالة لتنظيف النص واستخراج الـ Scenario بأمان
+const cleanPromptText = (rawText: string) => {
+  if (!rawText) return "";
+  
+  try {
+    // بنحاول نفك الـ JSON
+    const parsedData = JSON.parse(rawText);
+    
+    // لو نجح وفيه كلمة scenario، نعرضها هي بس
+    if (parsedData && parsedData.scenario) {
+      return parsedData.scenario;
+    }
+    
+    // لو مفيش scenario بس هو JSON، نرجعه كنص احتياطي
+    return parsedData.task || parsedData.description || rawText; 
+  } catch (error) {
+    // لو النص مش JSON أصلاً (نص عادي)، نعرضه زي ما هو
+    return rawText.replace(/^(Scenario|Task|Context):\s*/i, '');
+  }
+};
+
 // ═══════════════════════════════════════════════════════════════
 // 🔊 ROBUST AUDIO PLAYER COMPONENT
 // ═══════════════════════════════════════════════════════════════
@@ -151,8 +172,8 @@ const ListeningAudioPlayer: React.FC<{ audioUrl?: string; stimulus?: string; pro
       </div>
       
       <div className="space-y-1 mb-8">
-        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">Listening Task</h3>
-        <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">Listen carefully, then select the best answer below.</p>
+        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">Play Audio</h3>
+        <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Listen carefully, then select the best answer below.</p>
       </div>
 
       {/* Hidden native audio element for real audio files */}
@@ -530,7 +551,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       {/* NON-LISTENING STIMULUS (Reading without split, or grammar context) */}
       {!isSplitLayout && currentTask.stimulus && currentTask.skill !== 'listening' && (
         <div className="mb-10 p-8 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-[2rem] shadow-premium text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed font-serif">
-          {currentTask.stimulus}
+          {cleanPromptText(currentTask.stimulus)}
         </div>
       )}
 
@@ -538,8 +559,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       {currentTask.skill === 'listening' && (
         <ListeningAudioPlayer 
           audioUrl={currentTask.audioUrl}
-          stimulus={currentTask.stimulus}
-          prompt={currentTask.prompt}
+          stimulus={cleanPromptText(currentTask.stimulus)}
+          prompt={cleanPromptText(currentTask.prompt)}
         />
       )}
     </>
@@ -549,18 +570,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
     <>
       {/* QUESTION PROMPT */}
       <div className="mb-10">
-        <h1 className="text-3xl lg:text-4xl font-black text-slate-800 dark:text-slate-200 leading-[1.15] tracking-tight">
-          {(() => {
-            try {
-              const parsed = JSON.parse(currentTask.prompt);
-              if (parsed && typeof parsed === 'object' && parsed.scenario) {
-                return parsed.scenario;
-              }
-            } catch (e) {
-              // Ignore parse error
-            }
-            return currentTask.prompt;
-          })()}
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 dark:text-slate-200 leading-[1.2] tracking-tight mb-4">
+          {cleanPromptText(currentTask.prompt)}
         </h1>
       </div>
 
@@ -578,10 +589,10 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             {currentTask.options!.map((opt, i) => (
               <label 
                 key={i} 
-                className={`block w-full p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                className={`block w-full p-4 md:p-6 min-h-[64px] rounded-2xl border-2 cursor-pointer transition-all ${
                   selectedOption === opt 
-                    ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 shadow-premium dark:shadow-none' 
-                    : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 hover:border-slate-300 dark:hover:border-blue-700 hover:bg-slate-50 shadow-premium transition-colors'
+                    ? 'border-blue-600 dark:border-blue-400 bg-blue-50/80 dark:bg-blue-900/40 shadow-md transform scale-[1.01]' 
+                    : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800 hover:border-slate-300 dark:hover:border-blue-700/50 hover:bg-slate-50 shadow-sm transition-colors hover:shadow-md'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -628,25 +639,37 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
             <button onClick={() => setUseSpeakingFallback(true)} className="w-full py-3 text-slate-400 text-xs font-bold font-sans hover:text-blue-600 dark:text-blue-400 transition-colors">Switch to typing</button>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="relative group">
-              <textarea 
-                value={textValue} 
-                onChange={e => setTextValue(e.target.value)} 
-                placeholder={isWritingTask ? "Formulate your response..." : "Transcription of your spoken output..."} 
-                className="w-full h-72 p-10 rounded-[3rem] bg-white dark:bg-gray-900 border-2 border-slate-200 dark:border-gray-800 focus:border-blue-600 dark:focus:border-blue-400 outline-none text-slate-800 dark:text-slate-200 text-2xl font-medium resize-none shadow-premium transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700" 
-                disabled={isEvaluating}
-              />
-              <div className="absolute bottom-10 right-10 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-full border border-slate-100 dark:border-transparent">{textValue.length} / 500</div>
+            <div className="space-y-6">
+              <div className="relative group">
+                <div className="mb-3 flex items-center justify-between">
+                   <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                      Use complete sentences and clear structure.
+                   </p>
+                   <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${textValue.trim().split(/\s+/).filter(w => w.length > 0).length >= 60 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-400'}`}>
+                      {textValue.trim().split(/\s+/).filter(w => w.length > 0).length} / 60–80 words
+                   </div>
+                </div>
+                <textarea 
+                  value={textValue} 
+                  onChange={e => setTextValue(e.target.value)} 
+                  placeholder={isWritingTask ? "Write your response here..." : "Your spoken answer will appear here..."} 
+                  className="w-full min-h-[200px] h-48 md:h-72 p-6 md:p-10 rounded-[2rem] bg-white dark:bg-gray-900 border-2 border-slate-200 dark:border-gray-800 focus:border-blue-600 dark:focus:border-blue-400 outline-none text-slate-800 dark:text-slate-200 text-xl font-medium resize-none shadow-premium transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600" 
+                  disabled={isEvaluating}
+                />
+                {textValue.trim().length === 0 && !isSpeakingTask && (
+                   <div className="text-sm text-amber-600 font-medium mt-2 px-2">
+                     Please enter your answer before continuing.
+                   </div>
+                )}
+              </div>
+              <button 
+                onClick={() => handleNextTask(textValue)} 
+                disabled={textValue.trim().length === 0 || isEvaluating} 
+                className="w-full md:w-auto md:min-w-[250px] min-h-[56px] py-4 px-8 bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white rounded-2xl font-black text-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-premium hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 ml-auto"
+              >
+                {isEvaluating ? 'Processing your answer...' : 'Submit Answer'} <ArrowRight size={20} />
+              </button>
             </div>
-            <button 
-              onClick={() => handleNextTask(textValue)} 
-              disabled={textValue.length < 5 || isEvaluating} 
-              className="w-full py-6 bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 text-white rounded-[2rem] font-black text-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-premium hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-3"
-            >
-              {isEvaluating ? 'Syncing Result...' : 'Finalize Response'} <ArrowRight size={20} />
-            </button>
-          </div>
         )}
       </div>
     </>
@@ -660,7 +683,8 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
       <button 
         onClick={handleSkip}
         disabled={isEvaluating}
-        className="px-6 py-2.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center gap-1.5 transition-all hover:bg-white dark:hover:bg-white/5 shadow-sm hover:shadow-premium"
+        title="Skipped questions may affect accuracy of your result."
+        className="px-6 py-2.5 min-h-[44px] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center gap-1.5 transition-all hover:bg-white dark:hover:bg-white/5 shadow-sm hover:shadow-premium"
       >
         <SkipForward size={14} /> Skip Step
       </button>
@@ -678,15 +702,16 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
           <div className="flex-1 h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner border border-slate-200 dark:border-transparent">
             <motion.div className="h-full bg-blue-600" animate={{ width: `${progress.percentage}%` }} transition={{ duration: 0.5 }} />
           </div>
-          <span className="text-xs font-black text-slate-500 tabular-nums tracking-widest uppercase">
-            {Math.round(progress.percentage)}%
+          <span className="text-xs font-black text-slate-600 dark:text-slate-400 tabular-nums tracking-widest uppercase">
+            Question {progress.answered + 1} of {progress.total} • {skillInfo.label}
           </span>
         </div>
         {/* SKIP BUTTON */}
         <button 
           onClick={handleSkip}
           disabled={isEvaluating}
-          className="flex items-center gap-2 px-6 py-2.5 bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 border border-slate-200 dark:border-transparent shadow-sm"
+          title="Skipped questions may affect accuracy of your result."
+          className="flex items-center justify-center min-h-[44px] gap-2 px-4 md:px-6 py-2.5 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30 border border-slate-200 dark:border-transparent shadow-sm"
         >
           <SkipForward size={14} /> Skip
         </button>
@@ -742,7 +767,7 @@ export const DiagnosticView: React.FC<DiagnosticViewProps> = ({ onSaveComplete, 
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 uppercase tracking-tight">End Assessment?</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">Exiting now will terminate your session and all current diagnostic data will be purged.</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">Are you sure you want to exit? Your progress will be lost.</p>
               </div>
               <div className="flex flex-col gap-3">
                 <button onClick={() => setShowQuitDialog(false)} className="py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-premium transition-all hover:scale-[1.02] active:scale-95 text-xs">Stay & Finish</button>

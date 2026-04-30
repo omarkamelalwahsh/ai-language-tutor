@@ -254,11 +254,17 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
               </p>
             </motion.div>
 
-            <div className="flex flex-wrap gap-4">
-               <SummaryBadge label="Progress" value="68%" />
-               <SummaryBadge label="Stop" value="12/18" />
-               <SummaryBadge label="Status" value="On Track" active />
-            </div>
+             <div className="flex flex-wrap gap-4">
+                <SummaryBadge 
+                  label="Progress" 
+                  value={nodes.length > 0 ? `${Math.round((nodes.filter(n => n.status === 'completed').length / nodes.length) * 100)}%` : '0%'} 
+                />
+                <SummaryBadge 
+                  label="Stop" 
+                  value={nodes.length > 0 ? `${nodes.filter(n => n.status === 'completed').length}/${nodes.length}` : '0/0'} 
+                />
+                <SummaryBadge label="Status" value={nodes.length > 0 ? 'On Track' : 'Calibrating'} active={nodes.length > 0} />
+             </div>
           </div>
 
           <CefrProgressBar currentLevel={currentLevel} />
@@ -382,26 +388,28 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                </div>
                <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800/50">
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium italic">
-                    Focus on Listening exercises in the next 3 nodes to stabilize B1 readiness.
+                    {dashboardData?.intelligence_feed?.recent_insights?.[0]?.insight || "Focus on current nodes to stabilize your next level readiness."}
                   </p>
                </div>
             </div>
 
-            <motion.div 
-               whileHover={{ y: -5 }}
-               className="bg-white dark:bg-[#0F172A]/80 border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-premium dark:shadow-md cursor-pointer group"
-               onClick={onStartSession}
-            >
-               <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
-                    <Zap className="text-amber-500 fill-amber-500" size={16} /> Due Review
-                  </h4>
-                  <span className="text-[10px] bg-amber-400/10 text-amber-500 px-2 py-0.5 rounded-md font-bold border border-amber-400/20">12 Item Bloom</span>
-               </div>
-               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed group-hover:text-blue-600 dark:group-hover:text-slate-200 transition">
-                  Detected vocabulary decay in 12 key B1 lexemes. Recommend 5-min recall spurt.
-               </p>
-            </motion.div>
+            {dashboardData?.kpis?.due_reviews > 0 && (
+              <motion.div 
+                 whileHover={{ y: -5 }}
+                 className="bg-white dark:bg-[#0F172A]/80 border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-premium dark:shadow-md cursor-pointer group"
+                 onClick={onStartSession}
+              >
+                 <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
+                      <Zap className="text-amber-500 fill-amber-500" size={16} /> Due Review
+                    </h4>
+                    <span className="text-[10px] bg-amber-400/10 text-amber-500 px-2 py-0.5 rounded-md font-bold border border-amber-400/20">{dashboardData.kpis.due_reviews} Items</span>
+                 </div>
+                 <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed group-hover:text-blue-600 dark:group-hover:text-slate-200 transition">
+                    Detected vocabulary decay in {dashboardData.kpis.due_reviews} items. Recommend a quick recall spurt to maintain stability.
+                 </p>
+              </motion.div>
+            )}
 
           </aside>
         </div>
