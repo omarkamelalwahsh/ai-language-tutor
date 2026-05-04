@@ -80,6 +80,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [sessionResults, setSessionResults] = useState<TaskEvaluationResult[]>([]);
   const [showSummary, setShowSummary] = useState(false);
+  const [showBatchEnd, setShowBatchEnd] = useState(false);
   
   const taskStartTime = useRef(Date.now());
 
@@ -117,19 +118,24 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
   // 3. Populate tasks once activeResult is ready or skill changes
   React.useEffect(() => {
-    if (activeResult && !isFetching.current) {
+    // ONLY fetch if we have a result AND no tasks AND not currently fetching
+    if (activeResult && tasks.length === 0 && !isFetching.current && !showSummary) {
       const fetchTasks = async () => {
+        console.log("[SharedRuntime] 🚀 Initializing session tasks...");
         isFetching.current = true;
-        setTasks([]); // Reset to show loading state
-        setCurrentTaskIndex(0);
+        
         setFeedback(null);
         setEvaluation(null);
-        setShowSummary(false);
         setSessionResults([]);
         
         try {
           const generatedTasks = await RuntimeService.generateSessionTasks(activeResult, skillFilter || undefined);
-          setTasks(generatedTasks);
+          if (generatedTasks && generatedTasks.length > 0) {
+            setTasks(generatedTasks);
+            setCurrentTaskIndex(0);
+          }
+        } catch (err) {
+          console.error("[SharedRuntime] Fetch failed:", err);
         } finally {
           isFetching.current = false;
         }
@@ -137,7 +143,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       
       fetchTasks();
     }
-  }, [activeResult, skillFilter]); 
+  }, [activeResult, skillFilter, tasks.length, showSummary]); 
 
   // 4. Return Loading Shell (Must be AFTER all hooks)
   if (!activeResult || (tasks.length === 0 && !showSummary)) {
@@ -201,8 +207,6 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     taskStartTime.current = Date.now();
   };
 
-  const [showBatchEnd, setShowBatchEnd] = useState(false);
-
   const handleNextTask = () => {
     if (evaluation) {
       setSessionResults(prev => [...prev, evaluation]);
@@ -226,10 +230,13 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     }
   };
 
-  // Render the appropriate module based on task type
+  // Render the appropriate module based on task skill / type.
+  // Skill takes precedence so a "Speaking Practice" session always gets the
+  // mic-driven SpeakingModule even when the AI tags the task type as
+  // fill-in-blank (which would otherwise fall through to VocabularyModule).
   const renderModuleTask = () => {
     if (!currentTask) return null;
-    
+
     const props = {
       task: currentTask,
       onSubmit: handleResponseSubmit,
@@ -238,12 +245,17 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       retryCount,
     };
 
+    const skill = (currentTask.targetSkill || '').toLowerCase();
+    if (skill === 'speaking') return <SpeakingModule {...props} />;
+    if (skill === 'listening') return <ListeningModule {...props} />;
+    if (skill === 'writing') return <WritingModule {...props} />;
+
     switch (currentTask.taskType) {
       case 'speaking': return <SpeakingModule {...props} />;
       case 'writing': return <WritingModule {...props} />;
       case 'listening': return <ListeningModule {...props} />;
       case 'vocabulary': return <VocabularyModule {...props} />;
-      default: return <div>Unknown task type</div>;
+      default: return <WritingModule {...props} />;
     }
   };
 
@@ -490,10 +502,21 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             >
               {/* Task Prompt Framing */}
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 leading-relaxed mb-4">{currentTask.prompt}</h3>
+                <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3">
+                  {currentTask.prompt}
+                </p>
+                
+                {currentTask.payload?.stimulus && currentTask.payload.stimulus !== currentTask.prompt && (
+                  <div className="p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-slate-100 dark:border-gray-800 shadow-sm mb-6">
+                    <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                      {currentTask.payload.stimulus}
+                    </h3>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
-                   {currentTask.difficultyTarget && <span className="bg-slate-100 text-slate-600 px-3 py-1 text-xs font-bold rounded-lg border border-slate-200">Target: {currentTask.difficultyTarget}</span>}
-                   {retryCount > 0 && <span className="bg-amber-50 text-amber-700 px-3 py-1 text-xs font-bold rounded-lg border border-amber-200">Attempt {retryCount + 1}</span>}
+                   {currentTask.difficultyTarget && <span className="bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-400 px-3 py-1 text-xs font-bold rounded-lg border border-slate-200 dark:border-gray-700">Target: {currentTask.difficultyTarget}</span>}
+                   {retryCount > 0 && <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800/50">Attempt {retryCount + 1}</span>}
                 </div>
               </div>
 

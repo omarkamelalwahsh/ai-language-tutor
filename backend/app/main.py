@@ -56,4 +56,4 @@ app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", 
 if __name__ == "__main__":
     import uvicorn
     print(f"Starting server with settings: {settings.PROJECT_NAME} v{settings.VERSION}")
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8002, reload=True)

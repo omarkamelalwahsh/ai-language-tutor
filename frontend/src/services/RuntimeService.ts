@@ -47,41 +47,42 @@ export class RuntimeService {
    * Returns structured session tasks based on the deterministic assessment result.
    * Now fetches dynamic tasks from the backend AI engine.
    */
+  /**
+   * Returns structured session tasks based on the deterministic assessment result.
+   * Now fetches a BATCH of dynamic tasks from the backend AI engine.
+   */
   public static async generateSessionTasks(result: AssessmentSessionResult, skillFilter?: string): Promise<SessionTask[]> {
     if (!result || !result.overall) {
       console.warn('[RuntimeService] Attempted to generate tasks without a valid result object.');
       return [];
     }
 
-    const taskCount = 5;
-    const tasks: SessionTask[] = [];
-
-    // Map skillFilter to backend expected types
-    const typeMap: Record<string, string> = {
-        'listening': 'AUDIO_CHOICE',
-        'speaking': 'ORAL_PROMPT',
-        'writing': 'OPEN_RESPONSE',
-        'reading': 'TEXT_ANALYSIS'
-    };
-
-    const targetType = skillFilter ? typeMap[skillFilter] || 'SCRAMBLED_SENTENCE' : 'SCRAMBLED_SENTENCE';
-
-    console.log(`[RuntimeService] 🧠 Requesting ${taskCount} dynamic tasks for: ${targetType}`);
-
     try {
-        for (let i = 0; i < taskCount; i++) {
-            const dynamicTask = await this.fetchDynamicTask(targetType);
-            if (dynamicTask) {
-                tasks.push(dynamicTask);
-            }
-        }
+        const endpoint = skillFilter ? '/api/v1/tasks/skill-practice' : '/api/v1/tasks/daily-mix';
+        const body = skillFilter ? { skill: skillFilter, count: 5 } : {};
+
+        console.log(`[RuntimeService] 🧠 Requesting BATCH tasks via: ${endpoint}`);
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+            },
+            body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
         
-        if (tasks.length > 0) return tasks;
+        if (data.tasks && Array.isArray(data.tasks)) {
+            return data.tasks.map((t: any) => this.mapAiTaskToFrontend(t));
+        }
     } catch (err) {
-        console.error('[RuntimeService] Failed to fetch dynamic tasks, using fallbacks:', err);
+        console.error('[RuntimeService] Failed to fetch batch dynamic tasks, using fallbacks:', err);
     }
 
-    // Fallback to one static task if everything fails
+    // Fallback if everything fails
     return [{
         taskId: `fallback_${Date.now()}`,
         taskType: 'writing',
@@ -95,59 +96,39 @@ export class RuntimeService {
   }
 
   /**
-   * Calls the backend to generate a single dynamic task.
+   * Maps a raw AI task payload to the frontend SessionTask interface.
    */
-  private static async fetchDynamicTask(type: string): Promise<SessionTask | null> {
-    try {
-        const response = await fetch('/api/v1/tasks/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
-            },
-            body: JSON.stringify({ type })
-        });
+  private static mapAiTaskToFrontend(data: any): SessionTask {
+    const aiMetadata = data.task_metadata || {};
+    const aiContent = data.content || {};
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-
-        // Map AI response to SessionTask interface
-        const aiMetadata = data.task_metadata || {};
-        const aiContent = data.content || {};
-
-        // Ensure audioSrc is present if it's a listening task
-        let audioSrc = aiContent.audio_url || aiContent.audioSrc;
-        
-        // 🔥 TTS Fallback: If it's a listening task and no audio URL provided, 
-        // generate a TTS link from the stimulus text.
-        if (aiMetadata.skill_category === 'LISTENING' && (!audioSrc || audioSrc === 'optional')) {
-            const textToSpeak = aiContent.stimulus || aiContent.instruction || 'Please listen carefully.';
-            audioSrc = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textToSpeak)}&tl=en&client=tw-ob`;
-        }
-
-        return {
-            taskId: aiMetadata.id || `task_${Date.now()}`,
-            taskType: this.mapAiTypeToFrontend(aiMetadata.type || type),
-            targetSkill: aiMetadata.skill_category?.toLowerCase() || type.toLowerCase(),
-            learningObjective: aiMetadata.objective || 'Linguistic Accuracy',
-            prompt: aiContent.instruction || aiContent.stimulus || 'Complete the task',
-            supportSettings: {
-                allowHints: true,
-                allowReplay: true,
-                allowSlowAudio: true,
-                maxRetries: 3
-            },
-            difficultyTarget: aiMetadata.difficulty_score > 0.7 ? 'Advanced' : 'Intermediate',
-            completionCondition: 'Accurate completion of the task stimulus',
-            payload: {
-                ...aiContent,
-                audioSrc
-            }
-        };
-    } catch (err) {
-        console.error('[RuntimeService] Fetch Task Error:', err);
-        return null;
+    // Ensure audioSrc is present if it's a listening task
+    let audioSrc = aiContent.audio_url || aiContent.audioSrc;
+    
+    if (aiMetadata.skill_category === 'LISTENING' && (!audioSrc || audioSrc === 'optional')) {
+        const textToSpeak = aiContent.stimulus || aiContent.instruction || 'Please listen carefully.';
+        audioSrc = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textToSpeak)}&tl=en&client=tw-ob`;
     }
+
+    return {
+        taskId: aiMetadata.id || `task_${Date.now()}`,
+        taskType: this.mapAiTypeToFrontend(aiMetadata.type || 'OPEN_RESPONSE'),
+        targetSkill: (aiMetadata.skill_category || aiMetadata.skill || 'general').toLowerCase(),
+        learningObjective: aiMetadata.objective || 'Linguistic Accuracy',
+        prompt: aiContent.instruction || 'Complete the task stimulus.',
+        supportSettings: {
+            allowHints: true,
+            allowReplay: true,
+            allowSlowAudio: true,
+            maxRetries: 3
+        },
+        difficultyTarget: aiMetadata.difficulty_score > 0.7 ? 'Advanced' : 'Intermediate',
+        completionCondition: 'Accurate completion of the task stimulus',
+        payload: {
+            ...aiContent,
+            audioSrc
+        }
+    };
   }
 
   private static mapAiTypeToFrontend(aiType: string): any {
@@ -163,127 +144,97 @@ export class RuntimeService {
    * Produces nuanced feedback based on task type and response quality.
    */
   public static async evaluateResponse(task: SessionTask, responsePayload: any): Promise<{ feedback: TaskFeedbackPayload; result?: TaskEvaluationResult }> {
-    // Extract text from response (handle different module shapes)
-    const rawText: string =
-      typeof responsePayload === 'string' ? responsePayload :
-      responsePayload?.answer || responsePayload?.recognizedWord || '';
-
-    const responseMode = responsePayload?.responseMode || 'text'; // default
-    const isSpeakingFallback = task.targetSkill === 'speaking' && responseMode === 'typed_fallback';
-
+    const rawText: string = typeof responsePayload === 'string' ? responsePayload : responsePayload?.answer || responsePayload?.recognizedWord || '';
+    const responseMode = responsePayload?.responseMode || 'text';
     const analysis = analyzeResponse(rawText);
 
-    // ── Vocabulary task: check for correct answer ──
-    if (task.taskType === 'vocabulary') {
-      const target = task.payload?.targetWord?.toLowerCase() || '';
-      const userAnswer = rawText.toLowerCase().trim();
-      const isExactMatch = userAnswer.includes(target) || target.includes(userAnswer);
+    try {
+        const response = await fetch('/api/v1/tasks/evaluate-task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+            },
+            body: JSON.stringify({
+                task_metadata: {
+                    type: task.taskType,
+                    skill: task.targetSkill,
+                    difficulty_score: 0.5
+                },
+                content: {
+                    task_prompt: task.prompt,
+                    target_response: task.payload?.target_response || task.payload?.answer_key?.correct_option || '',
+                    stimulus: task.payload?.stimulus || '',
+                    explanation: task.payload?.explanation || ''
+                },
+                user_response: rawText
+            })
+        });
 
-      // SBERT Semantic Check
-      const similarity = await SemanticEvaluator.calculateSimilarity(userAnswer, target);
-      const isSemanticMatch = similarity > 0.85;
+        if (response.ok) {
+            const aiResult = await response.json();
+            
+            const feedback: TaskFeedbackPayload = {
+                taskId: task.taskId,
+                feedbackType: aiResult.score >= 0.7 ? 'praise' : 'correction',
+                primaryMessage: aiResult.reasoning_summary || 'Analysis complete.',
+                suggestedRetryConstraint: aiResult.metrics?.grammar_score < 0.6 ? 'Focus on grammar structure.' : undefined,
+                canAdvance: aiResult.score >= 0.6
+            };
 
-      if (isExactMatch || isSemanticMatch) {
-        // Did they get the meaning right but made a grammatical / typo error?
-        const isGrammarError = !isExactMatch && isSemanticMatch;
-        let primaryMessage = 'Correct! That\'s exactly the right word in this context.';
-        
-        if (isGrammarError) {
-          primaryMessage = `Good job! You got the right meaning, but the exact word we were looking for is "${task.payload?.targetWord}".`;
+            const result: TaskEvaluationResult = {
+                taskId: task.taskId,
+                taskType: task.taskType,
+                successScore: Math.round(aiResult.score * 100),
+                responseMode: (responseMode as any),
+                dimensions: {
+                    complexity: Math.round((aiResult.metrics?.vocabulary_complexity || 0) * 100),
+                    vocabulary: Math.round((aiResult.metrics?.vocabulary_complexity || 0) * 100),
+                    structure: Math.round((aiResult.metrics?.grammar_score || 0) * 100),
+                    length: Math.min(rawText.split(' ').length * 5, 100)
+                },
+                hintUsage: 0,
+                retryCount: 0,
+                responseTimeMs: 2000,
+                supportDependence: aiResult.score >= 0.8 ? 'low' : aiResult.score >= 0.5 ? 'medium' : 'high',
+                meaningSuccess: aiResult.score >= 0.5,
+                naturalnessSuccess: (aiResult.metrics?.fluency_score || 0) >= 0.7,
+                reviewData: {
+                    taskId: task.taskId,
+                    skill: task.targetSkill,
+                    prompt: task.prompt,
+                    userAnswer: rawText,
+                    correctAnswer: aiResult.model_suggestion || task.payload?.target_response,
+                    result: aiResult.score >= 0.8 ? 'correct' : aiResult.score >= 0.5 ? 'partial' : 'incorrect',
+                    questionLevel: 'B1',
+                    answerLevel: aiResult.detected_level || 'B1',
+                    explanation: {
+                        whyCorrect: aiResult.score >= 0.8 ? aiResult.reasoning_summary : undefined,
+                        whatWentWrong: aiResult.score < 0.8 ? aiResult.error_analysis?.detected_errors?.join(', ') : undefined,
+                        levelNote: `Detected CEFR: ${aiResult.detected_level}. ${aiResult.reasoning_summary}`,
+                        improvementTip: aiResult.model_suggestion ? `Try this: ${aiResult.model_suggestion}` : undefined
+                    }
+                }
+            };
+
+            return { feedback, result };
         }
-
-        return {
-          feedback: {
-            taskId: task.taskId,
-            feedbackType: isGrammarError ? 'correction' : 'praise',
-            primaryMessage,
-            canAdvance: true,
-          },
-          result: this.buildResult(task, isGrammarError ? 85 : 95, analysis, true, responseMode, rawText),
-        };
-      } else if (similarity > 0.60) {
-        // They are on the right track conceptually, but it's not the right word
-        return {
-          feedback: {
-            taskId: task.taskId,
-            feedbackType: 'hint',
-            primaryMessage: `You're thinking in the right direction, but that's not the exact word. Think about how phrasal verbs change form.`,
-            suggestedRetryConstraint: `Use the phrase "${task.payload?.targetWord}" in the correct form.`,
-            canAdvance: false,
-          },
-        };
-      } else {
-        return {
-          feedback: {
-            taskId: task.taskId,
-            feedbackType: 'hint',
-            primaryMessage: `Not quite. The correct answer is "${task.payload?.targetWord}".`,
-            suggestedRetryConstraint: `Use the phrase "${task.payload?.targetWord}" in the correct form.`,
-            canAdvance: false,
-          },
-        };
-      }
+    } catch (err) {
+        console.error('[RuntimeService] AI Evaluation failed, using local heuristic:', err);
     }
 
-    // ── Speaking / Writing / Listening: multi-signal evaluation ──
+    // ── LOCAL FALLBACK ──
     const score = analysis.complexityScore;
-
-    // Excellent response (score >= 65)
-    if (score >= 65) {
-      let praise = task.taskType === 'writing'
-        ? 'Strong writing! Your sentence structure and word choice are well-developed.'
-        : task.taskType === 'speaking'
-          ? 'Great spoken response! You communicated your meaning clearly and naturally.'
-          : 'Excellent comprehension! You captured the key points accurately.';
-
-      if (isSpeakingFallback) {
-        praise = 'Good completion, but try to use your voice next time for a more complete assessment.';
-      }
-
-      return {
-        feedback: {
-          taskId: task.taskId,
-          feedbackType: isSpeakingFallback ? 'correction' : 'praise',
-          primaryMessage: praise,
-          canAdvance: true,
-        },
-        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 60) : score, analysis, true, responseMode, rawText),
-      };
-    }
-
-    // Good response (score >= 40)
-    if (score >= 40) {
-      const message = analysis.hasConnectors
-        ? 'Good effort! You used connectors well. Try expanding your ideas for more detail.'
-        : 'Decent attempt. Try using linking words like "however," "because," or "for example" to connect your ideas.';
-
-      return {
-        feedback: {
-          taskId: task.taskId,
-          feedbackType: 'correction',
-          primaryMessage: message,
-          suggestedRetryConstraint: 'Write at least 2 full sentences with a linking word.',
-          canAdvance: true,
-        },
-        result: this.buildResult(task, isSpeakingFallback ? Math.min(score, 50) : score, analysis, true, responseMode, rawText),
-      };
-    }
-
-    // Weak response (score < 40)
-    const hint = analysis.wordCount < 5
-      ? 'Your response is very short. Try to write at least a full sentence with a subject, verb, and object.'
-      : analysis.sentenceCount < 2
-        ? 'Good start! Now try to add a second sentence to develop your answer further.'
-        : 'Try to use more varied vocabulary and connect your sentences with words like "and," "but," or "because."';
+    const isSuccess = score >= 40;
 
     return {
       feedback: {
         taskId: task.taskId,
-        feedbackType: 'hint',
-        primaryMessage: hint,
-        suggestedRetryConstraint: 'Write at least 2 complete sentences using a connector.',
-        canAdvance: false,
+        feedbackType: score >= 65 ? 'praise' : 'correction',
+        primaryMessage: score >= 65 ? 'Excellent!' : 'Good effort, but try to be more descriptive.',
+        canAdvance: isSuccess,
       },
+      result: this.buildResult(task, score, analysis, isSuccess, responseMode, rawText),
     };
   }
 

@@ -60,7 +60,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
       svc.cancelRecording();
     }
     stopTimer();
-  }, [task.id]);
+  }, [task.taskId]);
 
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
           audioBlob, 
           userId || 'anonymous', 
           assessmentId || 'battery-session', 
-          task.id
+          task.taskId
         );
       } catch (uploadErr) {
         console.warn("[SpeakingModule] Audio upload failed, proceeding with transcription:", uploadErr);
@@ -392,18 +392,20 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
         </div>
       )}
 
-      {/* Mode Toggle */}
-      <button
-        onClick={() => { setUseTextFallback(!useTextFallback); setErrorMsg(''); }}
-        disabled={isTranscribing || isEvaluating}
-        className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
-      >
-         {useTextFallback ? (
-           <><Mic className="w-4 h-4" /> Try using microphone instead</>
-        ) : (
-           <><Keyboard className="w-4 h-4" /> Prefer typing instead?</>
-        )}
-      </button>
+      {/* Mode Toggle - Only show in placement assessments to prevent blocking users */}
+      {(assessmentId?.includes('placement') || assessmentId?.includes('diagnostic')) && (
+        <button
+          onClick={() => { setUseTextFallback(!useTextFallback); setErrorMsg(''); }}
+          disabled={isTranscribing || isEvaluating}
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+        >
+           {useTextFallback ? (
+             <><Mic className="w-4 h-4" /> Try using microphone instead</>
+          ) : (
+             <><Keyboard className="w-4 h-4" /> Prefer typing instead?</>
+          )}
+        </button>
+      )}
     </div>
   );
 };

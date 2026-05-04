@@ -17,19 +17,26 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
 
   const targetWord = task.payload?.targetWord;
   const distractors = task.payload?.distractors || [];
-  
-  // Mixed options (naive shuffle for demo)
-  const options = [targetWord, ...distractors].sort();
+
+  // Mixed options (naive shuffle for demo). Filter out empties so a missing
+  // payload doesn't render a phantom blank option button.
+  const options = [targetWord, ...distractors].filter(
+    (o): o is string => typeof o === 'string' && o.trim().length > 0
+  ).sort();
+
+  // If the backend didn't supply MCQ options, fall back to free-typed input.
+  const hasOptions = options.length > 0;
+  const productionMode = useProductionMode || !hasOptions;
 
   const isDisabled = isEvaluating || (feedback !== null && feedback.canAdvance);
 
   const handleSubmit = () => {
-    const answer = useProductionMode ? typedAnswer : selectedAnswer;
+    const answer = productionMode ? typedAnswer : selectedAnswer;
     if (answer.trim().length > 0) {
       onSubmit({
         answer,
         recognizedWord: answer,
-        inputMode: useProductionMode ? 'production' : 'recognition',
+        inputMode: productionMode ? 'production' : 'recognition',
         retryAttempt: retryCount,
       });
     }
@@ -38,7 +45,7 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
   return (
     <div className="flex flex-col gap-6 items-center">
       {/* Recognition Mode (Multiple Choice) */}
-      {!useProductionMode && (
+      {!productionMode && (
         <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm w-full max-w-2xl text-center transition-colors duration-300">
            <h3 className="text-xl font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-8">
               {task.prompt.split('____').map((part, i, arr) => (
@@ -73,7 +80,7 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
       )}
 
       {/* Production Mode (Type Answer) */}
-      {useProductionMode && (
+      {productionMode && (
         <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-sm w-full max-w-2xl transition-colors duration-300">
           <div className="text-center mb-6">
             <h3 className="text-xl font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -103,21 +110,23 @@ export const VocabularyModule: React.FC<ModuleProps> = ({ task, onSubmit, isEval
         </div>
       )}
 
-      {/* Mode Toggle */}
-      <button
-        onClick={() => { setUseProductionMode(!useProductionMode); setSelectedAnswer(''); setTypedAnswer(''); }}
-        className="text-sm text-blue-600 dark:text-blue-400 hover:text-indigo-800 font-bold flex items-center gap-2 transition-colors"
-      >
-        <Keyboard className="w-4 h-4" /> {useProductionMode ? 'Switch to Multiple Choice' : 'Want to type? Use Production Mode'}
-      </button>
+      {/* Mode Toggle — hidden when no MCQ options are available */}
+      {hasOptions && (
+        <button
+          onClick={() => { setUseProductionMode(!useProductionMode); setSelectedAnswer(''); setTypedAnswer(''); }}
+          className="text-sm text-blue-600 dark:text-blue-400 hover:text-indigo-800 font-bold flex items-center gap-2 transition-colors"
+        >
+          <Keyboard className="w-4 h-4" /> {useProductionMode ? 'Switch to Multiple Choice' : 'Want to type? Use Production Mode'}
+        </button>
+      )}
 
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        disabled={(useProductionMode ? typedAnswer.trim().length === 0 : selectedAnswer === '') || isDisabled}
+        disabled={(productionMode ? typedAnswer.trim().length === 0 : selectedAnswer === '') || isDisabled}
         className="w-full max-w-2xl py-4 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all shadow-sm"
       >
-        Check Contextual Fit
+        Check Answer
       </button>
     </div>
   );

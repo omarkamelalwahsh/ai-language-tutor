@@ -87,7 +87,7 @@ class JourneyService:
             new_journey = LearningJourney(
                 id=uuid4(),
                 user_id=user_id,
-                metadata={"pedagogical_summary": raw_roadmap.get("pedagogical_summary", "")}
+                metadata_json={"pedagogical_summary": (raw_roadmap.get("pedagogical_summary", "") if raw_roadmap else "")}
             )
             self.db.add(new_journey)
             await self.db.flush()

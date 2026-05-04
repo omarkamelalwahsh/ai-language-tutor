@@ -142,16 +142,16 @@ class LearnerService:
                 },
                 "skills": [
                     {
-                        "name": s.skill.capitalize(),
-                        "skill": s.skill.lower(), 
+                        "name": (s.skill or "Skill").capitalize(),
+                        "skill": (s.skill or "unknown").lower(), 
                         "score": min(100, int((s.current_score or 0) / 100)) if (s.current_score or 0) > 0 else 0,
                         "level": s.current_level or s.current_proficiency_level or "A1",
                         "confidence": s.proficiency_confidence or s.confidence or 0
-                    } for s in skills
+                    } for s in skills if s and s.skill
                 ],
                 "trends": trends,
                 "intelligence_feed": {
-                    "action_plan": err_profile.action_plan if err_profile else "Calibrating your path...",
+                    "action_plan": err_profile.action_plan if (err_profile and hasattr(err_profile, 'action_plan')) else "Calibrating your path...",
                     "recent_insights": [
                         {
                             "id": str(e.id),

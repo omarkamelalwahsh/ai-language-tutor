@@ -90,6 +90,12 @@ DUAL SCORING & SUB-METRICS:
 - vocabulary_score: Lexical range, precision, and CEFR-appropriateness of vocabulary. (0.0-1.0)
 - grammar_score: Range and accuracy of grammatical structures used. (0.0-1.0)
 
+# FEEDBACK STRATEGY (STRICT)
+Follow these pedagogical rules when providing "feedback":
+1. PRIORITY FOCUS: Focus on ONE priority issue at a time. Do not overwhelm the user.
+2. WRITING (Self-Correction First): Identify or hint at the issue first to invite revision. 
+3. SPEAKING (Practicality): Focus on comprehensibility and communicative success.
+
 Current band: {current_level}.
 
 OUTPUT FORMAT (strict JSON):
@@ -103,9 +109,10 @@ OUTPUT FORMAT (strict JSON):
   "grammar_score": float (0.0-1.0),
   "detected_level": string (CEFR level),
   "confidence_score": float (0.0-1.0),
-  "reasoning": "string (detailed step-by-step logic for the assigned scores and CEFR tier selection)",
-  "reasoning_summary": string (1-2 sentence justification referencing specific CEFR evidence),
-  "feedback": string (pedagogical note for the learner)
+  "reasoning": "string (detailed logic)",
+  "reasoning_summary": string (1-2 sentence justification),
+  "feedback": string (pedagogical note focusing on ONE priority issue),
+  "suggested_retry_constraint": "string (instruction for next attempt revision)"
 }}
 """
 
@@ -272,28 +279,30 @@ You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {
 # 2. VOCABULARY INJECTION RULE
 You MUST seamlessly integrate the words provided in {target_vocabulary} into the task stimulus or the required answer. The vocabulary must fit the {user_domain} context naturally.
 
-# 3. TASK TYPE EXECUTION LOGIC
-Generate the task strictly based on the {skill_category} and {task_type}:
+# 3. TASK MODULE REQUIREMENTS (STRICT)
+Follow the specific philosophy and goals for each skill category:
 
-## IF {skill_category} == "WRITING":
-Supported Task Types: [SENTENCE_CREATION, SHORT_ANSWER, EMAIL_DRAFT, SHORT_DESCRIPTION, OPINION_STATEMENT, REWRITE_CLARITY, REWRITE_FORMALITY, GUIDED_PARAGRAPH, SUMMARY, TARGETED_CORRECTION, SCRAMBLED_SENTENCE]
-- Execution: Provide a broken, informal, or prompt-based text in "stimulus". The user must write text to fix or respond to it.
-- Rubric: Provide a perfect expected answer in "target_response".
+## SPEAKING MODULE (Fluency & Clarity)
+- Goals: Produce spoken language in real contexts, improve confidence, practice functional communication.
+- Task Logic: Use tasks like [REPEAT_AFTER_MODEL, READ_ALOUD, ANSWER_DIRECT_QUESTION, DESCRIBE_SITUATION, ROLEPLAY_SCENARIO, GIVE_OPINION, SUMMARIZE_HEARD, COMPLETE_OBJECTIVE, USE_TARGET_PHRASE].
+- Execution: "stimulus" must be the audible prompt. Provide a clear communication objective.
+- Dimensions: Evaluate task completion, comprehensibility, pronunciation clarity, and fluency.
 
-## IF {skill_category} == "LISTENING":
-Supported Task Types: [LISTEN_GIST, LISTEN_SPECIFIC_DETAIL, IDENTIFY_INTENT, SEQUENCE_EVENTS, COMPREHENSION_QUESTIONS, SUMMARIZE_AUDIO, RESPOND_TO_CONVERSATION, EXTRACT_TARGET_LANGUAGE, LISTEN_WRITE, LISTEN_SPEAK, AUDIO_CHOICE]
-- Execution: Generate a transcript of a technical monolog or dialog in "stimulus" (for the TTS engine). The "task_prompt" must test auditory precision (e.g., "Why did the pipeline fail?").
-- Distractors: If multiple choice (like AUDIO_CHOICE), generate 4 "options" (1 target + 3 distractors) that are phonetically or conceptually similar.
+## WRITING MODULE (Accuracy & Revision)
+- Goals: Focus on "Self-correction-first". Help learners produce clear written responses and strengthen control.
+- Task Logic: Use tasks like [SENTENCE_CREATION, SHORT_ANSWER, EMAIL_DRAFT, SHORT_DESCRIPTION, OPINION_STATEMENT, REWRITE_CLARITY, REWRITE_FORMALITY, GUIDED_PARAGRAPH, SUMMARY, TARGETED_CORRECTION, SCRAMBLED_SENTENCE].
+- Execution: Provide a prompt-based text in "stimulus". User must fix or respond.
+- Strategy: Identify or hint at issues first to invite revision.
 
-## IF {skill_category} == "SPEAKING":
-Supported Task Types: [REPEAT_AFTER_MODEL, READ_ALOUD, ANSWER_DIRECT_QUESTION, DESCRIBE_SITUATION, ROLEPLAY_SCENARIO, GIVE_OPINION, SUMMARIZE_HEARD, COMPLETE_OBJECTIVE, USE_TARGET_PHRASE]
-- Execution: Provide a spoken prompt in "stimulus" (e.g., an interviewer asking a question about YOLOv8 deployment). The user must reply verbally. Provide the evaluation criteria in "target_response".
+## LISTENING MODULE (Comprehension & Action)
+- Goals: Extract meaning under realistic conditions. Understand gist, details, and follow dialogue.
+- Task Logic: Use tasks like [LISTEN_GIST, LISTEN_SPECIFIC_DETAIL, IDENTIFY_INTENT, SEQUENCE_EVENTS, COMPREHENSION_QUESTIONS, SUMMARIZE_AUDIO, RESPOND_TO_CONVERSATION, EXTRACT_TARGET_LANGUAGE, LISTEN_WRITE, LISTEN_SPEAK].
+- Execution: "stimulus" is a high-quality transcript for TTS. "task_prompt" tests auditory precision.
 
-## IF {skill_category} == "READING":
-Supported Task Types: [TEXT_ANALYSIS, GIST_DETECTION, VOCABULARY_IN_CONTEXT, INFERENCE, ERROR_IDENTIFICATION, SUMMARY_COMPLETION]
-- Execution: You MUST generate a high-quality technical text (100-200 words) in the "stimulus" field related to {user_domain}. 
-- CRITICAL: The "stimulus" must be the ACTUAL text to read. DO NOT repeat the instruction in the stimulus field.
-- Rubric: Provide the correct analysis or answer in "target_response".
+## VOCABULARY MODULE (Recall & Use)
+- Goals: Focus on active RECALL rather than mere recognition. Connect vocabulary to real usage.
+- Task Logic: Use tasks like [ACTIVE_RECALL, FILL_IN_CONTEXT, CHOOSE_AND_USE, WORD_IN_SENTENCE, CONTRAST_PAIR_DISCRIMINATION, COLLOCATION_PRACTICE, PARAPHRASE].
+- Execution: Balance utility, readiness, and contextual relevance.
 
 # OUTPUT SCHEMA (STRICT JSON ONLY)
 Output your response as a parseable JSON object matching this schema. DO NOT include markdown formatting outside the JSON or conversational filler.
@@ -307,14 +316,14 @@ Output your response as a parseable JSON object matching this schema. DO NOT inc
   }},
   "content": {{
     "instruction": "Clear Arabic instruction for the user (e.g., 'أعد صياغة هذه الرسالة لتكون رسمية')",
-    "stimulus": "The core text, audio transcript, or reading material",
-    "task_prompt": "What the user specifically needs to do or answer (e.g. for SCRAMBLED_SENTENCE, specify to reorder fragments)",
-    "fragments": ["Only if SCRAMBLED_SENTENCE or WORD_BUILDER, else null"],
-    "options": ["Option 1", "Option 2", "Option 3", "Option 4"], 
-    "target_response": "The exact correct answer, expected rewrite, or grading rubric for open-ended tasks",
-    "vocabulary_used": ["List of target words successfully injected"],
-    "explanation": "Detailed pedagogical explanation in Arabic regarding the grammar/vocabulary used and why the target response is correct.",
-    "masked_sentence": "Only if AUDIO_CHOICE, else null"
+    "stimulus": "The core text, audio transcript, or reading material (actual text, NOT repeated instruction)",
+    "task_prompt": "Specific instruction for the user's action",
+    "target_response": "The ideal response for evaluation",
+    "hints": ["Hint 1 (Pedagogical)", "Hint 2 (More direct)"],
+    "options": ["Target option", "Distractor 1", "Distractor 2", "Distractor 3"],
+    "learning_objective": "e.g., Ask for directions politely",
+    "evaluation_focus": "e.g., Task completion + phrase accuracy + clarity",
+    "target_length": "e.g., 2-4 spoken turns or 1-2 sentences"
   }}
 }}
 """

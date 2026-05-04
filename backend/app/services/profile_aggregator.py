@@ -60,12 +60,12 @@ class ProfileAggregator:
             
             await db.execute(
                 text("""
-                    INSERT INTO user_error_profiles (user_id, weakness_areas, action_plan, last_sync)
+                    INSERT INTO user_error_profiles (user_id, weakness_areas, action_plan, updated_at)
                     VALUES (:uid, :wa, :ap, CURRENT_TIMESTAMP)
                     ON CONFLICT (user_id) DO UPDATE SET
                     weakness_areas = EXCLUDED.weakness_areas,
                     action_plan = EXCLUDED.action_plan,
-                    last_sync = CURRENT_TIMESTAMP
+                    updated_at = CURRENT_TIMESTAMP
                 """),
                 {"uid": user_id, "wa": weakness_areas, "ap": action_plan}
             )
@@ -79,7 +79,7 @@ class ProfileAggregator:
 
 async def collect_from_legacy_responses(user_id: str, db: AsyncSession) -> Dict[str, Any]:
     res = await db.execute(
-        text("SELECT score, skill_id FROM assessment_responses WHERE user_id = :uid ORDER BY created_at DESC LIMIT 5"),
+        text("SELECT score, skill FROM assessment_responses WHERE user_id = :uid ORDER BY created_at DESC LIMIT 5"),
         {"uid": user_id}
     )
     result = res.all()
@@ -87,16 +87,16 @@ async def collect_from_legacy_responses(user_id: str, db: AsyncSession) -> Dict[
 
 async def collect_from_skill_states(user_id: str, db: AsyncSession) -> Dict[str, Any]:
     res = await db.execute(
-        text("SELECT skill, current_level, mastery_score FROM skill_states WHERE user_id = :uid"),
+        text("SELECT skill, current_level, current_score FROM skill_states WHERE user_id = :uid"),
         {"uid": user_id}
     )
     result = res.all()
     return {"current_skills": {r[0]: r[2] for r in result}} if result else {}
 
 async def collect_from_learner_profile(user_id: str, db: AsyncSession) -> Dict[str, Any]:
-    # We fetch goal_context (domain), interests, and proficiency level
+    # We fetch goal_context (domain), learning_topics (interests), and proficiency level
     res = await db.execute(
-        text("SELECT goal_context, current_proficiency_level, interests, target_use_case FROM learner_profiles WHERE id = :uid"),
+        text("SELECT goal_context, current_proficiency_level, learning_topics, learning_goal FROM learner_profiles WHERE id = :uid"),
         {"uid": user_id}
     )
     result = res.first()
