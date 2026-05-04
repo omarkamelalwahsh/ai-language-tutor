@@ -1,0 +1,607 @@
+import uuid
+import asyncio
+import logging
+from typing import Dict, Any, List, Tuple, Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text, select
+
+from app.services.profile_aggregator import aggregator
+from app.integrations.groq_client import generate_architect_task, generate_session_batch
+from app.models.domain import (
+    LearnerProfile,
+    UserErrorProfile,
+    UserSkill,
+    LearningJourney,
+    JourneyStep,
+)
+
+logger = logging.getLogger(__name__)
+
+# CEFR ladder for level math
+LEVEL_LADDER = ["A1", "A2", "B1", "B2", "C1", "C2"]
+LEVEL_TO_DIFFICULTY = {"A1": 0.2, "A2": 0.3, "B1": 0.5, "B2": 0.7, "C1": 0.85, "C2": 1.0}
+
+# Each skill maps to one canonical task type when picking a "blind" generation
+SKILL_TO_TASK_TYPE = {
+    "writing": "GUIDED_PARAGRAPH",
+    "reading": "VOCABULARY_IN_CONTEXT",
+    "listening": "LISTEN_SPECIFIC_DETAIL",
+    "speaking": "ANSWER_DIRECT_QUESTION",
+    "grammar": "TARGETED_CORRECTION",
+    "vocabulary": "WORD_BUILDER",
+}
+
+DAILY_MIX_SIZE = 5
+
+
+class SessionManager:
+    """
+    The Maestro layer that sits between the UI button press and the AI.
+    It reads the learner's full state from the DB, decides WHAT to generate
+    (which skills, which difficulty, which weaknesses), then calls the
+    Task Architect once per task. After the session, it writes the deltas
+    back into learner_profiles / skill_states / journey_steps / user_error_profiles.
+    """
+
+    # ------------------------------------------------------------------
+    # 1) "Start Practice" — Smart Daily Mix
+    # ------------------------------------------------------------------
+    @classmethod
+    async def build_daily_mix(cls, user_id: str, db: AsyncSession) -> Dict[str, Any]:
+        """
+        Builds a 5-task batch:
+            - 2 review tasks targeting the WEAKEST skills (laced with recent errors)
+            - 2 journey tasks anchored to the user's current Journey node
+            - 1 maintenance task on a STRONG skill at high difficulty
+        """
+        logger.info(f"[SessionManager] build_daily_mix → user={user_id}")
+
+        unified = await aggregator.get_unified_profile(user_id, db)
+        user_level = unified.get("user_level", "A1")
+        user_domain = unified.get("user_domain", "General Professional")
+        user_interests = unified.get("interests", "Technology")
+        user_goal = unified.get("target_goal", "Professional Fluency")
+        last_errors = unified.get("last_errors", []) or []
+        skills_map = unified.get("current_skills", {}) or {}
+
+        weaknesses, strengths = cls._rank_skills(skills_map)
+        journey_focus = await cls._get_active_journey_focus(user_id, db)
+
+        base_difficulty = LEVEL_TO_DIFFICULTY.get(user_level, 0.5)
+        performance_delta = cls._performance_delta(unified.get("legacy_data", []))
+        adapted_difficulty = max(0.1, min(1.0, base_difficulty + performance_delta))
+
+        # Canonical 5-slot plan — used by both the batch and the per-slot fallback
+        journey_skill = journey_focus.get("skill_focus") or (weaknesses[0] if weaknesses else "writing")
+        maintenance_skill = strengths[0] if strengths else journey_skill
+        plan: List[Tuple[str, str, float]] = [
+            ("review",      weaknesses[0] if weaknesses else "writing",       max(0.15, adapted_difficulty - 0.1)),
+            ("journey",     journey_skill,                                    adapted_difficulty),
+            ("review",      weaknesses[1] if len(weaknesses) > 1 else weaknesses[0] if weaknesses else "writing",
+                                                                              max(0.15, adapted_difficulty - 0.05)),
+            ("journey",     journey_skill,                                    adapted_difficulty),
+            ("maintenance", maintenance_skill,                                min(1.0, adapted_difficulty + 0.15)),
+        ]
+
+        # ── PRIMARY PATH: single batch call to the Master Session Architect ──
+        domain_str = f"{user_domain} (Interests: {user_interests}, Goal: {user_goal})"
+        tasks_payload = await cls._architect_batch(
+            user_level=user_level,
+            user_domain=domain_str,
+            weak_skills=weaknesses[:3],
+            strongest_skill=maintenance_skill,
+            recent_errors=last_errors,
+            journey_title=journey_focus.get("title"),
+            journey_skill=journey_skill,
+            difficulty=adapted_difficulty,
+            plan=plan,
+        )
+
+        # ── FALLBACK PATH: parallel per-slot generation if batch failed ──
+        if not tasks_payload:
+            logger.warning("[SessionManager] batch architect failed → falling back to per-slot parallel calls")
+            tasks_payload = await asyncio.gather(*[
+                cls._architect_one(
+                    slot_role=role,
+                    skill=skill,
+                    difficulty=difficulty,
+                    user_level=user_level,
+                    user_domain=user_domain,
+                    user_interests=user_interests,
+                    user_goal=user_goal,
+                    last_errors=last_errors,
+                    journey_title=journey_focus.get("title"),
+                )
+                for role, skill, difficulty in plan
+            ])
+
+        return {
+            "session_type": "daily_mix",
+            "user_level": user_level,
+            "journey_focus": journey_focus,
+            "plan": [
+                {"slot": role, "skill": skill, "difficulty": difficulty}
+                for role, skill, difficulty in plan
+            ],
+            "tasks": tasks_payload,
+        }
+
+    # ------------------------------------------------------------------
+    # 2) "Practice Specific Skill" — 5 progressive tasks on one skill
+    # ------------------------------------------------------------------
+    @classmethod
+    async def build_skill_practice(
+        cls, user_id: str, skill: str, db: AsyncSession, count: int = DAILY_MIX_SIZE
+    ) -> Dict[str, Any]:
+        """
+        Generates a 5-task ladder on a single targeted skill.
+        Difficulty climbs from -0.1 to +0.2 around the user's current level
+        in that specific skill (not the overall level).
+        """
+        logger.info(f"[SessionManager] build_skill_practice → user={user_id} skill={skill}")
+
+        unified = await aggregator.get_unified_profile(user_id, db)
+        user_domain = unified.get("user_domain", "General Professional")
+        user_interests = unified.get("interests", "Technology")
+        user_goal = unified.get("target_goal", "Professional Fluency")
+        last_errors = unified.get("last_errors", []) or []
+        overall_level = unified.get("user_level", "A1")
+
+        # Prefer the per-skill level from skill_states if present
+        skill_level = await cls._get_skill_level(user_id, skill, db) or overall_level
+        journey_focus = await cls._get_active_journey_focus(user_id, db)
+
+        base = LEVEL_TO_DIFFICULTY.get(skill_level, 0.5)
+        # Smooth ramp: starts a bit below the band, finishes a bit above
+        deltas = [-0.1, -0.05, 0.0, 0.1, 0.2][:count]
+        plan = [(skill, max(0.1, min(1.0, base + d))) for d in deltas]
+
+        tasks_payload = await asyncio.gather(*[
+            cls._architect_one(
+                slot_role="targeted",
+                skill=skill,
+                difficulty=difficulty,
+                user_level=skill_level,
+                user_domain=user_domain,
+                user_interests=user_interests,
+                user_goal=user_goal,
+                last_errors=last_errors,
+                journey_title=journey_focus.get("title"),
+            )
+            for skill, difficulty in plan
+        ])
+
+        return {
+            "session_type": "skill_practice",
+            "skill": skill,
+            "user_level": skill_level,
+            "journey_focus": journey_focus,
+            "plan": [
+                {"slot": "targeted", "skill": skill, "difficulty": difficulty}
+                for skill, difficulty in plan
+            ],
+            "tasks": tasks_payload,
+        }
+
+    # ------------------------------------------------------------------
+    # 3) Feedback Loop — write session results back into the DB
+    # ------------------------------------------------------------------
+    @classmethod
+    async def process_session_results(
+        cls, user_id: str, session_data: Dict[str, Any], db: AsyncSession
+    ) -> Dict[str, Any]:
+        """
+        session_data shape:
+        {
+            "session_type": "daily_mix" | "skill_practice",
+            "results": [
+                {"skill": "writing", "score": 0.83, "is_correct": true,
+                 "task_metadata": {...}, "error_category": "Passive Voice"|null},
+                ...
+            ],
+            "completed_journey_step_id": "<uuid>" | null
+        }
+
+        Returns a summary of what changed so the UI can animate it.
+        """
+        logger.info(f"[SessionManager] process_session_results → user={user_id}")
+        results = session_data.get("results", []) or []
+        if not results:
+            return {"status": "noop", "reason": "no results submitted"}
+
+        skill_summary = cls._aggregate_per_skill(results)
+        new_errors = [r.get("error_category") for r in results if r.get("error_category") and not r.get("is_correct")]
+
+        skill_promotions = await cls._update_skill_states(user_id, skill_summary, db)
+        await cls._update_learner_profile(user_id, results, db)
+        await cls._merge_recent_errors(user_id, new_errors, db)
+
+        unlocked_step = None
+        completed_step_id = session_data.get("completed_journey_step_id")
+        if completed_step_id:
+            unlocked_step = await cls._advance_journey(user_id, completed_step_id, results, db)
+
+        await db.commit()
+
+        return {
+            "status": "ok",
+            "tasks_recorded": len(results),
+            "skill_summary": skill_summary,
+            "skill_promotions": skill_promotions,
+            "unlocked_journey_step": unlocked_step,
+            "errors_logged": len(new_errors),
+        }
+
+    # ==================================================================
+    # Helpers
+    # ==================================================================
+    @staticmethod
+    def _rank_skills(skills_map: Dict[str, Any]) -> Tuple[List[str], List[str]]:
+        """Returns (weaknesses_low_to_high, strengths_high_to_low)."""
+        if not skills_map:
+            return ["writing", "speaking"], ["reading"]
+        sortable = [(s, v if isinstance(v, (int, float)) else 0.0) for s, v in skills_map.items()]
+        weak = [s for s, _ in sorted(sortable, key=lambda kv: kv[1])]
+        strong = list(reversed(weak))
+        return weak, strong
+
+    @staticmethod
+    def _performance_delta(legacy_data: List[Dict[str, Any]]) -> float:
+        if not legacy_data:
+            return 0.0
+        scores = [d.get("score", 0.0) for d in legacy_data if isinstance(d.get("score"), (int, float))]
+        if not scores:
+            return 0.0
+        avg = sum(scores) / len(scores)
+        if avg > 0.85:
+            return 0.1
+        if avg < 0.40:
+            return -0.1
+        return 0.0
+
+    @staticmethod
+    async def _get_active_journey_focus(user_id: str, db: AsyncSession) -> Dict[str, Any]:
+        """Returns the currently-active Journey step (status='active')."""
+        try:
+            stmt = (
+                select(JourneyStep)
+                .join(LearningJourney, JourneyStep.journey_id == LearningJourney.id)
+                .where(LearningJourney.user_id == user_id)
+                .where(JourneyStep.status == "active")
+                .order_by(JourneyStep.order_index.asc())
+                .limit(1)
+            )
+            step = (await db.execute(stmt)).scalar_one_or_none()
+            if step:
+                return {
+                    "step_id": str(step.id),
+                    "title": step.title,
+                    "skill_focus": (step.skill_focus or "").lower() or None,
+                    "order_index": step.order_index,
+                }
+        except Exception as e:
+            logger.warning(f"[SessionManager] active journey lookup failed: {e}")
+        return {"step_id": None, "title": None, "skill_focus": None, "order_index": None}
+
+    @staticmethod
+    async def _get_skill_level(user_id: str, skill: str, db: AsyncSession) -> Optional[str]:
+        try:
+            stmt = select(UserSkill).where(UserSkill.user_id == user_id).where(UserSkill.skill == skill)
+            row = (await db.execute(stmt)).scalar_one_or_none()
+            if row:
+                return row.current_proficiency_level or row.current_level
+        except Exception as e:
+            logger.warning(f"[SessionManager] skill level lookup failed for {skill}: {e}")
+        return None
+
+    @classmethod
+    async def _architect_batch(
+        cls,
+        user_level: str,
+        user_domain: str,
+        weak_skills: List[str],
+        strongest_skill: str,
+        recent_errors: List[str],
+        journey_title: Optional[str],
+        journey_skill: str,
+        difficulty: float,
+        plan: List[Tuple[str, str, float]],
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Single-call path: asks the Master Session Architect for all 5 tasks at once.
+        Returns the normalized task list, or None if the AI response is invalid
+        (so the caller can fall back to per-slot generation).
+        """
+        try:
+            result, _ = await generate_session_batch(
+                user_level=user_level,
+                user_domain=user_domain,
+                weak_skills=weak_skills,
+                strongest_skill=strongest_skill,
+                recent_errors=recent_errors,
+                journey_title=journey_title or "",
+                journey_skill=journey_skill,
+                difficulty=difficulty,
+            )
+        except Exception as e:
+            logger.error(f"[SessionManager] batch architect call failed: {e}")
+            return None
+
+        raw_tasks = result.get("tasks") if isinstance(result, dict) else None
+        if not isinstance(raw_tasks, list) or len(raw_tasks) < DAILY_MIX_SIZE:
+            logger.warning(
+                f"[SessionManager] batch returned malformed shape "
+                f"(type={type(raw_tasks).__name__}, len={len(raw_tasks) if isinstance(raw_tasks, list) else 'n/a'})"
+            )
+            return None
+
+        normalized: List[Dict[str, Any]] = []
+        for i, task in enumerate(raw_tasks[:DAILY_MIX_SIZE]):
+            if not isinstance(task, dict) or "task_metadata" not in task or "content" not in task:
+                logger.warning(f"[SessionManager] batch task #{i} missing required keys → aborting batch")
+                return None
+
+            slot_role, slot_skill, slot_difficulty = plan[i]
+            md = task["task_metadata"]
+            md["id"] = str(uuid.uuid4())
+            md.setdefault("slot_role", slot_role)
+            md.setdefault("skill", slot_skill)
+            md.setdefault("skill_tag", slot_skill)
+            md.setdefault("level", user_level)
+            md.setdefault("difficulty_score", slot_difficulty)
+            normalized.append(task)
+
+        if "session_summary" in result:
+            logger.info(f"[SessionManager] batch summary: {result['session_summary']}")
+
+        return normalized
+
+    @classmethod
+    async def _architect_one(
+        cls,
+        slot_role: str,
+        skill: str,
+        difficulty: float,
+        user_level: str,
+        user_domain: str,
+        user_interests: str,
+        user_goal: str,
+        last_errors: List[str],
+        journey_title: Optional[str],
+    ) -> Dict[str, Any]:
+        """Calls the Task Architect for one slot, with a static-fallback safety net."""
+        task_type = SKILL_TO_TASK_TYPE.get((skill or "").lower(), "GUIDED_PARAGRAPH")
+        domain_str = f"{user_domain} (Interests: {user_interests}, Goal: {user_goal})"
+        if journey_title and slot_role == "journey":
+            domain_str = f"{domain_str} | Active Journey Node: {journey_title}"
+
+        try:
+            result, _ = await generate_architect_task(
+                user_level=user_level,
+                weakness_areas=[skill],
+                last_errors=last_errors,
+                user_domain=domain_str,
+                task_type=task_type,
+                focus_skill=skill,
+                difficulty=difficulty,
+            )
+            if "task_metadata" in result and "content" in result:
+                result["task_metadata"]["id"] = str(uuid.uuid4())
+                result["task_metadata"]["slot_role"] = slot_role
+                result["task_metadata"]["skill"] = skill
+                result["task_metadata"]["difficulty_score"] = difficulty
+                return result
+            logger.warning(f"[SessionManager] AI returned malformed task for slot={slot_role} skill={skill}")
+        except Exception as e:
+            logger.error(f"[SessionManager] task architect failed (slot={slot_role}): {e}")
+
+        # Safety net so the UI never breaks the 5-card layout
+        return {
+            "task_metadata": {
+                "id": str(uuid.uuid4()),
+                "type": task_type,
+                "slot_role": slot_role,
+                "skill": skill,
+                "skill_tag": skill,
+                "difficulty_score": difficulty,
+                "is_fallback": True,
+            },
+            "content": {
+                "instruction": "Practice this prompt while we reconnect to the AI.",
+                "stimulus": "The model learns patterns from the training data.",
+                "task_prompt": "Write one sentence describing how this process works.",
+                "target_response": "The model finds patterns in the data during training.",
+                "explanation": "Fallback task — generated locally because the AI call failed.",
+            },
+        }
+
+    @staticmethod
+    def _aggregate_per_skill(results: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
+        """Buckets the per-task scores by skill."""
+        buckets: Dict[str, Dict[str, float]] = {}
+        for r in results:
+            skill = (r.get("skill") or r.get("task_metadata", {}).get("skill") or "general").lower()
+            score = float(r.get("score", 0.0) or 0.0)
+            bucket = buckets.setdefault(skill, {"count": 0, "sum": 0.0, "correct": 0})
+            bucket["count"] += 1
+            bucket["sum"] += score
+            if r.get("is_correct"):
+                bucket["correct"] += 1
+        # Finalize averages
+        for skill, b in buckets.items():
+            b["avg_score"] = b["sum"] / b["count"] if b["count"] else 0.0
+            b["accuracy"] = b["correct"] / b["count"] if b["count"] else 0.0
+        return buckets
+
+    @classmethod
+    async def _update_skill_states(
+        cls, user_id: str, skill_summary: Dict[str, Dict[str, float]], db: AsyncSession
+    ) -> List[Dict[str, Any]]:
+        """
+        For each skill touched in the session, push a small XP delta and
+        promote the level if accuracy ≥ 0.8 over the bucket.
+        Returns a list of {skill, before, after} for the ones that moved.
+        """
+        promotions: List[Dict[str, Any]] = []
+        for skill, stats in skill_summary.items():
+            try:
+                stmt = select(UserSkill).where(UserSkill.user_id == user_id).where(UserSkill.skill == skill)
+                row = (await db.execute(stmt)).scalar_one_or_none()
+                accuracy = stats.get("accuracy", 0.0)
+                xp_gain = int(round(stats["sum"] * 10))  # 0–10 XP per task
+
+                if not row:
+                    new_row = UserSkill(
+                        id=uuid.uuid4(),
+                        user_id=user_id,
+                        skill=skill,
+                        current_level="A1",
+                        level="A1",
+                        current_proficiency_level="A1",
+                        xp_points=xp_gain,
+                        current_score=stats["avg_score"],
+                        confidence=accuracy,
+                    )
+                    db.add(new_row)
+                    continue
+
+                before = row.current_proficiency_level or row.current_level or "A1"
+                row.xp_points = (row.xp_points or 0) + xp_gain
+                row.current_score = stats["avg_score"]
+                row.confidence = accuracy
+
+                if accuracy >= 0.8 and before in LEVEL_LADDER:
+                    next_idx = min(LEVEL_LADDER.index(before) + 1, len(LEVEL_LADDER) - 1)
+                    after = LEVEL_LADDER[next_idx]
+                    if after != before:
+                        row.current_proficiency_level = after
+                        row.current_level = after
+                        row.level = after
+                        promotions.append({"skill": skill, "before": before, "after": after})
+            except Exception as e:
+                logger.warning(f"[SessionManager] skill_states update failed for {skill}: {e}")
+        return promotions
+
+    @staticmethod
+    async def _update_learner_profile(
+        user_id: str, results: List[Dict[str, Any]], db: AsyncSession
+    ) -> None:
+        """Bumps xp_points, accuracy_rate, total_questions_answered, last_active_at."""
+        try:
+            scores = [float(r.get("score", 0.0) or 0.0) for r in results]
+            correct = sum(1 for r in results if r.get("is_correct"))
+            session_avg = sum(scores) / len(scores) if scores else 0.0
+            session_acc = correct / len(results) if results else 0.0
+            xp_gain = int(round(sum(scores) * 10))
+
+            await db.execute(
+                text("""
+                    UPDATE learner_profiles
+                    SET xp_points = COALESCE(xp_points, 0) + :xp,
+                        total_questions_answered = COALESCE(total_questions_answered, 0) + :n,
+                        accuracy_rate = (
+                            COALESCE(accuracy_rate, 0) * 0.7 + :acc * 0.3
+                        ),
+                        last_active_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :uid
+                """),
+                {"xp": xp_gain, "n": len(results), "acc": session_acc, "uid": user_id},
+            )
+            logger.info(
+                f"[SessionManager] learner_profile updated: +{xp_gain}xp avg={session_avg:.2f} acc={session_acc:.2f}"
+            )
+        except Exception as e:
+            logger.warning(f"[SessionManager] learner_profiles update failed: {e}")
+
+    @staticmethod
+    async def _merge_recent_errors(
+        user_id: str, new_errors: List[str], db: AsyncSession
+    ) -> None:
+        """Appends the session's error categories into user_error_profiles.common_mistakes (deduped, last 20)."""
+        if not new_errors:
+            return
+        try:
+            res = await db.execute(
+                text("SELECT common_mistakes FROM user_error_profiles WHERE user_id = :uid"),
+                {"uid": user_id},
+            )
+            row = res.first()
+            existing: List[str] = list(row[0]) if row and row[0] else []
+            merged = (new_errors + existing)
+            seen = set()
+            deduped = []
+            for item in merged:
+                if item and item not in seen:
+                    seen.add(item)
+                    deduped.append(item)
+            deduped = deduped[:20]
+
+            if row:
+                await db.execute(
+                    text("""
+                        UPDATE user_error_profiles
+                        SET common_mistakes = CAST(:cm AS JSONB),
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE user_id = :uid
+                    """),
+                    {"cm": _to_jsonb_str(deduped), "uid": user_id},
+                )
+            else:
+                await db.execute(
+                    text("""
+                        INSERT INTO user_error_profiles (id, user_id, common_mistakes, full_report)
+                        VALUES (gen_random_uuid(), :uid, CAST(:cm AS JSONB), CAST('{}' AS JSONB))
+                    """),
+                    {"cm": _to_jsonb_str(deduped), "uid": user_id},
+                )
+        except Exception as e:
+            logger.warning(f"[SessionManager] merge_recent_errors failed: {e}")
+
+    @staticmethod
+    async def _advance_journey(
+        user_id: str, completed_step_id: str, results: List[Dict[str, Any]], db: AsyncSession
+    ) -> Optional[Dict[str, Any]]:
+        """
+        If the session passed (≥60% accuracy), mark the step completed and
+        unlock the next ordered step. Returns metadata about the unlocked step.
+        """
+        try:
+            correct = sum(1 for r in results if r.get("is_correct"))
+            passed = (correct / len(results)) >= 0.6 if results else False
+            if not passed:
+                logger.info(f"[SessionManager] journey step NOT advanced (accuracy below threshold)")
+                return None
+
+            stmt = select(JourneyStep).where(JourneyStep.id == completed_step_id)
+            step = (await db.execute(stmt)).scalar_one_or_none()
+            if not step:
+                return None
+
+            step.status = "completed"
+            step.is_locked = False
+
+            next_stmt = (
+                select(JourneyStep)
+                .where(JourneyStep.journey_id == step.journey_id)
+                .where(JourneyStep.order_index == step.order_index + 1)
+                .limit(1)
+            )
+            next_step = (await db.execute(next_stmt)).scalar_one_or_none()
+            if next_step:
+                next_step.status = "active"
+                next_step.is_locked = False
+                return {
+                    "id": str(next_step.id),
+                    "title": next_step.title,
+                    "skill_focus": next_step.skill_focus,
+                    "order_index": next_step.order_index,
+                }
+        except Exception as e:
+            logger.warning(f"[SessionManager] _advance_journey failed: {e}")
+        return None
+
+
+def _to_jsonb_str(value: Any) -> str:
+    import json
+    return json.dumps(value)

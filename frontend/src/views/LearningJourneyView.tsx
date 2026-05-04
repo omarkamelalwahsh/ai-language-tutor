@@ -1,11 +1,12 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Target, Sparkles, CheckCircle2, Lock, ArrowRight, Play, 
-  BookOpen, Mic, PenTool, Headphones, Layers, Zap, 
-  Brain, Focus, ChevronRight, Activity, MapPin, 
-  ShieldCheck, AlertCircle, Info, TrendingUp
+import {
+  Target, Sparkles, CheckCircle2, Lock, ArrowRight, Play,
+  BookOpen, Mic, PenTool, Headphones, Layers, Zap,
+  Brain, Focus, ChevronRight, Activity, MapPin,
+  ShieldCheck, AlertCircle, Info, TrendingUp, Wand2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { learnerService, JourneyData, JourneyNode } from '../services/learnerService';
 
 interface LearningJourneyViewProps {
@@ -158,6 +159,7 @@ const WindingPath = () => {
 // Main Component
 // ---------------------------------------------------------------------------
 export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result, onStartSession, onViewDashboard }) => {
+  const navigate = useNavigate();
   const [journeyData, setJourneyData] = useState<JourneyData | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -226,64 +228,8 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-500/30 overflow-x-hidden transition-colors duration-300 flex flex-col md:flex-row">
-      
-      {/* --- Responsive Sidebar --- */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-slate-200 dark:border-gray-800 transform transition-transform duration-300 md:relative md:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="flex flex-col h-full p-6">
-          <div className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Brain className="text-white" size={24} />
-            </div>
-            <div>
-              <h2 className="text-lg font-black tracking-tighter">AI TUTOR</h2>
-              <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Mastery Protocol</p>
-            </div>
-          </div>
-
-          <nav className="flex-1 space-y-2">
-             <button onClick={onViewDashboard} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-blue-50 dark:hover:bg-blue-600/10 hover:text-blue-600 transition-all">
-                <Layers size={18} /> Dashboard
-             </button>
-             <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-lg">
-                <Activity size={18} /> My Journey
-             </button>
-             <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
-                <Target size={18} /> Skills Matrix
-             </button>
-          </nav>
-
-          <div className="mt-auto pt-6 border-t border-slate-100 dark:border-gray-800">
-             <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-gray-800 overflow-hidden">
-                   <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${dashboardData?.profile?.name || 'User'}`} alt="Profile" />
-                </div>
-                <div className="flex-1 min-w-0">
-                   <p className="text-sm font-bold truncate">{dashboardData?.profile?.name || 'Learner'}</p>
-                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{currentLevel} Level</p>
-                </div>
-             </div>
-          </div>
-        </div>
-        <button onClick={() => setIsSidebarOpen(false)} className="absolute top-6 -right-12 md:hidden w-10 h-10 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl flex items-center justify-center text-slate-500 shadow-xl">
-           <ChevronRight size={20} className="rotate-180" />
-        </button>
-      </aside>
-
-      {/* --- Main Dashboard Body --- */}
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans selection:bg-blue-500/30 overflow-x-hidden transition-colors duration-300">
       <main className="flex-1 w-full min-w-0 overflow-y-auto overflow-x-hidden relative">
-        <div className="md:hidden sticky top-0 z-40 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-slate-200 dark:border-gray-800 p-4 flex items-center justify-between">
-           <div className="flex items-center gap-2">
-              <Brain size={24} className="text-blue-600" />
-              <span className="font-black tracking-tighter">AI TUTOR</span>
-           </div>
-           <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-600 dark:text-slate-400">
-              <Activity size={24} />
-           </button>
-        </div>
 
         <div className="absolute top-0 left-1/2 w-[100%] max-w-[1000px] h-[600px] bg-blue-600 dark:bg-blue-600/5 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
         
@@ -291,13 +237,19 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
           
           <header className="flex flex-col mb-12 lg:mb-20">
             <div className="flex flex-wrap items-center gap-4 mb-8">
-               <button 
+               <button
                  onClick={onViewDashboard}
                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800/50 rounded-full backdrop-blur-sm transition active:scale-95 group shadow-premium"
                >
                   <ArrowRight size={12} className="rotate-180 group-hover:-translate-x-0.5 transition-transform" /> Back
                </button>
                <Breadcrumb items={['My Path', 'Current Journey']} />
+               <button
+                 onClick={() => navigate('/practice/daily-mix')}
+                 className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-br dark:from-indigo-600 dark:to-violet-700 dark:hover:from-indigo-500 dark:hover:to-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-premium dark:shadow-[0_0_18px_rgba(99,102,241,0.35)] transition active:scale-95"
+               >
+                  <Wand2 size={12} /> Start Daily Mix <ArrowRight size={12} />
+               </button>
             </div>
             
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-12">

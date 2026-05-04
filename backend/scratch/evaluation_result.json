@@ -1,0 +1,16 @@
+{
+  "score": 40,
+  "is_correct": false,
+  "detailed_feedback": "من ممكن تحسن الجمل و الدقوى لكن يجب التركيز على استخدام الزمن المورد له و التعبير عن الخطء ليس سهل مثل مثل الجمل و الدقى لكن تكون الجملة مثل ي كون تكون المورد له ليس سهل",
+  "error_analysis": {
+    "detected_errors": [
+      "I am write",
+      "I have being"
+    ],
+    "corrected_version": "Dear Sir, I am writing to you because I missed the meeting last week. I have been very sick. I hope we can meet again soon."
+  },
+  "metrics": {
+    "grammar_score": 20,
+    "relevance_score": 80
+  }
+}

@@ -45,101 +45,117 @@ function analyzeResponse(text: string): {
 export class RuntimeService {
   /**
    * Returns structured session tasks based on the deterministic assessment result.
+   * Now fetches dynamic tasks from the backend AI engine.
    */
-  public static generateSessionTasks(result: AssessmentSessionResult): SessionTask[] {
+  public static async generateSessionTasks(result: AssessmentSessionResult, skillFilter?: string): Promise<SessionTask[]> {
     if (!result || !result.overall) {
       console.warn('[RuntimeService] Attempted to generate tasks without a valid result object.');
       return [];
     }
-    const overallLevel = result.overall.estimatedLevel;
-    const confidence = result.overall.confidence;
-    
-    // 1. Identify Fragile Zones (Descriptors with low support/strength)
-    const fragileDescriptors: { skill: SkillName; desc: any }[] = [];
-    Object.entries(result.skills).forEach(([skillName, skillResult]) => {
-      skillResult.descriptors
-        .filter(d => d.strength < 0.7)
-        .forEach(d => fragileDescriptors.push({ skill: skillName as SkillName, desc: d }));
-    });
 
-    // 2. Identify weakest skill for fallback
-    const sortedSkills = Object.values(result.skills).sort((a, b) => a.confidence.score - b.confidence.score);
-    const weakestSkill = sortedSkills[0].skill as SkillName;
-    
-    // Support level based on confidence: Low confidence = High support
-    const supportLevel = confidence < 0.5 ? 'high' : confidence < 0.8 ? 'medium' : 'low';
-    const taskCount = confidence < 0.6 ? 2 : 3;
-
+    const taskCount = 5;
     const tasks: SessionTask[] = [];
 
-    // Prioritize fragile descriptors if any exist
-    const targetZonse = fragileDescriptors.length > 0 ? fragileDescriptors : [{ skill: weakestSkill, desc: null }];
+    // Map skillFilter to backend expected types
+    const typeMap: Record<string, string> = {
+        'listening': 'AUDIO_CHOICE',
+        'speaking': 'ORAL_PROMPT',
+        'writing': 'OPEN_RESPONSE',
+        'reading': 'TEXT_ANALYSIS'
+    };
 
-    for (let i = 0; i < taskCount; i++) {
-      const zone = targetZonse[i % targetZonse.length];
-      const focusSkill = zone.skill;
-      const rationale = zone.desc 
-        ? `Targeting identified gap: ${zone.desc.descriptorText}`
-        : `Building consistency in your primary growth area: ${focusSkill}`;
+    const targetType = skillFilter ? typeMap[skillFilter] || 'SCRAMBLED_SENTENCE' : 'SCRAMBLED_SENTENCE';
 
-      if (focusSkill === 'vocabulary' || focusSkill === 'reading') {
-        tasks.push({
-          taskId: `vocab_${Date.now()}_${i}`,
-          taskType: 'vocabulary',
-          targetSkill: 'vocabulary',
-          learningObjective: 'Contextual Use of Target Words',
-          prompt: 'Fill in the blank: "The new software update will ________ the performance of the system." (Options: improve, delay, abandon, compromise)',
-          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 1 },
-          difficultyTarget: overallLevel,
-          completionCondition: 'Correct answer provided',
-          reason: rationale,
-          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : [],
-          payload: { targetWord: 'improve', distractors: ['delay', 'abandon'] }
-        });
-      } else if (focusSkill === 'listening') {
-        tasks.push({
-          taskId: `listen_${Date.now()}_${i}`,
-          taskType: 'listening',
-          targetSkill: 'listening',
-          learningObjective: 'Gist comprehension',
-          prompt: 'Listen to the audio. What is the speaker primarily discussing?',
-          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: true, allowSlowAudio: supportLevel === 'high', maxRetries: 2 },
-          difficultyTarget: overallLevel,
-          completionCondition: 'Identify the gist successfully',
-          reason: rationale,
-          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : [],
-          payload: { audioSrc: 'https://cdn.pixabay.com/audio/2022/10/25/audio_24911f32a6.mp3' }
-        });
-      } else if (focusSkill === 'writing' || focusSkill === 'grammar') {
-        tasks.push({
-          taskId: `write_${Date.now()}_${i}`,
-          taskType: 'writing',
-          targetSkill: 'writing',
-          learningObjective: 'Sentence building and connector use',
-          prompt: 'Write two sentences explaining why you prefer working from home or from an office. You MUST use at least one linking word (e.g., however, because, therefore).',
-          supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
-          difficultyTarget: overallLevel,
-          completionCondition: 'Use of connector and complete sentence structure',
-          reason: rationale,
-          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : []
-        });
-      } else {
-        tasks.push({
-          taskId: `speak_${Date.now()}_${i}`,
-          taskType: 'speaking',
-          targetSkill: 'speaking',
-          learningObjective: 'Fluency in routine scenarios',
-          prompt: 'You need to reschedule your dentist appointment. Leave a short voice message explaining why you cannot make it.',
-          supportSettings: { allowHints: supportLevel !== 'low', allowReplay: false, maxRetries: supportLevel === 'high' ? 3 : 2 },
-          difficultyTarget: overallLevel,
-          completionCondition: 'Clear communication of intent and reason',
-          reason: rationale,
-          fragileDescriptorIds: zone.desc ? [zone.desc.descriptorId] : []
-        });
-      }
+    console.log(`[RuntimeService] 🧠 Requesting ${taskCount} dynamic tasks for: ${targetType}`);
+
+    try {
+        for (let i = 0; i < taskCount; i++) {
+            const dynamicTask = await this.fetchDynamicTask(targetType);
+            if (dynamicTask) {
+                tasks.push(dynamicTask);
+            }
+        }
+        
+        if (tasks.length > 0) return tasks;
+    } catch (err) {
+        console.error('[RuntimeService] Failed to fetch dynamic tasks, using fallbacks:', err);
     }
 
-    return tasks;
+    // Fallback to one static task if everything fails
+    return [{
+        taskId: `fallback_${Date.now()}`,
+        taskType: 'writing',
+        targetSkill: 'writing',
+        learningObjective: 'Syntactic consistency',
+        prompt: 'The system is temporarily using a fallback task. Please describe your professional background in two sentences.',
+        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
+        difficultyTarget: result.overall.estimatedLevel,
+        completionCondition: 'Two complete sentences'
+    }];
+  }
+
+  /**
+   * Calls the backend to generate a single dynamic task.
+   */
+  private static async fetchDynamicTask(type: string): Promise<SessionTask | null> {
+    try {
+        const response = await fetch('/api/v1/tasks/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+            },
+            body: JSON.stringify({ type })
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        // Map AI response to SessionTask interface
+        const aiMetadata = data.task_metadata || {};
+        const aiContent = data.content || {};
+
+        // Ensure audioSrc is present if it's a listening task
+        let audioSrc = aiContent.audio_url || aiContent.audioSrc;
+        
+        // 🔥 TTS Fallback: If it's a listening task and no audio URL provided, 
+        // generate a TTS link from the stimulus text.
+        if (aiMetadata.skill_category === 'LISTENING' && (!audioSrc || audioSrc === 'optional')) {
+            const textToSpeak = aiContent.stimulus || aiContent.instruction || 'Please listen carefully.';
+            audioSrc = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textToSpeak)}&tl=en&client=tw-ob`;
+        }
+
+        return {
+            taskId: aiMetadata.id || `task_${Date.now()}`,
+            taskType: this.mapAiTypeToFrontend(aiMetadata.type || type),
+            targetSkill: aiMetadata.skill_category?.toLowerCase() || type.toLowerCase(),
+            learningObjective: aiMetadata.objective || 'Linguistic Accuracy',
+            prompt: aiContent.instruction || aiContent.stimulus || 'Complete the task',
+            supportSettings: {
+                allowHints: true,
+                allowReplay: true,
+                allowSlowAudio: true,
+                maxRetries: 3
+            },
+            difficultyTarget: aiMetadata.difficulty_score > 0.7 ? 'Advanced' : 'Intermediate',
+            completionCondition: 'Accurate completion of the task stimulus',
+            payload: {
+                ...aiContent,
+                audioSrc
+            }
+        };
+    } catch (err) {
+        console.error('[RuntimeService] Fetch Task Error:', err);
+        return null;
+    }
+  }
+
+  private static mapAiTypeToFrontend(aiType: string): any {
+      const type = aiType.toUpperCase();
+      if (type.includes('AUDIO') || type.includes('LISTENING')) return 'listening';
+      if (type.includes('ORAL') || type.includes('SPEAKING')) return 'speaking';
+      if (type.includes('OPEN') || type.includes('WRITING')) return 'writing';
+      return 'vocabulary'; // Default
   }
 
     /**

@@ -3,7 +3,8 @@ import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites
+from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites, tasks
+from app.api.v1.endpoints import analytics
 from app.core.config import settings
 
 app = FastAPI(
@@ -45,10 +46,12 @@ app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["Cha
 app.include_router(media.router, prefix=f"{settings.API_V1_STR}", tags=["Media"])
 app.include_router(questions.router, prefix=f"{settings.API_V1_STR}/questions", tags=["Questions"])
 app.include_router(leaderboard.router, prefix=f"{settings.API_V1_STR}/leaderboard", tags=["Leaderboard"])
-app.include_router(learner.router, prefix=f"{settings.API_V1_STR}/learner", tags=["Learner"])
+app.include_router(learner.router, prefix=f"{settings.API_V1_STR}", tags=["Learner"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(audit.router, prefix=f"{settings.API_V1_STR}/audit-logs", tags=["Audit Logs"])
 app.include_router(invites.router, prefix=f"{settings.API_V1_STR}/invites", tags=["Invites"])
+app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["Tasks"])
+app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["Analytics"])
 
 if __name__ == "__main__":
     import uvicorn

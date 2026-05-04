@@ -13,6 +13,7 @@ from app.schemas.evaluation import (
     EvaluationResponse
 )
 from app.services.assessment_service import AssessmentService
+from app.integrations.groq_client import evaluate_dynamic_task
 from app.models.domain import Assessment, AssessmentResponse, AssessmentStatus
 from sqlalchemy import select
 
@@ -199,3 +200,51 @@ async def complete_assessment(
         logging.error(f"Error in complete assessment route: {str(e)}")
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Assessment completion failed")
+
+@router.post("/submit-task")
+async def submit_dynamic_task(
+    payload: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Orchestration Endpoint: Evaluates a dynamic task and syncs results to DB.
+    Payload: { user_id: UUID, task_id: UUID, response_text: str }
+    """
+    try:
+        user_id = UUID(str(payload.get("user_id")))
+        step_id = UUID(str(payload.get("task_id")))
+        response_text = payload.get("response_text")
+
+        if str(user_id) != current_user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+        service = AssessmentService(db)
+
+        # 1. Fetch Task Metadata (Rubric, Prompt)
+        task_metadata = await service.get_task_metadata(step_id)
+        prompt = task_metadata.get("prompt", "Analyze the text.")
+        rubric = task_metadata.get("rubric", {})
+
+        # 2. Call Evaluator (Model 2)
+        evaluation, _ = await evaluate_dynamic_task(
+            prompt=prompt,
+            rubric=rubric,
+            user_response=response_text
+        )
+
+        # 3. Sync to DB (Writeback)
+        await service.sync_evaluation_to_db(
+            user_id=user_id,
+            evaluation_result=evaluation,
+            skill=task_metadata.get("skill", "general"),
+            task_id=step_id
+        )
+
+        return evaluation
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid ID format: {str(e)}")
+    except Exception as e:
+        logging.error(f"Orchestrator Failure: {str(e)}")
+        raise HTTPException(status_code=500, detail="Remediation Loop failed to execute")

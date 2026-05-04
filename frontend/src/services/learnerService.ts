@@ -115,21 +115,21 @@ class LearnerService {
 
   async getDashboard(): Promise<DashboardData> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/learner/dashboard`, { headers });
+    const response = await fetch(`${this.baseUrl}/api/v1/dashboard`, { headers });
     if (!response.ok) throw new Error('Failed to fetch dashboard');
     return await response.json();
   }
 
   async getJourney(): Promise<JourneyData> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/learner/journey`, { headers });
+    const response = await fetch(`${this.baseUrl}/api/v1/journey`, { headers });
     if (!response.ok) throw new Error('Failed to fetch journey');
     return await response.json();
   }
 
   async getProfile(): Promise<IntelligenceProfile> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/learner/profile`, { headers });
+    const response = await fetch(`${this.baseUrl}/api/v1/profile`, { headers });
     if (!response.ok) throw new Error('Failed to fetch intelligence profile');
     return await response.json();
   }

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SessionTask, TaskFeedbackPayload, TaskEvaluationResult } from '../../types/runtime';
 import { AssessmentSessionResult } from '../../types/assessment';
@@ -11,6 +12,7 @@ import { WritingModule } from './modules/WritingModule';
 import { ListeningModule } from './modules/ListeningModule';
 import { VocabularyModule } from './modules/VocabularyModule';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
+import AdaptiveTaskCard from '../assessment/AdaptiveTaskCard';
 
 interface SharedRuntimeProps {
   onExit: () => void;
@@ -108,25 +110,62 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     } as AssessmentSessionResult;
   }, [result, supabaseData]);
 
-  // 3. Populate tasks once activeResult is ready
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const skillFilter = searchParams.get('skill');
+  const isFetching = useRef(false);
+
+  // 3. Populate tasks once activeResult is ready or skill changes
   React.useEffect(() => {
-    if (activeResult && tasks.length === 0) {
-      setTasks(RuntimeService.generateSessionTasks(activeResult));
+    if (activeResult && !isFetching.current) {
+      const fetchTasks = async () => {
+        isFetching.current = true;
+        setTasks([]); // Reset to show loading state
+        setCurrentTaskIndex(0);
+        setFeedback(null);
+        setEvaluation(null);
+        setShowSummary(false);
+        setSessionResults([]);
+        
+        try {
+          const generatedTasks = await RuntimeService.generateSessionTasks(activeResult, skillFilter || undefined);
+          setTasks(generatedTasks);
+        } finally {
+          isFetching.current = false;
+        }
+      };
+      
+      fetchTasks();
     }
-  }, [activeResult, tasks.length]);
+  }, [activeResult, skillFilter]); 
 
   // 4. Return Loading Shell (Must be AFTER all hooks)
-  if (!activeResult) {
+  if (!activeResult || (tasks.length === 0 && !showSummary)) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 bg-blue-600 dark:bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm dark:shadow-md shadow-indigo-100 animate-pulse mb-6">
           <Loader2 className="w-8 h-8 text-white animate-spin" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Syncing Session...</h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Preparing your personalized learning environment.</p>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Architecting Your Tasks...</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Building a custom technical curriculum for you.</p>
       </div>
     );
   }
+
+  // Handle fetching 5 more tasks
+  const handleContinue = async () => {
+    setIsEvaluating(true);
+    try {
+      const moreTasks = await RuntimeService.generateSessionTasks(activeResult as any, skillFilter || undefined);
+      setTasks(prev => [...prev, ...moreTasks]);
+      setCurrentTaskIndex(prev => prev + 1);
+      setFeedback(null);
+      setEvaluation(null);
+      taskStartTime.current = Date.now();
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
 
   const currentTask = tasks[currentTaskIndex];
 
@@ -137,25 +176,23 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     const responseTimeMs = Date.now() - taskStartTime.current;
 
     setTimeout(async () => {
-      const { feedback: newFeedback, result } = await RuntimeService.evaluateResponse(currentTask, responsePayload);
-      
-      // Enrich result with actual behavioral signals
-      if (result) {
-        result.responseTimeMs = responseTimeMs;
-        result.hintUsage = hintsUsed;
-        result.retryCount = retryCount;
-        result.supportDependence = hintsUsed > 2 ? 'high' : hintsUsed > 0 ? 'medium' : 'low';
+      try {
+        const { feedback: newFeedback, result } = await RuntimeService.evaluateResponse(currentTask, responsePayload);
+        
+        if (result) {
+          result.responseTimeMs = responseTimeMs;
+          result.hintUsage = hintsUsed;
+          result.retryCount = retryCount;
+          result.supportDependence = hintsUsed > 2 ? 'high' : hintsUsed > 0 ? 'medium' : 'low';
+          setEvaluation(result);
+        }
+        setFeedback(newFeedback);
+      } finally {
+        setIsEvaluating(false);
       }
-
-      setFeedback(newFeedback);
-      if (result) {
-        setEvaluation(result);
-      }
-      setIsEvaluating(false);
     }, 1500);
   };
 
-  // Retry handler — allows resubmission on the same task
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     setHintsUsed(prev => prev + 1);
@@ -164,11 +201,19 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     taskStartTime.current = Date.now();
   };
 
+  const [showBatchEnd, setShowBatchEnd] = useState(false);
+
   const handleNextTask = () => {
     if (evaluation) {
       setSessionResults(prev => [...prev, evaluation]);
     }
     
+    // Check if we reached the end of the current batch (5 tasks)
+    if ((currentTaskIndex + 1) % 5 === 0 && currentTaskIndex === tasks.length - 1) {
+      setShowBatchEnd(true);
+      return;
+    }
+
     if (currentTaskIndex < tasks.length - 1) {
       setCurrentTaskIndex(currentTaskIndex + 1);
       setFeedback(null);
@@ -177,10 +222,6 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       setHintsUsed(0);
       taskStartTime.current = Date.now();
     } else {
-      // Show session summary before exiting
-      if (evaluation) {
-        setSessionResults(prev => [...prev, evaluation]);
-      }
       setShowSummary(true);
     }
   };
@@ -205,6 +246,41 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       default: return <div>Unknown task type</div>;
     }
   };
+
+  // ---- Intermediate Batch End Screen ---- //
+  if (showBatchEnd) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-6">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-gray-800 text-center space-y-8"
+        >
+          <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg animate-bounce">
+            <Zap className="w-10 h-10 text-white" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50">Batch Complete!</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">You've finished 5 tasks. What's next on your journey?</p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <button 
+              onClick={() => { setShowBatchEnd(false); handleContinue(); }}
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" /> Continue Practice (5 More)
+            </button>
+            <button 
+              onClick={() => { setShowBatchEnd(false); setShowSummary(true); }}
+              className="w-full py-4 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-50 rounded-2xl font-black uppercase tracking-widest transition active:scale-95 flex items-center justify-center gap-2"
+            >
+              <BarChart2 className="w-5 h-5" /> Finish & View Report
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   // ---- Session Summary Screen ---- //
   if (showSummary) {
@@ -355,11 +431,18 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   }
 
   if (!currentTask || tasks.length === 0) {
+    const activeTaskId = localStorage.getItem('active_journey_step_id') || 'remediation_session_01';
+    
     return (
-      <ComingSoonTasks 
-        currentLevel={result.overall.estimatedLevel} 
-        onExit={onExit} 
-      />
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-4xl">
+          <AdaptiveTaskCard 
+            taskId={activeTaskId} 
+            userId={supabaseData.user?.id || 'learner_prime'} 
+            onComplete={onExit} 
+          />
+        </div>
+      </div>
     );
   }
 

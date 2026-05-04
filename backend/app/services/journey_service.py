@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from app.models.domain import LearningJourney, JourneyStep, LearnerProfile, UserErrorProfile
-from app.integrations.groq_client import generate_roadmap
+from app.integrations.groq_client import generate_roadmap, generate_dynamic_task
 
 class JourneyService:
     def __init__(self, db: AsyncSession):
@@ -119,3 +119,53 @@ class JourneyService:
             await self.db.rollback()
             # Return a "Calibration" state or dummy if AI fails
             return {"status": "calibration", "nodes": []}
+
+    async def generate_step_task(self, user_id: UUID, step_id: UUID = None) -> dict:
+        """
+        Orchestration Layer: Uses Model 3 (Task Engine) with Logic-Gated Prompting.
+        Fetches accuracy_rate, pacing_score, and weakness_areas for hyper-personalized generation.
+        """
+        try:
+            # 1. Fetch context
+            prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+            profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
+            
+            err_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
+            err_profile = (await self.db.execute(err_stmt)).scalar_one_or_none()
+
+            # Optional: Fetch specific skill focus from step
+            skill_focus = "general"
+            if step_id:
+                step_stmt = select(JourneyStep).where(JourneyStep.id == step_id)
+                step = (await self.db.execute(step_stmt)).scalar_one_or_none()
+                if step:
+                    skill_focus = step.skill_focus
+
+            level = profile.current_proficiency_level if profile else "A1"
+            weakness_areas = getattr(err_profile, 'weakness_areas', []) or []
+            accuracy_rate = getattr(profile, 'accuracy_rate', 0.0) or 0.0
+            pacing_score = getattr(profile, 'pacing_score', 0.0) or 0.0
+
+            # 2. Call Task Engine (Model 3) with Master Prompt
+            raw_task, _ = await generate_dynamic_task(
+                level=level,
+                skill_focus=skill_focus,
+                weakness_areas=weakness_areas,
+                accuracy_rate=accuracy_rate,
+                pacing_score=pacing_score
+            )
+
+            # 3. Return strictly following schema
+            return raw_task
+
+        except Exception as e:
+            logging.error(f"[JourneyService] Task Generation Error: {str(e)}")
+            return {
+                "skill": "grammar",
+                "task_type": "mcq",
+                "level": "A1",
+                "prompt": "Identify the basic verb form.",
+                "options": ["Run", "Running", "Ran", "Runs"],
+                "answer_key": {"correct_option": "Run"},
+                "is_fallback": True
+            }

@@ -3,6 +3,9 @@ from jwt import PyJWTError, PyJWKClient
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
+from app.db.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 security = HTTPBearer()
 
@@ -61,10 +64,27 @@ async def get_current_user_payload(res: HTTPAuthorizationCredentials = Depends(s
             detail="Invalid authentication credentials"
         )
 
+# Alias for compatibility with routes expecting a payload dictionary
+get_current_user = get_current_user_payload
+
 async def get_current_user_id(payload: dict = Depends(get_current_user_payload)) -> str:
     """
     Returns only the user_id from the validated token payload.
     """
     return payload.get("sub") or payload.get("id")
+
+
+async def get_unified_profile(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Dependency that ensures the user has a unified profile synced.
+    Triggers the ProfileAggregator to recover legacy data if needed.
+    """
+    from app.services.profile_aggregator import aggregator
+    # This call triggers the self-healing/sync logic
+    profile = await aggregator.get_unified_profile(user_id, db)
+    return profile
 
 

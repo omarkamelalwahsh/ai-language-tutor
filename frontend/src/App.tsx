@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 
 // Context
@@ -21,12 +21,14 @@ import { Code, X, ShieldCheck } from 'lucide-react';
 const AuthView = lazy(() => import('./views/AuthView'));
 import LandingView from './views/LandingView';
 const OnboardingView = lazy(() => import('./views/OnboardingView'));
+const AdaptiveAssessmentView = lazy(() => import('./views/AdaptiveAssessmentView'));
 const DiagnosticView = lazy(() => import('./views/DiagnosticView'));
 const ResultAnalysisView = lazy(() => import('./views/ResultAnalysisView'));
 const AdvancedDashboard = lazy(() => import('./components/dashboard/AdvancedDashboard'));
 const AssessmentReviewView = lazy(() => import('./views/AssessmentReviewView'));
 const LearningJourneyView = lazy(() => import('./views/LearningJourneyView'));
 const SharedRuntime = lazy(() => import('./components/runtime/SharedRuntime'));
+const DailyMixRuntimeView = lazy(() => import('./views/DailyMixRuntimeView'));
 const AdminDashboardView = lazy(() => import('./views/AdminDashboardView'));
 const SuperAdminDashboardView = lazy(() => import('./views/SuperAdminDashboardView'));
 const InviteAcceptView = lazy(() => import('./views/InviteAcceptView'));
@@ -122,6 +124,12 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   return <>{children}</>;
+};
+
+// Tiny wrapper that reads :skill from the URL and forwards it to the runtime
+const SkillPracticeRoute: React.FC = () => {
+  const { skill } = useParams<{ skill: string }>();
+  return <DailyMixRuntimeView mode="skill_practice" skill={skill} />;
 };
 
 function AppRoutes() {
@@ -408,6 +416,20 @@ function AppRoutes() {
                 </ProtectedRoute>
               } />
 
+              {/* Smart Daily Mix — 5-task adaptive batch */}
+              <Route path="/practice/daily-mix" element={
+                <ProtectedRoute>
+                  <DailyMixRuntimeView mode="daily_mix" />
+                </ProtectedRoute>
+              } />
+
+              {/* Targeted skill practice — 5 progressive tasks on one skill */}
+              <Route path="/practice/skill/:skill" element={
+                <ProtectedRoute>
+                  <SkillPracticeRoute />
+                </ProtectedRoute>
+              } />
+
               {/* Admin - role 1 or 2 (SuperAdmin can also see Admin views) */}
               <Route path="/admin" element={
                 <RoleProtectedRoute required={[1, 2]}>
@@ -432,7 +454,15 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/auth" replace />} />
 
               <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+              <Route 
+            path="/assessment" 
+            element={
+              <ProtectedRoute>
+                <AdaptiveAssessmentView />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
         </Suspense>
       </PrestigeErrorBoundary>
     </div>

@@ -56,6 +56,7 @@ import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessment';
 import { learnerService, DashboardData, JourneyData } from '../../services/learnerService';
 import { useLearnerProfile } from '../../hooks/useLearnerProfile';
+import { Sidebar } from './Sidebar';
 
 // --- Types ---
 interface AdvancedDashboardProps {
@@ -98,7 +99,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
     const handleTabChange = (tabId: string) => {
         if (tabId === 'practice') {
-            props.onStartSession();
+            navigate('/dashboard/practice');
             return;
         }
         if (tabId === 'journey') {
@@ -107,6 +108,46 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         }
         if (tabId === 'home') navigate('/dashboard');
         else navigate(`/dashboard/${tabId}`);
+    };
+
+    // --- Practice Hub Component ---
+    const PracticeHub = () => {
+        const skills = [
+            { id: 'listening', name: 'Listening', icon: <Headphones size={28} />, color: 'blue', desc: 'Improve auditory precision' },
+            { id: 'reading', name: 'Reading', icon: <BookOpen size={28} />, color: 'emerald', desc: 'Master technical text' },
+            { id: 'writing', name: 'Writing', icon: <PenTool size={28} />, color: 'purple', desc: 'Perfect your technical prose' },
+            { id: 'speaking', name: 'Speaking', icon: <Mic size={28} />, color: 'orange', desc: 'Communicate with confidence' },
+        ];
+
+        return (
+            <div className="w-full max-w-6xl mx-auto py-10 px-4">
+                <div className="mb-12">
+                    <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-4">
+                        <Zap className="text-blue-500" /> Skill Training Hub
+                    </h2>
+                    <p className="text-slate-400 dark:text-slate-500 font-medium text-lg mt-2">Select a cognitive dimension to focus your practice using the Neural Pedagogical Engine.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {skills.map((skill) => (
+                        <GlassCard 
+                            key={skill.id} 
+                            onClick={() => navigate(`/runtime?skill=${skill.id}`)}
+                            className="p-10 group cursor-pointer hover:scale-[1.05] transition-all relative overflow-hidden border-b-4 border-b-transparent hover:border-b-blue-500" 
+                            glow
+                        >
+                            <div className={`w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm`}>
+                                {skill.icon}
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 mb-3">{skill.name}</h3>
+                            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium leading-relaxed">{skill.desc}</p>
+                            <div className="mt-10 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-blue-500 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                                Start Deep Practice <ArrowRight size={14} />
+                            </div>
+                        </GlassCard>
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     const [realtimeData, setRealtimeData] = React.useState<DashboardData | null>(null);
@@ -250,9 +291,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
             </AnimatePresence>
 
             {/* 1. Sidebar (Desktop) */}
-            <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-premium dark:shadow-md">
-                <SidebarContent activeTab={activeTab} onTabChange={handleTabChange} onLogout={onLogout} navigate={navigate} />
-            </aside>
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} onLogout={onLogout} />
 
             {/* 2. Main Content Area */}
             <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -341,6 +380,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
+                            {activeTab === 'practice' && <PracticeHub />}
                             {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} refresh={fetchAllData} />}
                         </motion.div>
                     </AnimatePresence>
@@ -354,9 +394,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 // SUB-COMPONENTS (PREMIUM AI-GLASS SYSTEM)
 // ============================================================================
 
-const GlassCard = ({ children, className = "", hover = true, glow = false }: any) => (
+const GlassCard = ({ children, className = "", hover = true, glow = false, onClick }: any) => (
     <motion.div
         whileHover={hover ? { y: -4, scale: 1.01 } : {}}
+        onClick={onClick}
         className={`relative bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden transition-all duration-500 shadow-premium dark:shadow-md ${glow ? 'shadow-blue-500/10' : ''} ${className}`}
     >
         {glow && <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />}
@@ -809,33 +850,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // --- Helpers ---
 
-const SidebarContent = ({ activeTab, onTabChange, onLogout, navigate }: any) => (
-    <>
-        <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 group" onClick={() => onTabChange('home')}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 shadow-premium shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
-                <Trophy size={20} className="text-white" fill="currentColor" />
-            </div>
-            <div>
-                <h1 className="text-xl font-black text-slate-900 dark:text-slate-50 leading-tight tracking-tight">Language AI</h1>
-                <p className="text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest leading-none mt-1">Linguistic Engine</p>
-            </div>
-        </div>
-
-        <nav className="space-y-1.5 flex-1">
-            <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => onTabChange('home')} />
-
-            <NavItem icon={<MapIcon size={18} />} label="My Journey" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
-            <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
-            <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
-            <NavItem icon={<BookOpen size={18} />} label="Practice" active={activeTab === 'practice'} onClick={() => onTabChange('practice')} />
-        </nav>
-
-        <div className="mt-auto pt-6 border-t border-white/5 space-y-1.5">
-            <NavItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => onTabChange('settings')} />
-            {onLogout && <NavItem icon={<LogOut size={18} />} label="Sign Out" onClick={onLogout} isDanger />}
-        </div>
-    </>
-);
+// SidebarContent was extracted to Sidebar.tsx
 
 const NavItem = ({ icon, label, active, onClick, isDanger }: any) => (
     <button
