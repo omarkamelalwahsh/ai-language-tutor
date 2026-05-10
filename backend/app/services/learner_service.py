@@ -237,20 +237,33 @@ class LearnerService:
 
             # 3. Error Model Processing
             error_patterns = []
-            category_counts = {}
+            category_data = {}
             for e in errors:
-                cat = e.category or "General"
-                if cat not in category_counts:
-                    category_counts[cat] = {"count": 0, "severity": "Med", "status": "Improving"}
-                category_counts[cat]["count"] += 1
+                cat = (e.category or "General").capitalize()
+                if cat not in category_data:
+                    category_data[cat] = {
+                        "count": 0, 
+                        "severity": "Med", 
+                        "status": "Improving",
+                        "examples": []
+                    }
+                category_data[cat]["count"] += 1
+                # Only keep the most recent 3 unique examples
+                if len(category_data[cat]["examples"]) < 3:
+                    category_data[cat]["examples"].append({
+                        "user_answer": e.user_answer,
+                        "correct_answer": e.correct_answer,
+                        "insight": e.ai_interpretation or e.deep_insight or "Systematic pattern detected."
+                    })
             
-            sorted_cats = sorted(category_counts.items(), key=lambda x: x[1]['count'], reverse=True)
+            sorted_cats = sorted(category_data.items(), key=lambda x: x[1]['count'], reverse=True)
             for cat, details in sorted_cats[:5]:
                 error_patterns.append({
                     "type": cat,
                     "count": details["count"],
                     "severity": "High" if details["count"] > 10 else "Med",
-                    "status": "Stable" if details["count"] < 3 else "Improving"
+                    "status": "Stable" if details["count"] < 3 else "Improving",
+                    "examples": details["examples"]
                 })
 
             # 4. Retention & Pacing

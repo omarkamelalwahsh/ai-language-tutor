@@ -57,6 +57,10 @@ import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessme
 import { learnerService, DashboardData, JourneyData } from '../../services/learnerService';
 import { useLearnerProfile } from '../../hooks/useLearnerProfile';
 import { Sidebar } from './Sidebar';
+import { SkillCard } from './SkillCard';
+import { VocabularyWidget } from './VocabularyWidget';
+import { DailyMicroLearning } from './DailyMicroLearning';
+import { ErrorAnalysisModal, ErrorItem } from './ErrorAnalysisModal';
 
 // --- Types ---
 interface AdvancedDashboardProps {
@@ -111,6 +115,47 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     };
 
     // --- Practice Hub Component ---
+    const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
+        const [tasks, setTasks] = React.useState<any[]>([]);
+        const [loading, setLoading] = React.useState(true);
+
+        React.useEffect(() => {
+            learnerService.getPracticeTasks(skillId)
+                .then(data => {
+                    setTasks(data.tasks || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error('Failed to load tasks for', skillId, err);
+                    setLoading(false);
+                });
+        }, [skillId]);
+
+        const handleStartTask = async (taskId: string, difficulty: string) => {
+            try {
+                const res = await learnerService.startPracticeSession(skillId, taskId, difficulty);
+                navigate(`/runtime?session_id=${res.session_id}`);
+            } catch (err) {
+                console.error('Failed to start session', err);
+                navigate(`/runtime?skill=${skillId}&task=${taskId}`);
+            }
+        };
+
+        if (loading) {
+            return <div className="h-96 rounded-2xl bg-slate-100 dark:bg-slate-800/50 animate-pulse border border-slate-200 dark:border-slate-800" />;
+        }
+
+        return (
+            <SkillCard
+                skillName={name}
+                description={desc}
+                icon={icon}
+                tasks={tasks.length > 0 ? tasks : [{ id: 'general', title: 'General Practice', badge: 'New' }]}
+                onStartTask={handleStartTask}
+            />
+        );
+    };
+
     const PracticeHub = () => {
         const skills = [
             { id: 'listening', name: 'Listening', icon: <Headphones size={28} />, color: 'blue', desc: 'Improve auditory precision' },
@@ -120,30 +165,22 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         ];
 
         return (
-            <div className="w-full max-w-6xl mx-auto py-10 px-4">
+            <div className="w-full max-w-7xl mx-auto py-10 px-4">
                 <div className="mb-12">
                     <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-4">
                         <Zap className="text-blue-500" /> Skill Training Hub
                     </h2>
                     <p className="text-slate-400 dark:text-slate-500 font-medium text-lg mt-2">Select a cognitive dimension to focus your practice using the Neural Pedagogical Engine.</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {skills.map((skill) => (
-                        <GlassCard 
-                            key={skill.id} 
-                            onClick={() => navigate(`/runtime?skill=${skill.id}`)}
-                            className="p-10 group cursor-pointer hover:scale-[1.05] transition-all relative overflow-hidden border-b-4 border-b-transparent hover:border-b-blue-500" 
-                            glow
-                        >
-                            <div className={`w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm`}>
-                                {skill.icon}
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-50 mb-3">{skill.name}</h3>
-                            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium leading-relaxed">{skill.desc}</p>
-                            <div className="mt-10 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-blue-500 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                                Start Deep Practice <ArrowRight size={14} />
-                            </div>
-                        </GlassCard>
+                        <ConnectedSkillCard 
+                            key={skill.id}
+                            skillId={skill.id}
+                            name={skill.name}
+                            icon={skill.icon}
+                            desc={skill.desc}
+                        />
                     ))}
                 </div>
             </div>
@@ -555,8 +592,13 @@ const ProfileSkillCard = ({ skill }: { skill: any }) => (
     </GlassCard>
 );
 
-const ProfileErrorCard = ({ error }: { error: any }) => (
-    <div className="flex items-center justify-between p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group/err shadow-premium">
+const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any) => void }) => (
+    <motion.button 
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => onSelect(error)}
+        className="w-full flex items-center justify-between p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group/err shadow-premium text-left"
+    >
         <div className="flex items-center gap-4">
             <div className={`p-2.5 rounded-xl ${
                 error.severity === 'High' 
@@ -580,12 +622,13 @@ const ProfileErrorCard = ({ error }: { error: any }) => (
             </span>
             <div className={`w-2 h-2 rounded-full ${error.severity === 'High' ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`} />
         </div>
-    </div>
+    </motion.button>
 );
 
 const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData }: any) => {
     const navigate = useNavigate();
     const { data: profileData } = useLearnerProfile();
+    const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
     const kpis = dashboardData?.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
     const trends = dashboardData?.trends || [];
     const skills = dashboardData?.skills || [];
@@ -683,6 +726,10 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                 })()}
             </motion.div>
 
+            <motion.div variants={itemVariants}>
+                <DailyMicroLearning />
+            </motion.div>
+
 
 
             {/* 2. KPI ROW */}
@@ -733,7 +780,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                                 <div className="flex flex-col gap-3">
                                     {(profileData.error_model || []).map((err: any, idx: number) => (
                                         <motion.div key={err.type} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
-                                            <ProfileErrorCard error={err} />
+                                            <ProfileErrorCard error={err} onSelect={setSelectedError} />
                                         </motion.div>
                                     ))}
                                     {(!profileData.error_model || profileData.error_model.length === 0) && (
@@ -764,7 +811,6 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                             </div>
                         </div>
                     )}
-
                 </div>
 
                 {/* 4. Action & Intelligence Sidebar (Right) */}
@@ -788,6 +834,8 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                         <Brain size={120} className="absolute bottom-[-30px] right-[-30px] text-white/5 -rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
                     </div>
 
+                    <VocabularyWidget />
+
                     <GlassCard className="p-8" hover={false}>
                         <IntelligenceFeed dashboardData={dashboardData} />
                     </GlassCard>
@@ -800,6 +848,11 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                     </GlassCard>
                 </div>
             </div>
+            <ErrorAnalysisModal 
+                isOpen={!!selectedError} 
+                error={selectedError} 
+                onClose={() => setSelectedError(null)} 
+            />
         </motion.div>
     );
 };

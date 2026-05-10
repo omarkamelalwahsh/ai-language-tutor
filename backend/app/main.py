@@ -3,7 +3,7 @@ import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites, tasks
+from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites, tasks, practice, daily
 from app.api.v1.endpoints import analytics
 from app.core.config import settings
 
@@ -52,6 +52,8 @@ app.include_router(audit.router, prefix=f"{settings.API_V1_STR}/audit-logs", tag
 app.include_router(invites.router, prefix=f"{settings.API_V1_STR}/invites", tags=["Invites"])
 app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["Tasks"])
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["Analytics"])
+app.include_router(practice.router, prefix=f"{settings.API_V1_STR}/practice", tags=["Practice"])
+app.include_router(daily.router, prefix=f"{settings.API_V1_STR}/daily", tags=["Daily Bites"])
 
 if __name__ == "__main__":
     import uvicorn

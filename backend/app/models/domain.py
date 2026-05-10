@@ -295,3 +295,12 @@ class Task(Base):
     deadline = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class DailyContent(Base):
+    __tablename__ = "daily_content"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    target_level = Column(String, nullable=False)
+    field = Column(String, nullable=False)
+    content = Column(JSONB, nullable=False) # Stores the daily_bites JSON
+    day_date = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

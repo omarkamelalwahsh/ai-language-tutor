@@ -133,6 +133,24 @@ class LearnerService {
     if (!response.ok) throw new Error('Failed to fetch intelligence profile');
     return await response.json();
   }
+
+  async getPracticeTasks(skill: string): Promise<{ skill: string; tasks: any[] }> {
+    const headers = await this.getAuthHeader();
+    const response = await fetch(`${this.baseUrl}/api/v1/practice/skills/${skill}/tasks`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch practice tasks');
+    return await response.json();
+  }
+
+  async startPracticeSession(skill: string, taskType: string, difficulty: string): Promise<{ session_id: string, message: string }> {
+    const headers = await this.getAuthHeader();
+    const response = await fetch(`${this.baseUrl}/api/v1/practice/start`, { 
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill, task_type: taskType, difficulty })
+    });
+    if (!response.ok) throw new Error('Failed to start practice session');
+    return await response.json();
+  }
 }
 
 export const learnerService = new LearnerService();
