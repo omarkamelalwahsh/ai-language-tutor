@@ -370,42 +370,46 @@ export const SpeakingModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalua
               Using text instead of your voice means we cannot evaluate your true speaking level. Your overall speaking placement will be heavily restricted.
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-6 relative group">
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Your spoken answer will appear here..."
-              className="w-full h-32 resize-none outline-none text-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 bg-transparent transition-colors duration-300"
+              placeholder="Type your response here..."
+              className="w-full h-40 p-6 rounded-[2rem] bg-slate-50/50 dark:bg-black/40 border-2 border-slate-100 dark:border-white/5 focus:border-blue-500/50 dark:focus:border-indigo-500/50 transition-all duration-300 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 resize-none outline-none text-xl font-medium shadow-inner"
               disabled={isDisabled}
             />
+            <button
+              onClick={() => { setUseTextFallback(false); setErrorMsg(''); }}
+              className="absolute bottom-10 right-10 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-white/60 hover:bg-white dark:hover:bg-white/10 hover:text-blue-600 dark:hover:text-white transition-all shadow-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+            >
+              <Mic size={14} /> Use Microphone
+            </button>
           </div>
           <div className="p-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-950 flex justify-between items-center transition-colors duration-300">
-            <span className="text-xs font-bold text-slate-400 dark:text-slate-500">{textInput.length} characters</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{textInput.length} characters</span>
             <button
               onClick={handleTextSubmit}
               disabled={textInput.trim().length === 0 || isDisabled}
-              className="px-6 py-2.5 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+              className="px-8 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center gap-2"
             >
-              {isEvaluating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Answer'}
+              {isEvaluating ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-4 h-4" /> Submit Answer</>}
             </button>
           </div>
         </div>
       )}
 
       {/* Mode Toggle - Only show in placement assessments to prevent blocking users */}
-      {(assessmentId?.includes('placement') || assessmentId?.includes('diagnostic')) && (
-        <button
-          onClick={() => { setUseTextFallback(!useTextFallback); setErrorMsg(''); }}
-          disabled={isTranscribing || isEvaluating}
-          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
-        >
-           {useTextFallback ? (
-             <><Mic className="w-4 h-4" /> Try using microphone instead</>
-          ) : (
-             <><Keyboard className="w-4 h-4" /> Prefer typing instead?</>
-          )}
-        </button>
-      )}
+      <button
+        onClick={() => { setUseTextFallback(!useTextFallback); setErrorMsg(''); }}
+        disabled={isTranscribing || isEvaluating}
+        className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-indigo-400 flex items-center gap-2 transition-all disabled:opacity-50 mt-4 group"
+      >
+         {useTextFallback ? (
+           <><Mic className="w-4 h-4 group-hover:animate-pulse" /> Try using microphone instead</>
+        ) : (
+           <><Keyboard className="w-4 h-4 group-hover:translate-y-[-2px] transition-transform" /> Prefer typing instead?</>
+        )}
+      </button>
     </div>
   );
 };

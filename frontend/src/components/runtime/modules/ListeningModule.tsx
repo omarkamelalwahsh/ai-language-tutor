@@ -16,8 +16,8 @@ export const ListeningModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalu
   const [answer, setAnswer] = useState('');
   const [showTranscript, setShowTranscript] = useState(false);
 
-  const audioSrc = task.payload?.audioSrc;
-  const transcript = task.payload?.transcript || 'Transcript not available for this audio.';
+  const audioSrc = task.payload?.audioSrc || task.payload?.audio_url;
+  const transcript = task.payload?.transcript || task.payload?.stimulus || 'Transcript not available for this audio.';
   const isDisabled = isEvaluating || (feedback !== null && feedback.canAdvance);
 
   return (
@@ -25,8 +25,8 @@ export const ListeningModule: React.FC<ModuleProps> = ({ task, onSubmit, isEvalu
       <AudioPlaybackControl
         audioUrl={audioSrc}
         transcript={transcript}
-        allowReplay={task.supportSettings.allowReplay}
-        allowSlowAudio={task.supportSettings.allowSlowAudio}
+        allowReplay={true}
+        allowSlowAudio={true}
         onReplay={() => setReplayCount(c => c + 1)}
       />
 

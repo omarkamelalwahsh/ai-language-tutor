@@ -54,20 +54,22 @@ class ProfileAggregator:
     async def _persist_profile(self, user_id: str, data: Dict[str, Any], db: AsyncSession):
         """Saves the aggregated data back to the database."""
         try:
-            # We use JSON string for the action_plan and weakness_areas if they are complex
-            weakness_areas = json.dumps(data.get("current_skills", {}))
-            action_plan = data.get("error_profile", {}).get("action_plan", "Initial path generated.")
+            # weakness_areas should be a list of skill names (strings), not a dict or JSON string
+            current_skills = data.get("current_skills", {})
+            weakness_areas = list(current_skills.keys()) if isinstance(current_skills, dict) else []
+            
+            action_plan = data.get("error_profile", {}).get("action_plan", "")
             
             await db.execute(
                 text("""
                     INSERT INTO user_error_profiles (user_id, weakness_areas, action_plan, updated_at)
-                    VALUES (:uid, :wa, :ap, CURRENT_TIMESTAMP)
+                    VALUES (:uid, CAST(:wa AS JSONB), :ap, CURRENT_TIMESTAMP)
                     ON CONFLICT (user_id) DO UPDATE SET
                     weakness_areas = EXCLUDED.weakness_areas,
                     action_plan = EXCLUDED.action_plan,
                     updated_at = CURRENT_TIMESTAMP
                 """),
-                {"uid": user_id, "wa": weakness_areas, "ap": action_plan}
+                {"uid": user_id, "wa": json.dumps(weakness_areas), "ap": action_plan}
             )
             await db.commit()
             logger.info(f"💾 [ProfileAggregator] Successfully persisted profile for {user_id}")

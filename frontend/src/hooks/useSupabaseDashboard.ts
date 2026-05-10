@@ -90,7 +90,13 @@ export const useSupabaseDashboard = () => {
   });
 
   const fetchDashboardData = useCallback(async () => {
-    setData(prev => ({ ...prev, isLoading: true }));
+    // 🚀 OPTIMIZATION: Only set global isLoading if we have NO data yet.
+    // This prevents the "Flicker" when navigating back to the dashboard.
+    setData(prev => ({ 
+      ...prev, 
+      isLoading: prev.profile === null, 
+      isSyncing: prev.profile !== null 
+    }));
     
     try {
       // Use getSession() (cached, no network call, no Navigator Lock) instead of 
@@ -252,9 +258,9 @@ export const useSupabaseDashboard = () => {
           : [],
         errorProfile: errorProfileRes.data
           ? {
-              common_mistakes: errorProfileRes.data.common_mistakes || [],
-              weakness_areas: errorProfileRes.data.weakness_areas || [],
-              action_plan: errorProfileRes.data.action_plan || "Generating your path...",
+              common_mistakes: Array.isArray(errorProfileRes.data.common_mistakes) ? errorProfileRes.data.common_mistakes : [],
+              weakness_areas: Array.isArray(errorProfileRes.data.weakness_areas) ? errorProfileRes.data.weakness_areas : [],
+              action_plan: errorProfileRes.data.action_plan || "",
               bridge_delta: errorProfileRes.data.bridge_delta,
               bridge_percentage: errorProfileRes.data.bridge_percentage,
             }

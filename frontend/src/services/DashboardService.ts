@@ -10,21 +10,21 @@ export class DashboardService {
 
     return {
       isNewLearner: !result,
-      primaryGoalText: result?.overall?.rationale?.[0] || (result as any)?.overallBand || `Building toward ${targetLevel}.`,
+      primaryGoalText: result?.overall?.rationale?.[0] || (result as any)?.overallBand || '',
       recommendedNextAction: {
         label: result?.recommendedNextTasks?.[0] || 'Start Practice',
         actionId: 'practice_1',
-        reason: 'Based on your diagnostic evidence.'
+        reason: result ? 'Based on your diagnostic evidence.' : ''
       },
       journey: {
         ...(result?.overall ? JourneyService.buildJourney(result) : {
           currentStage: 'A1',
           targetStage: 'A2',
-          journeyTitle: 'Initial Path',
+          journeyTitle: '',
           nodes: []
         }),
-        currentCapabilitiesSummary: result?.overall?.rationale?.join('. ') || 'Beginning your path.',
-        targetCapabilitiesSummary: `Progressing towards ${targetLevel} benchmarks.`,
+        currentCapabilitiesSummary: result?.overall?.rationale?.join('. ') || '',
+        targetCapabilitiesSummary: result ? `Progressing towards ${targetLevel} benchmarks.` : '',
       },
       skillAnalytics: result?.skills 
         ? (Object.keys(result.skills) as SkillName[])

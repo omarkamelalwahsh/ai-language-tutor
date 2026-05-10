@@ -85,13 +85,20 @@ export class RuntimeService {
     // Fallback if everything fails
     return [{
         taskId: `fallback_${Date.now()}`,
-        taskType: 'writing',
-        targetSkill: 'writing',
+        taskType: skillFilter === 'speaking' ? 'speaking' : skillFilter === 'listening' ? 'listening' : 'writing',
+        targetSkill: skillFilter || 'writing',
         learningObjective: 'Syntactic consistency',
-        prompt: 'The system is temporarily using a fallback task. Please describe your professional background in two sentences.',
-        supportSettings: { allowHints: true, allowReplay: false, maxRetries: 3 },
+        prompt: skillFilter === 'listening' 
+            ? "Listen carefully to the audio and summarize what you understood." 
+            : `The system is temporarily using a fallback task for ${skillFilter || 'general practice'}. Please describe your professional background in two sentences.`,
+        supportSettings: { allowHints: true, allowReplay: true, allowSlowAudio: true, maxRetries: 3 },
         difficultyTarget: result.overall.estimatedLevel,
-        completionCondition: 'Two complete sentences'
+        completionCondition: 'Two complete sentences',
+        payload: {
+            stimulus: 'Please describe your professional background in two sentences.',
+            instruction: 'Practice your output clarity.',
+            target_response: 'I am a software engineer with ten years of experience. I specialize in cloud architecture.'
+        }
     }];
   }
 
@@ -102,18 +109,18 @@ export class RuntimeService {
     const aiMetadata = data.task_metadata || {};
     const aiContent = data.content || {};
 
-    // Ensure audioSrc is present if it's a listening task
-    let audioSrc = aiContent.audio_url || aiContent.audioSrc;
-    
-    if (aiMetadata.skill_category === 'LISTENING' && (!audioSrc || audioSrc === 'optional')) {
-        const textToSpeak = aiContent.stimulus || aiContent.instruction || 'Please listen carefully.';
-        audioSrc = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textToSpeak)}&tl=en&client=tw-ob`;
+    const targetSkill = (aiMetadata.skill_category || aiMetadata.skill || 'general').toLowerCase();
+    let audioSrc = aiContent.audioSrc || '';
+
+    // Favor local browser TTS over unreliable external Google URLs
+    if (targetSkill === 'listening' && (!audioSrc || audioSrc === 'optional' || audioSrc === 'null')) {
+        audioSrc = ''; // Let the frontend component handle TTS via stimulus/transcript
     }
 
     return {
         taskId: aiMetadata.id || `task_${Date.now()}`,
         taskType: this.mapAiTypeToFrontend(aiMetadata.type || 'OPEN_RESPONSE'),
-        targetSkill: (aiMetadata.skill_category || aiMetadata.skill || 'general').toLowerCase(),
+        targetSkill: targetSkill,
         learningObjective: aiMetadata.objective || 'Linguistic Accuracy',
         prompt: aiContent.instruction || 'Complete the task stimulus.',
         supportSettings: {
@@ -122,7 +129,8 @@ export class RuntimeService {
             allowSlowAudio: true,
             maxRetries: 3
         },
-        difficultyTarget: aiMetadata.difficulty_score > 0.7 ? 'Advanced' : 'Intermediate',
+        // 🎯 UI Feedback Fix: Use the real-time difficulty (CEFR level) from AI
+        difficultyTarget: aiMetadata.level || (aiMetadata.difficulty_score > 0.7 ? 'Advanced' : 'Intermediate'),
         completionCondition: 'Accurate completion of the task stimulus',
         payload: {
             ...aiContent,

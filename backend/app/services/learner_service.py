@@ -151,7 +151,7 @@ class LearnerService:
                 ],
                 "trends": trends,
                 "intelligence_feed": {
-                    "action_plan": err_profile.action_plan if (err_profile and hasattr(err_profile, 'action_plan')) else "Calibrating your path...",
+                    "action_plan": err_profile.action_plan if (err_profile and hasattr(err_profile, 'action_plan')) else "",
                     "recent_insights": [
                         {
                             "id": str(e.id),

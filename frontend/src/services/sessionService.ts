@@ -114,21 +114,18 @@ export interface EvaluateTaskResponse {
   score: number;
   is_correct: boolean;
   evaluation_mode: 'closed' | 'open';
-  task_completion_score?: number;
-  language_quality_score?: number;
   detected_level?: string;
-  confidence?: number;
   detailed_feedback?: string;
   reasoning_summary?: string;
+  dimensions?: {
+    grammar: number;
+    vocabulary: number;
+    coherence: number;
+  };
   error_analysis?: {
     detected_errors?: string[];
     corrected_version?: string | null;
     error_category?: string | null;
-  };
-  metrics?: {
-    grammar_score?: number;
-    vocabulary_score?: number;
-    relevance_score?: number;
   };
   is_fallback?: boolean;
 }
@@ -186,6 +183,18 @@ export const sessionService = {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`evaluate-task failed: ${res.status} ${await res.text()}`);
+    return res.json();
+  },
+
+  /** Incremental sync: writes a single task result back to the DB immediately. */
+  async syncTaskResult(result: TaskResult): Promise<{ status: string; skill: string; is_correct: boolean }> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_PREFIX}/sync-task`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(result),
+    });
+    if (!res.ok) throw new Error(`sync-task failed: ${res.status} ${await res.text()}`);
     return res.json();
   },
 };

@@ -279,30 +279,24 @@ You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {
 # 2. VOCABULARY INJECTION RULE
 You MUST seamlessly integrate the words provided in {target_vocabulary} into the task stimulus or the required answer. The vocabulary must fit the {user_domain} context naturally.
 
-# 3. TASK MODULE REQUIREMENTS (STRICT)
-Follow the specific philosophy and goals for each skill category:
+## READING MODULE (Analysis & Synthesis)
+- Goals: Comprehension of complex arguments, technical details, and academic register.
+- Task Logic: Must include a multi-paragraph stimulus text (200-400 words for C1/C2). 
+- Complexity: $O(n)$ scaling where $n$ is word count and clause depth. Use technical themes for high levels.
+
+## LISTENING MODULE (Auditory Precision)
+- Goals: Extract meaning from spoken dialogue/monologue. 
+- Execution: "stimulus" MUST be a full script. The frontend will play this via TTS. 
+- Task Logic: Auditory comprehension questions based on the script.
+
+## WRITING MODULE (Linguistic Rigor)
+- Goals: Professional and academic writing accuracy.
+- Execution: Evaluate on [Grammar, Vocabulary, Coherence] dimensions.
+- Strategy: Critical analysis or professional correspondence prompts.
 
 ## SPEAKING MODULE (Fluency & Clarity)
-- Goals: Produce spoken language in real contexts, improve confidence, practice functional communication.
-- Task Logic: Use tasks like [REPEAT_AFTER_MODEL, READ_ALOUD, ANSWER_DIRECT_QUESTION, DESCRIBE_SITUATION, ROLEPLAY_SCENARIO, GIVE_OPINION, SUMMARIZE_HEARD, COMPLETE_OBJECTIVE, USE_TARGET_PHRASE].
-- Execution: "stimulus" must be the audible prompt. Provide a clear communication objective.
-- Dimensions: Evaluate task completion, comprehensibility, pronunciation clarity, and fluency.
-
-## WRITING MODULE (Accuracy & Revision)
-- Goals: Focus on "Self-correction-first". Help learners produce clear written responses and strengthen control.
-- Task Logic: Use tasks like [SENTENCE_CREATION, SHORT_ANSWER, EMAIL_DRAFT, SHORT_DESCRIPTION, OPINION_STATEMENT, REWRITE_CLARITY, REWRITE_FORMALITY, GUIDED_PARAGRAPH, SUMMARY, TARGETED_CORRECTION, SCRAMBLED_SENTENCE].
-- Execution: Provide a prompt-based text in "stimulus". User must fix or respond.
-- Strategy: Identify or hint at issues first to invite revision.
-
-## LISTENING MODULE (Comprehension & Action)
-- Goals: Extract meaning under realistic conditions. Understand gist, details, and follow dialogue.
-- Task Logic: Use tasks like [LISTEN_GIST, LISTEN_SPECIFIC_DETAIL, IDENTIFY_INTENT, SEQUENCE_EVENTS, COMPREHENSION_QUESTIONS, SUMMARIZE_AUDIO, RESPOND_TO_CONVERSATION, EXTRACT_TARGET_LANGUAGE, LISTEN_WRITE, LISTEN_SPEAK].
-- Execution: "stimulus" is a high-quality transcript for TTS. "task_prompt" tests auditory precision.
-
-## VOCABULARY MODULE (Recall & Use)
-- Goals: Focus on active RECALL rather than mere recognition. Connect vocabulary to real usage.
-- Task Logic: Use tasks like [ACTIVE_RECALL, FILL_IN_CONTEXT, CHOOSE_AND_USE, WORD_IN_SENTENCE, CONTRAST_PAIR_DISCRIMINATION, COLLOCATION_PRACTICE, PARAPHRASE].
-- Execution: Balance utility, readiness, and contextual relevance.
+- Goals: Confident oral production.
+- Execution: Use Voice/Text toggle. Evaluate [Content, Fluency, Pronunciation].
 
 # OUTPUT SCHEMA (STRICT JSON ONLY)
 Output your response as a parseable JSON object matching this schema. DO NOT include markdown formatting outside the JSON or conversational filler.
@@ -379,72 +373,45 @@ generate_dynamic_task = generate_architect_task
 # =============================================================================
 _SESSION_MASTER_PROMPT = """# ROLE: Smart Session Architect
 You design ONE coherent 5-task practice session for an English learner working in the {user_domain} domain.
-You receive the learner's profile (level, weakest/strongest skills, recent errors, active journey node) and you return EXACTLY 5 tasks in a strict order.
+You receive the learner's profile and EXACTLY 5 tasks.
 
-# INPUT CONTEXT
-- CEFR Level: {user_level}
-- Domain / Goal: {user_domain}
-- Weakest Skills (low → high): {weak_skills}
-- Strongest Skill: {strongest_skill}
-- Recent Errors (categories or examples): {recent_errors}
-- Active Journey Node: {journey_title} (skill focus: {journey_skill})
-- Adaptive Difficulty Anchor: {difficulty}  (0.0 easy → 1.0 hard)
+# 🎯 LEVEL LOCK PROTOCOL (CRITICAL)
+You MUST use the specific CEFR level for each skill as provided in `skill_levels`:
+{skill_levels_json}
 
-# THE 5-TASK BLUEPRINT (STRICT ORDER)
-1. **Task 1 — REVIEW**: Targets the weakest skill. MUST embed at least one item from `recent_errors` so the learner re-encounters their gap.
-2. **Task 2 — JOURNEY**: Anchored to `journey_title`. Uses the skill of the active node.
-3. **Task 3 — REVIEW**: Targets the second weakest skill (or re-tests the weakest skill in a different format).
-4. **Task 4 — JOURNEY**: Deeper drill on the same `journey_title`, but a DIFFERENT task type from Task 2.
-5. **Task 5 — MAINTENANCE**: Targets the strongest skill at +0.15 difficulty above the anchor. Keeps the learner engaged, prevents boredom.
+# 🛠️ SKILL-SPECIFIC TEMPLATES
+1. **READING**: Must include a multi-paragraph text (stimulus) and 3-4 comprehension questions. Use academic/technical themes for C1/C2.
+2. **LISTENING**: Stimulus MUST be a script for a dialogue or monologue (min 100 words for C-level).
+3. **WRITING**: Specific prompt (e.g., "Write a critique of...").
+4. **SPEAKING**: Scenario-based prompt.
 
 # GENERATION RULES
-- **Variety**: Across the 5 tasks, mix at least 3 different task_types from this menu:
-  MULTIPLE_CHOICE, FILL_BLANK, SENTENCE_TRANSFORMATION, SCRAMBLED_SENTENCE,
-  WORD_BUILDER, GUIDED_PARAGRAPH, SHORT_ANSWER, REWRITE_FORMALITY,
-  TARGETED_CORRECTION, VOCABULARY_IN_CONTEXT, LISTEN_SPECIFIC_DETAIL, ANSWER_DIRECT_QUESTION.
-- **CEFR Discipline**:
-  - A1/A2: ≤7-word stimuli, Present/Past Simple, SVO. No jargon outside `recent_errors`.
-  - B1/B2: 10–15 word stimuli, Present Perfect, Modals, Passive. Workplace scenarios.
-  - C1/C2: 20+ word multi-clause stimuli, Inversions, Mixed Conditionals, abstract concepts.
-- **Domain Embedding**: Stimuli must feel native to {user_domain} (e.g., for ML domain → training data, inference, embeddings, RAG, deployment).
-- **Transparency**: Every task carries metadata declaring its `slot_role` (review|journey|maintenance), its `skill`, and a 1-sentence `selection_reason` explaining why this task was chosen for THIS learner.
-- **Local Feedback**: Every task includes a precise `target_response` AND a 1–2 sentence `explanation` of the underlying language rule (in English, learner-friendly).
-- **MCQ Distractors**: When `options` is used, exactly 4 plausible options. Distractors must be conceptually related, not random.
+- **Complexity**: Adjust sentence complexity based on the specific level for that task.
+- **Strict Uniqueness**: No repeats.
+- **Domain Embedding**: Use {user_domain} naturally.
 
-# STRICT OUTPUT SCHEMA (JSON ONLY — no markdown, no prose)
+# STRICT OUTPUT SCHEMA (JSON ONLY)
 {{
-  "session_summary": "1-sentence pedagogical rationale for this 5-task batch",
+  "session_summary": "rationale",
   "tasks": [
     {{
       "task_metadata": {{
-        "type": "TASK_TYPE_FROM_MENU",
+        "type": "string",
         "slot_role": "review|journey|maintenance",
-        "skill": "writing|reading|listening|speaking|grammar|vocabulary",
-        "skill_tag": "writing|reading|listening|speaking|grammar|vocabulary",
-        "level": "{user_level}",
-        "difficulty_score": 0.0,
-        "selection_reason": "1-sentence why this task for this learner"
+        "skill": "writing|reading|listening|speaking",
+        "level": "CEFR_LEVEL_FOR_THIS_SKILL",
+        "difficulty_score": 0.0
       }},
       "content": {{
-        "instruction": "Clear, learner-facing instruction in English",
-        "stimulus": "The actual text, scenario, or transcript the learner reads",
-        "task_prompt": "What the learner specifically must do/answer",
-        "options": ["A","B","C","D"]   // ONLY for MCQ-style tasks, else null
-        ,"fragments": ["..."]          // ONLY for SCRAMBLED_SENTENCE / WORD_BUILDER, else null
-        ,"target_response": "The exact correct answer or model response",
-        "vocabulary_used": ["list","of","domain","or","error","terms","embedded"],
-        "explanation": "1–2 sentences explaining the underlying rule for the UI feedback"
+        "instruction": "English instruction",
+        "stimulus": "Script for listening, Multi-paragraph for reading",
+        "task_prompt": "Action for user",
+        "target_response": "Expected answer",
+        "explanation": "Rule"
       }}
     }}
-    // ... exactly 5 tasks total, in the exact slot order above
   ]
 }}
-
-# REMEMBER
-- 5 tasks, in the exact order: REVIEW, JOURNEY, REVIEW, JOURNEY, MAINTENANCE.
-- Use the learner's recent_errors verbatim in at least one Review task.
-- Vary task_type across the batch.
-- Output a single valid JSON object with NO trailing prose.
 """
 
 
@@ -457,11 +424,13 @@ async def generate_session_batch(
     journey_title: str,
     journey_skill: str,
     difficulty: float = 0.5,
+    plan: list = None,
+    skill_levels: dict = None
 ) -> Tuple[Dict[str, Any], str]:
     """
-    Single-call architect: returns the full 5-task daily-mix batch.
-    Cheaper and more coherent than 5 parallel per-slot calls.
+    Single-call architect with per-skill level locking.
     """
+    skill_levels_json = json.dumps(skill_levels or {}, indent=2)
     system_prompt = _SESSION_MASTER_PROMPT.format(
         user_level=user_level,
         user_domain=user_domain,
@@ -471,6 +440,7 @@ async def generate_session_batch(
         journey_title=journey_title or "Foundational consolidation",
         journey_skill=journey_skill or "writing",
         difficulty=difficulty,
+        skill_levels_json=skill_levels_json
     )
 
     user_message = json.dumps({
@@ -481,68 +451,143 @@ async def generate_session_batch(
         "recent_errors": recent_errors,
         "journey": {"title": journey_title, "skill": journey_skill},
         "difficulty_anchor": difficulty,
+        "skill_levels": skill_levels
     })
 
     result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)
     return result, MODEL_TASK
 
 
-_DYNAMIC_EVALUATOR_PROMPT = """# ROLE: Senior CEFR Language Evaluator
-You grade ONE learner response against a single task. You must apply CEFR criteria with rigor — no flattery, no false-positives, no over-penalization for minor slips from a high-level user.
+# =============================================================================
+# SKILL PRACTICE MASTER PROMPT — Architects 5 progressive tasks on ONE skill
+# =============================================================================
+_SKILL_PRACTICE_MASTER_PROMPT = """# ROLE: Progressive Skill Architect
+You design ONE coherent 5-task progression for a specific language skill ({skill}) within the {user_domain} domain.
+The difficulty must climb from -0.1 to +0.2 around the anchor of {difficulty}.
+
+# INPUT CONTEXT
+- Targeted Skill: {skill}
+- CEFR Level: {user_level}
+- Domain / Goal: {user_domain}
+- Recent Errors: {recent_errors}
+- Active Journey Context: {journey_title}
+
+# PROGRESSION RULES
+1. **Task 1 (Entry)**: Difficulty {difficulty}-0.1. A warm-up task to build confidence.
+2. **Task 2 (Steady)**: Difficulty {difficulty}-0.05. Slightly more complex sentence structure.
+3. **Task 3 (Anchor)**: Difficulty {difficulty}. Exactly at the user's current level.
+4. **Task 4 (Stretch)**: Difficulty {difficulty}+0.1. Introduces slightly more complex vocabulary or grammar.
+5. **Task 5 (Challenge)**: Difficulty {difficulty}+0.2. Pushes the learner toward the NEXT CEFR level.
+
+# SKILL-SPECIFIC TEMPLATES (STRICT)
+## READING: Must include a multi-paragraph stimulus text (200-400 words for C1/C2). Focus on academic/technical analysis.
+## LISTENING: Stimulus MUST be a full script (dialogue/monologue).
+## WRITING: Evaluate on [Grammar, Vocabulary, Coherence].
+## SPEAKING: Use Voice/Text toggle. Evaluate [Content, Fluency, Pronunciation].
+
+# GENERATION RULES
+- **Uniqueness**: DO NOT REPEAT STIMULI. Every task must present a new scenario or sentence.
+- **Vary Task Types**: Use at least 2-3 different task types.
+- **Domain Focus**: All scenarios must be relevant to {user_domain}.
+
+# STRICT OUTPUT SCHEMA (JSON ONLY)
+{{
+  "session_summary": "Description of the skill ladder built here",
+  "tasks": [
+    {{
+      "task_metadata": {{
+        "type": "string",
+        "slot_role": "targeted",
+        "skill": "{skill}",
+        "skill_tag": "{skill}",
+        "level": "{user_level}",
+        "difficulty_score": 0.0
+      }},
+      "content": {{
+        "instruction": "English instruction",
+        "stimulus": "Unique text/scenario. FOR LISTENING TASKS, this MUST be the full audio transcript.",
+        "task_prompt": "Specific action",
+        "target_response": "Correct answer",
+        "explanation": "Brief rule"
+      }}
+    }}
+    // ... exactly 5 tasks total
+  ]
+}}
+"""
+
+async def generate_skill_practice_batch(
+    user_level: str,
+    user_domain: str,
+    skill: str,
+    recent_errors: list,
+    journey_title: str,
+    difficulty: float = 0.5,
+) -> Tuple[Dict[str, Any], str]:
+    """Generates 5 progressive tasks for one skill in a single coherent call."""
+    system_prompt = _SKILL_PRACTICE_MASTER_PROMPT.format(
+        user_level=user_level,
+        user_domain=user_domain,
+        skill=skill,
+        recent_errors=json.dumps(recent_errors),
+        journey_title=journey_title or "Foundational practice",
+        difficulty=difficulty,
+    )
+    user_message = f"Design a 5-task progression for {skill} for a {user_level} {user_domain} professional. Anchor difficulty: {difficulty}."
+    result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)
+    return result, MODEL_TASK
+
+
+_DYNAMIC_EVALUATOR_PROMPT = """# ROLE: Socratic AI Tutor & Senior CEFR Examiner
+You are an elite pedagogical architect. Your goal is NOT just to correct, but to guide the learner toward self-discovery using the Socratic method. You grade ONE learner response against a single task with academic rigor and empathy.
+
+# SOCRATIC FEEDBACK STRATEGY (STRICT)
+1. **Praise First**: Start with a specific, brief highlight of what they did well (e.g., "Excellent use of the passive voice here!").
+2. **Guide, Don't Tell**: Instead of giving the direct correction, ask a "Thought-Provoking Question" that hints at the error and encourages the user to find the solution themselves.
+3. **Encouraging Tone**: Maintain a supportive, professional, and academic register throughout.
 
 # INPUT DATA
 - Task Type: {task_type}
 - Skill: {skill}
 - Learner's CEFR Level: {user_level}
 - Task Difficulty (0.0–1.0): {difficulty}
-- Task Stimulus (the scenario the learner read): {stimulus}
-- Task Prompt (what they were asked to do): {prompt}
-- Reference / Target Response: {target_response}
-- Pedagogical Anchor (rule being practiced): {explanation}
+- Task Stimulus: {stimulus}
+- Task Prompt: {prompt}
+- Reference Response: {target_response}
+- Pedagogical Anchor: {explanation}
 - Learner's Response: {user_response}
 
 # EVALUATION MODE
-Decide ONE of two grading modes:
-- **CLOSED**: For MULTIPLE_CHOICE, FILL_BLANK, SCRAMBLED_SENTENCE, WORD_BUILDER, TARGETED_CORRECTION — there IS a single correct answer. Use the Target Response as ground truth. Allow minor spelling/casing tolerance. Score is essentially binary (≥0.95 if correct, ≤0.3 if wrong, partial credit only if structurally close).
-- **OPEN**: For GUIDED_PARAGRAPH, SHORT_ANSWER, REWRITE_FORMALITY, OPINION_STATEMENT, ROLEPLAY, ANSWER_DIRECT_QUESTION, etc. — there are MANY valid answers. Do NOT compare verbatim to Target Response — judge on CEFR quality + task-prompt coverage.
+- **CLOSED**: (MCQ, Fill-blank, Scrambled) Score is binary/objective. Use Target Response as ground truth.
+- **OPEN**: (Writing, Speaking, Opinions) Judge on CEFR quality, prompt coverage, AND FACTUAL ALIGNMENT. 
+- **CRITICAL FACTUAL RULE**: If the response contradicts the `Task Stimulus` (e.g., stating opposites, changing key concepts), you MUST mark `is_correct: false` and reduce the score significantly, regardless of perfect grammar.
 
-# CEFR ANCHORS (use when grading OPEN responses)
-- A1–A2: Isolated phrases, basic connectors, concrete vocabulary, mostly Present/Past Simple.
-- B1: Connected sentences, opinions with reasons, some subordination, modal verbs.
-- B2: Argumentation, hedging, abstract vocabulary, discourse markers, passive voice.
-- C1: Nuanced reasoning, contrastive analysis, precise register, complex syntax.
-- C2: Near-native precision, sophisticated rhetoric, effortless complexity.
+# CEFR ANCHORS
+- A1–A2: Simple phrases, basic connectors, concrete topics.
+- B1: Connected text, opinions with reasons, main points of clear standard input.
+- B2: Complex text on concrete/abstract topics, technical discussion, fluency.
+- C1: Demanding, longer texts, implicit meaning, flexible and effective language use.
+- C2: Effortless, precise, nuanced, near-native.
 
-# ANTI-COLLAPSE RULES
-1. Empty / one-word / off-topic responses on OPEN tasks → score ≤ 0.2.
-2. Do NOT punish a B2-quality answer just because it's shorter than the Target Response.
-3. Do NOT downgrade a high-CEFR answer for a single typo — flag it as a "slip", not a systematic error.
-4. If the learner's response shows clearly higher CEFR than `{user_level}`, set `detected_level` ABOVE `{user_level}` and say so in `reasoning_summary`.
-5. For CLOSED tasks, semantic equivalents to Target Response = correct (e.g. "I have finished" ≡ "I've finished").
-
-# ERROR CATEGORIZATION (REQUIRED for any incorrect or partial response)
-Classify the dominant error into ONE of: `Grammar:Tense`, `Grammar:Agreement`, `Grammar:Article`, `Grammar:Passive`, `Grammar:Conditional`, `Grammar:Word Order`, `Vocabulary:Word Choice`, `Vocabulary:Collocation`, `Vocabulary:Register`, `Spelling`, `Task Coverage`, `Coherence`, `Pronunciation` (speaking only), or `Other`. This category will be persisted to the user's error profile and drive future Review tasks.
-
-# OUTPUT (STRICT JSON, no markdown)
+# OUTPUT SCHEMA (STRICT JSON)
 {{
-  "score": float,                      // 0.0–1.0 (NOT 0–100)
-  "is_correct": boolean,               // true if score >= 0.6 for OPEN, score >= 0.85 for CLOSED
+  "score": float,                      // 0.0–1.0
+  "is_correct": boolean,
   "evaluation_mode": "closed|open",
-  "task_completion_score": float,      // 0.0–1.0 — did they address the whole prompt?
-  "language_quality_score": float,     // 0.0–1.0 — pure CEFR linguistic quality
   "detected_level": "A1|A2|B1|B2|C1|C2",
-  "confidence": float,                 // 0.0–1.0 — how sure are you about the score
-  "detailed_feedback": "1–3 sentences of pedagogical feedback in English, learner-facing",
-  "reasoning_summary": "1 sentence justifying the score with specific evidence from the response",
-  "error_analysis": {{
-    "detected_errors": ["Up to 3 specific error strings or quoted snippets"],
-    "corrected_version": "The learner's response rewritten correctly (or null for CLOSED tasks)",
-    "error_category": "ONE category from the list above (or null if score >= 0.85)"
+  "detailed_feedback": "string (SOCRATIC: Praise + Thought-Provoking Question)",
+  "reasoning_summary": "1 sentence justifying the score with evidence",
+  "dimensions": {{
+    "grammar": float,                  // 0.0–1.0
+    "vocabulary": float,               // 0.0–1.0
+    "coherence": float,                // 0.0–1.0
+    "fluency": float,                  // ONLY for SPEAKING (Voice mode)
+    "pronunciation": float             // ONLY for SPEAKING (Voice mode)
   }},
-  "metrics": {{
-    "grammar_score": float,            // 0.0–1.0
-    "vocabulary_score": float,         // 0.0–1.0
-    "relevance_score": float           // 0.0–1.0 — how well it addresses the task
+  "error_analysis": {{
+    "detected_errors": ["quoted snippets"],
+    "corrected_version": "string (The ideal version)",
+    "error_category": "Grammar:Tense | Grammar:Agreement | Vocabulary:Word Choice | Pronunciation | Fluency | Other"
   }}
 }}
 """

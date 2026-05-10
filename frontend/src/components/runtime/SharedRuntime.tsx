@@ -27,13 +27,13 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] bg-slate-50 dark:bg-gray-950 transition-colors duration-300 p-6 text-center">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-sm dark:shadow-md border border-slate-100 dark:border-gray-800 space-y-8 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/30 rounded-full blur-3xl -mr-16 -mt-16 opacity-60" />
-        
+
         {/* Icon Animation */}
         <div className="relative mx-auto w-24 h-24">
           <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full"></div>
@@ -56,7 +56,7 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
           <Brain className="w-3 h-3" /> AI Journey Engine: Building...
         </div>
 
-        <button 
+        <button
           onClick={onExit}
           className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest transition shadow-sm active:scale-95"
         >
@@ -81,33 +81,33 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const [sessionResults, setSessionResults] = useState<TaskEvaluationResult[]>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [showBatchEnd, setShowBatchEnd] = useState(false);
-  
+
   const taskStartTime = useRef(Date.now());
 
   // 2. Active Adaptive Sync fallback (Memoized)
   const activeResult = React.useMemo(() => {
     if (result) return result;
     if (supabaseData.isLoading) return null;
-    
+
     // Map Supabase DB to AssessmentSessionResult for Runtime Service
     const dbSkills: any = {};
-    const skillList = supabaseData.skills && supabaseData.skills.length > 0 
-      ? supabaseData.skills 
+    const skillList = supabaseData.skills && supabaseData.skills.length > 0
+      ? supabaseData.skills
       : [{ skillId: 'speaking', masteryScore: 50 }, { skillId: 'reading', masteryScore: 50 }];
-      
+
     skillList.forEach(s => {
       dbSkills[s.skillId || s.skill] = {
-         confidence: { score: (s.confidence || 0.5) },
-         descriptors: [{ descriptorId: `desc_${s.skillId}`, strength: (s.masteryScore || 50) / 100, descriptorText: `Focus on ${s.skillId} fluency.` }]
+        confidence: { score: (s.confidence || 0.5) },
+        descriptors: [{ descriptorId: `desc_${s.skillId}`, strength: (s.masteryScore || 50) / 100, descriptorText: `Focus on ${s.skillId} fluency.` }]
       };
     });
 
     return {
-       overall: {
-          estimatedLevel: supabaseData.profile?.overall_level || 'B1',
-          confidence: 0.75
-       },
-       skills: dbSkills
+      overall: {
+        estimatedLevel: supabaseData.profile?.overall_level || 'B1',
+        confidence: 0.75
+      },
+      skills: dbSkills
     } as AssessmentSessionResult;
   }, [result, supabaseData]);
 
@@ -123,11 +123,11 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       const fetchTasks = async () => {
         console.log("[SharedRuntime] 🚀 Initializing session tasks...");
         isFetching.current = true;
-        
+
         setFeedback(null);
         setEvaluation(null);
         setSessionResults([]);
-        
+
         try {
           const generatedTasks = await RuntimeService.generateSessionTasks(activeResult, skillFilter || undefined);
           if (generatedTasks && generatedTasks.length > 0) {
@@ -140,10 +140,10 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
           isFetching.current = false;
         }
       };
-      
+
       fetchTasks();
     }
-  }, [activeResult, skillFilter, tasks.length, showSummary]); 
+  }, [activeResult, skillFilter, tasks.length, showSummary]);
 
   // 4. Return Loading Shell (Must be AFTER all hooks)
   if (!activeResult || (tasks.length === 0 && !showSummary)) {
@@ -178,13 +178,13 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const handleResponseSubmit = (responsePayload: any) => {
     setIsEvaluating(true);
     setFeedback(null);
-    
+
     const responseTimeMs = Date.now() - taskStartTime.current;
 
     setTimeout(async () => {
       try {
         const { feedback: newFeedback, result } = await RuntimeService.evaluateResponse(currentTask, responsePayload);
-        
+
         if (result) {
           result.responseTimeMs = responseTimeMs;
           result.hintUsage = hintsUsed;
@@ -211,7 +211,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     if (evaluation) {
       setSessionResults(prev => [...prev, evaluation]);
     }
-    
+
     // Check if we reached the end of the current batch (5 tasks)
     if ((currentTaskIndex + 1) % 5 === 0 && currentTaskIndex === tasks.length - 1) {
       setShowBatchEnd(true);
@@ -243,6 +243,8 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       isEvaluating,
       feedback,
       retryCount,
+      userId: supabaseData.user?.id,
+      assessmentId: searchParams.get('assessment_id') || 'practice-session'
     };
 
     const skill = (currentTask.targetSkill || '').toLowerCase();
@@ -263,7 +265,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   if (showBatchEnd) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-6">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-gray-800 text-center space-y-8"
@@ -276,13 +278,13 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">You've finished 5 tasks. What's next on your journey?</p>
           </div>
           <div className="flex flex-col gap-4">
-            <button 
+            <button
               onClick={() => { setShowBatchEnd(false); handleContinue(); }}
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-5 h-5" /> Continue Practice (5 More)
             </button>
-            <button 
+            <button
               onClick={() => { setShowBatchEnd(false); setShowSummary(true); }}
               className="w-full py-4 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-50 rounded-2xl font-black uppercase tracking-widest transition active:scale-95 flex items-center justify-center gap-2"
             >
@@ -343,7 +345,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
               const isCorrect = review.result === 'correct';
               const isPartial = review.result === 'partial';
-              
+
               return (
                 <div key={r.taskId} className="bg-slate-50 dark:bg-gray-950 transition-colors duration-300 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   {/* Card Header */}
@@ -351,80 +353,80 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                     <div className="flex gap-4 items-center flex-wrap">
                       <span className="text-xs font-bold uppercase tracking-widest bg-slate-800 text-white px-3 py-1 rounded-full">{review.skill}</span>
                       <div className="flex gap-1.5 items-center">
-                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target Level:</span>
-                         <span className="text-xs font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm">{review.questionLevel}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target Level:</span>
+                        <span className="text-xs font-extrabold bg-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm">{review.questionLevel}</span>
                       </div>
                       <div className="flex gap-1.5 items-center">
-                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Level:</span>
-                         <span className={`text-xs font-extrabold px-2 py-0.5 rounded shadow-sm ${review.answerLevel !== review.questionLevel ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200' : 'bg-slate-200 text-slate-700'}`}>{review.answerLevel}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Level:</span>
+                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded shadow-sm ${review.answerLevel !== review.questionLevel ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200' : 'bg-slate-200 text-slate-700'}`}>{review.answerLevel}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                       <span className={`text-sm font-extrabold uppercase tracking-widest ${isCorrect ? 'text-emerald-700' : isPartial ? 'text-amber-700' : 'text-rose-700'}`}>
-                         {review.result}
-                       </span>
-                       {isCorrect ? <CheckCircle2 className="w-5 h-5 text-emerald-500 border border-emerald-200 bg-emerald-50 rounded-full"/> : isPartial ? <AlertCircle className="w-5 h-5 text-amber-500 border border-amber-200 bg-amber-50 rounded-full"/> : <XCircle className="w-5 h-5 text-rose-500 border border-rose-200 bg-rose-50 rounded-full"/>}
+                      <span className={`text-sm font-extrabold uppercase tracking-widest ${isCorrect ? 'text-emerald-700' : isPartial ? 'text-amber-700' : 'text-rose-700'}`}>
+                        {review.result}
+                      </span>
+                      {isCorrect ? <CheckCircle2 className="w-5 h-5 text-emerald-500 border border-emerald-200 bg-emerald-50 rounded-full" /> : isPartial ? <AlertCircle className="w-5 h-5 text-amber-500 border border-amber-200 bg-amber-50 rounded-full" /> : <XCircle className="w-5 h-5 text-rose-500 border border-rose-200 bg-rose-50 rounded-full" />}
                     </div>
                   </div>
-                  
+
                   {/* Card Body */}
                   <div className="p-5 space-y-5">
-                     <div>
-                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Prompt</p>
-                       <p className="text-slate-800 dark:text-slate-200 font-medium text-[15px]">{review.prompt}</p>
-                     </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Prompt</p>
+                      <p className="text-slate-800 dark:text-slate-200 font-medium text-[15px]">{review.prompt}</p>
+                    </div>
 
-                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 transition-colors duration-300 ring-1 ring-black/5">
-                       <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1.5">Your Answer</p>
-                       <p className="text-slate-900 font-medium">{review.userAnswer}</p>
-                     </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 transition-colors duration-300 ring-1 ring-black/5">
+                      <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1.5">Your Answer</p>
+                      <p className="text-slate-900 font-medium">{review.userAnswer}</p>
+                    </div>
 
-                     {review.correctAnswer && (
-                       <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                         <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1.5">Target Answer</p>
-                         <p className="text-emerald-900 font-bold">{review.correctAnswer}</p>
-                       </div>
-                     )}
+                    {review.correctAnswer && (
+                      <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1.5">Target Answer</p>
+                        <p className="text-emerald-900 font-bold">{review.correctAnswer}</p>
+                      </div>
+                    )}
 
-                     {/* Explanations Layer */}
-                     <div className="space-y-3.5 mt-6 border-t border-slate-200 pt-5">
-                       {review.explanation.whyCorrect && (
-                         <div className="flex items-start gap-3">
-                           <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0"/>
-                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Correct:</strong>{review.explanation.whyCorrect}</p>
-                         </div>
-                       )}
-                       {review.explanation.whatWentWrong && (
-                         <div className="flex items-start gap-3">
-                           <Zap className="w-5 h-5 text-rose-500 mt-0.5 shrink-0"/>
-                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">What Went Wrong:</strong>{review.explanation.whatWentWrong}</p>
-                         </div>
-                       )}
-                       {review.explanation.whyIncorrect && (
-                         <div className="flex items-start gap-3">
-                           <AlertCircle className="w-5 h-5 text-rose-500 mt-0.5 shrink-0"/>
-                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Incorrect:</strong>{review.explanation.whyIncorrect}</p>
-                         </div>
-                       )}
-                       {review.explanation.levelNote && (
-                         <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-900/30/50 p-3 rounded-xl border border-indigo-100/50">
-                           <BarChart2 className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0"/>
-                           <p className="text-indigo-900 text-sm leading-relaxed max-w-3xl"><strong className="text-indigo-950 mr-1">Level Note:</strong>{review.explanation.levelNote}</p>
-                         </div>
-                       )}
-                       {review.explanation.modelAnswer && (
-                         <div className="flex items-start gap-3">
-                           <Brain className="w-5 h-5 text-slate-400 mt-0.5 shrink-0"/>
-                           <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Model Idea:</strong>{review.explanation.modelAnswer}</p>
-                         </div>
-                       )}
-                       {review.explanation.improvementTip && (
-                         <div className="flex items-start gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200/60 mt-3 shadow-sm">
-                           <Lightbulb className="w-5 h-5 text-amber-500 mt-0.5 shrink-0"/>
-                           <p className="text-amber-900 text-sm font-medium leading-relaxed max-w-3xl"><strong className="uppercase tracking-widest text-[10px] bg-amber-200/50 px-2 py-0.5 rounded mr-2 align-middle">Tip</strong>{review.explanation.improvementTip}</p>
-                         </div>
-                       )}
-                     </div>
+                    {/* Explanations Layer */}
+                    <div className="space-y-3.5 mt-6 border-t border-slate-200 pt-5">
+                      {review.explanation.whyCorrect && (
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                          <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Correct:</strong>{review.explanation.whyCorrect}</p>
+                        </div>
+                      )}
+                      {review.explanation.whatWentWrong && (
+                        <div className="flex items-start gap-3">
+                          <Zap className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" />
+                          <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">What Went Wrong:</strong>{review.explanation.whatWentWrong}</p>
+                        </div>
+                      )}
+                      {review.explanation.whyIncorrect && (
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" />
+                          <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Why Incorrect:</strong>{review.explanation.whyIncorrect}</p>
+                        </div>
+                      )}
+                      {review.explanation.levelNote && (
+                        <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-900/30/50 p-3 rounded-xl border border-indigo-100/50">
+                          <BarChart2 className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
+                          <p className="text-indigo-900 text-sm leading-relaxed max-w-3xl"><strong className="text-indigo-950 mr-1">Level Note:</strong>{review.explanation.levelNote}</p>
+                        </div>
+                      )}
+                      {review.explanation.modelAnswer && (
+                        <div className="flex items-start gap-3">
+                          <Brain className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-slate-700 text-sm leading-relaxed"><strong className="text-slate-900 mr-1">Model Idea:</strong>{review.explanation.modelAnswer}</p>
+                        </div>
+                      )}
+                      {review.explanation.improvementTip && (
+                        <div className="flex items-start gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200/60 mt-3 shadow-sm">
+                          <Lightbulb className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                          <p className="text-amber-900 text-sm font-medium leading-relaxed max-w-3xl"><strong className="uppercase tracking-widest text-[10px] bg-amber-200/50 px-2 py-0.5 rounded mr-2 align-middle">Tip</strong>{review.explanation.improvementTip}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -444,14 +446,14 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
   if (!currentTask || tasks.length === 0) {
     const activeTaskId = localStorage.getItem('active_journey_step_id') || 'remediation_session_01';
-    
+
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-4xl">
-          <AdaptiveTaskCard 
-            taskId={activeTaskId} 
-            userId={supabaseData.user?.id || 'learner_prime'} 
-            onComplete={onExit} 
+          <AdaptiveTaskCard
+            taskId={activeTaskId}
+            userId={supabaseData.user?.id || 'learner_prime'}
+            onComplete={onExit}
           />
         </div>
       </div>
@@ -461,7 +463,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center p-4 sm:p-6">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-900 shadow-sm dark:shadow-md rounded-[2rem] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] mt-2 border border-slate-200 dark:border-gray-800 relative transition-colors duration-300">
-        
+
         {/* Universal Task Header */}
         <header className="px-6 py-5 border-b border-slate-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-10 transition-colors duration-300">
           <div className="flex items-center gap-4">
@@ -471,10 +473,10 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-bold tracking-widest uppercase bg-blue-50 dark:bg-blue-900/30 text-indigo-700 px-2 py-0.5 rounded-md">
-                   {currentTask.targetSkill} Practice
+                  {currentTask.targetSkill} Practice
                 </span>
                 <span className="text-xs text-slate-900 dark:text-slate-50 font-extrabold transition-colors duration-300 tracking-widest uppercase">
-                   Task {currentTaskIndex + 1} of {tasks.length}
+                  Task {currentTaskIndex + 1} of {tasks.length}
                 </span>
               </div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50 tracking-tight">{currentTask.learningObjective}</h2>
@@ -493,20 +495,20 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
         <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 dark:bg-gray-950 transition-colors duration-300/30 relative">
           <AnimatePresence mode="wait">
             <motion.div
-               key={`${currentTask.taskId}-${retryCount}`}
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               transition={{ duration: 0.3 }}
-               className="h-full flex flex-col"
+              key={`${currentTask.taskId}-${retryCount}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="h-full flex flex-col"
             >
               {/* Task Prompt Framing */}
               <div className="mb-8">
                 <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3">
                   {currentTask.prompt}
                 </p>
-                
-                {currentTask.payload?.stimulus && currentTask.payload.stimulus !== currentTask.prompt && (
+
+                {currentTask.payload?.stimulus && currentTask.payload.stimulus !== currentTask.prompt && currentTask.targetSkill?.toLowerCase() !== 'listening' && (
                   <div className="p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-slate-100 dark:border-gray-800 shadow-sm mb-6">
                     <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
                       {currentTask.payload.stimulus}
@@ -515,9 +517,18 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                 )}
 
                 <div className="flex gap-2">
-                   {currentTask.difficultyTarget && <span className="bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-400 px-3 py-1 text-xs font-bold rounded-lg border border-slate-200 dark:border-gray-700">Target: {currentTask.difficultyTarget}</span>}
-                   {retryCount > 0 && <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800/50">Attempt {retryCount + 1}</span>}
+                  {currentTask.difficultyTarget && <span className="bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-400 px-3 py-1 text-xs font-bold rounded-lg border border-slate-200 dark:border-gray-800">Target: {currentTask.difficultyTarget}</span>}
+                  {retryCount > 0 && <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800/50">Attempt {retryCount + 1}</span>}
                 </div>
+
+                {/* 🎯 THE MISSING QUESTION: Render the specific task prompt */}
+                {currentTask.payload?.task_prompt && (
+                  <div className="mt-8 mb-4">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-50 leading-tight">
+                      {currentTask.payload.task_prompt}
+                    </h2>
+                  </div>
+                )}
               </div>
 
               {/* Module Instantiation */}
@@ -531,9 +542,9 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
         {/* Universal Feedback & Transition Panel */}
         <AnimatePresence>
           {feedback && (
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }} 
-              animate={{ opacity: 1, y: 0 }} 
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               className={`p-6 border-t ${feedback.feedbackType === 'praise' ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-200'} shadow-[0_-10px_40px_rgba(0,0,0,0.05)] relative z-20`}
             >
@@ -542,13 +553,30 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                   {feedback.feedbackType === 'praise' ? <CheckCircle2 className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
                 </div>
                 <div className="flex-1">
-                   <h4 className={`text-lg font-bold mb-1 ${feedback.feedbackType === 'praise' ? 'text-emerald-900' : 'text-amber-900'}`}>{feedback.feedbackType === 'praise' ? 'Great job!' : 'Let\'s refine this.'}</h4>
-                   <p className={`text-base font-medium mb-3 ${feedback.feedbackType === 'praise' ? 'text-emerald-800' : 'text-amber-800'}`}>{feedback.primaryMessage}</p>
-                   {feedback.suggestedRetryConstraint && (
+                  <h4 className={`text-lg font-bold mb-1 ${feedback.feedbackType === 'praise' ? 'text-emerald-900' : 'text-amber-900'}`}>{feedback.feedbackType === 'praise' ? 'Great job!' : 'Let\'s refine this.'}</h4>
+                  <p className={`text-base font-medium mb-3 ${feedback.feedbackType === 'praise' ? 'text-emerald-800' : 'text-amber-800'}`}>{feedback.primaryMessage}</p>
+
+                  {/* 📊 Multidimensional Scoring Badges */}
+                  {evaluation?.dimensions && (
+                    <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                      {Object.entries(evaluation.dimensions).map(([key, val]: [string, any]) => (
+                        val > 0 && (
+                          <div key={key} className="flex flex-col items-center min-w-[70px] px-2 py-1.5 bg-white/40 dark:bg-black/20 rounded-xl border border-white/50 dark:border-white/5 shadow-sm">
+                            <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 leading-none mb-1">{key}</span>
+                            <span className={`text-sm font-black ${val >= 0.8 ? 'text-emerald-600' : val >= 0.5 ? 'text-amber-600' : 'text-rose-600'}`}>
+                              {Math.round(val * 100)}%
+                            </span>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  )}
+
+                  {feedback.suggestedRetryConstraint && (
                     <div className="inline-block bg-amber-500/10 border border-amber-500/20 text-amber-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
-                       Constraint: {feedback.suggestedRetryConstraint}
-                     </div>
-                   )}
+                      Constraint: {feedback.suggestedRetryConstraint}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   {feedback.canAdvance && (
@@ -571,7 +599,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             </motion.div>
           )}
         </AnimatePresence>
-        
+
       </div>
     </div>
   );

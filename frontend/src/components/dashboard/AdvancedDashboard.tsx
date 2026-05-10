@@ -202,7 +202,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
             .reduce((acc: number, h: any) => acc + (h.durationMs || 0), 0) / 60000;
 
         // 3. Active Errors
-        const activeErrors = (sData?.errorProfile?.weakness_areas || []).length;
+        const activeErrors = (Array.isArray(sData?.errorProfile?.weakness_areas) ? sData.errorProfile.weakness_areas : []).length;
 
         // 4. Due Reviews
         const dueReviews = skills.filter((s: any) => 
@@ -239,10 +239,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
     console.log('User Context:', supabaseData.user?.id);
 
-    // Remove the global blocking skeleton for a more fluid experience
-    const isGlobalLoading = (supabaseData.isLoading) && !result;
+    // 🎯 Progressive Rendering: Only block if we have NO data at all
+    const isInitialLoading = (supabaseData.isLoading && !supabaseData.profile && !result);
     
-    if (isGlobalLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
+    if (isInitialLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
 
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-x-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
@@ -374,9 +374,9 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
                                     dashboardData={mergedDashboardData}
-                                    weaknesses={supabaseData.errorProfile?.weakness_areas || []}
-                                    mistakes={supabaseData.errorProfile?.common_mistakes || []}
-                                    actionPlan={mergedDashboardData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || "Generating your path..."}
+                                    weaknesses={Array.isArray(supabaseData.errorProfile?.weakness_areas) ? supabaseData.errorProfile.weakness_areas : []}
+                                    mistakes={Array.isArray(supabaseData.errorProfile?.common_mistakes) ? supabaseData.errorProfile.common_mistakes : []}
+                                    actionPlan={mergedDashboardData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || ""}
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
@@ -441,11 +441,7 @@ const JourneyPortal = ({ journeyData }: { journeyData: JourneyData | null }) => 
     const navigate = useNavigate();
     
     // Fallback if no journey nodes yet
-    const nodes = journeyData?.nodes?.slice(0, 3) || [
-        { type: 'lesson', title: 'Calibrating Path...', is_locked: false, status: 'active' },
-        { type: 'drill', title: 'Analyzing Skills...', is_locked: true, status: 'locked' },
-        { type: 'audit', title: 'Assessment Required', is_locked: true, status: 'locked' }
-    ];
+    const nodes = journeyData?.nodes?.slice(0, 3) || [];
 
     const getIcon = (type: string) => {
         switch(type.toLowerCase()) {
@@ -490,10 +486,7 @@ const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | nu
         model: ri.category || 'Intelligence',
         text: ri.insight,
         type: 'info'
-    })) : [
-        { model: 'Skill Matrix', text: 'Calibrating your linguistic baseline...', type: 'info' },
-        { model: 'Retention', text: 'Analyzing memory decay patterns...', type: 'info' }
-    ];
+    })) : [];
 
     return (
         <div className="flex flex-col gap-4">
@@ -556,7 +549,7 @@ const ProfileSkillCard = ({ skill }: { skill: any }) => (
         <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 mt-1">
             <span>Trend</span>
             <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                <TrendingUp size={10} /> {skill.trend || 'Calibrating'}
+                <TrendingUp size={10} /> {skill.trend || '—'}
             </span>
         </div>
     </GlassCard>
@@ -626,7 +619,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
         subject: e.type || e.subject,
         A: e.severity === 'High' ? 90 : (e.severity === 'Medium' ? 60 : 30),
         fullMark: 100
-    })).concat((dashboardData?.error_profile?.weakness_areas || []).map((w: string) => ({
+    })).concat((Array.isArray(dashboardData?.error_profile?.weakness_areas) ? dashboardData.error_profile.weakness_areas : []).map((w: string) => ({
         subject: w,
         A: 50,
         fullMark: 100
@@ -971,7 +964,7 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                             </div>
                         </div>
                         <div className="space-y-6">
-                            {(errorProfile.weakness_areas || []).slice(0, 3).map((w: string, i: number) => (
+                            {(Array.isArray(errorProfile.weakness_areas) ? errorProfile.weakness_areas : []).slice(0, 3).map((w: string, i: number) => (
                                 <div key={i} className="group/dive">
                                     <p className="text-[14px] font-black text-slate-900 dark:text-slate-50 mb-1">{w}</p>
                                     <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 leading-relaxed">
@@ -1001,11 +994,13 @@ const AnalyticsTab = ({ supabaseData }: any) => {
                         </div>
                         Linguistic Action Plan
                     </h3>
-                    <p className="text-[15px] font-medium text-slate-500 dark:text-slate-400 leading-[1.8] mb-8 max-w-2xl">
-                        {errorProfile.action_plan || "Your roadmap to linguistic mastery is being sculpted by our AI Architect."}
-                    </p>
+                    {errorProfile.action_plan && (
+                        <p className="text-[15px] font-medium text-slate-500 dark:text-slate-400 leading-[1.8] mb-8 max-w-2xl">
+                            {errorProfile.action_plan}
+                        </p>
+                    )}
                     <div className="flex flex-wrap gap-3">
-                        {(errorProfile.weakness_areas || ['Grammar Repairs', 'Speech Pacing', 'Vocab Expansion']).slice(0, 5).map((tag: string) => (
+                        {(Array.isArray(errorProfile.weakness_areas) ? errorProfile.weakness_areas : []).slice(0, 5).map((tag: string) => (
                             <span key={tag} className="px-4 py-2 bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                 {tag}
                             </span>

@@ -12,7 +12,13 @@ import {
   Loader2,
   Activity,
   Target,
+  Info,
+  ShieldCheck,
+  Save,
+  Mic,
+  Headphones,
 } from 'lucide-react';
+import { AudioPlaybackControl } from '../components/shared/AudioPlaybackControl';
 import {
   sessionService,
   SessionBatch,
@@ -71,6 +77,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
         error_category?: string | null;
         corrected_version?: string | null;
         detected_level?: string;
+        dimensions?: EvaluateTaskResponse['dimensions'];
         is_ai?: boolean;
       })
     | null
@@ -79,6 +86,10 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completionResult, setCompletionResult] = useState<SessionCompleteResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'sync' | 'error'; message: string } | null>(null);
+
+  // --- Persistence Key ---
+  const PERSIST_KEY = useMemo(() => `session_recovery_${mode}_${skill || 'default'}`, [mode, skill]);
 
   const loadBatch = async () => {
     setIsLoading(true);
@@ -101,10 +112,49 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
     }
   };
 
+  // --- 💾 Recovery Logic ---
   useEffect(() => {
+    const saved = localStorage.getItem(PERSIST_KEY);
+    if (saved) {
+      try {
+        const { batch: savedBatch, results: savedResults, currentIndex: savedIdx } = JSON.parse(saved);
+        if (savedBatch && Array.isArray(savedResults)) {
+          setBatch(savedBatch);
+          setResults(savedResults);
+          setCurrentIndex(savedIdx);
+          setIsLoading(false);
+          setSyncStatus({ type: 'sync', message: 'Session recovered from previous state.' });
+          setTimeout(() => setSyncStatus(null), 3000);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to recover session:', e);
+      }
+    }
     loadBatch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, skill]);
+
+  // --- 🛡️ Navigation Guard ---
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (batch && !completionResult) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [batch, completionResult]);
+
+  // --- 📝 Save Progress ---
+  useEffect(() => {
+    if (batch && !completionResult) {
+      localStorage.setItem(PERSIST_KEY, JSON.stringify({ batch, results, currentIndex }));
+    } else if (completionResult) {
+      localStorage.removeItem(PERSIST_KEY);
+    }
+  }, [batch, results, currentIndex, completionResult, PERSIST_KEY]);
 
   const currentTask: SessionTask | null = batch?.tasks?.[currentIndex] || null;
   const totalTasks = batch?.tasks?.length || 0;
@@ -155,6 +205,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
         error_category: evalResult.error_analysis?.error_category ?? null,
         corrected_version: evalResult.error_analysis?.corrected_version ?? null,
         detected_level: evalResult.detected_level,
+        dimensions: evalResult.dimensions,
         is_ai: !evalResult.is_fallback,
       });
     } catch (err) {
@@ -180,6 +231,21 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
     const nextResults = [...results, taskResult];
     setResults(nextResults);
 
+    // --- 🔄 Incremental Sync (Zero Data Loss) ---
+    try {
+      await sessionService.syncTaskResult(taskResult);
+      const acc = Math.round(lastEvaluation.score * 100);
+      setSyncStatus({ 
+        type: 'sync', 
+        message: `Skill Level Sync: ${taskResult.skill.charAt(0).toUpperCase() + taskResult.skill.slice(1)} accuracy updated to ${acc}%.` 
+      });
+      setTimeout(() => setSyncStatus(null), 3000);
+    } catch (err) {
+      console.warn('[DailyMix] Incremental sync failed:', err);
+      setSyncStatus({ type: 'error', message: 'Sync connection weak. Progress saved locally.' });
+      setTimeout(() => setSyncStatus(null), 4000);
+    }
+
     const isLast = currentIndex >= totalTasks - 1;
     if (!isLast) {
       setCurrentIndex(currentIndex + 1);
@@ -197,6 +263,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
         completed_journey_step_id: batch?.journey_focus?.step_id || null,
       });
       setCompletionResult(response);
+      localStorage.removeItem(PERSIST_KEY);
       setShowModal(true);
     } catch (err) {
       console.error('[DailyMix] session-complete failed:', err);
@@ -280,7 +347,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35 }}
-            className="rounded-[3rem] bg-[#0F172A]/70 border border-white/10 backdrop-blur-2xl p-8 sm:p-10 shadow-2xl relative overflow-hidden"
+            className="rounded-[3rem] bg-[#0F172A]/40 border border-white/10 backdrop-blur-[40px] p-8 sm:p-10 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden"
           >
             {/* Accents */}
             <div className="absolute -top-32 -right-24 w-80 h-80 bg-indigo-500/20 blur-[140px] rounded-full pointer-events-none" />
@@ -319,14 +386,31 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                 )}
               </div>
 
-              {/* Stimulus */}
+              {/* Stimulus Surface */}
               <div className="rounded-[2rem] bg-white/5 border border-white/5 p-7 mb-7">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-200/60 mb-3">
-                  Scenario
-                </p>
-                <p className="text-white/90 text-lg sm:text-xl leading-relaxed font-medium italic">
-                  "{currentTask.content.stimulus}"
-                </p>
+                {currentTask.task_metadata.skill_tag?.toLowerCase() === 'listening' ? (
+                  <div className="space-y-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-200/60 mb-3">
+                      Listening Prompt
+                    </p>
+                    <AudioPlaybackControl
+                      audioUrl={currentTask.content.audio_url}
+                      transcript={currentTask.content.stimulus}
+                      allowReplay={true}
+                      allowSlowAudio={true}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-200/60 mb-3">
+                      Scenario
+                    </p>
+                    <p className="text-white/90 text-lg sm:text-xl leading-relaxed font-medium italic">
+                      "{currentTask.content.stimulus}"
+                    </p>
+                  </>
+                )}
+
                 {currentTask.content.task_prompt && (
                   <>
                     <div className="mt-6 pt-6 border-t border-white/5" />
@@ -369,7 +453,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                   onChange={(e) => setAnswer(e.target.value)}
                   disabled={!!lastEvaluation}
                   placeholder="Type your response…"
-                  className="w-full h-48 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-white placeholder-white/20 text-lg font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/20 transition resize-none disabled:opacity-70"
+                  className="w-full h-48 bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[2rem] p-6 text-white placeholder-white/20 text-lg font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/20 transition resize-none disabled:opacity-70 shadow-inner"
                 />
               )}
 
@@ -405,25 +489,103 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                           </span>
                         )}
                       </p>
+                      {lastEvaluation.dimensions && (
+                        <div className="flex gap-6 mb-5 bg-white/5 p-3 rounded-xl border border-white/5">
+                          {Object.entries(lastEvaluation.dimensions).map(([key, val]) => (
+                            <div key={key} className="flex flex-col flex-1">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-[8px] font-black uppercase tracking-widest opacity-50">{key}</span>
+                                <span className="text-[9px] font-bold text-white/40">{Math.round(val * 100)}%</span>
+                              </div>
+                              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${val * 100}%` }}
+                                  className={`h-full shadow-[0_0_8px_rgba(255,255,255,0.2)] ${val > 0.7 ? 'bg-emerald-400' : val > 0.4 ? 'bg-amber-400' : 'bg-rose-400'}`}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       {lastEvaluation.feedback && (
-                        <p className="font-medium opacity-90 mb-2">{lastEvaluation.feedback}</p>
+                        <div className="space-y-5 mb-4">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/20">
+                               <ShieldCheck size={14} className="text-indigo-400" />
+                             </div>
+                             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-300/80">
+                               Neural Feedback • Profile Synced
+                             </p>
+                          </div>
+                          <p className="font-medium opacity-90 leading-relaxed text-base italic text-white/90">
+                            "{lastEvaluation.feedback}"
+                          </p>
+                          
+                          {/* 📊 Premium Actionable Correction Table */}
+                          {(!lastEvaluation.is_correct || lastEvaluation.corrected_version) && (
+                            <div className="rounded-[2rem] overflow-hidden border border-white/10 bg-black/40 backdrop-blur-2xl shadow-2xl relative">
+                              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
+                              <div className="grid grid-cols-2 text-[9px] font-black uppercase tracking-[0.3em] text-white/30 border-b border-white/5 bg-white/[0.02]">
+                                <div className="p-4 border-r border-white/5 flex items-center gap-2">
+                                  <AlertCircle size={10} className="text-rose-400/50" /> Draft Logic
+                                </div>
+                                <div className="p-4 flex items-center gap-2">
+                                  <CheckCircle2 size={10} className="text-emerald-400/50" /> AI Alignment
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 text-sm">
+                                <div className="p-6 border-r border-white/5 bg-rose-500/[0.02] text-rose-200/50 line-through decoration-rose-500/30 italic font-medium leading-relaxed">
+                                  {answer || "—"}
+                                </div>
+                                <div className="p-6 bg-emerald-500/[0.03] text-emerald-400 font-bold leading-relaxed shadow-[inset_0_0_30px_rgba(16,185,129,0.03)]">
+                                  {lastEvaluation.corrected_version || currentTask.content.target_response}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 🧠 Socratic Question */}
+                          <div className="pt-4 border-t border-white/5 flex gap-3 italic text-indigo-200/70">
+                            <Brain size={16} className="shrink-0 mt-0.5" />
+                            <p className="text-sm">
+                              {lastEvaluation.is_correct 
+                                ? "Excellent control! Can you try expressing this same thought using a slightly more formal tone?"
+                                : "Look closely at the refined version. Notice how the structure changed? Why do you think this version flows better?"}
+                            </p>
+                          </div>
+                        </div>
                       )}
-                      {lastEvaluation.corrected_version && (
-                        <p className="font-medium opacity-80 mb-2">
-                          Corrected: <span className="font-bold">{lastEvaluation.corrected_version}</span>
-                        </p>
-                      )}
-                      {!lastEvaluation.feedback && currentTask.content.target_response && (
-                        <p className="font-medium opacity-80">
-                          Reference: <span className="font-bold">{currentTask.content.target_response}</span>
-                        </p>
-                      )}
+                      
                       {currentTask.content.explanation && (
-                        <p className="mt-2 text-white/60 italic font-medium">
-                          {currentTask.content.explanation}
-                        </p>
+                        <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/5 flex gap-3">
+                          <Info size={16} className="shrink-0 text-indigo-300/60 mt-0.5" />
+                          <p className="text-xs text-white/60 leading-relaxed italic">
+                            <span className="font-bold text-indigo-300/80 not-italic uppercase tracking-tighter mr-2">Pro Tip:</span>
+                            {currentTask.content.explanation}
+                          </p>
+                        </div>
                       )}
                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* 🔄 Sync Status Toast */}
+              <AnimatePresence>
+                {syncStatus && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className={`absolute bottom-24 right-8 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl ${
+                      syncStatus.type === 'sync' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                    }`}
+                  >
+                    {syncStatus.type === 'sync' ? <ShieldCheck size={16} /> : <Save size={16} />}
+                    <span className="text-[10px] font-black uppercase tracking-widest">{syncStatus.message}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -434,7 +596,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                   <button
                     onClick={handleCheck}
                     disabled={!answer.trim() || isCheckingAnswer}
-                    className="flex-1 py-5 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 hover:from-indigo-500 hover:to-violet-600 text-white font-black text-lg flex items-center justify-center gap-3 transition disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] shadow-2xl shadow-indigo-500/20"
+                    className="flex-1 py-5 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 hover:from-indigo-500 hover:to-violet-600 text-white font-black text-lg flex items-center justify-center gap-3 transition disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] shadow-[0_0_20px_-5px_rgba(79,70,229,0.5)] hover:shadow-[0_0_30px_-5px_rgba(79,70,229,0.8)]"
                   >
                     {isCheckingAnswer ? (
                       <>
@@ -450,7 +612,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                   <button
                     onClick={handleNext}
                     disabled={isSubmitting}
-                    className="flex-1 py-5 rounded-2xl bg-white text-slate-950 hover:bg-slate-100 font-black text-lg flex items-center justify-center gap-3 transition active:scale-[0.98] shadow-2xl shadow-white/5 disabled:opacity-50"
+                    className="flex-1 py-5 rounded-2xl bg-white text-slate-950 hover:bg-slate-100 font-black text-lg flex items-center justify-center gap-3 transition active:scale-[0.98] shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.5)] disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
@@ -490,8 +652,8 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
 
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen w-full bg-[#020617] relative overflow-hidden p-6 selection:bg-indigo-500/30">
-    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/15 rounded-full blur-[140px]" />
-    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-violet-600/10 rounded-full blur-[160px]" />
+    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[140px] animate-pulse" />
+    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-violet-600/15 rounded-full blur-[160px] animate-pulse [animation-delay:2s]" />
     <div className="relative z-10 max-w-7xl mx-auto py-8">{children}</div>
   </div>
 );

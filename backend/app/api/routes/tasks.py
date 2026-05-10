@@ -114,6 +114,27 @@ async def session_complete(
         raise HTTPException(status_code=500, detail=f"Failed to process session results: {str(e)}")
 
 
+@router.post("/sync-task", response_model=Dict[str, Any])
+async def sync_task(
+    payload: TaskResult,
+    db: AsyncSession = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Syncs a single task result immediately. Used for 'Zero-Data-Loss' strategy.
+    Updates learner profile and error profile incrementally.
+    """
+    try:
+        user_id = current_user["sub"]
+        return await SessionManager.sync_task_result(
+            user_id=user_id,
+            result=payload.model_dump(),
+            db=db,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync task result: {str(e)}")
+
+
 # ---------------------------------------------------------------------------
 # CEFR Evaluator — grades a single learner response with the upgraded prompt
 # ---------------------------------------------------------------------------
