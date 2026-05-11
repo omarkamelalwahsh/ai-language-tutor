@@ -30,49 +30,33 @@ interface DailyBites {
     };
 }
 
-const MOCK_BITES: DailyBites = {
-    vocabulary: {
-        topic: "Resource Utilization",
-        steps: [
-            { level: "A1", word: "use" },
-            { level: "B2", word: "utilize" },
-            { level: "C1", word: "leverage" }
-        ],
-        context_note: "Instead of saying 'We use the data', say 'We leverage the dataset to optimize the neural work'. 'Leverage' implies utilizing a resource to its maximum strategic advantage."
-    },
-    grammar: {
-        type: "Personalized Remediation",
-        incorrect: "He explained me the problem.",
-        correct: "He explained the problem to me.",
-        rule: "Verb 'explain' needs 'to' for personal objects."
-    },
-    style: {
-        focus: "Academic Tone",
-        basic_b1: "I want to talk about the project.",
-        advanced_c1_academic: "I would like to discuss the project.",
-        style_note: "'Discuss' and 'would like to' elevate the professional tone significantly."
-    },
-    punctuation: {
-        focus: "The Oxford Comma",
-        rule: "The Oxford comma is the final comma in a list of three or more items.",
-        example: "I want to talk about AI, ML, and the Oxford comma."
-    }
-};
+const MOCK_BITES: DailyBites | null = null;
 
-export const DailyMicroLearning: React.FC = () => {
+
+interface DailyMicroLearningProps {
+    bites?: DailyBites | null;
+}
+
+export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: propBites }) => {
     const [bites, setBites] = useState<DailyBites | null>(null);
     const [loading, setLoading] = useState(true);
 
     const handleSpeak = (text: string) => {
         if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel(); // Stop any current speech
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
     };
 
     useEffect(() => {
+        if (propBites) {
+            setBites(propBites);
+            setLoading(false);
+            return;
+        }
+
         const fetchBites = async () => {
             try {
                 const response = await fetch('/api/v1/daily/bites', {
@@ -84,19 +68,20 @@ export const DailyMicroLearning: React.FC = () => {
                         setBites(data.daily_bites);
                     }
                 } else {
-                    // If server fails, use mock as last resort
-                    setBites(MOCK_BITES);
+                    setBites(null);
                 }
             } catch (err) {
-                console.error("Failed to load daily bites, using mock", err);
-                setBites(MOCK_BITES);
+                console.error("Failed to load daily bites", err);
+                setBites(null);
             } finally {
                 setLoading(false);
             }
+
         };
 
         fetchBites();
-    }, []);
+    }, [propBites]);
+
 
     if (loading) {
         return (
@@ -108,10 +93,20 @@ export const DailyMicroLearning: React.FC = () => {
         );
     }
 
-    if (!bites) return null;
+    if (!bites) {
+        return (
+            <div className="p-12 rounded-[40px] bg-slate-900/50 border border-white/5 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="p-4 rounded-full bg-indigo-500/10 animate-pulse">
+                    <Sparkles className="text-indigo-400" size={32} />
+                </div>
+                <h3 className="text-xl font-black text-white">Neural Engine Generating...</h3>
+                <p className="text-slate-400 text-sm max-w-xs">We are architecting your synchronized daily learning bites. This takes about 10-15 seconds.</p>
+            </div>
+        );
+    }
 
-    // We NEVER return null now. Even if fetch fails, we show MOCK_BITES.
     return (
+
         <div className="space-y-6 mb-12">
             <div className="flex items-center justify-between px-2">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">

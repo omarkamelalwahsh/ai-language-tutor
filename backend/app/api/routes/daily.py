@@ -74,7 +74,10 @@ async def get_weekly_vocab(
         field = "AI Engineering"
         
         daily_service = DailyService(db)
+        # Ensure today's word is generated before returning the log
+        await daily_service.get_daily_word(target_level=target_level, field=field)
         weekly_data = await daily_service.get_weekly_log(
+            user_id=UUID(current_user_id),
             target_level=target_level,
             field=field
         )

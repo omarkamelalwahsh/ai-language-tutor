@@ -204,12 +204,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
     const [realtimeData, setRealtimeData] = React.useState<DashboardData | null>(null);
     const [journeyData, setJourneyData] = React.useState<JourneyData | null>(null);
+    const [dailyBites, setDailyBites] = React.useState<any>(null);
     const [isLearnerLoading, setIsLearnerLoading] = React.useState(true);
 
     const fetchAllData = React.useCallback(async () => {
         const userContext = supabaseData.user?.id;
         
-        // تأكد من وجود المستخدم أولاً
         if (!userContext || String(userContext) === 'undefined') {
             return;
         }
@@ -217,19 +217,21 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         setIsLearnerLoading(true);
         try {
             console.log('[Dashboard] Fetching fresh data...');
-            const [dash, journey] = await Promise.all([
+            const [dash, journey, bites] = await Promise.all([
                 learnerService.getDashboard(),
-                learnerService.getJourney()
+                learnerService.getJourney(),
+                learnerService.getDailyBites()
             ]);
-            console.log('[Dashboard] API Response received:', dash);
             setRealtimeData(dash);
             setJourneyData(journey);
+            setDailyBites(bites);
         } catch (err) {
             console.error('[Dashboard] Fetch Error:', err);
         } finally {
             setIsLearnerLoading(false);
         }
     }, [supabaseData.user?.id]);
+
 
     React.useEffect(() => {
         fetchAllData();
@@ -418,10 +420,57 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                         journeyData={journeyData}
                                         onTabChange={handleTabChange}
                                         supabaseData={supabaseData}
+                                        dailyBites={dailyBites}
                                     />
                                 )
                             )}
+                            {activeTab === 'daily' && (
+                                <div className="w-full max-w-6xl mx-auto min-h-screen pb-20 relative">
+                                    {/* Roadmap Header */}
+                                    <div className="px-8 mb-16 relative z-10">
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Neural Linguistic Roadmap</span>
+                                            </div>
+                                        </div>
+                                        <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">Proficiency Journey</h2>
+                                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl">Your 24-hour cognitive cycle, architected for maximum retention and error repair.</p>
+                                    </div>
+
+                                    {!dailyBites ? (
+                                        <div className="flex flex-col items-center justify-center py-20">
+                                            <div className="w-20 h-20 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin mb-8" />
+                                            <h3 className="text-xl font-black text-white animate-pulse uppercase tracking-widest text-center">
+                                                Architecting Daily Roadmap...<br/>
+                                                <span className="text-[10px] text-slate-500 font-medium">Synchronizing with Neural Engine</span>
+                                            </h3>
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ zIndex: 0 }}>
+                                                <path 
+                                                    d="M 50% 0 C 70% 200, 30% 400, 50% 600" 
+                                                    fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="12 12" 
+                                                    className="text-indigo-500"
+                                                />
+                                            </svg>
+
+                                            <div className="space-y-24 relative z-10 px-8">
+                                                <DailyRoadmapNode idx={0} title="Linguistic Seed" subtitle="Vocabulary Sync" icon={<Sparkles size={24} />} content={dailyBites?.vocabulary} color="indigo" />
+                                                <DailyRoadmapNode idx={1} title="Neural Repair" subtitle="Grammar Remediation" icon={<Zap size={24} />} content={dailyBites?.grammar} color="rose" align="right" />
+                                                <DailyRoadmapNode idx={2} title="Stylistic Shift" subtitle="Tone Transformer" icon={<PenTool size={24} />} content={dailyBites?.style} color="blue" />
+                                                <DailyRoadmapNode idx={3} title="Structural Logic" subtitle="Punctuation Mechanic" icon={<Layers size={24} />} content={dailyBites?.punctuation} color="emerald" align="right" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+
+
+
                             {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
+
                             {activeTab === 'analytics' && (
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
@@ -640,7 +689,7 @@ const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any
     </motion.button>
 );
 
-const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData }: any) => {
+const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData, dailyBites }: any) => {
     const navigate = useNavigate();
     const { data: profileData } = useLearnerProfile();
     const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
@@ -650,9 +699,10 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
     React.useEffect(() => {
         const fetchWeekly = async () => {
             try {
-                const data = await learnerService.getWeeklyVocab();
-                setWeeklyVocab(data);
-                if (data?.next_word_in) setNextWordIn(data.next_word_in);
+                // Fetch weekly vocab (source of truth for words)
+                const weeklyData = await learnerService.getWeeklyVocab();
+                setWeeklyVocab(weeklyData);
+                if (weeklyData?.next_word_in) setNextWordIn(weeklyData.next_word_in);
             } catch (err) {
                 console.error("Failed to load weekly vocab", err);
             }
@@ -660,7 +710,9 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
         fetchWeekly();
     }, []);
 
+
     // Live countdown timer (updates every 60s)
+
     React.useEffect(() => {
         const updateTimer = () => {
             const now = new Date();
@@ -773,7 +825,9 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                             currentIndex={finalCurrentIndex}
                             skillsMatrix={matrixData}
                             dashData={dashboardData}
+                            dailyBites={dailyBites}
                         />
+
                     );
                 })()}
             </motion.div>
@@ -783,8 +837,12 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             </motion.div>
 
 
-
             {/* 2. KPI ROW */}
+
+
+
+
+
             <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <KPICard label="Momentum" value={`${kpis?.momentum || 0}%`} icon={<Zap size={18} />} color="text-indigo-600" bgColor="bg-indigo-50 dark:bg-indigo-500/10" />
                 <KPICard label="Weekly Minutes" value={`${kpis?.weekly_minutes || 0}m`} icon={<Clock size={18} />} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-500/10" />
@@ -896,25 +954,26 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                                                         </div>
 
                                                         <button 
-                                                            onClick={() => handleSpeak(item.data.audio_script)}
-                                                            disabled={isLocked}
+                                                            onClick={() => item.data && handleSpeak(item.data.audio_script)}
+                                                            disabled={isLocked || !item.data}
                                                             className={`w-14 h-14 rounded-full flex items-center justify-center mb-6 relative z-10 transition-transform group-hover:scale-110 ${
                                                                 isToday ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : isPast ? 'bg-slate-700' : 'bg-slate-800'
-                                                            } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-blue-500/80'}`}
+                                                            } ${(isLocked || !item.data) ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-blue-500/80'}`}
                                                         >
-                                                            {isLocked ? <Lock size={18} className="text-slate-600" /> : (
+                                                            {(isLocked || !item.data) ? <Lock size={18} className="text-slate-600" /> : (
                                                                 <div className="w-0 h-0 border-t-[7px] border-t-transparent border-l-[11px] border-l-white border-b-[7px] border-b-transparent ml-1" />
                                                             )}
                                                         </button>
 
                                                         <div className="text-center relative z-10 w-full">
                                                             <h4 className={`text-sm font-black mb-2 truncate w-full ${isToday ? 'text-blue-400' : isPast ? 'text-slate-300' : 'text-white'}`}>
-                                                                {isLocked ? '???' : item.data.word_c1}
+                                                                {isLocked ? '???' : item.data?.word_c1 ?? '---'}
                                                             </h4>
                                                             <p className={`text-[9px] leading-relaxed line-clamp-3 font-bold uppercase tracking-tight ${isPast ? 'text-slate-600' : 'text-slate-500'}`}>
-                                                                {isLocked ? 'Locked' : item.data.insight}
+                                                                {isLocked ? 'Locked' : item.data?.insight ?? 'Pending...'}
                                                             </p>
                                                         </div>
+
                                                     </div>
                                                 );
                                             })
@@ -1478,6 +1537,93 @@ const EventLogItem = ({ icon, title, desc, blur }: { icon: any, title: string, d
     </div>
 );
 
+const DailyRoadmapNode = ({ idx, title, subtitle, icon, content, color, align = 'left' }: any) => {
+    const isRight = align === 'right';
+    const isPlaceholder = !content;
+
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, x: isRight ? 50 : -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className={`flex items-center gap-12 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}
+        >
+            {/* The Node Hexagon */}
+            <div className="shrink-0 relative">
+                <div className={`absolute inset-0 bg-${color}-500/20 blur-[30px] rounded-full animate-pulse`} />
+                <div className={`
+                    w-24 h-24 rounded-[2rem] bg-slate-900 border-2 border-${color}-500/50 flex flex-col items-center justify-center relative z-10 shadow-2xl
+                `}>
+                    <div className={`text-${color}-400 mb-1`}>{icon}</div>
+                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Step 0{idx + 1}</span>
+                </div>
+            </div>
+
+            {/* The Content Card */}
+            <GlassCard className="flex-1 p-8 border-l-4" style={{ borderLeftColor: `var(--${color}-500)` }} glow>
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest text-${color}-400 mb-1 block`}>{subtitle}</span>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h3>
+                    </div>
+                </div>
+                
+                <div className="bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-6 border border-slate-200 dark:border-white/5">
+                    {/* Dynamic Content based on node type */}
+                    {isPlaceholder ? (
+                        <div className="space-y-3 animate-pulse">
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-3/4" />
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-1/2" />
+                        </div>
+                    ) : (
+                        <>
+                            {idx === 0 && (
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-6">
+                                        {content.steps?.map((s: any, i: number) => (
+                                            <div key={i} className="flex flex-col">
+                                                <span className="text-[9px] font-black text-slate-500 uppercase mb-1">{s.level}</span>
+                                                <span className={`text-xl font-black ${i === 2 ? 'text-blue-400' : 'text-slate-400'}`}>{s.word}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-slate-400 italic leading-relaxed border-t border-white/5 pt-4">"{content.context_note}"</p>
+                                </div>
+                            )}
+                            {idx === 1 && (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                                            <p className="text-[10px] font-black text-rose-400 uppercase mb-2">Pattern Detected</p>
+                                            <p className="text-sm font-bold text-slate-300">"{content.incorrect}"</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase mb-2">Neural Correction</p>
+                                            <p className="text-sm font-bold text-slate-300">"{content.correct}"</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium pl-2 border-l-2 border-rose-500/30">{content.rule}</p>
+                                </div>
+                            )}
+                            {idx >= 2 && (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-slate-300 font-bold leading-relaxed">{content.focus || content.topic}</p>
+                                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 italic text-xs text-slate-400">
+                                        {content.advanced_c1_academic || content.example || content.rule}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+            </GlassCard>
+        </motion.div>
+    );
+};
+
 export default AdvancedDashboard;
+
 
 

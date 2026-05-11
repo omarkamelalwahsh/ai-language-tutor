@@ -158,6 +158,15 @@ class LearnerService {
     if (!response.ok) throw new Error('Failed to fetch weekly vocab');
     return await response.json();
   }
+
+  async getDailyBites(): Promise<any> {
+    const headers = await this.getAuthHeader();
+    const response = await fetch(`${this.baseUrl}/api/v1/daily/bites`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch daily bites');
+    const data = await response.json();
+    return data.daily_bites || null;
+  }
 }
+
 
 export const learnerService = new LearnerService();

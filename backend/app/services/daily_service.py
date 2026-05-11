@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from uuid import UUID
@@ -125,9 +125,11 @@ class DailyService:
     async def get_daily_bites(self, user_id: UUID, target_level: str = "B2", field: str = "AI Engineering", learning_goal: str = "Professional Fluency"):
         """
         Fetches or generates daily bites, then performs personalization swap.
+        Synchronizes the vocabulary bite with the word of the day from the weekly cycle.
         """
         try:
-            today = datetime.now(timezone.utc).date()
+            today_dt = datetime.now(timezone.utc)
+            today = today_dt.date()
             
             # 1. Fetch latest content for the level/field
             stmt = select(DailyContent).where(
@@ -140,52 +142,58 @@ class DailyService:
             
             # If none or older than today, generate new global one
             if not daily or daily.day_date.date() < today:
-                logger.info(f"Generating new daily bites for {target_level} in {field}")
                 content = await self._generate_new_daily_bites(target_level, field, learning_goal)
                 daily = DailyContent(
                     target_level=target_level,
                     field=field,
                     content=content,
-                    day_date=datetime.now(timezone.utc)
+                    day_date=today_dt
                 )
                 self.db.add(daily)
                 await self.db.commit()
                 await self.db.refresh(daily)
             
-            # 2. Personalization Swap (Grammar)
-            # Find the user's most significant recurring mistake
+            # 2. SYNC: Inject current day's word from WeeklyVocabulary
+            weekly_word = await self.get_daily_word(target_level, field)
+            final_content = daily.content.copy()
+            
+            # Ensure the structure exists
+            if "daily_bites" not in final_content:
+                final_content["daily_bites"] = {}
+            
+            if weekly_word:
+                # Override or Create the vocabulary bite to match the Weekly Journey
+                final_content["daily_bites"]["vocabulary"] = {
+                    "topic": f"Daily Journey: {weekly_word['day']}",
+                    "steps": [
+                        { "level": "A1/A2", "word": weekly_word["word_a1"] },
+                        { "level": "B2", "word": "Expanding..." }, # Placeholder middle step
+                        { "level": "C1", "word": weekly_word["word_c1"] }
+                    ],
+                    "context_note": weekly_word["insight"]
+                }
+            
+            # 3. Personalization Swap (Grammar)
             err_stmt = select(UserErrorAnalysis).where(
                 UserErrorAnalysis.user_id == user_id
             ).order_by(desc(UserErrorAnalysis.created_at))
             err_result = await self.db.execute(err_stmt)
             user_err = err_result.scalars().first()
             
-            # Create a localized copy of the content
-            final_content = daily.content.copy()
-            
             if user_err and "daily_bites" in final_content:
                 final_content["daily_bites"]["grammar"] = {
                     "type": "Personalized Remediation",
                     "incorrect": user_err.user_answer,
                     "correct": user_err.correct_answer,
-                    "rule": user_err.ai_interpretation or user_err.deep_insight or "Focus on structural accuracy in this pattern."
+                    "rule": user_err.ai_interpretation or user_err.deep_insight or "Focus on structural accuracy."
                 }
             
             return final_content
+
             
         except Exception as e:
             logger.error(f"DailyService Error: {str(e)}")
-            # Fallback to a static object if everything fails
-            return {
-                "date_generated": datetime.now(timezone.utc).date().isoformat(),
-                "daily_bites": {
-                    "vocabulary": {"topic": "Progress", "steps": [{"level": "A1", "word": "Go"}, {"level": "B2", "word": "Proceed"}, {"level": "C1", "word": "Advance"}], "context_note": "Advance your career."},
-                    "grammar": {"type": "Tip", "incorrect": "I am here for learn.", "correct": "I am here to learn.", "rule": "Use 'to' + infinitive for purpose."},
-                    "style": {"focus": "Formality", "basic_b1": "Tell me more.", "advanced_c1_academic": "Could you please elaborate?", "style_note": "'Elaborate' is more precise."},
-                    "punctuation": {"focus": "Commas", "rule": "Use commas in lists.", "example": "AI, ML, and NLP."},
-                    "reminder_review": {"skill": "Recall", "question": "Yesterday's word for 'very big'?", "answer": "Substantial"}
-                }
-            }
+            return None
 
     async def _generate_new_daily_bites(self, target_level: str, field: str, learning_goal: str):
         prompt = _DAILY_BITES_SYSTEM_PROMPT.format(
@@ -194,38 +202,31 @@ class DailyService:
             learning_goal=learning_goal,
             date_generated=datetime.now(timezone.utc).date().isoformat()
         )
-        
         user_msg = f"Generate daily micro-learning bites for a {target_level} learner in {field}."
         result = await _call_groq_json(MODEL_TASK, prompt, user_msg, use_task_client=True)
         return result
+
     @staticmethod
     def get_custom_day_index() -> int:
-        """
-        Returns the current day's index in our Saturday-start cycle.
-        Saturday=0, Sunday=1, Monday=2, Tuesday=3, Wednesday=4, Thursday=5, Friday=6
-        Python weekday(): Monday=0, Tuesday=1, ..., Saturday=5, Sunday=6
-        """
+        """Saturday=0, Sunday=1, ..., Friday=6"""
         system_weekday = datetime.now(timezone.utc).weekday()
         return (system_weekday + 2) % 7
 
     @staticmethod
     def get_last_saturday() -> datetime:
-        """Returns the date of the most recent Saturday (start of current cycle)."""
         now = datetime.now(timezone.utc)
-        day_index = (now.weekday() + 2) % 7  # days since Saturday
+        day_index = (now.weekday() + 2) % 7
         last_sat = now - timedelta(days=day_index)
         return last_sat.replace(hour=0, minute=0, second=0, microsecond=0)
 
     async def get_daily_word(self, target_level: str = "B2", field: str = "AI Engineering"):
-        """
-        Returns the single word entry for TODAY from the weekly_vocabulary table.
-        If the week hasn't been generated yet, triggers generation first.
-        """
+        """Returns today's word from the single-source weekly batch."""
         try:
-            await self._ensure_weekly_generation(target_level, field)
-            
             current_day_index = self.get_custom_day_index()
             last_saturday = self.get_last_saturday().date()
+            
+            # Ensure the 7-day batch exists for this week
+            await self._ensure_weekly_batch(target_level, field, last_saturday)
             
             stmt = select(WeeklyVocabulary).where(
                 WeeklyVocabulary.week_start_date == last_saturday,
@@ -234,8 +235,7 @@ class DailyService:
             result = await self.db.execute(stmt)
             word = result.scalars().first()
             
-            if not word:
-                return None
+            if not word: return None
             
             day_names = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             return {
@@ -250,95 +250,109 @@ class DailyService:
             logger.error(f"get_daily_word Error: {str(e)}")
             return None
 
-    async def get_weekly_log(self, target_level: str = "B2", field: str = "AI Engineering"):
-        """
-        Returns ALL 7 entries for the current week from weekly_vocabulary.
-        Frontend decides visibility based on day_index vs current day.
-        """
+    async def get_weekly_log(self, user_id: UUID, target_level: str = "B2", field: str = "AI Engineering"):
+        """Returns the 7-day log, hiding past words that pre-date the user's registration."""
         try:
-            await self._ensure_weekly_generation(target_level, field)
-            
             last_saturday = self.get_last_saturday().date()
+            await self._ensure_weekly_batch(target_level, field, last_saturday)
+            
+            # Fetch user registration date for the "New User Guard"
+            from app.models.domain import LearnerProfile
+            profile_stmt = select(LearnerProfile.created_at).where(LearnerProfile.id == user_id)
+            profile_res = await self.db.execute(profile_stmt)
+            user_created_at = profile_res.scalars().first()
+            user_created_date = user_created_at.date() if user_created_at else last_saturday
             
             stmt = select(WeeklyVocabulary).where(
                 WeeklyVocabulary.week_start_date == last_saturday
             ).order_by(WeeklyVocabulary.day_index)
             
             result = await self.db.execute(stmt)
-            words = result.scalars().all()
+            existing_words = {w.day_index: w for w in result.scalars().all()}
             
             day_names = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             current_day_index = self.get_custom_day_index()
             
-            # Calculate time until next word unlock (midnight)
             now = datetime.now(timezone.utc)
             next_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
             diff = next_midnight - now
-            hours_left = int(diff.total_seconds() // 3600)
-            minutes_left = int((diff.total_seconds() % 3600) // 60)
             
+            full_log = []
+            for i in range(7):
+                w = existing_words.get(i)
+                # New User Guard: If the word's date is before user registration, hide it.
+                word_date = last_saturday + timedelta(days=i)
+                is_visible_to_user = word_date >= user_created_date
+                
+                full_log.append({
+                    "day": day_names[i],
+                    "day_index": i,
+                    "data": {
+                        "word_c1": w.word_c1,
+                        "word_a1": w.word_a1,
+                        "audio_script": w.word_c1,
+                        "insight": w.insight
+                    } if (w and is_visible_to_user) else None
+                })
+
             return {
                 "current_day_index": current_day_index,
-                "next_word_in": f"{hours_left}h {minutes_left}m",
-                "weekly_log": [
-                    {
-                        "day": day_names[w.day_index],
-                        "day_index": w.day_index,
-                        "data": {
-                            "word_c1": w.word_c1,
-                            "word_a1": w.word_a1,
-                            "audio_script": w.word_c1,  # Word-only audio
-                            "insight": w.insight
-                        }
-                    }
-                    for w in words
-                ]
+                "next_word_in": f"{int(diff.total_seconds() // 3600)}h {int((diff.total_seconds() % 3600) // 60)}m",
+                "weekly_log": full_log
             }
         except Exception as e:
             logger.error(f"get_weekly_log Error: {str(e)}")
             return {"current_day_index": 0, "next_word_in": "—", "weekly_log": []}
 
-    async def _ensure_weekly_generation(self, target_level: str, field: str):
-        """Check if this week's words exist. If not, generate them."""
-        last_saturday = self.get_last_saturday().date()
-        
+    async def _ensure_weekly_batch(self, target_level: str, field: str, week_start: date):
+        """Checks if the 7-day batch exists, generates it if not."""
         stmt = select(WeeklyVocabulary).where(
-            WeeklyVocabulary.week_start_date == last_saturday
+            WeeklyVocabulary.week_start_date == week_start
         ).limit(1)
         result = await self.db.execute(stmt)
-        exists = result.scalars().first()
-        
-        if not exists:
-            logger.info(f"No weekly vocab found for {last_saturday}. Generating...")
-            await self._generate_and_insert_weekly(target_level, field, last_saturday)
+        if not result.scalars().first():
+            await self._generate_and_insert_weekly_batch(target_level, field, week_start)
 
-    async def _generate_and_insert_weekly(self, target_level: str, field: str, week_start: datetime):
-        """Call AI to generate 7 words, then insert them as individual rows."""
-        prompt = _WEEKLY_VOCAB_SYSTEM_PROMPT.format(
-            target_level=target_level,
-            field=field
-        )
-        user_msg = f"Generate a weekly vocabulary set for a {target_level} learner in {field} starting this Saturday."
-        
+    async def _generate_and_insert_weekly_batch(self, target_level: str, field: str, week_start: datetime):
+        """Uses the user's strict prompt to generate 7 unique words at once."""
+        prompt = f"""# ROLE: Backend Data Architect.
+# OBJECTIVE: Generate a strictly synchronized 7-day vocabulary set where the "Daily Card" and the "Weekly Tracker" share the same data points.
+
+# RULES:
+1. No Duplicates: Each of the 7 days must have a unique C1 word.
+2. Contextual Alignment: All words must relate to {field} and be at {target_level} level.
+3. Array Structure: Generate exactly 7 objects (Saturday to Friday).
+
+# OUTPUT FORMAT (JSON ONLY):
+{{
+  "weekly_payload": [
+    {{
+      "day_index": 0,
+      "day_name": "Saturday",
+      "word_c1": "Synthesize",
+      "word_a1": "Combine",
+      "insight": "Merging multiple data sources into a unified model."
+    }},
+    ...
+  ]
+}}
+"""
         try:
-            ai_result = await _call_groq_json(MODEL_TASK, prompt, user_msg, use_task_client=True)
-            weekly_log = ai_result.get("weekly_log", [])
-            
-            for i, entry in enumerate(weekly_log[:7]):
-                data = entry.get("data", {})
+            ai_result = await _call_groq_json(MODEL_TASK, prompt, "Generate 7-day vocabulary batch.", use_task_client=True)
+            payload = ai_result.get("weekly_payload", [])
+            for entry in payload[:7]:
                 word = WeeklyVocabulary(
-                    day_index=i,
-                    word_c1=data.get("word_c1", "Unknown"),
-                    word_a1=data.get("word_a1", "Unknown"),
-                    insight=data.get("insight", ""),
-                    audio_url=None,
+                    day_index=entry.get("day_index"),
+                    word_c1=entry.get("word_c1"),
+                    word_a1=entry.get("word_a1"),
+                    insight=entry.get("insight"),
                     week_start_date=week_start
                 )
                 self.db.add(word)
-            
             await self.db.commit()
-            logger.info(f"Inserted {len(weekly_log[:7])} weekly vocab entries for {week_start}")
         except Exception as e:
-            logger.error(f"Weekly generation failed: {str(e)}")
+            logger.error(f"Weekly batch generation failed: {str(e)}")
             await self.db.rollback()
+
+
 
