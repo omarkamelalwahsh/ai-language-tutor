@@ -151,6 +151,13 @@ class LearnerService {
     if (!response.ok) throw new Error('Failed to start practice session');
     return await response.json();
   }
+
+  async getWeeklyVocab(): Promise<any> {
+    const headers = await this.getAuthHeader();
+    const response = await fetch(`${this.baseUrl}/api/v1/daily/weekly-vocab`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch weekly vocab');
+    return await response.json();
+  }
 }
 
 export const learnerService = new LearnerService();

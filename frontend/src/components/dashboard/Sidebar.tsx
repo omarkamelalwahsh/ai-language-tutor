@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  LayoutDashboard, ClipboardList, Sparkles, Calendar, 
+  Home, Map as MapIcon, BarChart3, History, BookOpen, 
   Settings, LogOut, Trophy 
 } from 'lucide-react';
 
@@ -46,10 +46,11 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => (
     </div>
 
     <nav className="space-y-1.5 flex-1">
-      <NavItem icon={<LayoutDashboard size={18} />} label="Path" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
-      <NavItem icon={<ClipboardList size={18} />} label="Audit" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
-      <NavItem icon={<Sparkles size={18} />} label="Neural" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
-      <NavItem icon={<Calendar size={18} />} label="Daily" active={activeTab === 'daily'} onClick={() => onTabChange('daily')} />
+      <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => onTabChange('home')} />
+      <NavItem icon={<MapIcon size={18} />} label="My Journey" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
+      <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
+      <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
+      <NavItem icon={<BookOpen size={18} />} label="Practice" active={activeTab === 'practice'} onClick={() => onTabChange('practice')} />
     </nav>
 
     <div className="mt-auto pt-6 border-t border-white/5 space-y-1.5">

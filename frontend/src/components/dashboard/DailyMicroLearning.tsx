@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
     Zap, Sparkles, Repeat, Type, BookMarked, 
-    CheckCircle2, XCircle, ArrowRight, Info
+    CheckCircle2, XCircle, ArrowRight, Info, Volume2
 } from 'lucide-react';
 
 interface DailyBites {
@@ -60,8 +60,17 @@ const MOCK_BITES: DailyBites = {
 };
 
 export const DailyMicroLearning: React.FC = () => {
-    const [bites, setBites] = useState<DailyBites>(MOCK_BITES);
+    const [bites, setBites] = useState<DailyBites | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const handleSpeak = (text: string) => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel(); // Stop any current speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // Slightly slower for clarity
+        window.speechSynthesis.speak(utterance);
+    };
 
     useEffect(() => {
         const fetchBites = async () => {
@@ -74,9 +83,13 @@ export const DailyMicroLearning: React.FC = () => {
                     if (data.daily_bites) {
                         setBites(data.daily_bites);
                     }
+                } else {
+                    // If server fails, use mock as last resort
+                    setBites(MOCK_BITES);
                 }
             } catch (err) {
                 console.error("Failed to load daily bites, using mock", err);
+                setBites(MOCK_BITES);
             } finally {
                 setLoading(false);
             }
@@ -84,6 +97,18 @@ export const DailyMicroLearning: React.FC = () => {
 
         fetchBites();
     }, []);
+
+    if (loading) {
+        return (
+            <div className="space-y-6 mb-12 animate-pulse">
+                <div className="h-8 w-64 bg-slate-200 dark:bg-white/10 rounded-lg mb-8" />
+                <div className="h-64 w-full bg-slate-200 dark:bg-white/5 rounded-[32px]" />
+                <div className="h-64 w-full bg-slate-200 dark:bg-white/5 rounded-[32px]" />
+            </div>
+        );
+    }
+
+    if (!bites) return null;
 
     // We NEVER return null now. Even if fetch fails, we show MOCK_BITES.
     return (
@@ -107,11 +132,20 @@ export const DailyMicroLearning: React.FC = () => {
                             <div className="flex items-center justify-between max-w-lg mx-auto w-full px-4">
                                 {bites.vocabulary.steps.map((step, i) => (
                                     <React.Fragment key={i}>
-                                        <div className="flex flex-col items-center gap-2">
+                                        <div className="flex flex-col items-center gap-2 group/word">
                                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{step.level}</span>
-                                            <span className={`text-xl font-black ${i === 2 ? 'text-white scale-125' : 'text-slate-500 opacity-60'}`}>
-                                                {step.word}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-xl font-black ${i === 2 ? 'text-white scale-125' : 'text-slate-500 opacity-60'}`}>
+                                                    {step.word}
+                                                </span>
+                                                <button 
+                                                    onClick={() => handleSpeak(step.word)}
+                                                    className="p-1 rounded-lg bg-white/5 hover:bg-white/20 text-slate-400 hover:text-white transition-all opacity-0 group-hover/word:opacity-100"
+                                                    title="Listen"
+                                                >
+                                                    <Volume2 size={12} />
+                                                </button>
+                                            </div>
                                         </div>
                                         {i < 2 && <ArrowRight size={20} className="text-slate-700 mt-4" />}
                                     </React.Fragment>

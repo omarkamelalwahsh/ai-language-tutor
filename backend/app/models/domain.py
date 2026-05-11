@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Enum, text, func
+from sqlalchemy import Column, String, Float, Boolean, Integer, ForeignKey, DateTime, Date, Text, Enum, text, func, UniqueConstraint
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -304,3 +304,18 @@ class DailyContent(Base):
     content = Column(JSONB, nullable=False) # Stores the daily_bites JSON
     day_date = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class WeeklyVocabulary(Base):
+    __tablename__ = "weekly_vocabulary"
+    __table_args__ = (
+        UniqueConstraint('day_index', 'week_start_date', name='uq_weekly_vocab_day_week'),
+    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    day_index = Column(Integer, nullable=False)       # 0=Saturday, 1=Sunday, ..., 6=Friday
+    word_c1 = Column(String, nullable=False)           # Advanced target word
+    word_a1 = Column(String, nullable=False)           # Basic synonym
+    insight = Column(Text, nullable=False)              # Usage context
+    audio_url = Column(String, nullable=True)           # Path to audio (future)
+    week_start_date = Column(Date, nullable=False)      # The Saturday this cycle belongs to
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+

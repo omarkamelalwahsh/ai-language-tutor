@@ -58,7 +58,6 @@ import { learnerService, DashboardData, JourneyData } from '../../services/learn
 import { useLearnerProfile } from '../../hooks/useLearnerProfile';
 import { Sidebar } from './Sidebar';
 import { SkillCard } from './SkillCard';
-import { VocabularyWidget } from './VocabularyWidget';
 import { DailyMicroLearning } from './DailyMicroLearning';
 import { ErrorAnalysisModal, ErrorItem } from './ErrorAnalysisModal';
 
@@ -75,12 +74,98 @@ interface AdvancedDashboardProps {
     isArchitecting?: boolean;
 }
 
+const handleSpeak = (text: string) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+};
+
+
 interface SkillData {
     subject: string;
     A: number;
     B: number;
     fullMark: number;
 }
+
+// ============================================================================
+// SHARED COMPONENTS
+// ============================================================================
+const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
+    const navigate = useNavigate();
+    const [tasks, setTasks] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        learnerService.getPracticeTasks(skillId)
+            .then(data => {
+                setTasks(data.tasks || []);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error('Failed to load tasks for', skillId, err);
+                setLoading(false);
+            });
+    }, [skillId]);
+
+    const handleStartTask = async (taskId: string, difficulty: string) => {
+        try {
+            const res = await learnerService.startPracticeSession(skillId, taskId, difficulty);
+            navigate(`/runtime?session_id=${res.session_id}`);
+        } catch (err) {
+            console.error('Failed to start session', err);
+            navigate(`/runtime?skill=${skillId}&task=${taskId}`);
+        }
+    };
+
+    if (loading) {
+        return <div className="h-96 rounded-2xl bg-slate-100 dark:bg-slate-800/50 animate-pulse border border-slate-200 dark:border-slate-800" />;
+    }
+
+    return (
+        <SkillCard
+            skillName={name}
+            description={desc}
+            icon={icon}
+            tasks={tasks.length > 0 ? tasks : [{ id: 'general', title: 'General Practice', badge: 'New' }]}
+            onStartTask={handleStartTask}
+        />
+    );
+};
+
+const PracticeHub = () => {
+    const skills = [
+        { id: 'listening', name: 'Listening', icon: <Headphones size={28} />, color: 'blue', desc: 'Improve auditory precision' },
+        { id: 'reading', name: 'Reading', icon: <BookOpen size={28} />, color: 'emerald', desc: 'Master technical text' },
+        { id: 'writing', name: 'Writing', icon: <PenTool size={28} />, color: 'purple', desc: 'Perfect your technical prose' },
+        { id: 'speaking', name: 'Speaking', icon: <Mic size={28} />, color: 'orange', desc: 'Communicate with confidence' },
+    ];
+
+    return (
+        <div className="w-full max-w-7xl mx-auto py-10 px-4">
+            <div className="mb-12">
+                <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-4">
+                    <Zap className="text-blue-500" /> Skill Training Hub
+                </h2>
+                <p className="text-slate-400 dark:text-slate-500 font-medium text-lg mt-2">Select a cognitive dimension to focus your practice using the Neural Pedagogical Engine.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {skills.map((skill) => (
+                    <ConnectedSkillCard 
+                        key={skill.id}
+                        skillId={skill.id}
+                        name={skill.name}
+                        icon={skill.icon}
+                        desc={skill.desc}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
 
 // ============================================================================
 // MAIN COMPONENT EXCELLENCE
@@ -98,105 +183,24 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         const last = segments[segments.length - 1];
         if (['dashboard', 'home', ''].includes(last)) return 'home';
         if (['journey', 'path'].includes(last)) return 'journey';
-        if (['analytics', 'neural'].includes(last)) return 'analytics';
-        if (['history', 'audit'].includes(last)) return 'history';
-        if (['practice', 'daily'].includes(last)) return 'daily';
         return last;
     }, [location.pathname]);
 
     const handleTabChange = (tabId: string) => {
-        if (tabId === 'daily' || tabId === 'practice') {
-            navigate('/dashboard/daily');
+        if (tabId === 'practice') {
+            navigate('/dashboard/practice');
             return;
         }
-        if (tabId === 'journey' || tabId === 'path') {
+        if (tabId === 'journey') {
             navigate('/journey');
-            return;
-        }
-        if (tabId === 'analytics' || tabId === 'neural') {
-            navigate('/dashboard/analytics');
-            return;
-        }
-        if (tabId === 'history' || tabId === 'audit') {
-            navigate('/dashboard/history');
             return;
         }
         if (tabId === 'home') navigate('/dashboard');
         else navigate(`/dashboard/${tabId}`);
     };
 
-    // --- Practice Hub Component ---
-    const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
-        const [tasks, setTasks] = React.useState<any[]>([]);
-        const [loading, setLoading] = React.useState(true);
 
-        React.useEffect(() => {
-            learnerService.getPracticeTasks(skillId)
-                .then(data => {
-                    setTasks(data.tasks || []);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error('Failed to load tasks for', skillId, err);
-                    setLoading(false);
-                });
-        }, [skillId]);
 
-        const handleStartTask = async (taskId: string, difficulty: string) => {
-            try {
-                const res = await learnerService.startPracticeSession(skillId, taskId, difficulty);
-                navigate(`/runtime?session_id=${res.session_id}`);
-            } catch (err) {
-                console.error('Failed to start session', err);
-                navigate(`/runtime?skill=${skillId}&task=${taskId}`);
-            }
-        };
-
-        if (loading) {
-            return <div className="h-96 rounded-2xl bg-slate-100 dark:bg-slate-800/50 animate-pulse border border-slate-200 dark:border-slate-800" />;
-        }
-
-        return (
-            <SkillCard
-                skillName={name}
-                description={desc}
-                icon={icon}
-                tasks={tasks.length > 0 ? tasks : [{ id: 'general', title: 'General Practice', badge: 'New' }]}
-                onStartTask={handleStartTask}
-            />
-        );
-    };
-
-    const PracticeHub = () => {
-        const skills = [
-            { id: 'listening', name: 'Listening', icon: <Headphones size={28} />, color: 'blue', desc: 'Improve auditory precision' },
-            { id: 'reading', name: 'Reading', icon: <BookOpen size={28} />, color: 'emerald', desc: 'Master technical text' },
-            { id: 'writing', name: 'Writing', icon: <PenTool size={28} />, color: 'purple', desc: 'Perfect your technical prose' },
-            { id: 'speaking', name: 'Speaking', icon: <Mic size={28} />, color: 'orange', desc: 'Communicate with confidence' },
-        ];
-
-        return (
-            <div className="w-full max-w-7xl mx-auto py-10 px-4">
-                <div className="mb-12">
-                    <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-4">
-                        <Zap className="text-blue-500" /> Skill Training Hub
-                    </h2>
-                    <p className="text-slate-400 dark:text-slate-500 font-medium text-lg mt-2">Select a cognitive dimension to focus your practice using the Neural Pedagogical Engine.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {skills.map((skill) => (
-                        <ConnectedSkillCard 
-                            key={skill.id}
-                            skillId={skill.id}
-                            name={skill.name}
-                            icon={skill.icon}
-                            desc={skill.desc}
-                        />
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     const [realtimeData, setRealtimeData] = React.useState<DashboardData | null>(null);
     const [journeyData, setJourneyData] = React.useState<JourneyData | null>(null);
@@ -355,17 +359,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-400 dark:text-slate-500 capitalize bg-slate-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-slate-200 dark:border-gray-800 shadow-sm">
                             <span className={`transition-colors cursor-pointer hover:text-slate-900 dark:hover:text-slate-50 ${activeTab === 'home' ? 'text-slate-900 dark:text-slate-50' : ''}`} onClick={() => handleTabChange('home')}>
-                                Home
+                                {activeTab === 'home' ? 'Home' : 'My Path'}
                             </span>
                             {activeTab !== 'home' && (
                                 <>
                                     <ChevronRight size={14} className="text-slate-300 dark:text-slate-700" />
-                                    <span className="text-slate-800 dark:text-slate-200">
-                                        {activeTab === 'journey' ? 'My Path' : 
-                                         activeTab === 'analytics' ? 'Neural Analytics' :
-                                         activeTab === 'history' ? 'Audit History' :
-                                         activeTab === 'daily' ? 'Daily Training' : activeTab}
-                                    </span>
+                                    <span className="text-slate-800 dark:text-slate-200">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
                                 </>
                             )}
                         </div>
@@ -422,7 +421,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                     />
                                 )
                             )}
-                             {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
+                            {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'analytics' && (
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
@@ -433,12 +432,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
-                            {activeTab === 'daily' && (
-                                <div className="space-y-10">
-                                    <DailyMicroLearning />
-                                    <PracticeHub />
-                                </div>
-                            )}
+                            {activeTab === 'practice' && <PracticeHub />}
                             {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} refresh={fetchAllData} />}
                         </motion.div>
                     </AnimatePresence>
@@ -650,10 +644,47 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
     const navigate = useNavigate();
     const { data: profileData } = useLearnerProfile();
     const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
+    const [weeklyVocab, setWeeklyVocab] = React.useState<any>(null);
+    const [nextWordIn, setNextWordIn] = React.useState<string>('');
+
+    React.useEffect(() => {
+        const fetchWeekly = async () => {
+            try {
+                const data = await learnerService.getWeeklyVocab();
+                setWeeklyVocab(data);
+                if (data?.next_word_in) setNextWordIn(data.next_word_in);
+            } catch (err) {
+                console.error("Failed to load weekly vocab", err);
+            }
+        };
+        fetchWeekly();
+    }, []);
+
+    // Live countdown timer (updates every 60s)
+    React.useEffect(() => {
+        const updateTimer = () => {
+            const now = new Date();
+            const nextMidnight = new Date();
+            nextMidnight.setHours(24, 0, 0, 0);
+            const diff = nextMidnight.getTime() - now.getTime();
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+            setNextWordIn(`${hours}h ${minutes}m`);
+        };
+        const timer = setInterval(updateTimer, 60000);
+        updateTimer();
+        return () => clearInterval(timer);
+    }, []);
+
+    // Server-driven day index (fallback to client calculation)
+    const cycleDay = weeklyVocab?.current_day_index ?? ((new Date().getDay() + 1) % 7);
+
+
     const kpis = dashboardData?.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
     const trends = dashboardData?.trends || [];
     const skills = dashboardData?.skills || [];
     const journey = journeyData || dashboardData?.journey || { nodes: [] };
+
 
     // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
     // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
@@ -748,18 +779,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             </motion.div>
 
             <motion.div variants={itemVariants}>
-                <div className="p-10 rounded-3xl bg-blue-600/5 border border-blue-500/10 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Daily Training Recommended</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Complete your 4 skill dimensions to maintain peak cognitive momentum.</p>
-                    </div>
-                    <button 
-                        onClick={() => handleTabChange('daily')}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition shadow-premium shadow-blue-500/20 active:scale-95"
-                    >
-                        Go to Daily
-                    </button>
-                </div>
+                <PracticeHub />
             </motion.div>
 
 
@@ -777,7 +797,22 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                 <div className="lg:col-span-8 space-y-8">
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
                         <BrainMatrixCard data={matrixData} />
-                        <ErrorProfileCard data={errorData.slice(0, 6)} />
+                        <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Error Queue</h2>
+                                <span className="px-2 py-0.5 bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-md text-[10px] font-black uppercase">Active Friction</span>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                {(profileData?.error_model || []).map((err: any, idx: number) => (
+                                    <motion.div key={err.type} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
+                                        <ProfileErrorCard error={err} onSelect={setSelectedError} />
+                                    </motion.div>
+                                ))}
+                                {(!profileData?.error_model || profileData.error_model.length === 0) && (
+                                    <p className="text-sm text-slate-400 dark:text-slate-500 italic">No recurring error patterns detected yet.</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                     
                     <SkillTrajectoryCard data={trends} />
@@ -801,43 +836,89 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                         </div>
                     )}
 
-                    {/* Error Model + Cognitive State from Profile */}
+                    {/* Focused Weekly Word Journey */}
                     {profileData && (
-                        <div className="grid lg:grid-cols-2 gap-8">
-                            <div>
-                                <div className="flex items-center gap-3 mb-6">
-                                    <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Error Queue</h2>
-                                    <span className="px-2 py-0.5 bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-md text-[10px] font-black uppercase">Active Friction</span>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    {(profileData.error_model || []).map((err: any, idx: number) => (
-                                        <motion.div key={err.type} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
-                                            <ProfileErrorCard error={err} onSelect={setSelectedError} />
-                                        </motion.div>
-                                    ))}
-                                    {(!profileData.error_model || profileData.error_model.length === 0) && (
-                                        <p className="text-sm text-slate-400 dark:text-slate-500 italic">No recurring error patterns detected yet.</p>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="grid grid-cols-1 gap-8">
                             <div className="space-y-6">
-                                <GlassCard className="p-6" hover={false}>
-                                    <h3 className="text-lg font-black mb-4 flex items-center gap-3 text-slate-900 dark:text-white">
-                                        <Calendar size={18} className="text-blue-600 dark:text-blue-400" /> Retention Model
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                            <p className="text-3xl font-black mb-1 text-slate-900 dark:text-white">{profileData.cognitive_state?.retention_queue?.due_count || 0}</p>
-                                            <p className="text-[9px] uppercase font-black text-slate-400 dark:text-white/30 tracking-widest">Due Today</p>
-                                        </div>
-                                        <div className="p-4 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                            <div className="flex -space-x-2 mb-2">
-                                                {(profileData.cognitive_state?.retention_queue?.high_risk || []).slice(0, 4).map((item: string, i: number) => (
-                                                    <div key={item} className="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-black border-2 border-white dark:border-gray-900 bg-blue-600 text-white shadow-sm">{item[0]}</div>
-                                                ))}
+                                <GlassCard className="p-10" hover={false}>
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Weekly Vocabulary Journey</h3>
+                                            <div className="flex items-center gap-4">
+                                                <p className="text-slate-500 dark:text-slate-400 font-medium tracking-tight">Your 7-day cognitive progression path.</p>
+                                                <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Next word in:</span>
+                                                    <span className="text-[11px] font-black text-blue-600 dark:text-blue-400">{nextWordIn}</span>
+                                                </div>
                                             </div>
-                                            <p className="text-[9px] uppercase font-black text-rose-500 dark:text-rose-400 tracking-widest">Fragile</p>
                                         </div>
+                                        {weeklyVocab?.week_info?.theme && (
+                                            <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{weeklyVocab.week_info.theme}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-stretch gap-4 mb-2 overflow-x-auto pb-4 scrollbar-hide">
+                                        {!weeklyVocab ? (
+                                            Array.from({ length: 7 }).map((_, i) => (
+                                                <div key={i} className="flex-1 min-w-[140px] h-48 bg-slate-100 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2rem] animate-pulse" />
+                                            ))
+                                        ) : (
+                                            weeklyVocab.weekly_log.map((item: any, i: number) => {
+                                                const isToday = cycleDay === i;
+                                                const isPast = i < cycleDay;
+                                                const isLocked = i > cycleDay;
+                                                
+                                                return (
+                                                    <div 
+                                                        key={item.day} 
+                                                        className={`flex-1 min-w-[140px] flex flex-col items-center p-6 rounded-[2rem] border transition-all duration-500 relative group ${
+                                                            isToday 
+                                                                ? 'bg-blue-600/10 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.25)]' 
+                                                                : isLocked 
+                                                                    ? 'bg-white/[0.01] border-white/5 opacity-30 grayscale'
+                                                                    : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05]'
+                                                        }`}
+                                                    >
+                                                        {isToday && (
+                                                            <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-[2rem]" />
+                                                        )}
+                                                        
+                                                        <div className="flex justify-between w-full mb-6 relative z-10">
+                                                            <span className={`text-xs font-black tracking-[0.2em] ${isToday ? 'text-blue-400' : isPast ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                                {item.day.substring(0, 3).toUpperCase()}
+                                                            </span>
+                                                            {isPast && (
+                                                                <span className="text-[9px] font-bold text-emerald-500/70">✓</span>
+                                                            )}
+                                                        </div>
+
+                                                        <button 
+                                                            onClick={() => handleSpeak(item.data.audio_script)}
+                                                            disabled={isLocked}
+                                                            className={`w-14 h-14 rounded-full flex items-center justify-center mb-6 relative z-10 transition-transform group-hover:scale-110 ${
+                                                                isToday ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : isPast ? 'bg-slate-700' : 'bg-slate-800'
+                                                            } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-blue-500/80'}`}
+                                                        >
+                                                            {isLocked ? <Lock size={18} className="text-slate-600" /> : (
+                                                                <div className="w-0 h-0 border-t-[7px] border-t-transparent border-l-[11px] border-l-white border-b-[7px] border-b-transparent ml-1" />
+                                                            )}
+                                                        </button>
+
+                                                        <div className="text-center relative z-10 w-full">
+                                                            <h4 className={`text-sm font-black mb-2 truncate w-full ${isToday ? 'text-blue-400' : isPast ? 'text-slate-300' : 'text-white'}`}>
+                                                                {isLocked ? '???' : item.data.word_c1}
+                                                            </h4>
+                                                            <p className={`text-[9px] leading-relaxed line-clamp-3 font-bold uppercase tracking-tight ${isPast ? 'text-slate-600' : 'text-slate-500'}`}>
+                                                                {isLocked ? 'Locked' : item.data.insight}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </GlassCard>
                             </div>
@@ -866,16 +947,22 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                         <Brain size={120} className="absolute bottom-[-30px] right-[-30px] text-white/5 -rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
                     </div>
 
-                    <VocabularyWidget />
 
-                    <GlassCard className="p-8" hover={false}>
-                        <IntelligenceFeed dashboardData={dashboardData} />
-                    </GlassCard>
+
+
 
                     <GlassCard className="p-8 bg-blue-50 dark:bg-indigo-500/5 border-blue-100 dark:border-indigo-500/10" hover={false}>
-                        <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 mb-4 tracking-widest uppercase">AI Synthesis</h3>
-                        <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium">
-                            "{dashboardData?.intelligence_feed?.action_plan || "Calculating next optimal drift in your linguistic matrix..."}"
+                        <div className="flex items-center gap-2 mb-4">
+                            <Brain size={16} className="text-blue-600 dark:text-indigo-400" />
+                            <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 tracking-widest uppercase">Smart Coach Insights</h3>
+                        </div>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-4 font-medium italic">Your AI mentor's real-time synthesis of your learning trajectory.</p>
+                        <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium border-l-2 border-blue-500/30 pl-4 py-1">
+                            {dashboardData?.intelligence_feed?.action_plan ? (
+                                `"${dashboardData.intelligence_feed.action_plan}"`
+                            ) : (
+                                "Welcome to your neural dashboard! Start your first training session to allow the AI to analyze your skills and generate personalized strategic insights."
+                            )}
                         </p>
                     </GlassCard>
                 </div>

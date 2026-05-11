@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { 
     ArrowRight, Lock, Layout, ClipboardList, 
-    CheckCircle2, Sparkles, Navigation2, BookOpen, Layers
+    CheckCircle2, Sparkles, Navigation2, BookOpen, Layers,
+    Headphones, Mic, PenTool, Calendar, Zap
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { DailyMicroLearning } from '../dashboard/DailyMicroLearning';
 
 interface RoadmapGridCardProps {
     nodes: any[];
@@ -21,6 +24,8 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
     currentIndex,
     dashData
 }) => {
+    const navigate = useNavigate();
+    const [activeSubTab, setActiveSubTab] = React.useState<'path' | 'daily'>('path');
     // 1. Static/Dynamic UI Config
     const milestones = nodes.slice(0, 2); 
     
@@ -109,13 +114,16 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                     {/* Lateral Navigation (Internal Hub) - Hidden on Mobile */}
                     <div className="hidden lg:flex w-24 shrink-0 flex-col items-center gap-8 pt-16 border-r border-slate-100 dark:border-white/5">
                         {[
-                            { icon: <Layout size={18} />, label: 'Path' },
-                            { icon: <ClipboardList size={18} />, label: 'Audit' },
-                            { icon: <Sparkles size={18} />, label: 'Neural' }
-                        ].map((item, idx) => (
-                            <div key={idx} className={`flex flex-col items-center gap-2 group/nav cursor-pointer ${idx > 0 ? 'opacity-30' : ''}`}>
+                            { id: 'path', icon: <Layout size={18} />, label: 'Path' },
+                            { id: 'daily', icon: <Calendar size={18} />, label: 'Daily' }
+                        ].map((item) => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => setActiveSubTab(item.id as any)}
+                                className={`flex flex-col items-center gap-2 group/nav cursor-pointer transition-all duration-300 ${activeSubTab !== item.id ? 'opacity-30 hover:opacity-60' : ''}`}
+                            >
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300
-                                    ${idx === 0 ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'}
+                                    ${activeSubTab === item.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'}
                                 `}>
                                     {item.icon}
                                 </div>
@@ -124,76 +132,82 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                         ))}
                     </div>
 
-                    {/* Roadmap Canvas */}
+                    {/* Roadmap Canvas or Daily Practice */}
                     <div className="flex-1 relative overflow-x-auto lg:overflow-hidden flex items-center justify-start lg:justify-center px-0 lg:px-12 scrollbar-hide py-12 lg:py-0">
-                        <div className="min-w-[850px] lg:min-w-0 w-full relative flex items-center justify-center h-[300px] lg:h-full px-12">
-                            <svg className="absolute inset-0 w-full h-full opacity-60 dark:opacity-100" viewBox="0 0 1000 400" preserveAspectRatio="none">
-                                <defs>
-                                    <linearGradient id="fiberGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#2563eb" stopOpacity="0.1" />
-                                        <stop offset="50%" stopColor="#60a5fa" stopOpacity="1" />
-                                        <stop offset="100%" stopColor="#2563eb" stopOpacity="0.1" />
-                                    </linearGradient>
-                                </defs>
-                                {renderFibers()}
-                            </svg>
+                        {activeSubTab === 'path' ? (
+                            <div className="min-w-[850px] lg:min-w-0 w-full relative flex items-center justify-center h-[300px] lg:h-full px-12">
+                                <svg className="absolute inset-0 w-full h-full opacity-60 dark:opacity-100" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="fiberGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.1" />
+                                            <stop offset="50%" stopColor="#60a5fa" stopOpacity="1" />
+                                            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.1" />
+                                        </linearGradient>
+                                    </defs>
+                                    {renderFibers()}
+                                </svg>
 
-                            {/* Stations Overlay */}
-                            <div className="relative z-10 w-full flex justify-between items-center h-full px-8 md:px-16">
-                                {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level, i) => {
-                                    const isCurrent = i === currentIndex;
-                                    const isCompleted = i < currentIndex;
-                                    return (
-                                        <div key={level} className="relative group/node" style={{ transform: `translateY(${yOffsets[i] - 100}px)` }}>
-                                            {/* Status Tag */}
-                                            {isCurrent && (
-                                                <motion.div 
-                                                    initial={{ y: 10, opacity: 0 }}
-                                                    animate={{ y: 0, opacity: 1 }}
-                                                    className="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
-                                                >
-                                                    <div className="px-3 py-1 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap">
-                                                        <Navigation2 size={10} className="rotate-45" /> Active Station
-                                                    </div>
-                                                    <div className="w-0.5 h-4 bg-blue-600/50" />
-                                                </motion.div>
-                                            )}
-
-                                            {/* The Node */}
-                                            <motion.div 
-                                                whileHover={{ scale: 1.1 }}
-                                                className={`
-                                                    relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-500
-                                                    ${(isCurrent || isCompleted)
-                                                        ? 'bg-blue-600 text-white shadow-[0_0_30px_rgba(37,99,235,0.4)] z-20 overflow-visible' 
-                                                        : 'bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 text-slate-400'
-                                                    }
-                                                `}
-                                            >
-                                                {/* Pulsing Aura (B2 / Current) */}
+                                {/* Stations Overlay */}
+                                <div className="relative z-10 w-full flex justify-between items-center h-full px-8 md:px-16">
+                                    {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level, i) => {
+                                        const isCurrent = i === currentIndex;
+                                        const isCompleted = i < currentIndex;
+                                        return (
+                                            <div key={level} className="relative group/node" style={{ transform: `translateY(${yOffsets[i] - 100}px)` }}>
+                                                {/* Status Tag */}
                                                 {isCurrent && (
                                                     <motion.div 
-                                                        animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
-                                                        transition={{ duration: 2, repeat: Infinity }}
-                                                        className="absolute inset-[-10px] rounded-full border-2 border-blue-500/30"
-                                                    />
+                                                        initial={{ y: 10, opacity: 0 }}
+                                                        animate={{ y: 0, opacity: 1 }}
+                                                        className="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
+                                                    >
+                                                        <div className="px-3 py-1 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap">
+                                                            <Navigation2 size={10} className="rotate-45" /> Active Station
+                                                        </div>
+                                                        <div className="w-0.5 h-4 bg-blue-600/50" />
+                                                    </motion.div>
                                                 )}
 
-                                                <span className="text-lg md:text-xl font-black">{level}</span>
-                                                
-                                                {/* Status Badge */}
-                                                <div className={`
-                                                    absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white dark:border-[#050510] flex items-center justify-center
-                                                    ${isCompleted ? 'bg-blue-500 text-white' : isCurrent ? 'bg-blue-400 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}
-                                                `}>
-                                                    {isCompleted ? <CheckCircle2 size={10} md:size={12} /> : isCurrent ? <Sparkles size={10} md:size={12} /> : <Lock size={10} md:size={12} />}
-                                                </div>
-                                            </motion.div>
-                                        </div>
-                                    );
-                                })}
+                                                {/* The Node */}
+                                                <motion.div 
+                                                    whileHover={{ scale: 1.1 }}
+                                                    className={`
+                                                        relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-500
+                                                        ${(isCurrent || isCompleted)
+                                                            ? 'bg-blue-600 text-white shadow-[0_0_30px_rgba(37,99,235,0.4)] z-20 overflow-visible' 
+                                                            : 'bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 text-slate-400'
+                                                        }
+                                                    `}
+                                                >
+                                                    {/* Pulsing Aura (B2 / Current) */}
+                                                    {isCurrent && (
+                                                        <motion.div 
+                                                            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
+                                                            transition={{ duration: 2, repeat: Infinity }}
+                                                            className="absolute inset-[-10px] rounded-full border-2 border-blue-500/30"
+                                                        />
+                                                    )}
+
+                                                    <span className="text-lg md:text-xl font-black">{level}</span>
+                                                    
+                                                    {/* Status Badge */}
+                                                    <div className={`
+                                                        absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white dark:border-[#050510] flex items-center justify-center
+                                                        ${isCompleted ? 'bg-blue-500 text-white' : isCurrent ? 'bg-blue-400 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}
+                                                    `}>
+                                                        {isCompleted ? <CheckCircle2 size={10} md:size={12} /> : isCurrent ? <Sparkles size={10} md:size={12} /> : <Lock size={10} md:size={12} />}
+                                                    </div>
+                                                </motion.div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="w-full h-full p-4 overflow-y-auto custom-scrollbar max-h-[500px]">
+                                <DailyMicroLearning />
+                            </div>
+                        )}
                     </div>
                 </div>
 
