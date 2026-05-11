@@ -12,7 +12,7 @@ MODEL_TASK = "llama-3.3-70b-versatile"    # Dedicated Task Engine for dynamic ge
 client = AsyncGroq(api_key=settings.GROQ_API_KEY)
 
 # Dedicated Task Engine Client (Third Model)
-task_client = AsyncGroq(api_key=settings.GROQ_TASK_ENGINE_API_KEY)
+task_client = AsyncGroq(api_key=settings.GROQ_TASK_ENGINE_API_KEY or settings.GROQ_API_KEY)
 
 # ---------------------------------------------------------------------------
 # Evaluation modes

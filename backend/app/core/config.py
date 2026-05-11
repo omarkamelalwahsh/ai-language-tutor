@@ -1,7 +1,7 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import AnyHttpUrl, computed_field
-from typing import List, Union
+from typing import List, Union, Optional
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     
     # External APIs
     GROQ_API_KEY: str
-    GROQ_TASK_ENGINE_API_KEY: str
+    GROQ_TASK_ENGINE_API_KEY: Optional[str] = None
 
     @computed_field
     @property
