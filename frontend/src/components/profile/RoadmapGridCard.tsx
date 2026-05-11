@@ -207,19 +207,8 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                             </div>
                                 ) : (
                                     <div className="w-full h-full p-4 overflow-y-auto custom-scrollbar max-h-[700px]">
-                                        {/* Daily Cycle Synchronization Header */}
-                                        <div className="flex items-center justify-between px-6 py-4 bg-blue-500/5 border border-blue-500/10 rounded-3xl mb-8">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Neural Cycle Synchronized</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-900/50 rounded-full border border-white/5">
-                                                <Zap size={10} className="text-blue-400" />
-                                                <span className="text-[10px] font-black text-blue-400 font-mono">Next update in: 05h 08m</span>
-                                            </div>
-                                        </div>
-
                                         {!dailyBites ? (
+
 
                                     <div className="p-12 rounded-[40px] bg-slate-900/50 border border-white/5 flex flex-col items-center justify-center text-center space-y-4">
                                         <div className="p-4 rounded-full bg-indigo-500/10 animate-pulse">
@@ -294,16 +283,16 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                                                                                     >
                                                                                         <span className="text-[8px] font-black text-slate-500 uppercase mb-2">{level}</span>
                                                                                         <div className="flex items-center gap-1.5">
-                                                                                            <span className={`text-sm sm:text-base font-black transition-all ${idx === 2 ? 'text-blue-400 text-lg group-hover/word:text-blue-300' : 'text-slate-500 opacity-40 group-hover/word:opacity-100'}`}>
+                                                                                            <span className={`text-sm sm:text-base font-black transition-all ${idx === 2 ? 'text-blue-600 dark:text-blue-400 text-lg group-hover/word:text-blue-500' : 'text-slate-500 opacity-40 group-hover/word:opacity-100'}`}>
                                                                                                 {word}
                                                                                             </span>
-                                                                                            <Headphones size={10} className={`opacity-0 group-hover/word:opacity-100 transition-opacity ${idx === 2 ? 'text-blue-400' : 'text-slate-500'}`} />
+                                                                                            <Headphones size={10} className={`opacity-0 group-hover/word:opacity-100 transition-opacity ${idx === 2 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} />
                                                                                         </div>
                                                                                     </div>
                                                                                 );
                                                                             })}
                                                                         </div>
-                                                                        <p className="text-[10px] text-slate-400 font-medium italic border-t border-white/5 pt-4 text-center leading-relaxed">
+                                                                        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium italic border-t border-slate-100 dark:border-white/5 pt-4 text-center leading-relaxed">
                                                                             {bite.content.technical_insight || bite.content.definition || bite.content.context_note}
                                                                         </p>
                                                                     </div>
@@ -312,39 +301,37 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                                                                     <div className="space-y-4">
                                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                             <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10">
-                                                                                <span className="text-[8px] font-black text-rose-400 uppercase block mb-1">Common Fallacy</span>
-                                                                                <p className="text-xs font-bold text-slate-300">
+                                                                                <span className="text-[8px] font-black text-rose-600 dark:text-rose-400 uppercase block mb-1">Common Fallacy</span>
+                                                                                <p className="text-xs font-bold text-slate-800 dark:text-slate-300">
                                                                                     {(!bite.content.fallacy || bite.content.fallacy === '[SKIPPED]') 
                                                                                         ? "The model is doing good on the test set." 
                                                                                         : bite.content.fallacy}
                                                                                 </p>
                                                                             </div>
                                                                             <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                                                                                <span className="text-[8px] font-black text-emerald-400 uppercase block mb-1">Neural Correction</span>
-                                                                                <p className="text-xs font-bold text-slate-300">
+                                                                                <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase block mb-1">Neural Correction</span>
+                                                                                <p className="text-xs font-bold text-slate-800 dark:text-slate-300">
                                                                                     {(!bite.content.correction || bite.content.correction === '[SKIPPED]') 
                                                                                         ? "The model is performing well on the test set." 
                                                                                         : bite.content.correction}
                                                                                 </p>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="flex items-center gap-2 text-[10px] text-slate-500 italic pl-2 border-l border-white/10">
-                                                                            <Zap size={10} className="text-blue-400" /> 
+                                                                        <div className="flex items-center gap-2 text-[10px] text-slate-600 dark:text-slate-500 italic pl-2 border-l border-slate-200 dark:border-white/10">
+                                                                            <Zap size={10} className="text-blue-600 dark:text-blue-400" /> 
                                                                             {(!bite.content.neural_logic || bite.content.neural_logic === '[SKIPPED]')
                                                                                 ? "Adverbs vs. Adjectives: 'Well' describes the performance (verb), not the model."
                                                                                 : (bite.content.neural_logic || bite.content.rule)}
                                                                         </div>
-
                                                                     </div>
-
                                                                 ) : (
                                                                     /* 3 & 4. Style & Punctuation */
                                                                     <div className="space-y-4">
                                                                         <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
-                                                                            <span className="text-[8px] font-black text-blue-400 uppercase block mb-1">
+                                                                            <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 uppercase block mb-1">
                                                                                 {i === 2 ? 'Professional Transformation' : 'Structural Example'}
                                                                             </span>
-                                                                            <p className="text-[11px] text-slate-200 font-bold leading-relaxed">
+                                                                            <p className="text-[11px] text-slate-800 dark:text-slate-200 font-bold leading-relaxed">
                                                                                 {(bite.content?.transformed_sentence && bite.content?.transformed_sentence !== '[SKIPPED]') 
                                                                                     ? bite.content.transformed_sentence 
                                                                                     : i === 2 
@@ -353,7 +340,7 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                                                                             </p>
                                                                         </div>
 
-                                                                        <div className={`p-4 rounded-2xl ${bite.colorClass === 'blue' ? 'bg-blue-500/5 border-blue-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} italic text-[10px] text-slate-400 leading-relaxed`}>
+                                                                        <div className={`p-4 rounded-2xl ${bite.colorClass === 'blue' ? 'bg-blue-500/5 border-blue-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} italic text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed`}>
                                                                             <span className="font-black uppercase text-[8px] block mb-1 opacity-50">Deep Dive Analysis</span>
                                                                             {(!bite.content?.style_analysis && !bite.content?.logic_note) || bite.content?.style_analysis === '[SKIPPED]'
                                                                                 ? i === 2
@@ -362,8 +349,8 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                                                                                 : (bite.content?.style_analysis || bite.content?.logic_note || bite.content?.rule_usage)}
                                                                         </div>
                                                                     </div>
-
                                                                 )}
+
                                                             </div>
 
                                                         </div>
