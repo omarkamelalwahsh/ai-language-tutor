@@ -7,6 +7,7 @@ export interface TaskOption {
   id: string;
   title: string;
   badge?: BadgeType;
+  completed_today?: boolean;
 }
 
 export interface SkillCardProps {
@@ -85,9 +86,14 @@ export const SkillCard: React.FC<SkillCardProps> = ({
                       : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span className={`font-medium ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                    {task.title}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-medium ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                      {task.title}
+                    </span>
+                    {task.completed_today && (
+                      <CheckCircle2 size={14} className="text-emerald-500 fill-emerald-500/10" />
+                    )}
+                  </div>
                   {task.badge && (
                     <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full border ${badgeConfig[task.badge].className}`}>
                       {BadgeIcon && <BadgeIcon className="w-3 h-3" />}

@@ -6,6 +6,7 @@ class TaskOptionDTO(BaseModel):
     title: str
     badge: Optional[str] = None
     task_type: str
+    completed_today: bool = False
 
 class PracticeTasksResponse(BaseModel):
     skill: str

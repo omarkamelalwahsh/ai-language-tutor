@@ -98,16 +98,27 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         const last = segments[segments.length - 1];
         if (['dashboard', 'home', ''].includes(last)) return 'home';
         if (['journey', 'path'].includes(last)) return 'journey';
+        if (['analytics', 'neural'].includes(last)) return 'analytics';
+        if (['history', 'audit'].includes(last)) return 'history';
+        if (['practice', 'daily'].includes(last)) return 'daily';
         return last;
     }, [location.pathname]);
 
     const handleTabChange = (tabId: string) => {
-        if (tabId === 'practice') {
-            navigate('/dashboard/practice');
+        if (tabId === 'daily' || tabId === 'practice') {
+            navigate('/dashboard/daily');
             return;
         }
-        if (tabId === 'journey') {
+        if (tabId === 'journey' || tabId === 'path') {
             navigate('/journey');
+            return;
+        }
+        if (tabId === 'analytics' || tabId === 'neural') {
+            navigate('/dashboard/analytics');
+            return;
+        }
+        if (tabId === 'history' || tabId === 'audit') {
+            navigate('/dashboard/history');
             return;
         }
         if (tabId === 'home') navigate('/dashboard');
@@ -344,12 +355,17 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-400 dark:text-slate-500 capitalize bg-slate-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-slate-200 dark:border-gray-800 shadow-sm">
                             <span className={`transition-colors cursor-pointer hover:text-slate-900 dark:hover:text-slate-50 ${activeTab === 'home' ? 'text-slate-900 dark:text-slate-50' : ''}`} onClick={() => handleTabChange('home')}>
-                                {activeTab === 'home' ? 'Home' : 'My Path'}
+                                Home
                             </span>
                             {activeTab !== 'home' && (
                                 <>
                                     <ChevronRight size={14} className="text-slate-300 dark:text-slate-700" />
-                                    <span className="text-slate-800 dark:text-slate-200">{activeTab === 'journey' ? 'Learning Journey Map' : activeTab}</span>
+                                    <span className="text-slate-800 dark:text-slate-200">
+                                        {activeTab === 'journey' ? 'My Path' : 
+                                         activeTab === 'analytics' ? 'Neural Analytics' :
+                                         activeTab === 'history' ? 'Audit History' :
+                                         activeTab === 'daily' ? 'Daily Training' : activeTab}
+                                    </span>
                                 </>
                             )}
                         </div>
@@ -406,7 +422,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                     />
                                 )
                             )}
-                            {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
+                             {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
                             {activeTab === 'analytics' && (
                                 <AnalyticsTab 
                                     supabaseData={supabaseData} 
@@ -417,7 +433,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 />
                             )}
                             {activeTab === 'history' && <HistoryTab {...props} supabaseData={supabaseData} />}
-                            {activeTab === 'practice' && <PracticeHub />}
+                            {activeTab === 'daily' && (
+                                <div className="space-y-10">
+                                    <DailyMicroLearning />
+                                    <PracticeHub />
+                                </div>
+                            )}
                             {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} refresh={fetchAllData} />}
                         </motion.div>
                     </AnimatePresence>
@@ -727,7 +748,18 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             </motion.div>
 
             <motion.div variants={itemVariants}>
-                <DailyMicroLearning />
+                <div className="p-10 rounded-3xl bg-blue-600/5 border border-blue-500/10 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Daily Training Recommended</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Complete your 4 skill dimensions to maintain peak cognitive momentum.</p>
+                    </div>
+                    <button 
+                        onClick={() => handleTabChange('daily')}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition shadow-premium shadow-blue-500/20 active:scale-95"
+                    >
+                        Go to Daily
+                    </button>
+                </div>
             </motion.div>
 
 

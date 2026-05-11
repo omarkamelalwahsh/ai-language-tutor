@@ -4,6 +4,7 @@ from sqlalchemy import select, func, distinct, desc
 from typing import List
 import random
 from uuid import UUID
+from datetime import datetime, timezone
 
 from app.db.database import get_db
 from app.api.deps import get_current_user_id
@@ -91,11 +92,28 @@ async def get_practice_tasks(
             elif accuracy_rate >= 0.80 and len(attempts) >= 3:
                 badge = "Mastered"
 
+        # Check if completed today
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_stmt = (
+            select(AssessmentResponse.id)
+            .join(QuestionBankItem, AssessmentResponse.question_id == QuestionBankItem.id)
+            .where(
+                AssessmentResponse.user_id == UUID(user_id),
+                QuestionBankItem.skill == skill_key,
+                QuestionBankItem.task_type == t_type,
+                AssessmentResponse.created_at >= today_start
+            )
+            .limit(1)
+        )
+        today_result = await db.execute(today_stmt)
+        completed_today = today_result.scalar_one_or_none() is not None
+
         tasks_dto.append(TaskOptionDTO(
             id=task["id"], # UI uses this specific ID
             title=task["title"],
             task_type=t_type, # Backend will use this for starting session
-            badge=badge
+            badge=badge,
+            completed_today=completed_today
         ))
         
     return PracticeTasksResponse(skill=skill, tasks=tasks_dto)
