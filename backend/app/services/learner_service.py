@@ -15,6 +15,9 @@ class LearnerService:
         Aggregates all data needed for the AI Command Center Dashboard.
         """
         try:
+            # 0. Ensure Data Consistency (Healing Logic)
+            await self._ensure_data_consistency(user_id)
+
             # 1. Fetch Profile
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
             profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
@@ -181,6 +184,9 @@ class LearnerService:
         Calculates the 5-model synthesis (Skill, Error, Retention, Pacing, Confidence).
         """
         try:
+            # 0. Ensure Data Consistency (Healing Logic)
+            await self._ensure_data_consistency(user_id)
+
             # 1. Core Data Retrieval
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
             profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
@@ -280,6 +286,59 @@ class LearnerService:
                 },
                 "best_next_move": best_move
             }
+    async def _ensure_data_consistency(self, user_id: UUID):
+        """
+        Checks for users with scores but 0 XP and fixes them.
+        Also initializes missing skills if assessment logs exist.
+        """
+        try:
+            # 1. Check current skills
+            skills_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
+            skills = (await self.db.execute(skills_stmt)).scalars().all()
+            
+            needs_update = False
+            for s in skills:
+                if (s.xp_points or 0) == 0 and (s.current_score or 0) > 0:
+                    # Sync XP from current_score (e.g. 0.85 -> 850 XP)
+                    s.xp_points = int(s.current_score * 1000)
+                    needs_update = True
+                
+                # If current_score is 0 but logs exist, sync from logs
+                if (s.current_score or 0) == 0:
+                    log_stmt = select(func.avg(AssessmentLog.score)).where(
+                        AssessmentLog.user_id == user_id,
+                        AssessmentLog.skill == s.skill
+                    )
+                    avg_score = (await self.db.execute(log_stmt)).scalar() or 0.0
+                    if avg_score > 0:
+                        s.current_score = avg_score
+                        s.xp_points = int(avg_score * 1000)
+                        needs_update = True
+
+            # 2. Check for missing skill rows if logs exist
+            if not skills or len(skills) < 4:
+                log_stmt = select(AssessmentLog.skill, func.avg(AssessmentLog.score)).where(
+                    AssessmentLog.user_id == user_id
+                ).group_by(AssessmentLog.skill)
+                log_results = (await self.db.execute(log_stmt)).all()
+                
+                existing_skills = {s.skill.lower() for s in skills}
+                for skill_name, avg_score in log_results:
+                    if skill_name and skill_name.lower() not in existing_skills:
+                        new_skill = UserSkill(
+                            user_id=user_id,
+                            skill=skill_name.lower(),
+                            xp_points=int(avg_score * 1000),
+                            current_score=avg_score,
+                            proficiency_confidence=0.85,
+                            last_tested=datetime.utcnow()
+                        )
+                        self.db.add(new_skill)
+                        needs_update = True
+
+            if needs_update:
+                await self.db.commit()
+                logging.info(f"Successfully healed data consistency for user {user_id}")
         except Exception as e:
-            logging.error(f"[LearnerService] Intelligence Profile Error: {str(e)}")
-            raise e
+            await self.db.rollback()
+            logging.error(f"Data Consistency Error: {str(e)}")
