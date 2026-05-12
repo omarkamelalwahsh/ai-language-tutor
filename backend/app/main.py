@@ -20,7 +20,12 @@ logger = logging.getLogger(__name__)
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://ai-language-tutor-pc4rybsqy-omar-kamels-projects-2d079e4d.vercel.app",
+    ],
+    allow_origin_regex="https://.*vercel\.app", # Support for Vercel preview deployments
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
