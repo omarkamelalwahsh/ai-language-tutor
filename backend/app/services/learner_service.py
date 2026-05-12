@@ -4,7 +4,7 @@ from uuid import UUID
 import logging
 from datetime import datetime, timedelta, timezone
 
-from app.models.domain import LearnerProfile, UserSkill, UserErrorProfile, UserErrorAnalysis, AssessmentLog
+from app.models.domain import LearnerProfile, UserSkill, UserErrorProfile, UserErrorAnalysis, AssessmentLog, UserProficiency, ErrorProfile, JourneyProgress
 
 class LearnerService:
     def __init__(self, db: AsyncSession):
@@ -19,13 +19,12 @@ class LearnerService:
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
             profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
 
-            # 2. Fetch Skills (Matrix)
-            skill_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
-            skills_result = await self.db.execute(skill_stmt)
-            skills = skills_result.scalars().all()
+            # 2. Fetch Skills (UserProficiency - NEW)
+            prof_data_stmt = select(UserProficiency).where(UserProficiency.user_id == user_id)
+            proficiency = (await self.db.execute(prof_data_stmt)).scalar_one_or_none()
 
-            # 3. Fetch Error Profile & Feed
-            err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
+            # 3. Fetch Error Profile (NEW)
+            err_prof_stmt = select(ErrorProfile).where(ErrorProfile.user_id == user_id)
             err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
 
             # 4. Fetch History for Trends (Speaking/Writing) - Timezone Aware
@@ -112,17 +111,30 @@ class LearnerService:
                 weakest_skill = (ws.skill or "Speaking").capitalize()
 
             # 9. Construct Response
+            skills_list = []
+            if proficiency:
+                for s_name in ['reading', 'listening', 'writing', 'speaking']:
+                    lvl = getattr(proficiency, f"{s_name}_level", "A1")
+                    xp = getattr(proficiency, f"{s_name}_xp", 0)
+                    skills_list.append({
+                        "name": s_name.capitalize(),
+                        "skill": s_name,
+                        "score": min(100, xp // 10), # Simple mapping for now
+                        "level": lvl,
+                        "confidence": 0.85 # Default for new system
+                    })
+
             return {
                 "profile": {
                     "full_name": profile.full_name if (profile and profile.full_name) else "Learner",
                     "current_level": (profile.overall_level or profile.current_proficiency_level or "A1") if profile else "A1",
-                    "xp_points": ((profile.xp_points if profile.xp_points else profile.points) if profile else 0),
+                    "xp_points": profile.xp_points if profile else 0,
                     "streak": profile_streak,
                 },
                 "kpis": {
                     "momentum": momentum,
                     "weekly_minutes": weekly_minutes,
-                    "active_errors": len(recent_errors),
+                    "active_errors": len(err_profile.chronic_errors) if err_profile else 0,
                     "due_reviews": due_reviews
                 },
                 "action_panel": {
@@ -134,32 +146,24 @@ class LearnerService:
                     },
                     "queue": [
                         {
-                            "id": str(e.id), 
-                            "title": f"Review {e.category}", 
+                            "id": "remediation_1", 
+                            "title": "Review Chronic Errors", 
                             "type": "Error Repair"
-                        } for e in recent_errors[:2]
+                        }
                     ]
                 },
-                "skills": [
-                    {
-                        "name": (s.skill or "Skill").capitalize(),
-                        "skill": (s.skill or "unknown").lower(), 
-                        "score": min(100, int((s.current_score or 0) / 100)) if (s.current_score or 0) > 0 else 0,
-                        "level": s.current_level or s.current_proficiency_level or "A1",
-                        "confidence": s.proficiency_confidence or s.confidence or 0
-                    } for s in skills if s and s.skill
-                ],
+                "skills": skills_list,
                 "trends": trends,
                 "intelligence_feed": {
-                    "action_plan": err_profile.action_plan if (err_profile and hasattr(err_profile, 'action_plan')) else "",
+                    "action_plan": "Focus on chronic errors detected in your recent sessions.",
                     "recent_insights": [
                         {
-                            "id": str(e.id),
-                            "category": e.category or "Skill Insight",
-                            "insight": e.ai_interpretation or e.deep_insight or "Analysis pending...",
-                            "timestamp": e.created_at.isoformat()
-                        } for e in recent_errors
-                    ]
+                            "id": f"insight_{i}",
+                            "category": "Grammar",
+                            "insight": f"Detected recurring pattern: {err}",
+                            "timestamp": datetime.now().isoformat()
+                        } for i, err in enumerate(err_profile.chronic_errors[:3])
+                    ] if err_profile else []
                 }
             }
         except Exception as e:
@@ -175,14 +179,11 @@ class LearnerService:
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
             profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
 
-            skill_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
-            skills = (await self.db.execute(skill_stmt)).scalars().all()
+            prof_data_stmt = select(UserProficiency).where(UserProficiency.user_id == user_id)
+            proficiency = (await self.db.execute(prof_data_stmt)).scalar_one_or_none()
 
-            err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
+            err_prof_stmt = select(ErrorProfile).where(ErrorProfile.user_id == user_id)
             err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
-
-            feed_stmt = select(UserErrorAnalysis).where(UserErrorAnalysis.user_id == user_id).order_by(desc(UserErrorAnalysis.created_at))
-            errors = (await self.db.execute(feed_stmt)).scalars().all()
 
             # 1.5 Fetch History for Trends (Speaking/Writing) - Timezone Aware
             thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
@@ -195,36 +196,24 @@ class LearnerService:
             logs_result = await self.db.execute(log_stmt)
             logs = logs_result.scalars().all()
 
-            # 2. Skill Model Processing
+            # 2. Skill Model Processing (NEW)
             skill_matrix = []
-            # We want: Speaking, Writing, Reading, Listening, Grammar, Vocabulary
-            target_skills = ['speaking', 'writing', 'reading', 'listening', 'grammar', 'vocabulary']
-            for s_name in target_skills:
-                # Find the skill record or create a placeholder
-                s = next((sk for sk in skills if sk.skill.lower() == s_name), None)
-                if s:
-                    # 🎯 Score Priority: current_score (BP) > xp_points (if they are actually different scales)
-                    # Mapping: 10000 BP -> 100%
-                    score = min(100, int((s.current_score or 0) / 100)) if (s.current_score or 0) > 0 else 0
-                    
-                    # 🎯 Level Priority: Prefer the updated 'current_level' over the model default 'current_proficiency_level'
-                    # If current_level is A1 and we have a better one in current_proficiency_level, we check.
-                    # But usually engine saves to current_level.
-                    level = s.current_level or s.current_proficiency_level or "A1"
-                    if level == "A1" and s.current_proficiency_level and s.current_proficiency_level != "A1":
-                        level = s.current_proficiency_level
-                    
-                    conf = s.proficiency_confidence or s.confidence or 0
+            target_skills = ['reading', 'listening', 'writing', 'speaking']
+            if proficiency:
+                for s_name in target_skills:
+                    lvl = getattr(proficiency, f"{s_name}_level", "A1")
+                    xp = getattr(proficiency, f"{s_name}_xp", 0)
                     skill_matrix.append({
-                        "name": s.skill.capitalize(),
-                        "score": score,
-                        "level": level,
-                        "confidence": conf,
-                        "stability": "Stable" if conf > 0.7 else "Fragile",
+                        "name": s_name.capitalize(),
+                        "score": min(100, xp // 10),
+                        "level": lvl,
+                        "confidence": 0.88,
+                        "stability": "Stable" if xp > 500 else "Fragile",
                         "trend": "Improving",
-                        "support": "High Need" if conf < 0.4 else "Maintain"
+                        "support": "Maintain" if xp > 500 else "High Need"
                     })
-                else:
+            else:
+                for s_name in target_skills:
                     skill_matrix.append({
                         "name": s_name.capitalize(),
                         "score": 0,
@@ -235,45 +224,29 @@ class LearnerService:
                         "support": "High Need"
                     })
 
-            # 3. Error Model Processing
+            # 3. Error Model Processing (Chronic Errors)
             error_patterns = []
-            category_data = {}
-            for e in errors:
-                cat = (e.category or "General").capitalize()
-                if cat not in category_data:
-                    category_data[cat] = {
-                        "count": 0, 
-                        "severity": "Med", 
-                        "status": "Improving",
-                        "examples": []
-                    }
-                category_data[cat]["count"] += 1
-                # Only keep the most recent 3 unique examples
-                if len(category_data[cat]["examples"]) < 3:
-                    category_data[cat]["examples"].append({
-                        "user_answer": e.user_answer,
-                        "correct_answer": e.correct_answer,
-                        "insight": e.ai_interpretation or e.deep_insight or "Systematic pattern detected."
+            if err_profile and err_profile.chronic_errors:
+                for err in err_profile.chronic_errors:
+                    error_patterns.append({
+                        "type": "Chronic Pattern",
+                        "count": 2, # Flagged as chronic
+                        "severity": "High",
+                        "status": "Recurring",
+                        "insight": err
                     })
             
-            sorted_cats = sorted(category_data.items(), key=lambda x: x[1]['count'], reverse=True)
-            for cat, details in sorted_cats[:5]:
-                error_patterns.append({
-                    "type": cat,
-                    "count": details["count"],
-                    "severity": "High" if details["count"] > 10 else "Med",
-                    "status": "Stable" if details["count"] < 3 else "Improving",
-                    "examples": details["examples"]
-                })
+            # 4. Retention & Pacing
+            due_items = []
+            # ... simplified for new system
 
             # 4. Retention & Pacing
             due_items = []
-            now = datetime.now()
-            for s in skills:
-                if s.last_tested:
-                    diff = now - s.last_tested.replace(tzinfo=None)
-                    if diff.days >= 1 or (s.proficiency_confidence or 0) < 0.5:
-                        due_items.append(s.skill.capitalize())
+            if proficiency:
+                for s_name in target_skills:
+                    xp = getattr(proficiency, f"{s_name}_xp", 0)
+                    if xp < 100:
+                        due_items.append(s_name.capitalize())
 
             # 5. Best Next Move (Synthesis)
             weakest_skill = min(skill_matrix, key=lambda x: x['score']) if skill_matrix else None

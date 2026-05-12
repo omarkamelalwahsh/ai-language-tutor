@@ -12,17 +12,21 @@ export const MissionControlCard: React.FC<MissionControlCardProps> = ({ children
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`relative bg-white dark:bg-[#0B1437]/60 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] overflow-hidden transition-all duration-500 shadow-premium dark:shadow-none hover:border-blue-500/30 group flex flex-col ${className}`}
+        className={`relative bg-white/40 dark:bg-white/[0.02] backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[3rem] overflow-hidden transition-all duration-700 shadow-premium dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] hover:shadow-2xl hover:border-blue-500/40 group flex flex-col ${className}`}
     >
-        {/* Glow Effects */}
+        {/* Dynamic Multi-Glow */}
         <div 
-            className="absolute -top-24 -right-24 w-64 h-64 rounded-full blur-[100px] pointer-events-none transition-opacity duration-500 opacity-20 group-hover:opacity-40" 
+            className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] pointer-events-none transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:scale-110" 
+            style={{ backgroundColor: glowColor }} 
+        />
+        <div 
+            className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-[120px] pointer-events-none transition-all duration-1000 opacity-10 group-hover:opacity-30 group-hover:scale-110" 
             style={{ backgroundColor: glowColor }} 
         />
         
         {title && (
-            <div className="px-8 pt-8 pb-4 relative z-10 shrink-0">
-                <h3 className="text-[10px] md:text-xs font-black text-slate-500 dark:text-white/30 uppercase tracking-[0.2em] line-clamp-1">{title}</h3>
+            <div className="px-10 pt-10 pb-2 relative z-10 shrink-0">
+                <h3 className="text-[11px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em] line-clamp-1">{title}</h3>
             </div>
         )}
         

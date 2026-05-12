@@ -80,10 +80,9 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
         <div className="col-span-12 w-full">
             {/* --- PRIMARY CONTAINER --- */}
             <div className={`
-                relative group border rounded-[2.5rem] overflow-hidden transition-all duration-500
-                bg-[#F8FAFC] border-slate-200 shadow-[0_2px_10px_0_rgba(148,163,184,0.1)]
-                dark:bg-[#050510] dark:border-white/5 dark:shadow-[0_0_15px_rgba(59,130,246,0.2)]
-                hover:translate-y-[-4px]
+                relative group border rounded-[3rem] overflow-hidden transition-all duration-700
+                bg-white/40 dark:bg-white/[0.02] backdrop-blur-3xl border-slate-200 dark:border-white/10 shadow-premium dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]
+                hover:translate-y-[-4px] hover:shadow-2xl
             `}>
                 
                 {/* 1. TOP HEADER */}
@@ -252,7 +251,7 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                                                     </div>
 
                                                     {/* Full-Fidelity Premium Card */}
-                                                    <div className={`flex-1 p-8 rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-black/40 border border-slate-200 ${bite.colorClass === 'indigo' ? 'dark:border-indigo-500/20 hover:border-indigo-500/40' : bite.colorClass === 'rose' ? 'dark:border-rose-500/20 hover:border-rose-500/40' : bite.colorClass === 'blue' ? 'dark:border-blue-500/20 hover:border-blue-500/40' : 'dark:border-emerald-500/20 hover:border-emerald-500/40'} shadow-premium transition-all relative overflow-hidden`}>
+                                                    <div className={`flex-1 p-8 rounded-[3rem] bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl border border-slate-200 ${bite.colorClass === 'indigo' ? 'dark:border-indigo-500/20 hover:border-indigo-500/40' : bite.colorClass === 'rose' ? 'dark:border-rose-500/20 hover:border-rose-500/40' : bite.colorClass === 'blue' ? 'dark:border-blue-500/20 hover:border-blue-500/40' : 'dark:border-emerald-500/20 hover:border-emerald-500/40'} shadow-premium transition-all duration-500 relative overflow-hidden group/bite`}>
                                                         {/* Glow Background Accent */}
                                                         <div className={`absolute -top-10 -right-10 w-32 h-32 ${bite.bgClass} opacity-[0.03] blur-3xl pointer-events-none`} />
                                                         

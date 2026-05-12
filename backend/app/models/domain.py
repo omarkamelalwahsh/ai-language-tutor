@@ -319,3 +319,37 @@ class WeeklyVocabulary(Base):
     week_start_date = Column(Date, nullable=False)      # The Saturday this cycle belongs to
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+class UserProficiency(Base):
+    __tablename__ = "user_proficiency"
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), primary_key=True)
+    reading_level = Column(String, default="A1")
+    listening_level = Column(String, default="A1")
+    writing_level = Column(String, default="A1")
+    speaking_level = Column(String, default="A1")
+    reading_xp = Column(Integer, default=0)
+    listening_xp = Column(Integer, default=0)
+    writing_xp = Column(Integer, default=0)
+    speaking_xp = Column(Integer, default=0)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now())
+
+class ErrorProfile(Base):
+    __tablename__ = "error_profiles"
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), primary_key=True)
+    error_ledger = Column(JSONB, server_default='{}')
+    chronic_errors = Column(JSONB, server_default='[]')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class JourneyProgress(Base):
+    __tablename__ = "journey_progress"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'node_id', name='uq_user_node'),
+    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    node_id = Column(String, nullable=False)
+    is_locked = Column(Boolean, default=True)
+    score = Column(Float, default=0.0)
+    status = Column(String, default='not_started')
+    completed_at = Column(DateTime(timezone=True))

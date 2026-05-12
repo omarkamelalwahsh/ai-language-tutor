@@ -8,6 +8,7 @@ from app.db.database import get_db
 from app.services.task_generator import TaskGenerator
 from app.services.session_manager import SessionManager
 from app.integrations.groq_client import evaluate_dynamic_task
+from app.services.pedagogy import PedagogyService
 
 router = APIRouter()
 
@@ -186,6 +187,13 @@ async def evaluate_task(
             target_response=payload.content.target_response or "",
             explanation=payload.content.explanation or "",
         )
+        
+        # [NEW] Phase 4: Smart Hint Integration
+        if not result.get("is_correct", False):
+            error_cat = result.get("error_category", payload.task_metadata.skill or "general")
+            hint = PedagogyService.get_smart_hint(error_cat)
+            result["pedagogical_hint"] = hint
+            
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to evaluate task: {str(e)}")

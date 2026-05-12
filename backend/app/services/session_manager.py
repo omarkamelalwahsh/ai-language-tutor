@@ -13,7 +13,11 @@ from app.models.domain import (
     UserSkill,
     LearningJourney,
     JourneyStep,
+    UserProficiency,
+    ErrorProfile,
+    JourneyProgress,
 )
+from app.services.pedagogy import PedagogyService
 
 logger = logging.getLogger(__name__)
 
@@ -259,6 +263,12 @@ class SessionManager:
             if r.get("is_correct") and r.get("task_metadata", {}).get("slot_role") == "review"
         ]
         await cls._merge_recent_errors(user_id, new_errors, db, solved_errors=solved_errors)
+        
+        # [NEW] Phase 2: Error Analysis & Pedagogy Integration
+        for r in results:
+            skill = (r.get("skill") or r.get("task_metadata", {}).get("skill") or "general").lower()
+            rule = r.get("error_category") or skill
+            await PedagogyService.analyze_error(user_id, skill, rule, r.get("is_correct"), db)
 
         unlocked_step = None
         completed_step_id = session_data.get("completed_journey_step_id")
@@ -306,6 +316,12 @@ class SessionManager:
         
         if new_errors or solved_errors:
             await cls._merge_recent_errors(user_id, new_errors, db, solved_errors=solved_errors)
+            
+        # [NEW] Phase 2: Real-time Pedagogy Sync
+        skill = (result.get("skill") or result.get("task_metadata", {}).get("skill") or "general").lower()
+        rule = result.get("error_category") or skill
+        await PedagogyService.analyze_error(user_id, skill, rule, result.get("is_correct"), db)
+        await PedagogyService.update_streak(user_id, db)
             
         await db.commit()
         
@@ -545,7 +561,10 @@ class SessionManager:
                 stmt = select(UserSkill).where(UserSkill.user_id == user_id).where(UserSkill.skill == skill)
                 row = (await db.execute(stmt)).scalar_one_or_none()
                 accuracy = stats.get("accuracy", 0.0)
-                xp_gain = int(round(stats["sum"] * 10))  # 0–10 XP per task
+                
+                # [NEW] Phase 2: Points Calculation Formula
+                difficulty = stats.get("avg_score", 0.5) # Using avg_score as proxy for difficulty
+                xp_gain = PedagogyService.calculate_points(difficulty, accuracy)
 
                 if not row:
                     new_row = UserSkill(
@@ -593,40 +612,27 @@ class SessionManager:
             correct = sum(1 for r in results if r.get("is_correct"))
             session_avg = sum(scores) / len(scores) if scores else 0.0
             session_acc = correct / len(results) if results else 0.0
-            xp_gain = int(round(sum(scores) * 10))
+            
+            # [NEW] Phase 2: Points Calculation Formula for overall XP
+            xp_gain = sum([PedagogyService.calculate_points(float(r.get("score", 0.5)), 1.0 if r.get("is_correct") else 0.0) for r in results])
 
-            # Streak Logic: Check last_active_at to decide increment or reset
-            last_active_res = await db.execute(
-                text("SELECT last_active_at FROM learner_profiles WHERE id = :uid"),
-                {"uid": user_id}
-            )
-            last_active_row = last_active_res.first()
-            last_active = last_active_row[0] if last_active_row and last_active_row[0] else None
-
-            from datetime import datetime, timezone, timedelta
-            now = datetime.now(timezone.utc)
-            if last_active:
-                # Make last_active timezone-aware if needed
-                if last_active.tzinfo is None:
-                    last_active = last_active.replace(tzinfo=timezone.utc)
-                hours_since = (now - last_active).total_seconds() / 3600
-                if hours_since > 48:
-                    streak_clause = ", streak = 1"
-                else:
-                    streak_clause = ", streak = COALESCE(streak, 0) + 1"
-            else:
-                streak_clause = ", streak = 1"
+            # [NEW] Phase 2: Streak & Activity Update via PedagogyService
+            await PedagogyService.update_streak(user_id, db)
 
             # Global Level Promotion: If session accuracy or skill average >= 0.9, bump level
             current_overall = await db.execute(select(LearnerProfile.current_proficiency_level).where(LearnerProfile.id == user_id))
             before_level = current_overall.scalar() or "A1"
             
-            promotion_clause = ""
             if session_acc >= 0.9 and before_level in LEVEL_LADDER:
                 next_idx = min(LEVEL_LADDER.index(before_level) + 1, len(LEVEL_LADDER) - 1)
                 after_level = LEVEL_LADDER[next_idx]
                 if after_level != before_level:
-                    promotion_clause = f", current_proficiency_level = '{after_level}', overall_level = '{after_level}'"
+                    # Update profile level
+                    profile_res = await db.execute(select(LearnerProfile).where(LearnerProfile.id == user_id))
+                    profile = profile_res.scalar_one_or_none()
+                    if profile:
+                        profile.current_proficiency_level = after_level
+                        profile.overall_level = after_level
 
             await db.execute(
                 text(f"""
@@ -636,10 +642,7 @@ class SessionManager:
                         accuracy_rate = (
                             COALESCE(accuracy_rate, 0) * 0.7 + :acc * 0.3
                         ),
-                        last_active_at = CURRENT_TIMESTAMP,
                         updated_at = CURRENT_TIMESTAMP
-                        {streak_clause}
-                        {promotion_clause}
                     WHERE id = :uid
                 """),
                 {"xp": xp_gain, "n": len(results), "acc": session_acc, "uid": user_id},
@@ -733,6 +736,14 @@ class SessionManager:
             if not passed:
                 logger.info(f"[SessionManager] journey step NOT advanced (accuracy below threshold)")
                 return None
+
+            # [NEW] Phase 3: Gateway Logic Integration
+            await PedagogyService.check_gateway_unlock(user_id, completed_step_id, correct/len(results), db)
+            
+            # [NEW] Phase 3: Level-Up Logic if it's a Final Exam
+            is_final = "final" in (step.title or "").lower()
+            if is_final:
+                await PedagogyService.handle_level_up(user_id, correct/len(results), db)
 
             stmt = select(JourneyStep).where(JourneyStep.id == completed_step_id)
             step = (await db.execute(stmt)).scalar_one_or_none()

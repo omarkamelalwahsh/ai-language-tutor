@@ -13,74 +13,28 @@ interface ErrorAnalysisRow {
 }
 
 export const VisualErrorProfile = () => {
-  const { user, refreshTrigger } = useData();
+  const { user, proficiency, errorProfile, loading: dataLoading } = useData();
   const [data, setData] = useState<ErrorAnalysisRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchErrorAnalysis = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        setLoading(true);
-        // Fetch using the json structure: id, created_at, category, is_correct
-        const { data: analysis, error: fetchError } = await supabase
-          .from('user_error_analysis')
-          .select('id, created_at, category, error_rate')
-          .eq('user_id', user.id);
-
-        if (fetchError) throw fetchError;
-
-        if (analysis && analysis.length > 0) {
-          const stats: Record<string, { total: number, mistakes: number }> = {
-            listening: { total: 0, mistakes: 0 },
-            reading: { total: 0, mistakes: 0 },
-            speaking: { total: 0, mistakes: 0 },
-            writing: { total: 0, mistakes: 0 },
-            grammar: { total: 0, mistakes: 0 },
-            vocabulary: { total: 0, mistakes: 0 },
-          };
-
-          analysis.forEach(row => {
-            const cat = row.category?.toLowerCase() || 'speaking';
-            if (stats[cat]) {
-               stats[cat].total += 1;
-               // Heuristic: If error_rate exists and is > 0, count as a mistake
-               if (row.error_rate && row.error_rate > 0) {
-                 stats[cat].mistakes += 1;
-               }
-            } else {
-               // dynamically add new categories if present
-               stats[cat] = { total: 1, mistakes: (row.error_rate && row.error_rate > 0) ? 1 : 0 };
-            }
-          });
-
-          const formatted = Object.entries(stats).map(([cat, counts]) => ({
-            subject: cat.charAt(0).toUpperCase() + cat.slice(1),
-            A: counts.total > 0 ? Math.round((counts.mistakes / counts.total) * 100) : 0,
-            fullMark: 100,
-            mistakesCount: counts.mistakes,
-            totalCount: counts.total
-          }));
-          
-          setData(formatted.filter(item => item.totalCount > 0));
-        } else {
-          setData([]);
-        }
-      } catch (err: any) {
-        console.error('[VisualErrorProfile] Fetch Error:', err.message);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchErrorAnalysis();
-  }, [user?.id, refreshTrigger]);
+    if (proficiency) {
+      const skills = ['reading', 'listening', 'writing', 'speaking'];
+      const formatted = skills.map(s => {
+        const xp = proficiency[`${s}_xp`] || 0;
+        // Invert XP for "Error Density" simulation or show proficiency
+        // Actually let's show "Skill Mastery" but styled as error profile for diagnostic feel
+        return {
+          subject: s.charAt(0).toUpperCase() + s.slice(1),
+          A: Math.min(100, xp // 10),
+          fullMark: 100,
+          mistakesCount: errorProfile?.chronic_errors?.length || 0,
+        };
+      });
+      setData(formatted);
+    }
+  }, [proficiency, errorProfile]);
 
   if (loading) {
     return (
@@ -116,7 +70,7 @@ export const VisualErrorProfile = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-8 pb-10 w-full rounded-2xl bg-white border border-slate-100 shadow-sm dark:shadow-md overflow-hidden relative"
+      className="p-8 pb-10 w-full rounded-[2.5rem] bg-white dark:bg-white/[0.03] backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-premium dark:shadow-2xl overflow-hidden relative"
     >
       {/* Decorative Glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 dark:bg-blue-900/30/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />

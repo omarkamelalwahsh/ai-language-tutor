@@ -47,18 +47,18 @@ export const SkillCard: React.FC<SkillCardProps> = ({
   };
 
   return (
-    <div className="flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden w-full max-w-md font-sans">
+    <div className="flex flex-col bg-white/40 dark:bg-white/[0.03] backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-premium dark:shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden w-full max-w-md font-sans group">
       {/* Header */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+      <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
         <div className="flex items-center gap-4 mb-2">
-          <div className="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+          <div className="p-4 bg-blue-100/50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-500">
             {icon}
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
               {skillName}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-400 dark:text-white/40 font-bold uppercase tracking-widest mt-0.5">
               {description}
             </p>
           </div>
@@ -138,14 +138,14 @@ export const SkillCard: React.FC<SkillCardProps> = ({
         <button
           onClick={handleStart}
           disabled={!selectedTask || !selectedDifficulty}
-          className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold transition-all duration-300 ${
+          className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-500 ${
             selectedTask && selectedDifficulty
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg translate-y-0'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_-5px_rgba(37,99,235,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(37,99,235,0.5)] translate-y-0 hover:-translate-y-1'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/20 cursor-not-allowed'
           }`}
         >
-          <span>Start Task</span>
-          <ChevronRight className={`w-5 h-5 transition-transform duration-300 ${selectedTask && selectedDifficulty ? 'translate-x-1' : ''}`} />
+          <span>Initialize Protocol</span>
+          <ChevronRight className={`w-4 h-4 transition-transform duration-500 ${selectedTask && selectedDifficulty ? 'translate-x-1' : ''}`} />
         </button>
       </div>
     </div>

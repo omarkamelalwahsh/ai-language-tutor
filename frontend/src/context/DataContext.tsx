@@ -11,6 +11,8 @@ interface DataContextType {
   assessmentOutcome: AssessmentOutcome | null;
   taskResults: TaskEvaluation[];
   onboardingState: OnboardingState | null;
+  proficiency: any | null;
+  errorProfile: any | null;
   isInitializing: boolean;
   isArchitecting: boolean;
   refreshTrigger: number;
@@ -31,6 +33,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [assessmentOutcome, setAssessmentOutcome] = useState<AssessmentOutcome | null>(null);
   const [taskResults, setTaskResults] = useState<TaskEvaluation[]>([]);
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
+  const [proficiency, setProficiency] = useState<any | null>(null);
+  const [errorProfile, setErrorProfile] = useState<any | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isArchitecting, setIsArchitecting] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -80,6 +84,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
+
+      // 🔍 NEW: Pedagogical Engine Data
+      const { data: proficiencyData } = await supabase
+        .from('user_proficiency')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
+
+      const { data: errorData } = await supabase
+        .from('error_profiles')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
       
       if (rbacProfile || learnerData) {
         // SuperAdmins and Admins are considered "onboarded" by default
@@ -113,6 +130,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setProfile(mergedProfile);
+        setProficiency(proficiencyData);
+        setErrorProfile(errorData);
         console.log('[DataContext] Profile synced. Role:', mergedProfile.role);
         setRefreshTrigger(prev => prev + 1);
       } else {
@@ -234,6 +253,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAssessmentOutcome(null);
     setTaskResults([]);
     setOnboardingState(null);
+    setProficiency(null);
+    setErrorProfile(null);
     setIsArchitecting(false);
   }, []);
 
@@ -287,7 +308,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DataContext.Provider value={{ 
       user, profile, assessmentResult, assessmentOutcome, taskResults, 
-      onboardingState, isInitializing, isArchitecting, refreshTrigger,
+      onboardingState, proficiency, errorProfile, isInitializing, isArchitecting, refreshTrigger,
       refreshData, setSessionResult, setOnboarding, logout, clearAllData,
       updateProfileLocally
     }}>

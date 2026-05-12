@@ -34,33 +34,41 @@ export const ErrorProfileCard: React.FC<ErrorProfileCardProps> = ({ data, classN
                         <RadarChart 
                             cx="50%" 
                             cy="50%" 
-                            outerRadius="55%" 
+                            outerRadius="65%" 
                             data={chartData} 
-                            margin={{ top: 40, right: 60, bottom: 40, left: 60 }}
+                            margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
                         >
-                            <PolarGrid stroke="currentColor" className="text-slate-200 dark:text-white/10" strokeDasharray="3 3" />
+                            <PolarGrid stroke="currentColor" className="text-slate-200 dark:text-white/5" strokeDasharray="4 4" />
                             <PolarAngleAxis 
                                 dataKey="subject" 
-                                tick={{ fill: 'rgba(148, 163, 184, 0.8)', fontSize: 10, fontWeight: 800 }}
+                                tick={{ fill: 'rgba(148, 163, 184, 0.6)', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em' }}
                             />
                             <Tooltip 
                                 contentStyle={{ 
-                                    backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                                    backgroundColor: 'rgba(15, 23, 42, 0.8)', 
                                     border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '16px',
-                                    backdropFilter: 'blur(12px)'
+                                    borderRadius: '24px',
+                                    backdropFilter: 'blur(20px)',
+                                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
                                 }}
-                                itemStyle={{ color: '#fff', fontSize: '10px', fontWeight: 'bold' }}
+                                itemStyle={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}
                             />
                             <Radar
                                 name="Error Density"
                                 dataKey="A"
                                 stroke="#F43F5E"
-                                strokeWidth={3}
-                                fill="#F43F5E"
-                                fillOpacity={0.15}
+                                strokeWidth={4}
+                                fill="url(#errorGradient)"
+                                fillOpacity={0.3}
                                 isAnimationActive={true}
+                                animationDuration={1500}
                             />
+                            <defs>
+                                <radialGradient id="errorGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                    <stop offset="0%" stopColor="#F43F5E" stopOpacity={0.8} />
+                                    <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.1} />
+                                </radialGradient>
+                            </defs>
                         </RadarChart>
                     </ResponsiveContainer>
                 ) : (
@@ -77,20 +85,23 @@ export const ErrorProfileCard: React.FC<ErrorProfileCardProps> = ({ data, classN
                     {chartData.slice(0, 3).map((w, i) => (
                         <motion.button 
                             key={i} 
-                            whileHover={{ scale: 1.02 }}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            whileHover={{ scale: 1.02, x: 5 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedError(w)}
-                            className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 hover:border-rose-500/30 transition-all text-left"
+                            className="w-full flex items-center justify-between p-5 bg-white/50 dark:bg-white/[0.03] backdrop-blur-md rounded-3xl border border-slate-100 dark:border-white/5 hover:border-rose-500/50 hover:bg-rose-500/[0.02] transition-all text-left group/item"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
+                            <div className="flex items-center gap-4">
+                                <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.6)] group-hover/item:scale-150 transition-transform" />
                                 <div className="flex flex-col">
-                                    <span className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight">{w.subject}</span>
-                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">{w.status || 'Active Pattern'} • {w.severity || 'Medium'} Risk</span>
+                                    <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">{w.subject}</span>
+                                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-bold tracking-tight">{w.status || 'Active Pattern'} • {w.severity || 'Medium'} Risk</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-[10px] font-black text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-lg uppercase tracking-wider">{w.A}% Density</span>
+                                <span className="text-[11px] font-black text-rose-500 bg-rose-500/10 px-3 py-1.5 rounded-xl uppercase tracking-widest">{w.A}%</span>
                             </div>
                         </motion.button>
                     ))}
