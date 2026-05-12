@@ -359,7 +359,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-400/20">
                   <Brain size={12} className="text-indigo-300" />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">
-                    {currentTask.task_metadata.type.replace(/_/g, ' ')}
+                    {(currentTask.task_metadata?.type || 'task').replace(/_/g, ' ')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
@@ -399,6 +399,25 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                       allowReplay={true}
                       allowSlowAudio={true}
                     />
+                  </div>
+                ) : (currentTask.task_metadata.type?.toLowerCase().includes('visual') || currentTask.task_metadata.type?.toLowerCase().includes('image_word')) ? (
+                  <div className="space-y-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-200/60 mb-3">
+                      Visual Stimulus
+                    </p>
+                    <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl group/img">
+                      <img 
+                        src={currentTask.content.image_url || `https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop`} 
+                        alt="Task stimulus" 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent opacity-60" />
+                      <div className="absolute bottom-4 left-6 right-6">
+                         <p className="text-white/70 text-xs font-medium italic line-clamp-2">
+                           {currentTask.content.stimulus}
+                         </p>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>

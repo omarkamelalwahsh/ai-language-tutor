@@ -28,6 +28,7 @@ import {
     Target,
     Layout,
     X,
+    Award,
     Sparkles,
     PenTool,
     Headphones,
@@ -114,7 +115,7 @@ const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
     const handleStartTask = async (taskId: string, difficulty: string) => {
         try {
             const res = await learnerService.startPracticeSession(skillId, taskId, difficulty);
-            navigate(`/runtime?session_id=${res.session_id}`);
+            navigate(`/runtime?session_id=${res.session_id}&skill=${skillId}&task=${taskId}`);
         } catch (err) {
             console.error('Failed to start session', err);
             navigate(`/runtime?skill=${skillId}&task=${taskId}`);
@@ -837,6 +838,17 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             </motion.div>
 
 
+            {/* 🎯 CEFR PROGRESSION RESERVOIR */}
+            <motion.div variants={itemVariants}>
+                <LevelProgress 
+                    current_xp={dashboardData?.profile?.current_level_xp || 0}
+                    required_xp={dashboardData?.profile?.required_xp || 1000}
+                    level={dashboardData?.profile?.current_level || 'A1'}
+                    is_gateway_unlocked={dashboardData?.profile?.is_gateway_unlocked}
+                />
+            </motion.div>
+
+
             {/* 2. KPI ROW */}
 
 
@@ -1032,6 +1044,81 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                 onClose={() => setSelectedError(null)} 
             />
         </motion.div>
+    );
+};
+
+const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked }: any) => {
+    const percentage = Math.min(100, Math.round((current_xp / required_xp) * 100));
+    const navigate = useNavigate();
+    
+    return (
+        <GlassCard className="p-8 mb-4 overflow-hidden relative border-blue-500/10" glow={is_gateway_unlocked}>
+            {is_gateway_unlocked && (
+                <div className="absolute top-0 right-0 p-4 z-20">
+                     <motion.div 
+                        animate={{ scale: [1, 1.1, 1], rotate: [0, 2, -2, 0] }} 
+                        transition={{ repeat: Infinity, duration: 3 }}
+                        className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase rounded-full shadow-xl flex items-center gap-2 border border-white/20"
+                     >
+                        <Award size={14} className="animate-bounce" /> Gateway Exam Ready
+                     </motion.div>
+                </div>
+            )}
+            
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-blue-500/20 shadow-lg">
+                            <TrendingUp size={20} className="text-white" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">CEFR Mastery Reservoir</p>
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-2">
+                                <span className="text-blue-600 dark:text-blue-400">Level {level}</span>
+                                <ChevronRight className="text-slate-300 dark:text-slate-700" size={24} />
+                                <span className="opacity-60">{percentage}%</span>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="flex-1 max-w-2xl w-full">
+                    <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-3">
+                        <span className="flex items-center gap-2"><Zap size={10} className="text-amber-500" /> {current_xp.toLocaleString()} XP Accumulated</span>
+                        <span className="flex items-center gap-2">{required_xp.toLocaleString()} XP Graduation Target <Target size={10} /></span>
+                    </div>
+                    <div className="h-5 bg-slate-100 dark:bg-white/[0.03] rounded-2xl overflow-hidden p-1 border border-slate-200/50 dark:border-white/5 shadow-inner relative">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ type: 'spring', damping: 20, stiffness: 60 }}
+                            className={`h-full rounded-xl shadow-lg relative ${is_gateway_unlocked ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-blue-500 via-indigo-600 to-violet-700'}`}
+                        >
+                            <div className="absolute inset-0 bg-white/20 skew-x-[-20deg] translate-x-[-100%] animate-[shimmer_2s_infinite]" style={{ width: '30%' }} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {is_gateway_unlocked ? (
+                    <button 
+                        onClick={() => navigate('/runtime?mode=gateway')}
+                        className="px-10 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-premium hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-4 group"
+                    >
+                        Graduate to {level === 'A1' ? 'A2' : level === 'A2' ? 'B1' : level === 'B1' ? 'B2' : level === 'B2' ? 'C1' : 'C2'}
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                ) : (
+                    <div className="px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 text-center">
+                        <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest leading-none mb-1">Status</p>
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Reservoir Filling...</p>
+                    </div>
+                )}
+            </div>
+            
+            {/* Background Decorations */}
+            <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-[-50%] right-[-10%] w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+        </GlassCard>
     );
 };
 

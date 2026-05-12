@@ -25,6 +25,9 @@ class LearnerService:
             # 2. Fetch Skills (UserSkill / skill_states)
             skills_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
             skills = (await self.db.execute(skills_stmt)).scalars().all()
+            logging.info(f"[LearnerService] Found {len(skills)} skills for user {user_id}")
+            for s in skills:
+                logging.info(f"  - Skill: {s.skill}, XP: {s.xp_points}, Score: {s.current_score}, Level: {s.current_level}")
 
             # 3. Fetch Error Profile (UserErrorProfile / user_error_profiles)
             err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
@@ -109,15 +112,25 @@ class LearnerService:
                 weakest_s = min(skills, key=lambda x: x.xp_points or 0)
                 weakest_skill = weakest_s.skill.capitalize()
 
-            # 9. Construct Response
+            # 9. Fetch Level Config for Reservoir UI
+            from app.models.domain import LevelConfig
+            config_stmt = select(LevelConfig).where(LevelConfig.level_name == (profile.current_proficiency_level or "A1"))
+            level_config = (await self.db.execute(config_stmt)).scalar_one_or_none()
+            required_xp = level_config.required_xp if level_config else 1000
+
+            # 10. Construct Response
             skills_list = []
             for s in skills:
+                # Reverting to legacy score calculation: 9800 -> 98%
+                score_val = int((s.current_score or 0) / 100) if (s.current_score or 0) > 100 else int((s.current_score or 0) * 100)
+                score_val = min(100, score_val)
+                
                 skills_list.append({
                     "name": s.skill.capitalize(),
                     "skill": s.skill,
-                    "score": min(100, (s.xp_points or 0) // 10),
-                    "level": s.current_proficiency_level or "A1",
-                    "confidence": s.proficiency_confidence or 0.85
+                    "score": score_val,
+                    "level": s.current_level or s.level or "A1",
+                    "confidence": s.confidence or 0.85
                 })
             
             # Ensure all 4 core skills are present (fallback)
@@ -138,6 +151,9 @@ class LearnerService:
                     "full_name": profile.full_name if (profile and profile.full_name) else "Learner",
                     "current_level": (profile.overall_level or profile.current_proficiency_level or "A1") if profile else "A1",
                     "xp_points": profile.xp_points if profile else 0,
+                    "current_level_xp": profile.current_level_xp if profile else 0,
+                    "required_xp": required_xp,
+                    "is_gateway_unlocked": profile.is_gateway_unlocked if profile else False,
                     "streak": profile_streak,
                 },
                 "kpis": {
@@ -193,6 +209,7 @@ class LearnerService:
 
             prof_data_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
             skills = (await self.db.execute(prof_data_stmt)).scalars().all()
+            logging.info(f"[LearnerService] Intelligence Profile: Found {len(skills)} skills")
 
             err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
             err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
@@ -215,14 +232,18 @@ class LearnerService:
             for s_name in target_skills:
                 skill_obj = next((s for s in skills if s.skill.lower() == s_name), None)
                 if skill_obj:
+                    # Legacy score mapping
+                    score_val = int((skill_obj.current_score or 0) / 100) if (skill_obj.current_score or 0) > 100 else int((skill_obj.current_score or 0) * 100)
+                    score_val = min(100, score_val)
+                    
                     skill_matrix.append({
                         "name": s_name.capitalize(),
-                        "score": min(100, (skill_obj.xp_points or 0) // 10),
-                        "level": skill_obj.current_proficiency_level or "A1",
-                        "confidence": skill_obj.proficiency_confidence or 0.88,
-                        "stability": "Stable" if (skill_obj.xp_points or 0) > 500 else "Fragile",
+                        "score": score_val,
+                        "level": skill_obj.current_level or skill_obj.level or "A1",
+                        "confidence": skill_obj.confidence or 0.88,
+                        "stability": "Stable" if (skill_obj.current_score or 0) > 5000 else "Fragile",
                         "trend": "Improving",
-                        "support": "Maintain" if (skill_obj.xp_points or 0) > 500 else "High Need"
+                        "support": "Maintain" if (skill_obj.current_score or 0) > 5000 else "High Need"
                     })
                 else:
                     skill_matrix.append({
@@ -235,19 +256,24 @@ class LearnerService:
                         "support": "High Need"
                     })
 
-            # 3. Error Model Processing (Chronic Errors)
+            # 3. Error Model Processing (Real Data from full_report)
             error_patterns = []
-            # 3. Error Model Processing (Common Mistakes)
-            error_patterns = []
-            if err_profile and err_profile.common_mistakes:
-                for err in err_profile.common_mistakes:
-                    error_patterns.append({
-                        "type": "Chronic Pattern",
-                        "count": 2, 
-                        "severity": "High",
-                        "status": "Recurring",
-                        "insight": err
-                    })
+            if err_profile and err_profile.full_report:
+                # full_report is a dict like: {"Present Simple": {"count": 3, "last_failed": "..."}}
+                for rule, data in err_profile.full_report.items():
+                    count = data.get("count", 0)
+                    if count > 0:
+                        error_patterns.append({
+                            "type": "Grammar Pattern" if "Grammar" in rule or rule in ["Present Simple", "Articles"] else "Linguistic Pattern",
+                            "count": count,
+                            "severity": "High" if count >= 3 else "Medium",
+                            "status": "Recurring" if count >= 2 else "Emerging",
+                            "insight": rule
+                        })
+            
+            # Sort by count descending to show most critical errors first
+            error_patterns.sort(key=lambda x: x['count'], reverse=True)
+            error_patterns = error_patterns[:5] # Top 5
             
             # 4. Retention & Pacing
             due_items = []
@@ -286,59 +312,58 @@ class LearnerService:
                 },
                 "best_next_move": best_move
             }
+        except Exception as e:
+            logging.error(f"[LearnerService] Intelligence Profile Error: {str(e)}")
+            raise e
+
     async def _ensure_data_consistency(self, user_id: UUID):
         """
-        Checks for users with scores but 0 XP and fixes them.
-        Also initializes missing skills if assessment logs exist.
+        Heals data consistency for skills and error profiles.
         """
         try:
-            # 1. Check current skills
+            # 1. Sync Skills (already handled in previous step, ensuring it's robust)
             skills_stmt = select(UserSkill).where(UserSkill.user_id == user_id)
             skills = (await self.db.execute(skills_stmt)).scalars().all()
             
             needs_update = False
             for s in skills:
-                if (s.xp_points or 0) == 0 and (s.current_score or 0) > 0:
-                    # Sync XP from current_score (e.g. 0.85 -> 850 XP)
-                    s.xp_points = int(s.current_score * 1000)
+                legacy_score = s.current_score or 0
+                current_xp = s.xp_points or 0
+                if (legacy_score > current_xp and legacy_score > 100) or (current_xp == 0 and legacy_score > 0):
+                    s.xp_points = int(legacy_score) if legacy_score > 100 else int(legacy_score * 1000)
                     needs_update = True
-                
-                # If current_score is 0 but logs exist, sync from logs
-                if (s.current_score or 0) == 0:
-                    log_stmt = select(func.avg(AssessmentLog.score)).where(
-                        AssessmentLog.user_id == user_id,
-                        AssessmentLog.skill == s.skill
-                    )
-                    avg_score = (await self.db.execute(log_stmt)).scalar() or 0.0
-                    if avg_score > 0:
-                        s.current_score = avg_score
-                        s.xp_points = int(avg_score * 1000)
-                        needs_update = True
+                if not s.current_proficiency_level and (s.current_level or s.level):
+                    s.current_proficiency_level = s.current_level or s.level
+                    needs_update = True
 
-            # 2. Check for missing skill rows if logs exist
-            if not skills or len(skills) < 4:
-                log_stmt = select(AssessmentLog.skill, func.avg(AssessmentLog.score)).where(
-                    AssessmentLog.user_id == user_id
-                ).group_by(AssessmentLog.skill)
-                log_results = (await self.db.execute(log_stmt)).all()
+            # 2. Sync Error Profile from Analysis Logs
+            err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
+            err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
+            
+            if not err_profile or not err_profile.common_mistakes:
+                # Try to recover from UserErrorAnalysis
+                analysis_stmt = select(UserErrorAnalysis.category).where(
+                    UserErrorAnalysis.user_id == user_id,
+                    UserErrorAnalysis.is_correct == False
+                )
+                error_results = (await self.db.execute(analysis_stmt)).scalars().all()
                 
-                existing_skills = {s.skill.lower() for s in skills}
-                for skill_name, avg_score in log_results:
-                    if skill_name and skill_name.lower() not in existing_skills:
-                        new_skill = UserSkill(
-                            user_id=user_id,
-                            skill=skill_name.lower(),
-                            xp_points=int(avg_score * 1000),
-                            current_score=avg_score,
-                            proficiency_confidence=0.85,
-                            last_tested=datetime.utcnow()
-                        )
-                        self.db.add(new_skill)
-                        needs_update = True
+                if error_results:
+                    from collections import Counter
+                    counts = Counter(error_results)
+                    # Any error appearing more than once is "chronic"
+                    chronic = [category for category, count in counts.items() if count >= 1]
+                    
+                    if not err_profile:
+                        err_profile = UserErrorProfile(user_id=user_id, common_mistakes=chronic, full_report={})
+                        self.db.add(err_profile)
+                    else:
+                        err_profile.common_mistakes = chronic
+                    needs_update = True
 
             if needs_update:
                 await self.db.commit()
-                logging.info(f"Successfully healed data consistency for user {user_id}")
+                logging.info(f"Successfully healed data for user {user_id}")
         except Exception as e:
             await self.db.rollback()
-            logging.error(f"Data Consistency Error: {str(e)}")
+            logging.error(f"Consistency Error: {str(e)}")

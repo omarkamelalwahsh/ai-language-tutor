@@ -87,13 +87,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // 🔍 NEW: Pedagogical Engine Data
       const { data: proficiencyData } = await supabase
-        .from('user_proficiency')
+        .from('skill_states')
         .select('*')
         .eq('user_id', authUser.id)
         .maybeSingle();
 
       const { data: errorData } = await supabase
-        .from('error_profiles')
+        .from('user_error_profiles')
         .select('*')
         .eq('user_id', authUser.id)
         .maybeSingle();

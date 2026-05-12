@@ -20,6 +20,7 @@ export interface SessionTask {
   fragileDescriptorIds?: string[];
   // Module-specific generic payload for details like audio URLs, vocab lists, etc.
   payload?: any; 
+  metadata?: any;
 }
 
 export interface TaskEvaluationResult {
@@ -34,7 +35,8 @@ export interface TaskEvaluationResult {
   meaningSuccess: boolean;
   naturalnessSuccess: boolean;
   responseMode?: 'voice' | 'typed_fallback' | 'text';
-  reviewData?: AnswerReviewItem; // newly added
+  reviewData?: AnswerReviewItem;
+  syncState?: any; 
 }
 
 export interface TaskFeedbackPayload {

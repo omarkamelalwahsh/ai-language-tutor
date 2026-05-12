@@ -800,10 +800,73 @@
     "answer_key": {
       "options": [],
       "correct_index": -1,
-      "correct": "",
       "explanation": "The speaker should provide a balanced discussion, presenting multiple perspectives and supporting their claims with relevant examples and logical reasoning, all while maintaining a high level of linguistic accuracy and complexity."
     }
   },
+  {
+    "external_id": "GEN_C2_VISUAL_1",
+      "skill": "reading",
+      "task_type": "visual_vocabulary",
+      "target_cefr": "C2",
+      "level": "C2",
+      "difficulty": 0.5,
+      "prompt": "Match the image with the correct word.",
+      "stimulus": "https://example.com/image1.jpg",
+      "answer_key": {
+        "options": ["Apple", "Banana", "Cherry", "Date"],
+        "correct_index": 0,
+        "correct": "Apple",
+        "explanation": "The image shows an apple."
+      }
+    },
+    {
+      "external_id": "GEN_C2_VISUAL_2",
+      "skill": "listening",
+      "task_type": "visual_vocabulary",
+      "target_cefr": "C2",
+      "level": "C2",
+      "difficulty": 0.5,
+      "prompt": "Identify the object in the picture.",
+      "stimulus": "https://example.com/image2.jpg",
+      "answer_key": {
+        "options": ["Car", "Bicycle", "Train", "Airplane"],
+        "correct_index": 1,
+        "correct": "Bicycle",
+        "explanation": "The picture shows a bicycle."
+      }
+    },
+    {
+      "external_id": "GEN_C2_VISUAL_3",
+      "skill": "writing",
+      "task_type": "visual_vocabulary",
+      "target_cefr": "C2",
+      "level": "C2",
+      "difficulty": 0.5,
+      "prompt": "Write a sentence describing the image.",
+      "stimulus": "https://example.com/image3.jpg",
+      "answer_key": {
+        "options": [],
+        "correct_index": -1,
+        "correct": "",
+        "explanation": "User must write a sentence."
+      }
+    },
+    {
+      "external_id": "GEN_C2_VISUAL_4",
+      "skill": "speaking",
+      "task_type": "visual_vocabulary",
+      "target_cefr": "C2",
+      "level": "C2",
+      "difficulty": 0.5,
+      "prompt": "Describe the picture verbally.",
+      "stimulus": "https://example.com/image4.jpg",
+      "answer_key": {
+        "options": [],
+        "correct_index": -1,
+        "correct": "",
+        "explanation": "User must speak description."
+      }
+    },
   {
     "external_id": "GEN_C2_1776163338000_speaking_2",
     "skill": "speaking",

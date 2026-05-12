@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user
@@ -58,6 +58,7 @@ async def build_daily_mix(
 # ---------------------------------------------------------------------------
 class SkillPracticeRequest(BaseModel):
     skill: str = Field(..., description="writing | reading | listening | speaking | grammar | vocabulary")
+    task_type: Optional[str] = Field(None, description="Optional specific task type (e.g. visual_vocabulary)")
     count: int = Field(5, ge=1, le=10)
 
 
@@ -71,7 +72,11 @@ async def build_skill_practice(
     try:
         user_id = current_user["sub"]
         return await SessionManager.build_skill_practice(
-            user_id=user_id, skill=payload.skill.lower(), db=db, count=payload.count
+            user_id=user_id, 
+            skill=payload.skill.lower(), 
+            db=db, 
+            count=payload.count,
+            task_type=payload.task_type
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to build skill practice: {str(e)}")
@@ -150,7 +155,7 @@ class EvaluateTaskContent(BaseModel):
     instruction: Optional[str] = ""
     stimulus: Optional[str] = ""
     task_prompt: Optional[str] = ""
-    target_response: Optional[str] = ""
+    target_response: Optional[Union[str, List[str]]] = ""
     explanation: Optional[str] = ""
 
 
@@ -158,19 +163,24 @@ class EvaluateTaskRequest(BaseModel):
     task_metadata: EvaluateTaskMetadata
     content: EvaluateTaskContent
     user_response: str
+    session_id: Optional[str] = None
+    task_id: Optional[str] = None
 
 
 @router.post("/evaluate-task", response_model=Dict[str, Any])
 async def evaluate_task(
     payload: EvaluateTaskRequest,
+    db: AsyncSession = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
     Grades one learner response using the CEFR-aware Evaluator.
-    Used by the runtime to score open-ended Writing/Speaking answers
-    instead of falling back to the local string-match heuristic.
+    Now with Incremental Write (sync_task_result).
     """
     try:
+        user_id = current_user["sub"]
+        
+        # 1. AI Evaluation
         result, _ = await evaluate_dynamic_task(
             prompt=payload.content.task_prompt or payload.content.instruction or "",
             rubric={
@@ -188,12 +198,29 @@ async def evaluate_task(
             explanation=payload.content.explanation or "",
         )
         
+        # 2. Sync to DB (Incremental Write)
+        sync_payload = {
+            "skill": payload.task_metadata.skill,
+            "is_correct": result.get("is_correct", False),
+            "score": result.get("score", 0.0),
+            "error_category": result.get("error_analysis", {}).get("error_category"),
+            "task_metadata": {
+                "id": payload.task_id,
+                "type": payload.task_metadata.type,
+                "slot_role": "targeted" # Default for skill practice
+            }
+        }
+        sync_res = await SessionManager.sync_task_result(user_id, sync_payload, db)
+        
+        # Merge evaluation and sync state
+        final_result = {**result, "sync_state": sync_res}
+        
         # [NEW] Phase 4: Smart Hint Integration
         if not result.get("is_correct", False):
             error_cat = result.get("error_category", payload.task_metadata.skill or "general")
             hint = PedagogyService.get_smart_hint(error_cat)
-            result["pedagogical_hint"] = hint
+            final_result["pedagogical_hint"] = hint
             
-        return result
+        return final_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to evaluate task: {str(e)}")

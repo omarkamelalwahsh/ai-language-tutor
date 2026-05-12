@@ -1,37 +1,30 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
 
-# Add the current directory to sys.path
-sys.path.append(os.getcwd())
+# Add backend to sys.path
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
 
 from app.db.database import AsyncSessionLocal
-from sqlalchemy import text
+from app.models.domain import QuestionBankItem, LearnerProfile
+from sqlalchemy import select, func
 
 async def check():
-    try:
-        async with AsyncSessionLocal() as session:
-            # Check if table exists
-            res = await session.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'weekly_vocabulary')"))
-            exists = res.scalar()
-            print(f"Table 'weekly_vocabulary' exists: {exists}")
-            
-            if not exists:
-                print("Creating table 'weekly_vocabulary' manually...")
-                await session.execute(text("""
-                    CREATE TABLE weekly_vocabulary (
-                        id UUID PRIMARY KEY,
-                        target_level VARCHAR NOT NULL,
-                        field VARCHAR NOT NULL,
-                        content JSONB NOT NULL,
-                        week_start_date TIMESTAMP WITH TIME ZONE NOT NULL,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                    )
-                """))
-                await session.commit()
-                print("Table created.")
-    except Exception as e:
-        print(f"Error: {e}")
+    async with AsyncSessionLocal() as db:
+        # Check user level
+        stmt_p = select(LearnerProfile)
+        res_p = await db.execute(stmt_p)
+        profile = res_p.scalars().first()
+        if profile:
+            print(f"User Overall Level: {profile.overall_level}")
+        else:
+            print("No learner profile found.")
+
+        stmt = select(func.count()).select_from(QuestionBankItem).where(QuestionBankItem.task_type == 'visual_vocabulary')
+        result = await db.execute(stmt)
+        print(f"Visual Vocabulary Count: {result.scalar()}")
 
 if __name__ == "__main__":
     asyncio.run(check())

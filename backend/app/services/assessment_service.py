@@ -4,7 +4,17 @@ from uuid import UUID
 import logging
 from datetime import datetime
 
-from app.models.domain import LearnerProfile, UserErrorProfile, UserSkill, AssessmentResponse
+from typing import Optional, List, Dict, Any
+from app.models.domain import (
+    LearnerProfile, 
+    UserErrorProfile, 
+    UserSkill, 
+    AssessmentResponse,
+    Assessment,
+    AssessmentStatus,
+    JourneyStep,
+    AssessmentLog
+)
 
 logger = logging.getLogger(__name__)
 
@@ -135,8 +145,8 @@ class AssessmentService:
             skill_stmt = select(UserSkill).where(UserSkill.user_id == user_id, UserSkill.skill == skill.lower())
             user_skill = (await self.db.execute(skill_stmt)).scalar_one_or_none()
             
-            # Calculate XP gain for this skill
-            xp_gain = int(score) if is_correct else 10
+            # 1. Calculate XP Gain (Normalizing to 1000 scale: 0.85 -> 850 XP)
+            xp_gain = int(score * 10) if is_correct else 10
             
             if user_skill:
                 user_skill.xp_points = (user_skill.xp_points or 0) + xp_gain
@@ -187,6 +197,11 @@ class AssessmentService:
             await self.db.commit()
             logger.info(f"Successfully synced evaluation for user {user_id}. Score: {score}, XP Gain: {xp_gain}")
             return True
+
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(f"Failed to sync evaluation to DB: {str(e)}")
+            raise e
 
     async def complete_assessment(self, assessment_id: UUID, user_id: UUID) -> dict:
         """

@@ -1,10 +1,32 @@
 import React, { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SessionTask, TaskFeedbackPayload, TaskEvaluationResult } from '../../types/runtime';
 import { AssessmentSessionResult } from '../../types/assessment';
 import { RuntimeService } from '../../services/RuntimeService';
-import { ArrowLeft, Brain, Zap, ChevronRight, CheckCircle2, Trophy, BarChart2, Clock, RotateCcw, XCircle, AlertCircle, Lightbulb, Loader2 } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Brain, 
+  Zap, 
+  ChevronRight, 
+  CheckCircle2, 
+  Trophy, 
+  BarChart2, 
+  Clock, 
+  RotateCcw, 
+  XCircle, 
+  AlertCircle, 
+  Lightbulb, 
+  Loader2,
+  ArrowRight,
+  Target,
+  MessageSquare,
+  Volume2,
+  PenTool,
+  Star,
+  Sparkles,
+  Award
+} from 'lucide-react';
 
 // Import modules
 import { SpeakingModule } from './modules/SpeakingModule';
@@ -67,6 +89,39 @@ const ComingSoonTasks = ({ currentLevel, onExit }: { currentLevel: string, onExi
   );
 };
 
+const LevelUpCelebration = ({ level, onClose }: { level: string, onClose: () => void }) => (
+  <motion.div 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-xl"
+  >
+    <motion.div 
+      initial={{ scale: 0.8, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      className="bg-white dark:bg-slate-900 rounded-[3rem] p-12 max-w-lg w-full text-center border border-white/20 shadow-2xl relative overflow-hidden"
+    >
+      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+      
+      <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-orange-500/20">
+        <Trophy className="w-12 h-12 text-white" />
+      </div>
+
+      <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 mb-4 tracking-tight">Level Up!</h2>
+      <p className="text-xl text-slate-500 dark:text-slate-400 mb-8 font-medium">
+        Congratulations! You've mastered your goals and reached level <span className="text-blue-500 font-bold">{level}</span>.
+      </p>
+
+      <button 
+        onClick={onClose}
+        className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-3"
+      >
+        Continue to Journey <ArrowRight className="w-5 h-5" />
+      </button>
+    </motion.div>
+  </motion.div>
+);
+
 const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const supabaseData = useSupabaseDashboard();
 
@@ -76,6 +131,8 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const [feedback, setFeedback] = useState<TaskFeedbackPayload | null>(null);
   const [evaluation, setEvaluation] = useState<TaskEvaluationResult | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationLevel, setCelebrationLevel] = useState('A1');
   const [retryCount, setRetryCount] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [sessionResults, setSessionResults] = useState<TaskEvaluationResult[]>([]);
@@ -114,6 +171,8 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const skillFilter = searchParams.get('skill');
+  const taskFilter = searchParams.get('task');
+  const sessionId = searchParams.get('session_id');
   const isFetching = useRef(false);
 
   // 3. Populate tasks once activeResult is ready or skill changes
@@ -129,7 +188,11 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
         setSessionResults([]);
 
         try {
-          const generatedTasks = await RuntimeService.generateSessionTasks(activeResult, skillFilter || undefined);
+          const generatedTasks = await RuntimeService.generateSessionTasks(
+            activeResult, 
+            skillFilter || undefined,
+            taskFilter || undefined
+          );
           if (generatedTasks && generatedTasks.length > 0) {
             setTasks(generatedTasks);
             setCurrentTaskIndex(0);
@@ -143,20 +206,18 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
       fetchTasks();
     }
-  }, [activeResult, skillFilter, tasks.length, showSummary]);
+  }, [activeResult, skillFilter, taskFilter, tasks.length, showSummary]);
 
-  // 4. Return Loading Shell (Must be AFTER all hooks)
-  if (!activeResult || (tasks.length === 0 && !showSummary)) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-blue-600 dark:bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm dark:shadow-md shadow-indigo-100 animate-pulse mb-6">
-          <Loader2 className="w-8 h-8 text-white animate-spin" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Architecting Your Tasks...</h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Building a custom technical curriculum for you.</p>
-      </div>
-    );
-  }
+  // 🎯 Session Tracking: Ensure evaluate-task API knows which session we are in
+  React.useEffect(() => {
+    if (sessionId) {
+      (window as any).__ACTIVE_SESSION_ID__ = sessionId;
+      console.log("[SharedRuntime] Session tracked:", sessionId);
+    }
+    return () => {
+      delete (window as any).__ACTIVE_SESSION_ID__;
+    };
+  }, [sessionId]);
 
   // Handle fetching 5 more tasks
   const handleContinue = async () => {
@@ -191,6 +252,14 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
           result.retryCount = retryCount;
           result.supportDependence = hintsUsed > 2 ? 'high' : hintsUsed > 0 ? 'medium' : 'low';
           setEvaluation(result);
+          
+          if (result.syncState) {
+            console.log("[SharedRuntime] 🚀 Live UI Sync Triggered:", result.syncState);
+            if (result.syncState.ui_trigger === 'Celebrate') {
+              setCelebrationLevel(result.syncState.user_level || 'Next');
+              setShowCelebration(true);
+            }
+          }
         }
         setFeedback(newFeedback);
       } finally {
@@ -219,16 +288,29 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
     }
 
     if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex(currentTaskIndex + 1);
+      setCurrentTaskIndex(prev => prev + 1);
       setFeedback(null);
       setEvaluation(null);
+      taskStartTime.current = Date.now();
       setRetryCount(0);
       setHintsUsed(0);
-      taskStartTime.current = Date.now();
     } else {
       setShowSummary(true);
     }
   };
+
+  // 4. Return Loading Shell (Must be AFTER all hooks and handlers)
+  if (!activeResult || (tasks.length === 0 && !showSummary)) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-blue-600 dark:bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm dark:shadow-md shadow-indigo-100 animate-pulse mb-6">
+          <Loader2 className="w-8 h-8 text-white animate-spin" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Architecting Your Tasks...</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Building a custom technical curriculum for you.</p>
+      </div>
+    );
+  }
 
   // Render the appropriate module based on task skill / type.
   // Skill takes precedence so a "Speaking Practice" session always gets the
@@ -257,6 +339,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
       case 'writing': return <WritingModule {...props} />;
       case 'listening': return <ListeningModule {...props} />;
       case 'vocabulary': return <VocabularyModule {...props} />;
+      case 'visual_vocabulary': return <VocabularyModule {...props} />;
       default: return <WritingModule {...props} />;
     }
   };
@@ -493,6 +576,26 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
 
         {/* Dynamic Module Area */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 dark:bg-gray-950 transition-colors duration-300/30 relative">
+          
+          {/* NEURAL REPAIR INTERVENTION BANNER */}
+          {currentTask.metadata?.is_repair && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-4 shadow-sm"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+                <AlertCircle className="text-white" size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest leading-none mb-1">Neural Repair Active</h4>
+                <p className="text-xs text-rose-500/80 font-medium leading-relaxed">
+                  The AI Architect has detected a persistent linguistic friction. This task is specifically designed to rewire your {currentTask.metadata?.focus || 'chronic error'} patterns.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           <AnimatePresence mode="wait">
             <motion.div
               key={`${currentTask.taskId}-${retryCount}`}
@@ -509,10 +612,28 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                 </p>
 
                 {currentTask.payload?.stimulus && currentTask.payload.stimulus !== currentTask.prompt && currentTask.targetSkill?.toLowerCase() !== 'listening' && (
-                  <div className="p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-slate-100 dark:border-gray-800 shadow-sm mb-6">
-                    <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                      {currentTask.payload.stimulus}
-                    </h3>
+                  <div className="p-8 bg-white dark:bg-gray-900 rounded-3xl border-2 border-slate-100 dark:border-gray-800 shadow-sm mb-6 overflow-hidden">
+                    {typeof currentTask.payload.stimulus === 'string' && (currentTask.payload.stimulus.startsWith('http') || currentTask.payload.stimulus.match(/\.(jpeg|jpg|gif|png|webp)$/i)) ? (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full h-64 md:h-80 rounded-2xl overflow-hidden relative group"
+                      >
+                        <img 
+                          src={currentTask.payload.stimulus} 
+                          alt="Task Stimulus"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </motion.div>
+                    ) : (
+                      <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                        {currentTask.payload.stimulus}
+                      </h3>
+                    )}
                   </div>
                 )}
 
@@ -556,15 +677,33 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                   <h4 className={`text-lg font-bold mb-1 ${feedback.feedbackType === 'praise' ? 'text-emerald-900' : 'text-amber-900'}`}>{feedback.feedbackType === 'praise' ? 'Great job!' : 'Let\'s refine this.'}</h4>
                   <p className={`text-base font-medium mb-3 ${feedback.feedbackType === 'praise' ? 'text-emerald-800' : 'text-amber-800'}`}>{feedback.primaryMessage}</p>
 
+                  {/* 🔍 Detailed Error Correction UI */}
+                  {evaluation?.reviewData?.explanation && (
+                    <div className="mt-3 flex flex-col gap-2">
+                      {evaluation.reviewData.explanation.whatWentWrong && (
+                        <div className="flex items-start gap-2 bg-rose-50/50 dark:bg-rose-950/20 p-3 rounded-xl border border-rose-100 dark:border-rose-900/30">
+                          <span className="text-rose-600 font-bold text-xs uppercase tracking-tighter mt-0.5">Issues:</span>
+                          <p className="text-rose-800 dark:text-rose-300 text-sm italic">{evaluation.reviewData.explanation.whatWentWrong}</p>
+                        </div>
+                      )}
+                      {evaluation.reviewData.explanation.improvementTip && (
+                        <div className="flex items-start gap-2 bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                          <span className="text-blue-600 font-bold text-xs uppercase tracking-tighter mt-0.5">Correction:</span>
+                          <p className="text-blue-800 dark:text-blue-300 text-sm font-medium">{evaluation.reviewData.explanation.improvementTip}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* 📊 Multidimensional Scoring Badges */}
                   {evaluation?.dimensions && (
-                    <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                    <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
                       {Object.entries(evaluation.dimensions).map(([key, val]: [string, any]) => (
                         val > 0 && (
                           <div key={key} className="flex flex-col items-center min-w-[70px] px-2 py-1.5 bg-white/40 dark:bg-black/20 rounded-xl border border-white/50 dark:border-white/5 shadow-sm">
                             <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 leading-none mb-1">{key}</span>
-                            <span className={`text-sm font-black ${val >= 0.8 ? 'text-emerald-600' : val >= 0.5 ? 'text-amber-600' : 'text-rose-600'}`}>
-                              {Math.round(val * 100)}%
+                            <span className={`text-sm font-black ${val >= 80 ? 'text-emerald-600' : val >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
+                              {Math.round(val)}%
                             </span>
                           </div>
                         )
@@ -573,7 +712,7 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
                   )}
 
                   {feedback.suggestedRetryConstraint && (
-                    <div className="inline-block bg-amber-500/10 border border-amber-500/20 text-amber-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
+                    <div className="inline-block bg-amber-500/10 border border-amber-500/20 text-amber-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm mt-3">
                       Constraint: {feedback.suggestedRetryConstraint}
                     </div>
                   )}
@@ -599,7 +738,16 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             </motion.div>
           )}
         </AnimatePresence>
-
+        
+        {/* 🎉 Level Up Celebration */}
+        <AnimatePresence>
+          {showCelebration && (
+            <LevelUpCelebration 
+              level={celebrationLevel} 
+              onClose={() => setShowCelebration(false)} 
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

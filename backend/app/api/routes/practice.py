@@ -22,21 +22,26 @@ def format_task_title(task_type: str) -> str:
 # Predefined pedagogical tasks mapping to DB task types
 PREDEFINED_TASKS = {
     "reading": [
+        {"id": "all", "title": "Select All", "db_task_type": "all_tasks"},
         {"id": "skimming", "title": "Skimming", "db_task_type": "reading_comprehension"},
         {"id": "deep_analysis", "title": "Deep Analysis", "db_task_type": "reading_comprehension"},
-        {"id": "vocabulary_quiz", "title": "Vocabulary Quiz", "db_task_type": "vocabulary"}
+        {"id": "vocabulary_quiz", "title": "Vocabulary Quiz", "db_task_type": "vocabulary"},
+        {"id": "image_word", "title": "Image-Word Match", "db_task_type": "visual_vocabulary"}
     ],
     "listening": [
+        {"id": "all", "title": "Select All", "db_task_type": "all_tasks"},
         {"id": "main_idea", "title": "Main Idea Extraction", "db_task_type": "listening_comprehension"},
         {"id": "detail_recognition", "title": "Detail Recognition", "db_task_type": "listening_comprehension"},
         {"id": "tone_analysis", "title": "Tone Analysis", "db_task_type": "listening_comprehension"}
     ],
     "writing": [
+        {"id": "all", "title": "Select All", "db_task_type": "all_tasks"},
         {"id": "email_drafting", "title": "Email Drafting", "db_task_type": "essay"},
         {"id": "essay_structuring", "title": "Essay Structuring", "db_task_type": "essay"},
         {"id": "grammar_drills", "title": "Grammar Drills", "db_task_type": "grammar"}
     ],
     "speaking": [
+        {"id": "all", "title": "Select All", "db_task_type": "all_tasks"},
         {"id": "pronunciation", "title": "Pronunciation Check", "db_task_type": "speaking"},
         {"id": "fluency", "title": "Fluency Practice", "db_task_type": "speaking"},
         {"id": "roleplay", "title": "Roleplay Scenario", "db_task_type": "speaking"}
@@ -140,31 +145,35 @@ async def start_practice_session(
     
     target_levels = level_mapping.get(request.difficulty.lower(), ["B1", "B2"])
     
+    # Map UI task IDs to DB task_type when necessary
+    db_task_type = request.task_type
+    if request.task_type == "image_word":
+        db_task_type = "visual_vocabulary"
+    
     # Query questions
-    stmt = (
-        select(QuestionBankItem)
-        .where(
-            QuestionBankItem.skill == request.skill.lower(),
-            QuestionBankItem.task_type == request.task_type,
-            QuestionBankItem.level.in_(target_levels)
-        )
-        .order_by(QuestionBankItem.difficulty.asc()) # Order from easiest to hardest inside the level bracket
-        .limit(10) # 10 questions per practice session
+    stmt = select(QuestionBankItem).where(
+        QuestionBankItem.skill == request.skill.lower(),
+        QuestionBankItem.level.in_(target_levels)
     )
+    
+    # If not 'all_tasks', filter by specific task_type
+    if db_task_type != "all_tasks":
+        stmt = stmt.where(QuestionBankItem.task_type == db_task_type)
+        
+    stmt = stmt.order_by(QuestionBankItem.difficulty.asc()).limit(10)
     
     result = await db.execute(stmt)
     questions = result.scalars().all()
     
     if not questions:
         # Fallback to any difficulty if exact match isn't found for the task type
-        fallback_stmt = (
-            select(QuestionBankItem)
-            .where(
-                QuestionBankItem.skill == request.skill.lower(),
-                QuestionBankItem.task_type == request.task_type
-            )
-            .limit(10)
+        fallback_stmt = select(QuestionBankItem).where(
+            QuestionBankItem.skill == request.skill.lower()
         )
+        if request.task_type != "all_tasks":
+            fallback_stmt = fallback_stmt.where(QuestionBankItem.task_type == request.task_type)
+            
+        fallback_stmt = fallback_stmt.limit(10)
         result = await db.execute(fallback_stmt)
         questions = result.scalars().all()
         

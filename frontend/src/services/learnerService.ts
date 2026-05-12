@@ -5,6 +5,9 @@ export interface DashboardData {
     full_name: string;
     current_level: string;
     xp_points: number;
+    current_level_xp: number;
+    required_xp: number;
+    is_gateway_unlocked: boolean;
     streak: number;
   };
   kpis: {

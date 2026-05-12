@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Headphones, PenTool, Mic, ChevronRight, Star, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Headphones, PenTool, Mic, ChevronRight, Star, AlertCircle, Sparkles, CheckCircle2, Layers } from 'lucide-react';
 
 export type BadgeType = 'Review Needed' | 'New' | 'Mastered' | null;
 
@@ -84,9 +84,10 @@ export const SkillCard: React.FC<SkillCardProps> = ({
                     isSelected 
                       ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-500 ring-1 ring-blue-500 shadow-sm' 
                       : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
+                  } ${task.id === 'all' ? 'border-dashed' : ''}`}
                 >
                   <div className="flex items-center gap-2">
+                    {task.id === 'all' && <Layers size={14} className="text-blue-500" />}
                     <span className={`font-medium ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
                       {task.title}
                     </span>

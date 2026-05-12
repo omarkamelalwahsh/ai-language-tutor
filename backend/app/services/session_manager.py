@@ -13,6 +13,7 @@ from app.models.domain import (
     UserSkill,
     LearningJourney,
     JourneyStep,
+    QuestionBankItem,
 )
 from app.services.pedagogy import PedagogyService
 
@@ -89,8 +90,8 @@ class SessionManager:
         for _, s, _ in plan:
             lvl = await cls._get_skill_level(user_id, s, db)
             if not lvl:
-                logger.info(f"[SessionManager] Skill '{s}' level missing, using overall anchor: {overall_level}")
-                lvl = overall_level
+                logger.info(f"[SessionManager] Skill '{s}' level missing, using overall anchor: {user_level}")
+                lvl = user_level
             else:
                 logger.info(f"[SessionManager] Skill '{s}' locked at specialized level: {lvl}")
             skill_levels[s] = lvl
@@ -99,8 +100,8 @@ class SessionManager:
 
         # ── PRIMARY PATH: single batch call with granular skill levels ──
         domain_str = f"{user_domain} (Interests: {user_interests}, Goal: {user_goal})"
-        tasks_payload = await generate_session_batch(
-            user_level=overall_level, # Overall anchor
+        batch_result, _ = await generate_session_batch(
+            user_level=user_level, # Overall anchor
             user_domain=domain_str,
             weak_skills=weaknesses[:3],
             strongest_skill=maintenance_skill,
@@ -111,6 +112,7 @@ class SessionManager:
             plan=plan,
             skill_levels=skill_levels # 🔑 Strict mapping
         )
+        tasks_payload = batch_result.get("tasks", []) if isinstance(batch_result, dict) else []
 
         # ── FALLBACK PATH: parallel per-slot generation if batch failed ──
         if not tasks_payload:
@@ -146,14 +148,14 @@ class SessionManager:
     # ------------------------------------------------------------------
     @classmethod
     async def build_skill_practice(
-        cls, user_id: str, skill: str, db: AsyncSession, count: int = DAILY_MIX_SIZE
+        cls, user_id: str, skill: str, db: AsyncSession, count: int = DAILY_MIX_SIZE, task_type: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Generates a 5-task ladder on a single targeted skill.
         Difficulty climbs from -0.1 to +0.2 around the user's current level
         in that specific skill (not the overall level).
         """
-        logger.info(f"[SessionManager] build_skill_practice → user={user_id} skill={skill}")
+        logger.info(f"[SessionManager] build_skill_practice → user={user_id} skill={skill} type={task_type}")
 
         unified = await aggregator.get_unified_profile(user_id, db)
         user_domain = unified.get("user_domain", "General Professional")
@@ -173,25 +175,98 @@ class SessionManager:
         journey_focus = await cls._get_active_journey_focus(user_id, db)
 
         base = LEVEL_TO_DIFFICULTY.get(skill_level, 0.5)
-        from app.integrations.groq_client import generate_skill_practice_batch
-
-        # ── PRIMARY PATH: Batch generation for better variety ──
-        batch_data, _ = await generate_skill_practice_batch(
-            user_level=skill_level,
-            user_domain=user_domain,
-            skill=skill,
-            recent_errors=last_errors,
-            journey_title=journey_focus.get("title"),
-            difficulty=base,
-        )
         
-        tasks_payload = batch_data.get("tasks", [])
+        # 🎯 GROWTH RULE: Skill practice should be slightly harder than current level
+        growth_anchor = min(1.0, base + 0.1)
+        logger.info(f"[SessionManager] Skill growth anchor: {growth_anchor} (base was {base})")
+
+        # ── SPECIAL PATH: If a specific task_type is requested, try DB first ──
+        tasks_payload = []
+        if task_type:
+            # Normalize frontend IDs to DB types
+            db_task_type = task_type
+            if task_type == "image_word":
+                db_task_type = "visual_vocabulary"
+
+            logger.info(f"[SessionManager] 🎯 Priority DB Fetch for task_type='{db_task_type}' (original='{task_type}')")
+            stmt = select(QuestionBankItem).where(
+                QuestionBankItem.skill == skill.lower(),
+                QuestionBankItem.task_type == db_task_type,
+                QuestionBankItem.level == skill_level
+            ).limit(count)
+            
+            result = await db.execute(stmt)
+            db_questions = result.scalars().all()
+            
+            if db_questions:
+                for q in db_questions:
+                    options = q.answer_key.get("options", []) if isinstance(q.answer_key, dict) else []
+                    tasks_payload.append({
+                        "task_metadata": {
+                            "id": str(q.id),
+                            "type": q.task_type,
+                            "skill": q.skill,
+                            "level": q.level,
+                            "difficulty_score": float(q.difficulty or 0.5),
+                            "slot_role": "targeted"
+                        },
+                        "content": {
+                            "instruction": q.prompt or "Complete the task",
+                            "stimulus": q.stimulus or "",
+                            "task_prompt": q.prompt or "",
+                            "target_response": q.answer_key.get("correct_option") if isinstance(q.answer_key, dict) else "",
+                            "options": options,
+                            "explanation": q.answer_key.get("explanation") if isinstance(q.answer_key, dict) else ""
+                        }
+                    })
+                logger.info(f"[SessionManager] Found {len(tasks_payload)} tasks in DB for '{task_type}'")
+
+        # ── PRIMARY PATH: AI Batch generation if not enough tasks from DB ──
+        if len(tasks_payload) < count:
+            from app.integrations.groq_client import generate_skill_practice_batch
+            
+            batch_data, _ = await generate_skill_practice_batch(
+                user_level=skill_level,
+                user_domain=user_domain,
+                skill=skill,
+                recent_errors=last_errors,
+                journey_title=journey_focus.get("title"),
+                difficulty=growth_anchor, # 🚀 Applied growth anchor
+            )
+            
+            ai_tasks = batch_data.get("tasks", [])
+            
+            # 🛡️ Pedagogical Validation: Filter out hallucinations
+            validated_ai_tasks = []
+            for t in ai_tasks:
+                t_type = t.get("task_metadata", {}).get("type", "")
+                t_level = t.get("task_metadata", {}).get("level", "")
+                
+                # Rule 1: No image tasks for B1+ unless we have a real URL (rare for AI)
+                if t_type in ["image_word", "visual_vocabulary"] and skill_level not in ["A1", "A2"]:
+                    logger.warning(f"[SessionManager] Dropping AI task: image task for high level {skill_level}")
+                    continue
+                
+                # Rule 2: Basic vocabulary (Apple, Banana) check for C1/C2
+                target = str(t.get("content", {}).get("target_response", "")).lower()
+                if skill_level in ["C1", "C2"] and target in ["apple", "banana", "orange", "car", "dog", "cat"]:
+                    logger.warning(f"[SessionManager] Dropping AI task: trivial vocabulary for level {skill_level}")
+                    continue
+                
+                validated_ai_tasks.append(t)
+
+            # Fill up the remaining slots
+            for t in validated_ai_tasks:
+                if len(tasks_payload) >= count: break
+                tasks_payload.append(t)
+            
+            logger.info(f"[SessionManager] Total tasks after AI batch (validated): {len(tasks_payload)}")
 
         # ── FALLBACK PATH: per-slot generation if batch failed ──
         if not tasks_payload:
             logger.warning("[SessionManager] skill practice batch failed → falling back")
-            deltas = [-0.1, -0.05, 0.0, 0.1, 0.2][:count]
-            plan = [(skill, max(0.1, min(1.0, base + d))) for d in deltas]
+            deltas = [0.0, 0.05, 0.1, 0.15, 0.2][:count] # Start at anchor and climb
+            plan = [(skill, max(0.1, min(1.0, growth_anchor + d))) for d in deltas]
             tasks_payload = await asyncio.gather(*[
                 cls._architect_one(
                     slot_role="targeted",
@@ -290,42 +365,62 @@ class SessionManager:
         """
         Processes a single task result immediately to prevent data loss.
         Updates XP, logs, and error profile incrementally.
+        Returns a State_Object for real-time UI sync.
         """
         logger.info(f"[SessionManager] sync_task_result → user={user_id} skill={result.get('skill')}")
         
         # 1. Update Profile (XP, Streak, Last Active)
-        await cls._update_learner_profile(user_id, [result], db)
-        
-        # 2. Update Error Profile if needed
-        error_cat = result.get("error_category")
-        is_correct = result.get("is_correct", False)
-        
-        new_errors = []
-        solved_errors = []
-        
-        if not is_correct and error_cat:
-            new_errors = [error_cat]
-        elif is_correct:
-            # If correct and was a review slot, mark as potentially solved
-            slot_role = result.get("task_metadata", {}).get("slot_role")
-            if slot_role == "review":
-                solved_errors = [error_cat or result.get("skill")]
-        
-        if new_errors or solved_errors:
-            await cls._merge_recent_errors(user_id, new_errors, db, solved_errors=solved_errors)
+        # Use a transaction block for atomicity
+        async with db.begin_nested():
+            await cls._update_learner_profile(user_id, [result], db)
             
-        # [NEW] Phase 2: Real-time Pedagogy Sync
-        skill = (result.get("skill") or result.get("task_metadata", {}).get("skill") or "general").lower()
-        rule = result.get("error_category") or skill
-        await PedagogyService.analyze_error(user_id, skill, rule, result.get("is_correct"), db)
-        await PedagogyService.update_streak(user_id, db)
+            # 2. Update Error Profile if needed
+            error_cat = result.get("error_category")
+            is_correct = result.get("is_correct", False)
             
+            new_errors = []
+            solved_errors = []
+            
+            if not is_correct and error_cat:
+                new_errors = [error_cat]
+            elif is_correct:
+                # If correct and was a review slot, mark as potentially solved
+                slot_role = result.get("task_metadata", {}).get("slot_role")
+                if slot_role == "review":
+                    solved_errors = [error_cat or result.get("skill")]
+            
+            if new_errors or solved_errors:
+                await cls._merge_recent_errors(user_id, new_errors, db, solved_errors=solved_errors)
+                
+            # Real-time Pedagogy Sync
+            skill = (result.get("skill") or result.get("task_metadata", {}).get("skill") or "general").lower()
+            rule = result.get("error_category") or skill
+            await PedagogyService.analyze_error(user_id, skill, rule, result.get("is_correct"), db)
+            await PedagogyService.update_streak(user_id, db)
+
         await db.commit()
         
+        # 3. Generate State Object for UI Sync
+        unified = await aggregator.get_unified_profile(user_id, db)
+        
+        # Detect UI trigger (Celebrate if level changed, Unlock if accuracy hit)
+        ui_trigger = "Update"
+        
+        # Check for Level Promotion Celebration
+        # (This is a simplified check, ideally we'd track 'previous_level' in the request)
+        # For now, let's just return 'Update' and let the frontend compare if needed, 
+        # or we could implement a more robust detection here.
+
         return {
             "status": "synced",
-            "skill": result.get("skill"),
-            "is_correct": is_correct
+            "state_object": {
+                "current_progress": 0, # Should be calculated by frontend based on index
+                "updated_skills": unified.get("skills", {}),
+                "xp_total": unified.get("xp_points", 0),
+                "streak": unified.get("streak", 0),
+                "user_level": unified.get("user_level", "A1"),
+                "ui_trigger": ui_trigger
+            }
         }
 
     # ==================================================================
@@ -605,68 +700,51 @@ class SessionManager:
     ) -> None:
         """Bumps xp_points, accuracy_rate, total_questions_answered, streak, last_active_at."""
         try:
+            profile_res = await db.execute(select(LearnerProfile).where(LearnerProfile.id == user_id))
+            profile = profile_res.scalar_one_or_none()
+            if not profile: return
+
             scores = [float(r.get("score", 0.0) or 0.0) for r in results]
             correct = sum(1 for r in results if r.get("is_correct"))
-            session_avg = sum(scores) / len(scores) if scores else 0.0
             session_acc = correct / len(results) if results else 0.0
             
-            # [NEW] Phase 2: Points Calculation Formula for overall XP
-            xp_gain = sum([PedagogyService.calculate_points(float(r.get("score", 0.5)), 1.0 if r.get("is_correct") else 0.0) for r in results])
-
-            # [NEW] Phase 2: Streak & Activity Update via PedagogyService
+            # 1. Update Streak & Last Active
             await PedagogyService.update_streak(user_id, db)
 
-            # Global Level Promotion: If session accuracy or skill average >= 0.9, bump level
-            current_overall = await db.execute(select(LearnerProfile.current_proficiency_level).where(LearnerProfile.id == user_id))
-            before_level = current_overall.scalar() or "A1"
-            
-            if session_acc >= 0.9 and before_level in LEVEL_LADDER:
-                next_idx = min(LEVEL_LADDER.index(before_level) + 1, len(LEVEL_LADDER) - 1)
-                after_level = LEVEL_LADDER[next_idx]
-                if after_level != before_level:
-                    # Update profile level
-                    profile_res = await db.execute(select(LearnerProfile).where(LearnerProfile.id == user_id))
-                    profile = profile_res.scalar_one_or_none()
-                    if profile:
-                        profile.current_proficiency_level = after_level
-                        profile.overall_level = after_level
-
-            await db.execute(
-                text(f"""
-                    UPDATE learner_profiles
-                    SET xp_points = COALESCE(xp_points, 0) + :xp,
-                        total_questions_answered = COALESCE(total_questions_answered, 0) + :n,
-                        accuracy_rate = (
-                            COALESCE(accuracy_rate, 0) * 0.7 + :acc * 0.3
-                        ),
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE id = :uid
-                """),
-                {"xp": xp_gain, "n": len(results), "acc": session_acc, "uid": user_id},
-            )
-
-            # Log session duration to assessment_logs for Weekly Minutes tracking
-            # Estimate ~2 min per task as duration
-            estimated_duration_ms = len(results) * 120_000  # 2 min per task
+            # 2. Calculate & Sync XP Gain (New Structured Logic)
+            total_xp_gain = 0
             for r in results:
-                skill = (r.get("skill") or r.get("task_metadata", {}).get("skill") or "general").lower()
-                score = float(r.get("score", 0.0) or 0.0)
-                try:
-                    await db.execute(
-                        text("""
-                            INSERT INTO assessment_logs (id, user_id, skill, score, duration_ms, created_at)
-                            VALUES (gen_random_uuid(), :uid, :skill, :score, :dur, CURRENT_TIMESTAMP)
-                        """),
-                        {"uid": user_id, "skill": skill, "score": score, "dur": estimated_duration_ms // max(len(results), 1)}
-                    )
-                except Exception as log_err:
-                    logger.warning(f"[SessionManager] assessment_log insert failed: {log_err}")
+                # Use difficulty from task if available, else default 0.5
+                difficulty = float(r.get("difficulty", 0.5))
+                accuracy = 1.0 if r.get("is_correct") else 0.0
+                total_xp_gain += PedagogyService.calculate_xp_reward(difficulty, accuracy, profile.streak)
 
-            logger.info(
-                f"[SessionManager] learner_profile updated: +{xp_gain}xp avg={session_avg:.2f} acc={session_acc:.2f} streak_update={streak_clause} level_bump={promotion_clause != ''}"
-            )
+            # Sync to Reservoir (This also updates profile object)
+            await PedagogyService.sync_xp_progress(user_id, total_xp_gain, db)
+
+            # 3. Update Performance Metrics
+            profile.total_questions_answered = (profile.total_questions_answered or 0) + len(results)
+            profile.accuracy_rate = (profile.accuracy_rate or 0.0) * 0.7 + session_acc * 0.3
+
+            # 4. Assessment Logs (for weekly tracking)
+            estimated_duration_ms = len(results) * 120_000 # 2 min per task
+            for r in results:
+                skill = (r.get("skill") or "general").lower()
+                score = float(r.get("score", 0.0) or 0.0)
+                await db.execute(
+                    text("""
+                        INSERT INTO assessment_logs (id, user_id, skill, score, duration_ms, created_at)
+                        VALUES (gen_random_uuid(), :uid, :skill, :score, :dur, CURRENT_TIMESTAMP)
+                    """),
+                    {"uid": user_id, "skill": skill, "score": score, "dur": estimated_duration_ms // max(len(results), 1)}
+                )
+
+            await db.flush()
+            logger.info(f"[SessionManager] Profile for {user_id} updated. Gained {total_xp_gain} XP.")
+
         except Exception as e:
-            logger.warning(f"[SessionManager] learner_profiles update failed: {e}")
+            logger.error(f"[SessionManager] Critical failure in _update_learner_profile: {e}")
+            await db.rollback()
 
     @staticmethod
     async def _merge_recent_errors(

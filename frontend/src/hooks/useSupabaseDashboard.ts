@@ -299,20 +299,29 @@ export const useSupabaseDashboard = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let activeChannel: any = null;
     
-    // Controlled fetch wrapper to respect isMounted
     const safeFetch = () => {
         if (isMounted) fetchDashboardData();
     };
 
     safeFetch();
 
+    // 🚀 SAFETY FALLBACK: Don't stay stuck in loading forever if Supabase or AI is slow
+    const loadingTimeout = setTimeout(() => {
+        if (isMounted) {
+            setData(prev => ({ ...prev, isLoading: false }));
+        }
+    }, 6000);
+
     // 🚀 VERCEL & AI REALTIME FIX: Listen for background Syncs / AI completing!
-    let channel: any = null;
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const setupRealtime = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
+        
         if (!user || !isMounted) return;
-        channel = supabase
+
+        activeChannel = supabase
             .channel('dashboard-sync')
             .on('postgres_changes', 
                 { event: '*', schema: 'public', table: 'learner_profiles', filter: `id=eq.${user.id}` }, 
@@ -331,11 +340,16 @@ export const useSupabaseDashboard = () => {
                 () => isMounted && fetchDashboardData()
             )
             .subscribe();
-    });
+    };
+
+    setupRealtime();
 
     return () => {
       isMounted = false;
-      if (channel) supabase.removeChannel(channel);
+      clearTimeout(loadingTimeout);
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+      }
     };
   }, [refreshTrigger, fetchDashboardData]);
 

@@ -539,7 +539,7 @@ export class AssessmentSaveService {
         // 4. Update Core Profile (Atomic — includes computed metrics)
         supabase.from('learner_profiles').update({
           overall_level: (outcome as any).finalLevel || (outcome as any).overallBand || 'B1',
-          points: (oldProfile?.points || 0) + ((outcome as any).pointsAwarded || 50),
+          xp_points: (oldProfile?.points || 0) + ((outcome as any).pointsAwarded || 50),
           has_completed_assessment: true,
           onboarding_complete: true,
           accuracy_rate: Math.min(100, Math.max(0, (outcome as any).accuracyRate ?? 0)),
@@ -807,7 +807,7 @@ export class AssessmentSaveService {
           pacing_score: Math.min(100, Math.max(0, (outcome as any).pacingScore ?? 0)),
           average_response_time: (outcome as any).averageResponseTimeMs ?? 0,
           total_questions_answered: (outcome as any).totalQuestionsAnswered ?? history.length,
-          points: (oldProfile?.points || 0) + 500, // Diagnostic Completion Bonus
+          xp_points: (oldProfile?.points || 0) + 500, // Diagnostic Completion Bonus
           last_active_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }).eq('id', userId),

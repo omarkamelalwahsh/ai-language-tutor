@@ -51,7 +51,7 @@ export class RuntimeService {
    * Returns structured session tasks based on the deterministic assessment result.
    * Now fetches a BATCH of dynamic tasks from the backend AI engine.
    */
-  public static async generateSessionTasks(result: AssessmentSessionResult, skillFilter?: string): Promise<SessionTask[]> {
+  public static async generateSessionTasks(result: AssessmentSessionResult, skillFilter?: string, taskType?: string): Promise<SessionTask[]> {
     if (!result || !result.overall) {
       console.warn('[RuntimeService] Attempted to generate tasks without a valid result object.');
       return [];
@@ -59,9 +59,10 @@ export class RuntimeService {
 
     try {
         const endpoint = skillFilter ? '/api/v1/tasks/skill-practice' : '/api/v1/tasks/daily-mix';
-        const body = skillFilter ? { skill: skillFilter, count: 5 } : {};
+        const body: any = skillFilter ? { skill: skillFilter, count: 5 } : {};
+        if (taskType) body.task_type = taskType;
 
-        console.log(`[RuntimeService] 🧠 Requesting BATCH tasks via: ${endpoint}`);
+        console.log(`[RuntimeService] 🧠 Requesting BATCH tasks via: ${endpoint} with type: ${taskType}`);
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -134,16 +135,20 @@ export class RuntimeService {
         completionCondition: 'Accurate completion of the task stimulus',
         payload: {
             ...aiContent,
+            targetWord: aiContent.target_response || aiContent.targetWord,
+            distractors: aiContent.distractors || (aiContent.options ? aiContent.options.filter((o: any) => o !== aiContent.target_response) : []),
             audioSrc
-        }
+        },
+        metadata: aiMetadata
     };
   }
 
   private static mapAiTypeToFrontend(aiType: string): any {
       const type = aiType.toUpperCase();
+      if (type.includes('VISUAL')) return 'visual_vocabulary';
       if (type.includes('AUDIO') || type.includes('LISTENING')) return 'listening';
       if (type.includes('ORAL') || type.includes('SPEAKING')) return 'speaking';
-      if (type.includes('OPEN') || type.includes('WRITING')) return 'writing';
+      if (type.includes('OPEN') || type.includes('WRITING') || type.includes('READING')) return 'writing';
       return 'vocabulary'; // Default
   }
 
@@ -175,7 +180,9 @@ export class RuntimeService {
                     stimulus: task.payload?.stimulus || '',
                     explanation: task.payload?.explanation || ''
                 },
-                user_response: rawText
+                user_response: rawText,
+                session_id: (window as any).__ACTIVE_SESSION_ID__ || null,
+                task_id: task.taskId
             })
         });
 
@@ -195,6 +202,7 @@ export class RuntimeService {
                 taskType: task.taskType,
                 successScore: Math.round(aiResult.score * 100),
                 responseMode: (responseMode as any),
+                syncState: aiResult.sync_state?.state_object, // 🚀 Real-time State Object
                 dimensions: {
                     complexity: Math.round((aiResult.metrics?.vocabulary_complexity || 0) * 100),
                     vocabulary: Math.round((aiResult.metrics?.vocabulary_complexity || 0) * 100),
@@ -220,7 +228,9 @@ export class RuntimeService {
                         whyCorrect: aiResult.score >= 0.8 ? aiResult.reasoning_summary : undefined,
                         whatWentWrong: aiResult.score < 0.8 ? aiResult.error_analysis?.detected_errors?.join(', ') : undefined,
                         levelNote: `Detected CEFR: ${aiResult.detected_level}. ${aiResult.reasoning_summary}`,
-                        improvementTip: aiResult.model_suggestion ? `Try this: ${aiResult.model_suggestion}` : undefined
+                        improvementTip: aiResult.model_suggestion || aiResult.error_analysis?.corrected_version 
+                            ? `Try this: ${aiResult.model_suggestion || aiResult.error_analysis?.corrected_version}` 
+                            : undefined
                     }
                 }
             };

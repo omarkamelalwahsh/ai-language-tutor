@@ -7,7 +7,7 @@ export const DB_SCHEMA = {
   COLUMNS: {
     LEVEL: 'overall_level',
     ONBOARDING: 'onboarding_complete', // المسمى المعتمد
-    POINTS: 'points',
+    POINTS: 'xp_points',
     SKILL_SCORE: 'current_score',
     HAS_COMPLETED: 'has_completed_assessment'
   }

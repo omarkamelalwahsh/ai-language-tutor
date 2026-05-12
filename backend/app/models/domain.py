@@ -35,12 +35,11 @@ class LearnerProfile(Base):
     onboarding_complete = Column(Boolean, default=False)
     has_completed_assessment = Column(Boolean, default=False)
     
-    # --- DEPRECATED: points --- 
-    # Use xp_points instead. Kept for backward compatibility.
-    points = Column(Integer, default=0)
+    # --- Progression Reservoir ---
+    xp_points = Column(Integer, default=0) # Total Lifetime XP
+    current_level_xp = Column(Integer, default=0) # XP accumulated in current level
+    is_gateway_unlocked = Column(Boolean, default=False)
     
-    # --- New Fields for Decoupled System ---
-    xp_points = Column(Integer, default=0) 
     current_proficiency_level = Column(String, default="A1")
     proficiency_confidence = Column(Float, default=0.0)
     stability_buffer = Column(JSONB, server_default='[]')
@@ -220,7 +219,20 @@ class JourneyStep(Base):
     icon_type = Column(String)
     skill_focus = Column(String)
     is_locked = Column(Boolean, default=True)
+    
+    # --- New Progression Logic ---
+    completion_accuracy = Column(Float, default=0.0) # Accuracy achieved on this node
+    is_repair_node = Column(Boolean, default=False) # True if this is a Neural Repair task
+    
     content_payload = Column(JSONB, server_default='{}') 
+
+class LevelConfig(Base):
+    __tablename__ = "levels_config"
+    level_name = Column(String, primary_key=True) # A1, A2, etc.
+    required_xp = Column(Integer, nullable=False)
+    chapter_count = Column(Integer, default=5)
+    nodes_per_chapter = Column(Integer, default=4)
+    min_pass_score = Column(Float, default=0.7) # Minimum score for Gateway Exam
 
 class UserSkill(Base):
     __tablename__ = "skill_states"
@@ -270,6 +282,7 @@ class Profile(Base):
     role = Column(sa.SmallInteger, nullable=False, server_default=text("0"))
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="SET NULL"))
     avatar_url = Column(String)
+    last_seen_at = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

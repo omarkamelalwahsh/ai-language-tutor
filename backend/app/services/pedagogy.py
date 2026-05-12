@@ -69,16 +69,17 @@ class PedagogyService:
     async def generate_5_slot_batch(cls, user_id: str, db: AsyncSession) -> List[Dict[str, Any]]:
         """
         Algorithm:
+        - NEURAL REPAIR: If chronic errors exist, force 3+ repair slots.
         - Slot 1-2: Based on Error Profile (weaknesses)
         - Slot 3-4: Based on Journey Step (current node)
-        - Slot 5: Review (previously mastered or chronic error)
+        - Slot 5: Review (previously mastered)
         """
         # 1. Fetch Error Profile for weakness-based tasks
         stmt_error = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
         error_profile = (await db.execute(stmt_error)).scalar_one_or_none()
         chronic_errors = error_profile.common_mistakes if error_profile else []
 
-        # 2. Fetch Journey Progress for node-based tasks
+        # 2. Fetch Journey Progress
         stmt_journey = (
             select(JourneyStep)
             .join(LearningJourney, JourneyStep.journey_id == LearningJourney.id)
@@ -87,14 +88,24 @@ class PedagogyService:
             .limit(1)
         )
         current_step = (await db.execute(stmt_journey)).scalar_one_or_none()
-        node_id = current_step.title if current_step else "intro_node"
+        node_id = current_step.title if current_step else "Core Consolidation"
 
-        # 3. Construct the plan
-        # Note: This is a simplified version that would ideally call an AI architect
-        # or fetch from a pre-generated bank.
+        # 3. NEURAL REPAIR INTERVENTION
+        # If user has more than 1 chronic error, redirect to Repair Mode
+        if len(chronic_errors) >= 1:
+            logger.info(f"🚨 NEURAL REPAIR TRIGGERED for User {user_id}. Focusing on: {chronic_errors}")
+            return [
+                {"slot": "neural_repair", "focus": chronic_errors[0], "is_repair": True},
+                {"slot": "neural_repair", "focus": chronic_errors[0], "is_repair": True},
+                {"slot": "neural_repair", "focus": chronic_errors[1] if len(chronic_errors) > 1 else chronic_errors[0], "is_repair": True},
+                {"slot": "journey_step", "focus": node_id}, # Keep one roadmap anchor
+                {"slot": "review", "focus": "Mixed Mastery"}
+            ]
+
+        # 4. Standard Flow
         plan = [
             {"slot": "error_targeted", "focus": chronic_errors[0] if chronic_errors else "Grammar"},
-            {"slot": "error_targeted", "focus": chronic_errors[1] if len(chronic_errors) > 1 else "Vocabulary"},
+            {"slot": "error_targeted", "focus": "Vocabulary"},
             {"slot": "journey_step", "focus": node_id},
             {"slot": "journey_step", "focus": node_id},
             {"slot": "review", "focus": "Mixed Mastery"}
@@ -102,14 +113,52 @@ class PedagogyService:
         
         return plan
 
-    # --- Task 2.3: Points & Streak ---
+    # --- Task 2.3: XP Reservoir & Progression ---
     @classmethod
-    def calculate_points(cls, difficulty: float, accuracy: float) -> int:
+    def calculate_xp_reward(cls, difficulty: float, accuracy: float, streak: int = 0) -> int:
         """
-        Formula: Points = (Task_Difficulty * 10) * Accuracy
+        Formula: Points = (Task_Difficulty * 40 + 10) * Accuracy
+        Range: 10 to 50 XP per task.
+        Bonus: +20% if streak > 1.
         """
-        points = (difficulty * 10) * accuracy
-        return int(round(points))
+        base_xp = (difficulty * 40) + 10
+        earned_xp = base_xp * accuracy
+        
+        # Streak Multiplier (Bonus +20%)
+        if streak > 1:
+            earned_xp *= 1.2
+            
+        return int(round(earned_xp))
+
+    @classmethod
+    async def sync_xp_progress(cls, user_id: str, xp_gained: int, db: AsyncSession):
+        """
+        Updates the XP Reservoir and checks for Gateway unlock.
+        Handles XP carryover and level-specific goals.
+        """
+        from app.models.domain import LevelConfig
+        
+        # 1. Fetch Profile and Level Config
+        stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+        profile = (await db.execute(stmt)).scalar_one_or_none()
+        if not profile: return
+
+        stmt_config = select(LevelConfig).where(LevelConfig.level_name == profile.current_proficiency_level)
+        config = (await db.execute(stmt_config)).scalar_one_or_none()
+        if not config: return
+
+        # 2. Update Points
+        profile.xp_points += xp_gained
+        profile.current_level_xp += xp_gained
+        
+        # 3. Check for Gateway Eligibility
+        if profile.current_level_xp >= config.required_xp:
+            if not profile.is_gateway_unlocked:
+                profile.is_gateway_unlocked = True
+                logger.info(f"🔓 GATEWAY UNLOCKED for User {user_id} in {profile.current_proficiency_level}")
+
+        profile.updated_at = datetime.now(timezone.utc)
+        await db.flush()
 
     @classmethod
     async def update_streak(cls, user_id: str, db: AsyncSession):
@@ -128,6 +177,7 @@ class PedagogyService:
                 last_active = last_active.replace(tzinfo=timezone.utc)
             
             delta = now - last_active
+            # If active within the last 24-48 hours, increment or maintain streak
             if delta.days == 1:
                 profile.streak += 1
             elif delta.days > 1:
@@ -138,53 +188,74 @@ class PedagogyService:
         profile.last_active_at = now
         await db.flush()
 
-    # --- Task 3.1: Gateway Logic ---
+    # --- Task 3.1: Node Unlocking Logic ---
     @classmethod
-    async def check_gateway_unlock(cls, user_id: str, node_id: str, score: float, db: AsyncSession):
+    async def check_gateway_unlock(cls, user_id: str, step_id: str, score: float, db: AsyncSession):
         """
-        Condition: 60% accuracy to unlock the next node.
+        Condition: >60% accuracy to unlock the next node.
+        Updates completion_accuracy for pedagogical tracking.
         """
+        # Mark current node with its accuracy score
+        await db.execute(
+            update(JourneyStep)
+            .where(JourneyStep.id == step_id)
+            .values(completion_accuracy=score)
+        )
+
         if score >= 0.60:
-            # Mark current node as completed
             await db.execute(
                 update(JourneyStep)
-                .where(JourneyStep.id == node_id) # node_id here is actually step_id in context
+                .where(JourneyStep.id == step_id)
                 .values(status='completed', is_locked=False)
             )
             
-            # Unlock next node (This assumes a sequential node system)
-            # For simplicity, we just log it here. In a real system, we'd lookup the next node ID.
-            logger.info(f"🔓 Node {node_id} completed by {user_id}. Unlocking next.")
+            logger.info(f"🔓 Node {step_id} unlocked for {user_id} with score {score}")
+            await db.flush()
 
     # --- Task 3.2: Level-Up Handler ---
     @classmethod
     async def handle_level_up(cls, user_id: str, final_exam_score: float, db: AsyncSession):
         """
-        Condition: 80% on Final Exam.
+        Condition: 70% on Gateway Exam (Configurable via LevelConfig).
         Atomic Transaction:
         1. Update user_level
-        2. Generate new roadmap (reset journey)
-        3. Reset error ledger (keep chronic ones)
+        2. Handle XP Carryover (Reservoir reset with overflow)
+        3. Reset Gateway flag
+        4. Reset error ledger
         """
-        if final_exam_score >= 0.80:
+        from app.models.domain import LevelConfig
+        
+        stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+        profile = (await db.execute(stmt)).scalar_one_or_none()
+        if not profile: return
+
+        stmt_config = select(LevelConfig).where(LevelConfig.level_name == profile.current_proficiency_level)
+        config = (await db.execute(stmt_config)).scalar_one_or_none()
+        
+        pass_score = config.min_pass_score if config else 0.7
+
+        if final_exam_score >= pass_score:
             # 1. Update Profile Level
-            stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
-            profile = (await db.execute(stmt)).scalar_one_or_none()
-            
             LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
-            current_idx = LEVELS.index(profile.overall_level) if profile.overall_level in LEVELS else 0
+            current_idx = LEVELS.index(profile.current_proficiency_level) if profile.current_proficiency_level in LEVELS else 0
             new_level = LEVELS[min(current_idx + 1, len(LEVELS)-1)]
-            profile.overall_level = new_level
             
-            # 2. Reset Error Ledger but keep Chronic
+            # 2. XP Carryover (The "Overflow" Logic)
+            required_xp = config.required_xp if config else 1000
+            excess_xp = max(0, profile.current_level_xp - required_xp)
+            
+            profile.current_proficiency_level = new_level
+            profile.overall_level = new_level # Sync legacy field
+            profile.current_level_xp = excess_xp # Carry over the "fakka"
+            profile.is_gateway_unlocked = False # Reset for the new level
+            
+            # 3. Reset Error Ledger but keep Chronic
             stmt_error = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
             error_profile = (await db.execute(stmt_error)).scalar_one_or_none()
             if error_profile:
-                error_profile.full_report = {} # Reset ledger
-                # common_mistakes is preserved
+                error_profile.full_report = {} 
             
-            # 3. New Journey (Placeholder logic)
-            logger.info(f"🏆 LEVEL UP! User {user_id} promoted to {new_level}.")
+            logger.info(f"🏆 LEVEL UP! User {user_id} promoted to {new_level}. Carryover XP: {excess_xp}")
             await db.flush()
 
     # --- Task 4.1: Smart Hint System ---
