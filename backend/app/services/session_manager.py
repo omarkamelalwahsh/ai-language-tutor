@@ -13,9 +13,6 @@ from app.models.domain import (
     UserSkill,
     LearningJourney,
     JourneyStep,
-    UserProficiency,
-    ErrorProfile,
-    JourneyProgress,
 )
 from app.services.pedagogy import PedagogyService
 

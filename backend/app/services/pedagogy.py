@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, text
 
 from app.models.domain import (
-    UserProficiency,
-    ErrorProfile,
-    JourneyProgress,
+    UserErrorProfile,
+    LearningJourney,
+    JourneyStep,
     LearnerProfile,
     QuestionBankItem
 )
@@ -29,16 +29,20 @@ class PedagogyService:
         Classifies errors in real-time and updates the error ledger.
         If a rule is failed twice, it flags it as a 'chronic' error.
         """
-        stmt = select(ErrorProfile).where(ErrorProfile.user_id == user_id)
+        stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
         profile = (await db.execute(stmt)).scalar_one_or_none()
 
         if not profile:
-            profile = ErrorProfile(user_id=user_id, error_ledger={}, chronic_errors=[])
+            profile = UserErrorProfile(
+                user_id=user_id, 
+                full_report={}, 
+                common_mistakes=[]
+            )
             db.add(profile)
             await db.flush()
 
-        ledger = dict(profile.error_ledger) if profile.error_ledger else {}
-        chronic = list(profile.chronic_errors) if profile.chronic_errors else []
+        ledger = dict(profile.full_report) if profile.full_report else {}
+        chronic = list(profile.common_mistakes) if profile.common_mistakes else []
 
         if not is_correct:
             if rule not in ledger:
@@ -52,13 +56,11 @@ class PedagogyService:
                     chronic.append(rule)
                     logger.info(f"🚩 CHRONIC ERROR FLAG: User {user_id} failed '{rule}' multiple times.")
         else:
-            # If they got it right, maybe we decrement the error count? 
-            # Or just leave it for the 'Review' logic to handle.
             if rule in ledger and ledger[rule]["count"] > 0:
                 ledger[rule]["count"] -= 1 # Simple remediation logic
 
-        profile.error_ledger = ledger
-        profile.chronic_errors = chronic
+        profile.full_report = ledger
+        profile.common_mistakes = chronic
         profile.updated_at = datetime.now(timezone.utc)
         await db.flush()
 
@@ -72,17 +74,20 @@ class PedagogyService:
         - Slot 5: Review (previously mastered or chronic error)
         """
         # 1. Fetch Error Profile for weakness-based tasks
-        stmt_error = select(ErrorProfile).where(ErrorProfile.user_id == user_id)
+        stmt_error = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
         error_profile = (await db.execute(stmt_error)).scalar_one_or_none()
-        chronic_errors = error_profile.chronic_errors if error_profile else []
+        chronic_errors = error_profile.common_mistakes if error_profile else []
 
         # 2. Fetch Journey Progress for node-based tasks
-        stmt_journey = select(JourneyProgress).where(
-            JourneyProgress.user_id == user_id, 
-            JourneyProgress.status == 'in_progress'
-        ).order_by(JourneyProgress.completed_at.desc()).limit(1)
-        current_node = (await db.execute(stmt_journey)).scalar_one_or_none()
-        node_id = current_node.node_id if current_node else "intro_node"
+        stmt_journey = (
+            select(JourneyStep)
+            .join(LearningJourney, JourneyStep.journey_id == LearningJourney.id)
+            .where(LearningJourney.user_id == user_id)
+            .where(JourneyStep.status == "active")
+            .limit(1)
+        )
+        current_step = (await db.execute(stmt_journey)).scalar_one_or_none()
+        node_id = current_step.title if current_step else "intro_node"
 
         # 3. Construct the plan
         # Note: This is a simplified version that would ideally call an AI architect
@@ -142,9 +147,9 @@ class PedagogyService:
         if score >= 0.60:
             # Mark current node as completed
             await db.execute(
-                update(JourneyProgress)
-                .where(JourneyProgress.user_id == user_id, JourneyProgress.node_id == node_id)
-                .values(status='completed', completed_at=datetime.now(timezone.utc), score=score)
+                update(JourneyStep)
+                .where(JourneyStep.id == node_id) # node_id here is actually step_id in context
+                .values(status='completed', is_locked=False)
             )
             
             # Unlock next node (This assumes a sequential node system)
@@ -172,11 +177,11 @@ class PedagogyService:
             profile.overall_level = new_level
             
             # 2. Reset Error Ledger but keep Chronic
-            stmt_error = select(ErrorProfile).where(ErrorProfile.user_id == user_id)
+            stmt_error = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
             error_profile = (await db.execute(stmt_error)).scalar_one_or_none()
             if error_profile:
-                error_profile.error_ledger = {} # Reset ledger
-                # chronic_errors is preserved
+                error_profile.full_report = {} # Reset ledger
+                # common_mistakes is preserved
             
             # 3. New Journey (Placeholder logic)
             logger.info(f"🏆 LEVEL UP! User {user_id} promoted to {new_level}.")

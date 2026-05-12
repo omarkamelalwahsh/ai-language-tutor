@@ -25,7 +25,7 @@ app.add_middleware(
         "http://localhost:3000",
         "https://ai-language-tutor-pc4rybsqy-omar-kamels-projects-2d079e4d.vercel.app",
     ],
-    allow_origin_regex="https://.*vercel\.app", # Support for Vercel preview deployments
+    allow_origin_regex=r"https://.*vercel\.app", # Support for Vercel preview deployments
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
