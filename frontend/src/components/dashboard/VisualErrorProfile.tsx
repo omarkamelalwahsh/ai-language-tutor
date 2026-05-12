@@ -33,8 +33,11 @@ export const VisualErrorProfile = () => {
         };
       });
       setData(formatted);
+      setLoading(false);
+    } else if (!dataLoading) {
+      setLoading(false);
     }
-  }, [proficiency, errorProfile]);
+  }, [proficiency, errorProfile, dataLoading]);
 
   if (loading) {
     return (
@@ -97,9 +100,9 @@ export const VisualErrorProfile = () => {
           </div>
         </div>
 
-        <div className="h-[450px] w-full flex-1 min-h-[300px]">
-          <ResponsiveContainer width="99%" height="99%" minWidth={10} minHeight={10} debounce={100}>
-            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+        <div className="w-full flex-1 min-h-[350px]">
+          <ResponsiveContainer width="100%" aspect={1.2}>
+            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
               <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
               <PolarAngleAxis 
                 dataKey="subject" 
