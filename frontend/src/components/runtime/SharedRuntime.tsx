@@ -573,28 +573,29 @@ const SharedRuntime: React.FC<SharedRuntimeProps> = ({ onExit, result }) => {
             </div>
           </div>
         </header>
+            {/* NEURAL REPAIR INTERVENTION BANNER */}
+            {currentTask.metadata?.is_repair && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-4 shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+                  <AlertCircle className="text-white" size={20} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest leading-none mb-1">Neural Repair Active</h4>
+                  <p className="text-xs text-rose-500/80 font-medium leading-relaxed">
+                    The AI Architect has detected a persistent linguistic friction. This task is specifically designed to rewire your {currentTask.metadata?.focus || 'chronic error'} patterns.
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
         {/* Dynamic Module Area */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 dark:bg-gray-950 transition-colors duration-300/30 relative">
           
-          {/* NEURAL REPAIR INTERVENTION BANNER */}
-          {currentTask.metadata?.is_repair && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-4 shadow-sm"
-            >
-              <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
-                <AlertCircle className="text-white" size={20} />
-              </div>
-              <div>
-                <h4 className="text-sm font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest leading-none mb-1">Neural Repair Active</h4>
-                <p className="text-xs text-rose-500/80 font-medium leading-relaxed">
-                  The AI Architect has detected a persistent linguistic friction. This task is specifically designed to rewire your {currentTask.metadata?.focus || 'chronic error'} patterns.
-                </p>
-              </div>
-            </motion.div>
-          )}
+
 
           <AnimatePresence mode="wait">
             <motion.div

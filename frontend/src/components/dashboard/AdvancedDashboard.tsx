@@ -168,6 +168,16 @@ const PracticeHub = () => {
     );
 };
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+};
+
 // ============================================================================
 // MAIN COMPONENT EXCELLENCE
 // ============================================================================
@@ -410,6 +420,17 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             transition={{ duration: 0.2 }}
                             className="h-full"
                         >
+                        
+                            {/* 1. CEFR MASTERY RESERVOIR (Moved to the very top as requested) */}
+                            <motion.div variants={itemVariants} className="mb-10">
+                                <LevelProgress 
+                                    current_xp={mergedDashboardData?.profile?.current_level_xp || 0}
+                                    required_xp={mergedDashboardData?.profile?.required_xp || 1000}
+                                    level={mergedDashboardData?.profile?.current_level || 'A1'}
+                                    is_gateway_unlocked={mergedDashboardData?.profile?.is_gateway_unlocked}
+                                />
+                            </motion.div>
+
                             {activeTab === 'home' && (
                                 isLearnerLoading ? (
                                     <DashboardSkeleton />
@@ -773,14 +794,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
         fullMark: 100
     })));
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-    };
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
+
 
     return (
         <motion.div 
@@ -837,24 +851,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                 <PracticeHub />
             </motion.div>
 
-
-            {/* 🎯 CEFR PROGRESSION RESERVOIR */}
-            <motion.div variants={itemVariants}>
-                <LevelProgress 
-                    current_xp={dashboardData?.profile?.current_level_xp || 0}
-                    required_xp={dashboardData?.profile?.required_xp || 1000}
-                    level={dashboardData?.profile?.current_level || 'A1'}
-                    is_gateway_unlocked={dashboardData?.profile?.is_gateway_unlocked}
-                />
-            </motion.div>
-
-
             {/* 2. KPI ROW */}
-
-
-
-
-
             <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <KPICard label="Momentum" value={`${kpis?.momentum || 0}%`} icon={<Zap size={18} />} color="text-indigo-600" bgColor="bg-indigo-50 dark:bg-indigo-500/10" />
                 <KPICard label="Weekly Minutes" value={`${kpis?.weekly_minutes || 0}m`} icon={<Clock size={18} />} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-500/10" />
