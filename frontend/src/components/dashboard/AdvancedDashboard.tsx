@@ -55,9 +55,10 @@ import { ErrorProfileCard } from '../profile/ErrorProfileCard';
 import { useSupabaseDashboard } from '../../hooks/useSupabaseDashboard';
 import { AdvancedDashboardPayload } from '../../types/dashboard';
 import { AssessmentSessionResult, AssessmentOutcome } from '../../types/assessment';
+import { requestNotificationPermission } from '../../lib/notifications';
 import { learnerService, DashboardData, JourneyData } from '../../services/learnerService';
 import { useLearnerProfile } from '../../hooks/useLearnerProfile';
-import { Sidebar } from './Sidebar';
+import { Sidebar, SidebarContent } from './Sidebar';
 import { SkillCard } from './SkillCard';
 import { DailyMicroLearning } from './DailyMicroLearning';
 import { ErrorAnalysisModal, ErrorItem } from './ErrorAnalysisModal';
@@ -137,6 +138,134 @@ const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
     );
 };
 
+const GamificationHeader = ({ streak, xp, level }: { streak: number, xp: number, level: string }) => (
+    <div className="flex items-center gap-4 mb-10 overflow-x-auto pb-4 scrollbar-hide">
+        <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-[2rem] shadow-premium group transition-all hover:border-orange-500/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                <Zap size={24} className="text-white fill-white" />
+            </div>
+            <div className="whitespace-nowrap">
+                <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Learning Streak</p>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{streak}</span>
+                    <span className="text-xs font-bold text-orange-500 uppercase tracking-widest">Days</span>
+                </div>
+            </div>
+        </div>
+
+        <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-[2rem] shadow-premium group transition-all hover:border-blue-500/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                <Trophy size={24} className="text-white" />
+            </div>
+            <div className="whitespace-nowrap">
+                <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Cognitive XP</p>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{xp}</span>
+                    <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Total</span>
+                </div>
+            </div>
+        </div>
+
+        <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-[2rem] shadow-premium group transition-all hover:border-emerald-500/30">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                <Award size={24} className="text-white" />
+            </div>
+            <div className="whitespace-nowrap">
+                <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Mastery Rank</p>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{level}</span>
+                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Rank</span>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const DailyRoadmapNode = ({ idx, title, subtitle, icon, content, color, align = 'left' }: any) => {
+    const isRight = align === 'right';
+    const isPlaceholder = !content;
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, x: isRight ? 50 : -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className={`flex items-center gap-12 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}
+        >
+            {/* The Node Hexagon */}
+            <div className="shrink-0 relative">
+                <div className={`absolute inset-0 bg-${color}-500/20 blur-[30px] rounded-full animate-pulse`} />
+                <div className={`
+                    w-24 h-24 rounded-[2rem] bg-slate-900 border-2 border-${color}-500/50 flex flex-col items-center justify-center relative z-10 shadow-2xl
+                `}>
+                    <div className={`text-${color}-400 mb-1`}>{icon}</div>
+                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Step 0{idx + 1}</span>
+                </div>
+            </div>
+
+            {/* The Content Card */}
+            <GlassCard className="flex-1 p-8 border-l-4" style={{ borderLeftColor: `var(--${color}-500)` }} glow>
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest text-${color}-400 mb-1 block`}>{subtitle}</span>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h3>
+                    </div>
+                </div>
+                
+                <div className="bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-6 border border-slate-200 dark:border-white/5">
+                    {/* Dynamic Content based on node type */}
+                    {isPlaceholder ? (
+                        <div className="space-y-3 animate-pulse">
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-3/4" />
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-1/2" />
+                        </div>
+                    ) : (
+                        <>
+                            {idx === 0 && (
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-6">
+                                        {content.steps?.map((s: any, i: number) => (
+                                            <div key={i} className="flex flex-col">
+                                                <span className="text-[9px] font-black text-slate-500 uppercase mb-1">{s.level}</span>
+                                                <span className={`text-xl font-black ${i === 2 ? 'text-blue-400' : 'text-slate-400'}`}>{s.word}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-slate-400 italic leading-relaxed border-t border-white/5 pt-4">"{content.context_note}"</p>
+                                </div>
+                            )}
+                            {idx === 1 && (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                                            <p className="text-[10px] font-black text-rose-400 uppercase mb-2">Pattern Detected</p>
+                                            <p className="text-sm font-bold text-slate-300">"{content.incorrect}"</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase mb-2">Neural Correction</p>
+                                            <p className="text-sm font-bold text-slate-300">"{content.correct}"</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium pl-2 border-l-2 border-rose-500/30">{content.rule}</p>
+                                </div>
+                            )}
+                            {idx >= 2 && (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-slate-300 font-bold leading-relaxed">{content.focus || content.topic}</p>
+                                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 italic text-xs text-slate-400">
+                                        {content.advanced_c1_academic || content.example || content.rule}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+            </GlassCard>
+        </motion.div>
+    );
+};
+
 const PracticeHub = () => {
     const skills = [
         { id: 'listening', name: 'Listening', icon: <Headphones size={28} />, color: 'blue', desc: 'Improve auditory precision' },
@@ -178,9 +307,990 @@ const itemVariants = {
     visible: { y: 0, opacity: 1 }
 };
 
-// ============================================================================
-// MAIN COMPONENT EXCELLENCE
-// ============================================================================
+const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked }: any) => {
+    const percentage = Math.min(100, Math.round((current_xp / required_xp) * 100));
+    const navigate = useNavigate();
+    
+    return (
+        <GlassCard className="p-8 mb-4 overflow-hidden relative border-blue-500/10" glow={is_gateway_unlocked}>
+            {is_gateway_unlocked && (
+                <div className="absolute top-0 right-0 p-4 z-20">
+                     <motion.div 
+                        animate={{ scale: [1, 1.1, 1], rotate: [0, 2, -2, 0] }} 
+                        transition={{ repeat: Infinity, duration: 3 }}
+                        className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase rounded-full shadow-xl flex items-center gap-2 border border-white/20"
+                     >
+                        <Award size={14} className="animate-bounce" /> Gateway Exam Ready
+                     </motion.div>
+                </div>
+            )}
+            
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-blue-500/20 shadow-lg">
+                            <TrendingUp size={20} className="text-white" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">CEFR Mastery Reservoir</p>
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-2">
+                                <span className="text-blue-600 dark:text-blue-400">Level {level}</span>
+                                <ChevronRight className="text-slate-300 dark:text-slate-700" size={24} />
+                                <span className="opacity-60">{percentage}%</span>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="flex-1 max-w-2xl w-full">
+                    <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-3">
+                        <span className="flex items-center gap-2"><Zap size={10} className="text-amber-500" /> {current_xp.toLocaleString()} XP Accumulated</span>
+                        <span className="flex items-center gap-2">{required_xp.toLocaleString()} XP Graduation Target <Target size={10} /></span>
+                    </div>
+                    <div className="h-5 bg-slate-100 dark:bg-white/[0.03] rounded-2xl overflow-hidden p-1 border border-slate-200/50 dark:border-white/5 shadow-inner relative">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ type: 'spring', damping: 20, stiffness: 60 }}
+                            className={`h-full rounded-xl shadow-lg relative ${is_gateway_unlocked ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-blue-500 via-indigo-600 to-violet-700'}`}
+                        >
+                            <div className="absolute inset-0 bg-white/20 skew-x-[-20deg] translate-x-[-100%] animate-[shimmer_2s_infinite]" style={{ width: '30%' }} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {is_gateway_unlocked ? (
+                    <button 
+                        onClick={() => navigate('/runtime?mode=gateway')}
+                        className="px-10 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-premium hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-4 group"
+                    >
+                        Graduate to {level === 'A1' ? 'A2' : level === 'A2' ? 'B1' : level === 'B1' ? 'B2' : level === 'B2' ? 'C1' : 'C2'}
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                ) : (
+                    <div className="px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 text-center">
+                        <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest leading-none mb-1">Status</p>
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Reservoir Filling...</p>
+                    </div>
+                )}
+            </div>
+            
+            {/* Background Decorations */}
+            <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-[-50%] right-[-10%] w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+        </GlassCard>
+    );
+};
+
+// --- Custom Components for Clean Dashboard ---
+
+const KPICard = ({ label, value, icon, color, bgColor, trend }: any) => (
+    <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}>
+        <GlassCard className="p-6 md:p-8" glow>
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-xl ${bgColor} ${color} border border-slate-100 dark:border-white/5`}>
+                    {icon}
+                </div>
+            </div>
+            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-1">{label}</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tighter">{value}</p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{trend}</p>
+        </GlassCard>
+    </motion.div>
+);
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white dark:bg-gray-900/80 backdrop-blur-xl border border-slate-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm dark:shadow-md">
+                <p className="text-[10px] font-black text-slate-900 dark:text-slate-50/20 uppercase tracking-widest mb-2">{label}</p>
+                <div className="space-y-2">
+                    {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="text-xs font-bold text-slate-900 dark:text-slate-50 capitalize">{entry.name}:</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-slate-50">{entry.value}%</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
+const IntelligenceFeed = ({ dashboardData }: { dashboardData: DashboardData | null }) => {
+    const rawInsights = dashboardData?.intelligence_feed?.recent_insights || [];
+    
+    // Default fallback if no insights yet
+    const insights = rawInsights.length > 0 ? rawInsights.map(ri => ({
+        model: ri.category || 'Intelligence',
+        text: ri.insight,
+        type: 'info'
+    })) : [];
+
+    return (
+        <div className="flex flex-col gap-4">
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-[0.2em] px-2 mb-2">Learner Intelligence Feed</h3>
+            <div className="space-y-3">
+                {insights.map((insight, i) => (
+                    <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.2 }}
+                        className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group cursor-default shadow-sm"
+                    >
+                        <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+                            <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">{insight.model}</span>
+                        </div>
+                        <p className="text-[12px] font-medium text-slate-600 dark:text-white/70 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{insight.text}</p>
+                    </motion.div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ProfileSkillCard = ({ skill }: { skill: any }) => (
+    <GlassCard className="flex flex-col gap-3 p-4 sm:p-6" glow>
+        <div className="flex justify-between items-start mb-1">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400">
+                <Target size={16} />
+            </div>
+            <span className={`text-[8px] sm:text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border shadow-sm ${
+                skill.stability === 'Stable' 
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 text-amber-600 dark:text-amber-400'
+            }`}>
+                {skill.stability || 'Analyzing'}
+            </span>
+        </div>
+        <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="50%" cy="50%" r="40%" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-gray-800" />
+                    <motion.circle 
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: (skill.score || 0) / 100 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        cx="50%" cy="50%" r="40%" fill="none" stroke="#2563eb" strokeWidth="4" 
+                        strokeLinecap="round" 
+                        className="drop-shadow-[0_0_4px_rgba(37,99,235,0.2)]"
+                    />
+                </svg>
+                <span className="absolute text-xs sm:text-lg font-black text-slate-900 dark:text-white">{skill.score || 0}%</span>
+            </div>
+            <div className="min-w-0">
+                <h3 className="text-sm sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">{skill.name}</h3>
+                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 font-medium">{skill.level || 'A1'} Proficiency</p>
+            </div>
+        </div>
+        <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 mt-1">
+            <span>Trend</span>
+            <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                <TrendingUp size={10} /> {skill.trend || '—'}
+            </span>
+        </div>
+    </GlassCard>
+);
+
+const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any) => void }) => (
+    <motion.button 
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => onSelect(error)}
+        className="w-full flex items-center justify-between p-5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all group/err shadow-premium text-left"
+    >
+        <div className="flex items-center gap-4">
+            <div className={`p-2.5 rounded-xl ${
+                error.severity === 'High' 
+                    ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' 
+                    : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            }`}>
+                <AlertCircle size={18} />
+            </div>
+            <div>
+                <h4 className="text-slate-900 dark:text-white font-bold text-sm">{error.subject || error.type}</h4>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mt-0.5">{error.count} Occurrences</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-3">
+            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-xl border shadow-sm ${
+                error.status === 'Improving' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400' 
+                    : 'bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-800 text-slate-400'
+            }`}>
+                {error.status}
+            </span>
+            <div className={`w-2 h-2 rounded-full ${error.severity === 'High' ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`} />
+        </div>
+    </motion.button>
+);
+
+
+
+const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData, dailyBites }: any) => {
+    const navigate = useNavigate();
+    const { data: profileData, refresh: refreshProfile } = useLearnerProfile();
+    const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
+    const [weeklyVocab, setWeeklyVocab] = React.useState<any>(null);
+    const [nextWordIn, setNextWordIn] = React.useState<string>('');
+
+    React.useEffect(() => {
+        const fetchWeekly = async () => {
+            try {
+                // Fetch weekly vocab (source of truth for words)
+                const weeklyData = await learnerService.getWeeklyVocab();
+                setWeeklyVocab(weeklyData);
+                if (weeklyData?.next_word_in) setNextWordIn(weeklyData.next_word_in);
+            } catch (err) {
+                console.error("Failed to load weekly vocab", err);
+            }
+        };
+        fetchWeekly();
+    }, []);
+
+
+    // Live countdown timer (updates every 60s)
+
+    React.useEffect(() => {
+        const updateTimer = () => {
+            const now = new Date();
+            const nextMidnight = new Date();
+            nextMidnight.setHours(24, 0, 0, 0);
+            const diff = nextMidnight.getTime() - now.getTime();
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+            setNextWordIn(`${hours}h ${minutes}m`);
+        };
+        const timer = setInterval(updateTimer, 60000);
+        updateTimer();
+        return () => clearInterval(timer);
+    }, []);
+
+    // Server-driven day index (fallback to client calculation)
+    const cycleDay = weeklyVocab?.current_day_index ?? ((new Date().getDay() + 1) % 7);
+
+
+    const kpis = dashboardData?.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
+    const trends = dashboardData?.trends || [];
+    const skills = dashboardData?.skills || [];
+    const journey = journeyData || dashboardData?.journey || { nodes: [] };
+
+
+    // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
+    // 🎯 Source of Truth: Favor profileData (richer AI profile) over dashboardData fallback
+    const matrixData = (profileData?.skill_matrix || skills || []).map((s: any) => {
+        const skillName = s.name || s.skill || s.subject || '';
+        const scoreVal = s.score !== undefined ? s.score : (s.masteryScore || s.currentScore || (s.current_score !== undefined ? s.current_score : 0));
+        
+        return {
+            subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+            name: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+            score: scoreVal,
+            A: scoreVal,
+            level: s.level || s.currentLevel || s.overall_level || 'A1',
+            stability: s.stability || (scoreVal > 70 ? 'Stable' : 'Fragile'),
+            trend: s.trend || (scoreVal > 50 ? 'Improving' : 'Stagnant'),
+            fullMark: 100
+        };
+    });
+
+    // 🧠 Calculate "Skills Co-residence" - how evenly skills are growing together
+    const scores = matrixData.map(m => m.score);
+    const avgScore = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+    const variance = scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / (scores.length || 1);
+    const coResidence = Math.max(0, Math.min(100, Math.round(100 - Math.sqrt(variance))));
+
+    const unifiedErrors = useMemo(() => {
+        const modelErrors = profileData?.error_model || [];
+        if (modelErrors.length > 0) return modelErrors;
+        
+        // Fallback to weakness areas from dashboard data
+        return (Array.isArray(dashboardData?.error_profile?.weakness_areas) ? dashboardData.error_profile.weakness_areas : []).map((w: string) => ({
+            type: w,
+            subject: w,
+            count: 1,
+            severity: 'Medium',
+            status: 'Analyzing',
+            examples: []
+        }));
+    }, [profileData?.error_model, dashboardData?.error_profile?.weakness_areas]);
+
+
+
+    return (
+        <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full max-w-7xl mx-auto px-4 md:px-0 space-y-10 pb-40"
+        >
+            <GamificationHeader 
+                streak={profileData?.profile?.streak || dashboardData?.profile?.streak || supabaseData?.profile?.streak || 0} 
+                xp={profileData?.profile?.xp_points || dashboardData?.profile?.xp_points || supabaseData?.profile?.points || 0} 
+                level={profileData?.profile?.current_level || dashboardData?.profile?.current_level || supabaseData?.profile?.overall_level || 'A1'} 
+            />
+
+            {/* 1. MISSION CONTROL ROADMAP (The only primary card) */}
+            <motion.div variants={itemVariants}>
+                {(() => {
+                    const allNodes = Array.isArray(journey) ? journey : (journey.nodes || []);
+                    
+                    if (allNodes.length === 0) {
+                        return (
+                            <div className="w-full p-12 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center min-h-[400px] text-center">
+                                <div className="w-20 h-20 mb-6">
+                                    <NeuralPulseLoader status="Architecting Path..." />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Neural Path Calibration</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+                                    Our AI Architect is synthesizing your assessment evidence to construct your optimized sequence.
+                                </p>
+                            </div>
+                        );
+                    }
+
+                    const activeIdx = allNodes.findIndex((n: any) => n.status === 'active' || n.status === 'current');
+                    const startIdx = activeIdx >= 0 ? Math.max(0, activeIdx - 1) : 0; // Show a bit of history
+                    const focusedNodes = allNodes.slice(startIdx, startIdx + 4);
+                    
+                    // Map CEFR level to roadmap index (A1=0, A2=1, B1=2, B2=3, C1=4, C2=5)
+                    const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+                    const userLevelStr = supabaseData?.profile?.overall_level || dashboardData?.profile?.overall_level || 'A1';
+                    const levelIndex = cefrLevels.indexOf(userLevelStr);
+                    const finalCurrentIndex = levelIndex >= 0 ? levelIndex : 0;
+                    
+                    return (
+                        <RoadmapGridCard 
+                            nodes={focusedNodes} 
+                            onViewFullJourney={() => navigate('/journey')}
+                            totalNodesCount={allNodes.length}
+                            currentIndex={finalCurrentIndex}
+                            skillsMatrix={matrixData}
+                            dashData={dashboardData}
+                            dailyBites={dailyBites}
+                            onInteraction={() => refreshProfile()}
+                        />
+
+                    );
+                })()}
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+                <PracticeHub />
+            </motion.div>
+
+            {/* 2. KPI ROW */}
+            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <KPICard label="Momentum" value={`${kpis?.momentum || 0}%`} icon={<Zap size={18} />} color="text-indigo-600" bgColor="bg-indigo-50 dark:bg-indigo-500/10" />
+                <KPICard label="Weekly Minutes" value={`${kpis?.weekly_minutes || 0}m`} icon={<Clock size={18} />} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-500/10" />
+                <KPICard label="Active Errors" value={`${kpis?.active_errors || 0}`} icon={<AlertCircle size={18} />} color="text-rose-600" bgColor="bg-rose-50 dark:bg-rose-500/10" />
+                <KPICard label="Due Reviews" value={`${kpis?.due_reviews || 0}`} icon={<Target size={18} />} color="text-amber-600" bgColor="bg-amber-50 dark:bg-amber-500/10" />
+            </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* 3. Main Analysis Column (Left) */}
+                <div className="lg:col-span-8 space-y-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                        <BrainMatrixCard data={matrixData} />
+                        <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Error Queue</h2>
+                                <span className="px-2 py-0.5 bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-md text-[10px] font-black uppercase">Active Friction</span>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                {unifiedErrors.map((err: any, idx: number) => (
+                                    <motion.div key={`${err.type}-${err.subject || idx}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
+                                        <ProfileErrorCard error={err} onSelect={setSelectedError} />
+                                    </motion.div>
+                                ))}
+                                {unifiedErrors.length === 0 && (
+                                    <p className="text-sm text-slate-400 dark:text-slate-50 italic">No recurring error patterns detected yet.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <SkillTrajectoryCard data={trends} />
+
+                    {/* Skill Model Matrix from Profile */}
+                    {profileData?.skill_matrix && profileData.skill_matrix.length > 0 && (
+                        <div>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+                                    <Activity size={22} className="text-blue-600 dark:text-blue-400" /> Skill Model Matrix
+                                </h2>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-50 font-black uppercase tracking-widest italic hidden md:block">Updated Real-time</p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {profileData.skill_matrix.map((skill: any, idx: number) => (
+                                    <motion.div key={skill.name} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
+                                        <ProfileSkillCard skill={skill} />
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Focused Weekly Word Journey */}
+                    {profileData && (
+                        <div className="grid grid-cols-1 gap-8">
+                            <div className="space-y-6">
+                                <GlassCard className="p-10" hover={false}>
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <h3 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Weekly Vocabulary Journey</h3>
+                                            <div className="flex items-center gap-4">
+                                                <p className="text-slate-500 dark:text-slate-400 font-medium tracking-tight">Your 7-day cognitive progression path.</p>
+                                                <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Next word in:</span>
+                                                    <span className="text-[11px] font-black text-blue-600 dark:text-blue-400">{nextWordIn}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {weeklyVocab?.week_info?.theme && (
+                                            <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{weeklyVocab.week_info.theme}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-stretch gap-4 mb-2 overflow-x-auto pb-4 scrollbar-hide">
+                                        {!weeklyVocab ? (
+                                            Array.from({ length: 7 }).map((_, i) => (
+                                                <div key={i} className="flex-1 min-w-[140px] h-48 bg-slate-100 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2rem] animate-pulse" />
+                                            ))
+                                        ) : (
+                                            weeklyVocab.weekly_log.map((item: any, i: number) => {
+                                                const isToday = cycleDay === i;
+                                                const isPast = i < cycleDay;
+                                                const isLocked = i > cycleDay;
+                                                
+                                                return (
+                                                    <div 
+                                                        key={item.day} 
+                                                        className={`flex-1 min-w-[140px] p-6 rounded-[2.5rem] border transition-all duration-500 flex flex-col items-center justify-between min-h-[220px] relative group/word
+                                                            ${isToday 
+                                                                ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 z-10' 
+                                                                : isPast 
+                                                                    ? 'bg-emerald-500/10 border-emerald-500/20 opacity-80' 
+                                                                    : 'bg-white dark:bg-white/[0.02] border-slate-200 dark:border-white/5 opacity-40 grayscale'}
+                                                        `}
+                                                    >
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-blue-100' : 'text-slate-400'}`}>Day {i + 1}</span>
+                                                            <h4 className={`text-sm font-black tracking-tight ${isToday ? 'text-white' : 'text-slate-900 dark:text-white/60'}`}>{item.day}</h4>
+                                                        </div>
+
+                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover/word:scale-110
+                                                            ${isToday ? 'bg-white shadow-xl text-blue-600' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}
+                                                        `}>
+                                                            {isPast ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Sparkles size={20} />}
+                                                        </div>
+
+                                                        <div className="text-center">
+                                                            <p className={`text-[13px] font-black tracking-tight mb-1 ${isToday ? 'text-white' : 'text-slate-900 dark:text-white/80'}`}>
+                                                                {isLocked ? '••••••' : item.word}
+                                                            </p>
+                                                            <div className={`h-1 w-8 rounded-full mx-auto ${isToday ? 'bg-white/40' : 'bg-slate-200 dark:bg-white/10'}`} />
+                                                        </div>
+
+                                                        {isToday && (
+                                                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce">
+                                                                <Zap size={14} className="text-white fill-white" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </GlassCard>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 4. Intelligence Sidebar (Right) */}
+                <div className="lg:col-span-4 space-y-8">
+                    <GlassCard className="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none" glow>
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                <Trophy size={24} className="text-white" />
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Co-residence</p>
+                                <p className="text-2xl font-black">{coResidence}%</p>
+                            </div>
+                        </div>
+                        <h3 className="text-xl font-black mb-2 tracking-tight">Growth Equilibrium</h3>
+                        <p className="text-sm text-blue-100 font-medium leading-relaxed mb-8 opacity-80">
+                            Your skill distribution is {coResidence > 80 ? 'highly synchronized' : 'evolving'}. Strengthening Writing will stabilize your neural profile.
+                        </p>
+                        <button className="w-full py-4 bg-white text-blue-600 font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl hover:bg-blue-50 transition active:scale-95">
+                            Optimize Profile
+                        </button>
+                    </GlassCard>
+
+                    <IntelligenceFeed dashboardData={dashboardData} />
+                </div>
+            </div>
+
+            <ErrorAnalysisModal 
+                isOpen={!!selectedError} 
+                error={selectedError} 
+                onClose={() => setSelectedError(null)} 
+            />
+        </div>
+    );
+};
+
+
+
+const PracticeFallback = ({ handleReturn }: any) => (
+    <div className="h-full flex flex-col items-center justify-center text-slate-400">
+        <Zap className="w-12 h-12 mb-4 text-slate-200" />
+        <h2 className="text-xl font-bold text-slate-600">Module Restructuring</h2>
+        <p className="text-sm text-center max-w-xs">We're building new interactive exercises. Stay tuned!</p>
+        <button onClick={handleReturn} className="mt-6 px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100 transition">Return Home</button>
+    </div>
+);
+
+const LoadingSkeleton = () => (
+    <div className="h-screen w-full flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-4">
+            <RefreshCcw className="w-8 h-8 text-blue-500 animate-spin" />
+            <p className="text-slate-400 font-bold animate-pulse">Initializing Environment...</p>
+        </div>
+    </div>
+);
+const JourneyTab = ({ onStartSession, result }: any) => {
+    return (
+        <div className="h-full overflow-y-auto rounded-3xl overflow-hidden border border-slate-200 shadow-sm dark:shadow-md">
+            <LearningJourneyView 
+                result={result} 
+                onStartSession={onStartSession} 
+                onViewDashboard={() => {}} // Already on dashboard
+            />
+        </div>
+    );
+};
+
+const AnalyticsTab = ({ supabaseData }: any) => {
+    const skills = supabaseData.skills || [];
+    const errorProfile = supabaseData.errorProfile || { weakness_areas: [], common_mistakes: [], action_plan: "" };
+    const history = supabaseData.history || [];
+    const achievements = supabaseData.achievements || [];
+    
+    const eventLog = React.useMemo(() => {
+        const historyItems = history.map((h: any) => ({
+            id: `h-${h.id}`,
+            title: `Assessment: ${h.overallLevel || h.category || 'General'}`,
+            desc: h.overallLevel ? `Level: ${h.overallLevel}` : 'Diagnostic preview',
+            time: h.createdAt || h.created_at || Date.now(),
+            type: h.overallLevel?.includes('A') ? 'info' : 'success'
+        }));
+        return historyItems.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+    }, [history]);
+
+    const skillData = useMemo(() => {
+        const skillOrder = ['listening', 'speaking', 'reading', 'writing', 'grammar'];
+        return skillOrder.map(skillName => {
+            const s = skills.find((item: any) => (item.skillId || item.skill || '').toLowerCase() === skillName);
+            const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore) : 0;
+            const currentScore = Math.round(raw < 1 && raw > 0 ? raw * 100 : raw);
+            return {
+                subject: skillName.charAt(0).toUpperCase() + skillName.slice(1),
+                current: currentScore,
+                fullMark: 100
+            };
+        });
+    }, [skills]);
+
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full max-w-[1400px] mx-auto min-h-full">
+            <div className="lg:col-span-8 flex flex-col gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Mastery Distribution Radar */}
+                    <GlassCard className="p-8 flex flex-col" glow>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-6">Mastery Distribution</h3>
+                        <div className="h-[300px] w-full relative min-w-0 min-h-0 overflow-hidden">
+                            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                                <RadarChart 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius="70%" 
+                                    data={skillData}
+                                    margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
+                                >
+                                    <PolarGrid stroke="currentColor" className="text-slate-200 dark:text-white/10" strokeDasharray="4 4" />
+                                    <PolarAngleAxis 
+                                        dataKey="subject" 
+                                        tick={({ payload, x, y }: any) => {
+                                            const s = skills.find((i: any) => (i.skillId || i.skill || '').toLowerCase() === payload.value.toLowerCase());
+                                            return (
+                                                <g transform={`translate(${x},${y})`}>
+                                                    <text x={0} y={0} dy={-10} textAnchor="middle" className="fill-slate-400 dark:fill-white/40 text-[9px] font-black uppercase tracking-widest">{payload.value}</text>
+                                                    <text x={0} y={5} textAnchor="middle" className="fill-blue-600 dark:fill-blue-400 text-[10px] font-black">{s?.level || s?.currentLevel || 'A1'}</text>
+                                                </g>
+                                            );
+                                        }} 
+                                    />
+                                    <Radar name="Mastery" dataKey="current" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.2} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </GlassCard>
+
+                    {/* Skill Deep Dive */}
+                    <GlassCard className="p-8">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-slate-50">Logic Mapping</h3>
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                <Database size={18} />
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            {(Array.isArray(errorProfile.weakness_areas) ? errorProfile.weakness_areas : []).slice(0, 3).map((w: string, i: number) => (
+                                <div key={i} className="group/dive">
+                                    <p className="text-[14px] font-black text-slate-900 dark:text-slate-50 mb-1">{w}</p>
+                                    <p className="text-[12px] font-medium text-slate-400 dark:text-slate-500 leading-relaxed">
+                                        {errorProfile.common_mistakes?.[i] || "Analyzing pattern persistence..."}
+                                    </p>
+                                    <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full mt-3 overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${80 - (i * 20)}%` }}
+                                            className="h-full bg-blue-600/40 dark:bg-blue-500/50"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </GlassCard>
+                </div>
+
+                {/* Intelligence Action Plan */}
+                <GlassCard className="p-8 relative overflow-hidden" glow>
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <Zap size={80} className="text-blue-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                            <Sparkles size={18} />
+                        </div>
+                        Linguistic Action Plan
+                    </h3>
+                    {errorProfile.action_plan && (
+                        <p className="text-[15px] font-medium text-slate-500 dark:text-slate-400 leading-[1.8] mb-8 max-w-2xl">
+                            {errorProfile.action_plan}
+                        </p>
+                    )}
+                    <div className="flex flex-wrap gap-3">
+                        {(Array.isArray(errorProfile.weakness_areas) ? errorProfile.weakness_areas : []).slice(0, 5).map((tag: string) => (
+                            <span key={tag} className="px-4 py-2 bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                </GlassCard>
+            </div>
+
+            {/* Event Log Sidebar */}
+            <div className="lg:col-span-4 h-full">
+                <GlassCard className="p-8 h-full">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-50 mb-8">Parallel Event Log</h3>
+                    <div className="space-y-8 relative before:absolute before:left-[7px] before:top-4 before:bottom-4 before:w-[2px] before:bg-slate-100 dark:before:bg-white/5">
+                        {eventLog.map(event => (
+                            <div key={event.id} className="flex gap-6 relative z-10 group cursor-default">
+                                <div className={`w-4 h-4 rounded-full border-2 border-slate-50 dark:border-[#020617] mt-1 shadow-premium transition-transform group-hover:scale-125
+                                    ${event.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'}`} 
+                                />
+                                <div>
+                                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{event.title}</h4>
+                                    <p className="text-[12px] font-medium text-slate-500 dark:text-slate-500 mb-1">{event.desc}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-50/20">
+                                        {new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </GlassCard>
+            </div>
+        </div>
+    );
+};
+
+const HistoryTab = ({ assessmentOutcome, onViewHistoryReport, supabaseData }: any) => {
+    const history = supabaseData.history || [];
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full max-w-[1400px] mx-auto min-h-full">
+            <div className="lg:col-span-8 flex flex-col gap-8 h-full">
+                <GlassCard className="p-8 flex-1 flex flex-col" glow>
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-xl font-black text-slate-900 dark:text-slate-50">Assessment History</h3>
+                        <span className="text-[10px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-[0.2em]">{history.length} Dimensions Logged</span>
+                    </div>
+
+                    <div className="flex-1 space-y-4 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                        {history.length > 0 ? (
+                            history.map((session: any) => (
+                                <div key={session.id} className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 transition-all group lg:flex items-center justify-between shadow-premium">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-900/5 border-slate-200 dark:border-gray-800 flex flex-col items-center justify-center shadow-premium group-hover:border-blue-500/30 transition-colors">
+                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-50/30 uppercase leading-none mb-1">
+                                                {new Date(session.createdAt).toLocaleString('default', { month: 'short' })}
+                                            </span>
+                                            <span className="text-xl font-black text-slate-900 dark:text-slate-50 leading-none">
+                                                {new Date(session.createdAt).getDate()}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <h4 className="font-bold text-slate-900 dark:text-slate-50 text-[16px] leading-none">AI Diagnostics</h4>
+                                                <span className="text-[10px] bg-blue-500/20 text-blue-400 font-black px-2 py-0.5 rounded border border-blue-500/30">
+                                                    {session.overallLevel}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                                Session Entropy: {session.id.substring(0, 8)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 lg:mt-0 flex items-center gap-8">
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[9px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-widest mb-2">Confidence Score</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                                    <motion.div 
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${(session.confidence || 0) * 100}%` }}
+                                                        className="h-full bg-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
+                                                    />
+                                                </div>
+                                                <span className="text-xs font-black text-slate-500 dark:text-slate-400">{Math.round((session.confidence || 0) * 100)}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="h-64 flex flex-col items-center justify-center text-slate-900 dark:text-slate-50/10">
+                                <History size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                                <p className="text-sm font-black uppercase tracking-widest">Awaiting First Execution</p>
+                            </div>
+                        )}
+                    </div>
+                </GlassCard>
+            </div>
+
+            <div className="lg:col-span-4 flex flex-col gap-8">
+                <GlassCard className="p-8 bg-gradient-to-br from-[#0B1437]/60 to-transparent" glow>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-6">
+                        <TrendingUp size={22} />
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-slate-50 mb-2">Progress Velocity</h3>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm font-medium mb-8 leading-relaxed">Your linguistic baseline is expanding. Current trajectory predicts target reach in 1.4 months.</p>
+                    <div className="p-5 rounded-2xl bg-white dark:bg-gray-900/5 hover:bg-white dark:bg-gray-900/10 border-slate-200 dark:border-gray-800">
+                        <p className="text-[10px] font-black text-slate-900 dark:text-slate-50/30 uppercase tracking-widest mb-1.5">Max Proficiency Level</p>
+                        <p className="text-4xl font-black text-slate-900 dark:text-slate-50">{history[0]?.overallLevel || 'B1'}</p>
+                    </div>
+                </GlassCard>
+            </div>
+        </div>
+    )
+}
+
+const SettingsTab = ({ supabaseData, refresh }: any) => {
+    const profile = supabaseData.profile;
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [settings, setSettings] = React.useState({
+        displayName: profile?.display_name || '',
+        bio: profile?.bio || '',
+        goal: profile?.learning_goal || 'casual',
+        pace: profile?.learning_intensity || 'regular',
+        notifications: profile?.notifications_enabled ?? true
+    });
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await learnerService.updateProfile({
+                display_name: settings.displayName,
+                bio: settings.bio,
+                learning_goal: settings.goal,
+                learning_intensity: settings.pace,
+                notifications_enabled: settings.notifications
+            });
+            await refresh();
+        } catch (err) {
+            console.error("Failed to save settings", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const SettingCard = ({ icon, label, title, subtitle, children }: any) => (
+        <GlassCard className="p-8" hover={false}>
+            <div className="flex flex-col md:flex-row gap-8">
+                <div className="md:w-1/3">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            {icon}
+                        </div>
+                        <h4 className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em]">{label}</h4>
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{subtitle}</p>
+                </div>
+                <div className="md:w-2/3">
+                    {children}
+                </div>
+            </div>
+        </GlassCard>
+    );
+
+    return (
+        <div className="w-full max-w-5xl mx-auto space-y-8 pb-20">
+            <div className="flex items-center justify-between mb-10">
+                <div>
+                    <h2 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white mb-2">Engine Configuration</h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">Fine-tune your cognitive development parameters.</p>
+                </div>
+                <button 
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-blue-600 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-premium hover:bg-blue-700 transition active:scale-95 disabled:opacity-50 flex items-center gap-3"
+                >
+                    {isSaving ? <RefreshCcw size={14} className="animate-spin" /> : <Zap size={14} />}
+                    Save Configuration
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+                <SettingCard icon={<Activity size={22} />} label="Identity" title="Public Profile" subtitle="How you appear across the linguistic network.">
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Display Name</label>
+                            <input 
+                                type="text" 
+                                value={settings.displayName}
+                                onChange={e => setSettings({...settings, displayName: e.target.value})}
+                                className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-blue-500 outline-none transition font-bold text-slate-900 dark:text-white"
+                                placeholder="Quantum Learner"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest">Cognitive Bio</label>
+                            <textarea 
+                                value={settings.bio}
+                                onChange={e => setSettings({...settings, bio: e.target.value})}
+                                className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-blue-500 outline-none transition font-bold text-slate-900 dark:text-white min-h-[120px]"
+                                placeholder="Synthesizing neural patterns..."
+                            />
+                        </div>
+                    </div>
+                </SettingCard>
+
+                <SettingCard icon={<Target size={22} />} label="Objectives" title="Learning Focus" subtitle="Direct your AI Architect's primary generation goals.">
+                    <select 
+                        value={settings.goal}
+                        onChange={e => setSettings({...settings, goal: e.target.value as any})}
+                        className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 focus:border-blue-500 outline-none transition font-bold text-slate-900 dark:text-white appearance-none"
+                    >
+                        <option value="casual" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Casual Learner</option>
+                        <option value="serious" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Academic Performance</option>
+                        <option value="professional" className="bg-white dark:bg-gray-900 text-slate-900 dark:text-slate-50">Professional Career</option>
+                    </select>
+                </SettingCard>
+                
+                <div className="md:col-span-2">
+                    <SettingCard icon={<Clock size={22} />} label="Intensity" title="Learning Pace" subtitle="Set your weekly intensity level.">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            {[
+                                { id: 'light', label: 'Light', desc: '15m / day' },
+                                { id: 'regular', label: 'Regular', desc: '45m / day' },
+                                { id: 'intensive', label: 'Intensive', desc: '90m / day' }
+                            ].map((opt: any) => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => setSettings({...settings, pace: opt.id as any})}
+                                    className={`p-6 rounded-2xl border-2 transition text-left relative overflow-hidden group/opt
+                                        ${settings.pace === opt.id ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-white/5 hover:border-white/10'}
+                                    `}
+                                >
+                                    <h4 className={`font-black uppercase tracking-widest text-xs mb-2 ${settings.pace === opt.id ? 'text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                        {opt.label}
+                                    </h4>
+                                    <p className="text-[11px] text-slate-900 dark:text-slate-50/30 font-bold">{opt.desc}</p>
+                                    {settings.pace === opt.id && <div className="absolute top-0 right-0 p-3"><Zap size={14} className="text-blue-400" /></div>}
+                                </button>
+                            ))}
+                        </div>
+                    </SettingCard>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const IsometricHexNode = ({ status, label, onClick }: { status: 'active' | 'locked', label: any, onClick?: any, key?: any }) => {
+    const isLocked = status === 'locked';
+    return (
+        <div 
+           className={`flex flex-col items-center gap-3 w-32 group transition-all duration-300 ${isLocked ? '' : 'cursor-pointer hover:-translate-y-2'}`}
+           onClick={!isLocked ? onClick : undefined}
+        >
+           <div className={`relative w-[6.5rem] h-[6.5rem] flex items-center justify-center`}>
+               {!isLocked && <div className="absolute -bottom-4 w-12 h-3 bg-amber-900/10 rounded-full blur-md group-hover:scale-110 transition-transform" />}
+               <div className="relative w-full h-full">
+                  <div 
+                     className={`absolute top-2 w-full h-full ${isLocked ? 'bg-slate-300' : 'bg-amber-600'} opacity-100`}
+                     style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} 
+                  />
+                  <div 
+                     className={`absolute top-0 w-full h-full flex flex-col items-center justify-center text-slate-900 dark:text-slate-50
+                       ${isLocked ? 'bg-[#1E293B]' : 'bg-gradient-to-br from-amber-400 to-amber-500 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]'}
+                     `}
+                     style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}
+                  >
+                      <div className={`w-[96%] h-[96%] flex items-center justify-center ${isLocked ? 'bg-[#1e293b]' : 'bg-gradient-to-br from-amber-400 to-amber-500'}`} style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
+                          {isLocked ? <Lock size={20} className="text-slate-400" /> : <BookOpen size={24} className="text-slate-900 dark:text-slate-50 drop-shadow-md" />}
+                      </div>
+                  </div>
+               </div>
+           </div>
+           <div className={`px-3 py-1.5 rounded-lg border shadow-sm backdrop-blur-sm
+              ${isLocked ? 'bg-white/80 border-slate-200' : 'bg-white border-amber-100'}
+           `}>
+              <span className={`text-[10px] font-black uppercase tracking-wider text-center leading-tight
+                 ${isLocked ? 'text-slate-400' : 'text-amber-600'}
+              `}>
+                 {label}
+              </span>
+           </div>
+        </div>
+    );
+}
+
+const EventLogItem = ({ icon, title, desc, blur }: { icon: any, title: string, desc: string, blur?: boolean }) => (
+    <div className={`flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow hover:border-slate-200 transition-all cursor-default ${blur ? 'opacity-40 grayscale blur-[0.5px]' : ''}`}>
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 shrink-0">
+            {icon}
+        </div>
+        <div className="flex-1 mt-0.5">
+            <h4 className="font-bold text-slate-800 text-[13px] tracking-tight">{title}</h4>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-1">{desc}</p>
+        </div>
+    </div>
+);
 export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     const { result, onLogout } = props;
     const supabaseData = useSupabaseDashboard();
@@ -210,8 +1320,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
         else navigate(`/dashboard/${tabId}`);
     };
 
-
-
+    useEffect(() => {
+        // Request notification permission and setup FCM
+        requestNotificationPermission();
+    }, []);
 
     const [realtimeData, setRealtimeData] = React.useState<DashboardData | null>(null);
     const [journeyData, setJourneyData] = React.useState<JourneyData | null>(null);
@@ -694,7 +1806,7 @@ const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any
                 <AlertCircle size={18} />
             </div>
             <div>
-                <h4 className="text-slate-900 dark:text-white font-bold text-sm">{error.type}</h4>
+                <h4 className="text-slate-900 dark:text-white font-bold text-sm">{error.subject || error.type}</h4>
                 <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mt-0.5">{error.count} Occurrences</p>
             </div>
         </div>
@@ -711,9 +1823,11 @@ const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any
     </motion.button>
 );
 
+
+
 const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData, dailyBites }: any) => {
     const navigate = useNavigate();
-    const { data: profileData } = useLearnerProfile();
+    const { data: profileData, refresh: refreshProfile } = useLearnerProfile();
     const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
     const [weeklyVocab, setWeeklyVocab] = React.useState<any>(null);
     const [nextWordIn, setNextWordIn] = React.useState<string>('');
@@ -784,15 +1898,20 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
     const variance = scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / (scores.length || 1);
     const coResidence = Math.max(0, Math.min(100, Math.round(100 - Math.sqrt(variance))));
 
-    const errorData = (profileData?.error_model || []).map((e: any) => ({
-        subject: e.type || e.subject,
-        A: e.severity === 'High' ? 90 : (e.severity === 'Medium' ? 60 : 30),
-        fullMark: 100
-    })).concat((Array.isArray(dashboardData?.error_profile?.weakness_areas) ? dashboardData.error_profile.weakness_areas : []).map((w: string) => ({
-        subject: w,
-        A: 50,
-        fullMark: 100
-    })));
+    const unifiedErrors = useMemo(() => {
+        const modelErrors = profileData?.error_model || [];
+        if (modelErrors.length > 0) return modelErrors;
+        
+        // Fallback to weakness areas from dashboard data
+        return (Array.isArray(dashboardData?.error_profile?.weakness_areas) ? dashboardData.error_profile.weakness_areas : []).map((w: string) => ({
+            type: w,
+            subject: w,
+            count: 1,
+            severity: 'Medium',
+            status: 'Analyzing',
+            examples: []
+        }));
+    }, [profileData?.error_model, dashboardData?.error_profile?.weakness_areas]);
 
 
 
@@ -803,6 +1922,12 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             animate="visible"
             className="w-full max-w-7xl mx-auto px-4 md:px-0 space-y-10 pb-40"
         >
+            <GamificationHeader 
+                streak={profileData?.profile?.streak || dashboardData?.profile?.streak || supabaseData?.profile?.streak || 0} 
+                xp={profileData?.profile?.xp_points || dashboardData?.profile?.xp_points || supabaseData?.profile?.points || 0} 
+                level={profileData?.profile?.current_level || dashboardData?.profile?.current_level || supabaseData?.profile?.overall_level || 'A1'} 
+            />
+
             {/* 1. MISSION CONTROL ROADMAP (The only primary card) */}
             <motion.div variants={itemVariants}>
                 {(() => {
@@ -841,6 +1966,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                             skillsMatrix={matrixData}
                             dashData={dashboardData}
                             dailyBites={dailyBites}
+                            onInteraction={() => refreshProfile()}
                         />
 
                     );
@@ -870,12 +1996,12 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                                 <span className="px-2 py-0.5 bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-md text-[10px] font-black uppercase">Active Friction</span>
                             </div>
                             <div className="flex flex-col gap-3">
-                                {(profileData?.error_model || []).map((err: any, idx: number) => (
-                                    <motion.div key={err.type} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
+                                {unifiedErrors.map((err: any, idx: number) => (
+                                    <motion.div key={`${err.type}-${err.subject || idx}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + idx * 0.1 }}>
                                         <ProfileErrorCard error={err} onSelect={setSelectedError} />
                                     </motion.div>
                                 ))}
-                                {(!profileData?.error_model || profileData.error_model.length === 0) && (
+                                {unifiedErrors.length === 0 && (
                                     <p className="text-sm text-slate-400 dark:text-slate-500 italic">No recurring error patterns detected yet.</p>
                                 )}
                             </div>
@@ -1025,13 +2151,29 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                             <h3 className="text-sm font-black text-blue-600 dark:text-indigo-400 tracking-widest uppercase">Smart Coach Insights</h3>
                         </div>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-4 font-medium italic">Your AI mentor's real-time synthesis of your learning trajectory.</p>
-                        <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium border-l-2 border-blue-500/30 pl-4 py-1">
-                            {dashboardData?.intelligence_feed?.action_plan ? (
-                                `"${dashboardData.intelligence_feed.action_plan}"`
-                            ) : (
-                                "Welcome to your neural dashboard! Start your first training session to allow the AI to analyze your skills and generate personalized strategic insights."
+                        <div className="space-y-4">
+                            <p className="text-sm text-slate-600 dark:text-white/60 leading-relaxed italic font-medium border-l-2 border-blue-500/30 pl-4 py-1">
+                                {dashboardData?.intelligence_feed?.action_plan ? (
+                                    `"${dashboardData.intelligence_feed.action_plan}"`
+                                ) : (
+                                    "Welcome to your neural dashboard! Start your first training session to allow the AI to analyze your skills and generate personalized strategic insights."
+                                )}
+                            </p>
+                            
+                            {dashboardData?.intelligence_feed?.recent_insights && dashboardData.intelligence_feed.recent_insights.length > 0 && (
+                                <div className="pt-4 space-y-3">
+                                    {dashboardData.intelligence_feed.recent_insights.map((insight: any) => (
+                                        <div key={insight.id} className="flex items-start gap-3 p-3 bg-white dark:bg-white/[0.02] rounded-xl border border-slate-100 dark:border-white/5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-500 block mb-0.5">{insight.category}</span>
+                                                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">{insight.insight}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
-                        </p>
+                        </div>
                     </GlassCard>
                 </div>
             </div>
@@ -1044,117 +2186,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
     );
 };
 
-const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked }: any) => {
-    const percentage = Math.min(100, Math.round((current_xp / required_xp) * 100));
-    const navigate = useNavigate();
-    
-    return (
-        <GlassCard className="p-8 mb-4 overflow-hidden relative border-blue-500/10" glow={is_gateway_unlocked}>
-            {is_gateway_unlocked && (
-                <div className="absolute top-0 right-0 p-4 z-20">
-                     <motion.div 
-                        animate={{ scale: [1, 1.1, 1], rotate: [0, 2, -2, 0] }} 
-                        transition={{ repeat: Infinity, duration: 3 }}
-                        className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase rounded-full shadow-xl flex items-center gap-2 border border-white/20"
-                     >
-                        <Award size={14} className="animate-bounce" /> Gateway Exam Ready
-                     </motion.div>
-                </div>
-            )}
-            
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-blue-500/20 shadow-lg">
-                            <TrendingUp size={20} className="text-white" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">CEFR Mastery Reservoir</p>
-                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-2">
-                                <span className="text-blue-600 dark:text-blue-400">Level {level}</span>
-                                <ChevronRight className="text-slate-300 dark:text-slate-700" size={24} />
-                                <span className="opacity-60">{percentage}%</span>
-                            </h2>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="flex-1 max-w-2xl w-full">
-                    <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest mb-3">
-                        <span className="flex items-center gap-2"><Zap size={10} className="text-amber-500" /> {current_xp.toLocaleString()} XP Accumulated</span>
-                        <span className="flex items-center gap-2">{required_xp.toLocaleString()} XP Graduation Target <Target size={10} /></span>
-                    </div>
-                    <div className="h-5 bg-slate-100 dark:bg-white/[0.03] rounded-2xl overflow-hidden p-1 border border-slate-200/50 dark:border-white/5 shadow-inner relative">
-                        <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ type: 'spring', damping: 20, stiffness: 60 }}
-                            className={`h-full rounded-xl shadow-lg relative ${is_gateway_unlocked ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-blue-500 via-indigo-600 to-violet-700'}`}
-                        >
-                            <div className="absolute inset-0 bg-white/20 skew-x-[-20deg] translate-x-[-100%] animate-[shimmer_2s_infinite]" style={{ width: '30%' }} />
-                        </motion.div>
-                    </div>
-                </div>
 
-                {is_gateway_unlocked ? (
-                    <button 
-                        onClick={() => navigate('/runtime?mode=gateway')}
-                        className="px-10 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-premium hover:bg-indigo-700 transition active:scale-95 flex items-center justify-center gap-4 group"
-                    >
-                        Graduate to {level === 'A1' ? 'A2' : level === 'A2' ? 'B1' : level === 'B1' ? 'B2' : level === 'B2' ? 'C1' : 'C2'}
-                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </button>
-                ) : (
-                    <div className="px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 text-center">
-                        <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-widest leading-none mb-1">Status</p>
-                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Reservoir Filling...</p>
-                    </div>
-                )}
-            </div>
-            
-            {/* Background Decorations */}
-            <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-[-50%] right-[-10%] w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
-        </GlassCard>
-    );
-};
-
-// --- Custom Components for Clean Dashboard ---
-
-const KPICard = ({ label, value, icon, color, bgColor, trend }: any) => (
-    <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}>
-        <GlassCard className="p-6 md:p-8" glow>
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2 rounded-xl ${bgColor} ${color} border border-slate-100 dark:border-white/5`}>
-                    {icon}
-                </div>
-            </div>
-            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-1">{label}</p>
-            <p className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tighter">{value}</p>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">{trend}</p>
-        </GlassCard>
-    </motion.div>
-);
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className="bg-white dark:bg-gray-900/80 backdrop-blur-xl border border-slate-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm dark:shadow-md">
-                <p className="text-[10px] font-black text-slate-900 dark:text-slate-50/20 uppercase tracking-widest mb-2">{label}</p>
-                <div className="space-y-2">
-                    {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-xs font-bold text-slate-900 dark:text-slate-50 capitalize">{entry.name}:</span>
-                            <span className="text-xs font-black text-slate-900 dark:text-slate-50">{entry.value}%</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-    return null;
-};
 
 // --- Helpers ---
 
@@ -1621,91 +2653,7 @@ const EventLogItem = ({ icon, title, desc, blur }: { icon: any, title: string, d
     </div>
 );
 
-const DailyRoadmapNode = ({ idx, title, subtitle, icon, content, color, align = 'left' }: any) => {
-    const isRight = align === 'right';
-    const isPlaceholder = !content;
 
-
-    return (
-        <motion.div 
-            initial={{ opacity: 0, x: isRight ? 50 : -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className={`flex items-center gap-12 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}
-        >
-            {/* The Node Hexagon */}
-            <div className="shrink-0 relative">
-                <div className={`absolute inset-0 bg-${color}-500/20 blur-[30px] rounded-full animate-pulse`} />
-                <div className={`
-                    w-24 h-24 rounded-[2rem] bg-slate-900 border-2 border-${color}-500/50 flex flex-col items-center justify-center relative z-10 shadow-2xl
-                `}>
-                    <div className={`text-${color}-400 mb-1`}>{icon}</div>
-                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Step 0{idx + 1}</span>
-                </div>
-            </div>
-
-            {/* The Content Card */}
-            <GlassCard className="flex-1 p-8 border-l-4" style={{ borderLeftColor: `var(--${color}-500)` }} glow>
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <span className={`text-[10px] font-black uppercase tracking-widest text-${color}-400 mb-1 block`}>{subtitle}</span>
-                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h3>
-                    </div>
-                </div>
-                
-                <div className="bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-6 border border-slate-200 dark:border-white/5">
-                    {/* Dynamic Content based on node type */}
-                    {isPlaceholder ? (
-                        <div className="space-y-3 animate-pulse">
-                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-3/4" />
-                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-1/2" />
-                        </div>
-                    ) : (
-                        <>
-                            {idx === 0 && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-6">
-                                        {content.steps?.map((s: any, i: number) => (
-                                            <div key={i} className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-500 uppercase mb-1">{s.level}</span>
-                                                <span className={`text-xl font-black ${i === 2 ? 'text-blue-400' : 'text-slate-400'}`}>{s.word}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <p className="text-sm text-slate-400 italic leading-relaxed border-t border-white/5 pt-4">"{content.context_note}"</p>
-                                </div>
-                            )}
-                            {idx === 1 && (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                                            <p className="text-[10px] font-black text-rose-400 uppercase mb-2">Pattern Detected</p>
-                                            <p className="text-sm font-bold text-slate-300">"{content.incorrect}"</p>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                                            <p className="text-[10px] font-black text-emerald-400 uppercase mb-2">Neural Correction</p>
-                                            <p className="text-sm font-bold text-slate-300">"{content.correct}"</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-slate-500 font-medium pl-2 border-l-2 border-rose-500/30">{content.rule}</p>
-                                </div>
-                            )}
-                            {idx >= 2 && (
-                                <div className="space-y-4">
-                                    <p className="text-sm text-slate-300 font-bold leading-relaxed">{content.focus || content.topic}</p>
-                                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 italic text-xs text-slate-400">
-                                        {content.advanced_c1_academic || content.example || content.rule}
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-
-            </GlassCard>
-        </motion.div>
-    );
-};
 
 export default AdvancedDashboard;
 

@@ -85,3 +85,19 @@ async def get_weekly_vocab(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/record-interaction")
+async def record_interaction(
+    xp: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Triggered when user interacts with a Daily Card.
+    Updates streak and grants XP.
+    """
+    try:
+        learner_service = LearnerService(db)
+        await learner_service.update_daily_interaction(UUID(current_user_id), xp_reward=xp)
+        return {"status": "success", "message": f"Interaction recorded. {xp} XP granted."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

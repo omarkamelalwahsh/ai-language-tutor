@@ -89,7 +89,8 @@ class AssessmentService:
             evaluation_result=evaluation,
             skill=question.skill if question else "general",
             task_id=item.question_id,
-            assessment_id=item.assessment_id
+            assessment_id=item.assessment_id,
+            user_answer=item.user_answer
         )
 
         return evaluation
@@ -100,7 +101,8 @@ class AssessmentService:
         evaluation_result: dict, 
         skill: str, 
         task_id: UUID = None,
-        assessment_id: UUID = None
+        assessment_id: UUID = None,
+        user_answer: str = None
     ):
         """
         Synchronizes Model 2 (Evaluator) results with the PostgreSQL state.
@@ -138,7 +140,25 @@ class AssessmentService:
                     err_profile.bridge_percentage = min(current_bridge + 0.10, 1.0)
                 else:
                     err_profile.bridge_percentage = max(current_bridge - 0.05, 0.0)
-                
+                    
+                    # Update full_report and common_mistakes
+                    error_info = evaluation_result.get("error_analysis", {})
+                    category = error_info.get("error_category", skill)
+                    
+                    report = err_profile.full_report or {}
+                    if category not in report:
+                        report[category] = {"count": 0, "last_failed": ""}
+                    
+                    report[category]["count"] += 1
+                    report[category]["last_failed"] = datetime.utcnow().isoformat()
+                    err_profile.full_report = report
+                    
+                    # Sync common_mistakes array
+                    mistakes = list(err_profile.common_mistakes or [])
+                    if category not in mistakes:
+                        mistakes.append(category)
+                    err_profile.common_mistakes = mistakes
+
                 err_profile.updated_at = datetime.utcnow()
 
             # 3. Update UserSkill (Skill Evolution)
@@ -146,7 +166,11 @@ class AssessmentService:
             user_skill = (await self.db.execute(skill_stmt)).scalar_one_or_none()
             
             # 1. Calculate XP Gain (Normalizing to 1000 scale: 0.85 -> 850 XP)
-            xp_gain = int(score * 10) if is_correct else 10
+            # XP Weighting: Only grant XP for Practice/Learning tasks, skip for Diagnostic/Placement
+            is_practice = evaluation_result.get("session_type") == "practice" or assessment_id is None
+            xp_gain = 0
+            if is_practice:
+                xp_gain = int(score) if is_correct else 10
             
             if user_skill:
                 user_skill.xp_points = (user_skill.xp_points or 0) + xp_gain
@@ -154,6 +178,14 @@ class AssessmentService:
                 if score > 80:
                     user_skill.proficiency_confidence = min((user_skill.proficiency_confidence or 0.0) + 0.05, 1.0)
                 user_skill.last_tested = datetime.utcnow()
+            
+            # Update Total Learner Profile XP
+            prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+            profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
+            if profile:
+                profile.xp_points = (profile.xp_points or 0) + xp_gain
+                profile.current_level_xp = (profile.current_level_xp or 0) + xp_gain
+                profile.last_active_at = datetime.utcnow()
             else:
                 # Create if missing
                 new_skill = UserSkill(
@@ -192,6 +224,25 @@ class AssessmentService:
                 created_at=datetime.utcnow()
             )
             self.db.add(new_log)
+
+            # 5. Insert detailed Error Analysis if incorrect
+            if not is_correct:
+                from app.models.domain import UserErrorAnalysis
+                error_info = evaluation_result.get("error_analysis", {})
+                
+                new_error_analysis = UserErrorAnalysis(
+                    profile_id=err_profile.id if err_profile else None,
+                    user_id=user_id,
+                    question_id=task_id,
+                    category=error_info.get("error_category", skill),
+                    is_correct=False,
+                    ai_interpretation=evaluation_result.get("reasoning_summary", ""),
+                    user_answer=user_answer,
+                    correct_answer=error_info.get("corrected_version", ""),
+                    deep_insight=evaluation_result.get("detailed_feedback", ""),
+                    created_at=datetime.utcnow()
+                )
+                self.db.add(new_error_analysis)
 
             # Commit Transaction
             await self.db.commit()

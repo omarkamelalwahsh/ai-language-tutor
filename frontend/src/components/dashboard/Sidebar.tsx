@@ -33,8 +33,8 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => (
-  <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-premium dark:shadow-md h-full">
+export const SidebarContent = ({ activeTab, onTabChange, onLogout }: SidebarProps) => (
+  <>
     <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 group" onClick={() => onTabChange('home')}>
       <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 shadow-premium shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
         <Trophy size={20} className="text-white" fill="currentColor" />
@@ -57,5 +57,11 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => (
       <NavItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => onTabChange('settings')} />
       {onLogout && <NavItem icon={<LogOut size={18} />} label="Sign Out" onClick={onLogout} isDanger />}
     </div>
+  </>
+);
+
+export const Sidebar = ({ activeTab, onTabChange, onLogout }: SidebarProps) => (
+  <aside className="w-64 bg-white dark:bg-gray-900/40 backdrop-blur-xl flex flex-col p-6 shrink-0 z-10 hidden md:flex border-r border-slate-200 dark:border-gray-800 shadow-premium dark:shadow-md h-full">
+    <SidebarContent activeTab={activeTab} onTabChange={onTabChange} onLogout={onLogout} />
   </aside>
 );

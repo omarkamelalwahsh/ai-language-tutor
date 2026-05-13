@@ -7,6 +7,7 @@ from uuid import UUID
 
 from app.models.domain import DailyContent, UserErrorAnalysis, WeeklyVocabulary
 from app.integrations.groq_client import _call_groq_json, MODEL_TASK
+from app.services.vocab_log_service import VocabLogService
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +173,14 @@ class DailyService:
                     ],
                     "context_note": weekly_word["insight"]
                 }
+                
+                # LOG: Save this word exposure to the user's permanent log
+                await VocabLogService.log_vocabulary_exposure(
+                    self.db, 
+                    user_id, 
+                    weekly_word["word_c1"], 
+                    {"source": "daily_bites", "day": weekly_word["day"]}
+                )
             
             # 3. Personalization Swap (Grammar)
             err_stmt = select(UserErrorAnalysis).where(
@@ -313,7 +322,7 @@ class DailyService:
         if not result.scalars().first():
             await self._generate_and_insert_weekly_batch(target_level, field, week_start)
 
-    async def _generate_and_insert_weekly_batch(self, target_level: str, field: str, week_start: datetime):
+    async def _generate_and_insert_weekly_batch(self, target_level: str, field: str, week_start: date):
         """Uses the user's strict prompt to generate 7 unique words at once."""
         prompt = f"""# ROLE: Backend Data Architect.
 # OBJECTIVE: Generate a strictly synchronized 7-day vocabulary set where the "Daily Card" and the "Weekly Tracker" share the same data points.

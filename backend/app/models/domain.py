@@ -56,7 +56,16 @@ class LearnerProfile(Base):
     target_language = Column(String)
     
     # Performance Metrics
-    streak = Column(Integer, server_default='0')
+    # --- Gamification Fields ---
+    current_streak = Column(Integer, server_default='0')
+    longest_streak = Column(Integer, server_default='0')
+    last_interaction_date = Column(Date, nullable=True) 
+    streak_freeze_status = Column(Boolean, default=False)
+    
+    # --- Notification Fields ---
+    fcm_token = Column(String, nullable=True) 
+    web_notifications_enabled = Column(Boolean, default=True)
+    
     pacing_score = Column(Float, server_default='0.0')
     accuracy_rate = Column(Float, server_default='0.0')
     self_correction_rate = Column(Float, server_default='0.0')
@@ -268,6 +277,14 @@ class UserAchievement(Base):
     badge_name = Column(String, nullable=False)
     earned_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class UserNotificationLog(Base):
+    __tablename__ = "user_notifications_log"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    notification_type = Column(String, nullable=False)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_read = Column(Boolean, default=False)
+
 
 # ============================================================================
 # Administration / RBAC schema (managed by alembic 38dcafcb01e1)
@@ -317,6 +334,18 @@ class DailyContent(Base):
     content = Column(JSONB, nullable=False) # Stores the daily_bites JSON
     day_date = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UserVocabularyLog(Base):
+    __tablename__ = "user_vocabulary_log"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'word', name='uq_user_vocab_word'),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    word = Column(String, nullable=False)
+    exposed_at = Column(DateTime(timezone=True), server_default=func.now())
+    context = Column(JSONB, server_default='{}')
 
 class WeeklyVocabulary(Base):
     __tablename__ = "weekly_vocabulary"

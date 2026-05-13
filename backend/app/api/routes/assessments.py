@@ -238,7 +238,8 @@ async def submit_dynamic_task(
             user_id=user_id,
             evaluation_result=evaluation,
             skill=task_metadata.get("skill", "general"),
-            task_id=step_id
+            task_id=step_id,
+            user_answer=response_text
         )
 
         return evaluation

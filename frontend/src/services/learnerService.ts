@@ -88,9 +88,16 @@ export interface IntelligenceProfile {
   }[];
   error_model: {
     type: string;
+    subject: string;
     count: number;
     severity: string;
     status: string;
+    insight?: string;
+    examples?: {
+      user_answer: string;
+      correct_answer: string;
+      insight: string;
+    }[];
   }[];
   cognitive_state: {
     retention_queue: {
@@ -168,6 +175,31 @@ class LearnerService {
     if (!response.ok) throw new Error('Failed to fetch daily bites');
     const data = await response.json();
     return data.daily_bites || null;
+  }
+
+  async recordInteraction(xp: number = 10): Promise<void> {
+    const headers = await this.getAuthHeader();
+    try {
+      await fetch(`${this.baseUrl}/api/v1/daily/record-interaction?xp=${xp}`, { 
+        method: 'POST',
+        headers 
+      });
+    } catch (err) {
+      console.error("Failed to record interaction", err);
+    }
+  }
+
+  async updateFcmToken(token: string): Promise<void> {
+    const headers = await this.getAuthHeader();
+    try {
+      await fetch(`${this.baseUrl}/api/v1/notifications/fcm-token`, { 
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+    } catch (err) {
+      console.error("Failed to update FCM token", err);
+    }
   }
 }
 

@@ -103,7 +103,7 @@ class LearnerService:
             due_reviews = sum(1 for s in skills if (s.xp_points or 0) < 200) if skills else 0
 
             # Momentum: Base (Streak * 10) + (Weekly Minutes / 60 * 5) capped at 100
-            profile_streak = profile.streak if (profile and profile.streak) else 0
+            profile_streak = profile.current_streak if (profile and profile.current_streak) else 0
             momentum = min(100, (profile_streak * 10) + (weekly_minutes // 12))
 
             # 8. Best Next Move (Action Panel)
@@ -263,12 +263,33 @@ class LearnerService:
                 for rule, data in err_profile.full_report.items():
                     count = data.get("count", 0)
                     if count > 0:
+                        # Fetch actual examples from UserErrorAnalysis
+                        ex_stmt = select(UserErrorAnalysis).where(
+                            and_(
+                                UserErrorAnalysis.user_id == user_id,
+                                (UserErrorAnalysis.category == rule) | (UserErrorAnalysis.category == rule.split(':')[0].lower()),
+                                UserErrorAnalysis.is_correct == False
+                            )
+                        ).order_by(desc(UserErrorAnalysis.created_at)).limit(3)
+                        ex_result = await self.db.execute(ex_stmt)
+                        examples_rows = ex_result.scalars().all()
+                        
+                        examples = [
+                            {
+                                "user_answer": ex.user_answer,
+                                "correct_answer": ex.correct_answer,
+                                "insight": ex.deep_insight or ex.ai_interpretation or "Linguistic friction detected in this context."
+                            } for ex in examples_rows
+                        ]
+
                         error_patterns.append({
                             "type": "Grammar Pattern" if "Grammar" in rule or rule in ["Present Simple", "Articles"] else "Linguistic Pattern",
+                            "subject": rule,
                             "count": count,
                             "severity": "High" if count >= 3 else "Medium",
                             "status": "Recurring" if count >= 2 else "Emerging",
-                            "insight": rule
+                            "insight": rule,
+                            "examples": examples
                         })
             
             # Sort by count descending to show most critical errors first
@@ -310,7 +331,14 @@ class LearnerService:
                     },
                     "confidence_trend": [round(l.score * 100) for l in logs[-7:]] if logs else [0]
                 },
-                "best_next_move": best_move
+                "best_next_move": best_move,
+                "profile": {
+                    "xp_points": profile.xp_points if profile else 0,
+                    "current_level_xp": profile.current_level_xp if profile else 0,
+                    "required_xp": 1000, # Fallback, could be fetched from LevelConfig if needed
+                    "current_level": (profile.overall_level or profile.current_proficiency_level or "A1") if profile else "A1",
+                    "streak": profile.current_streak if profile else 0
+                }
             }
         except Exception as e:
             logging.error(f"[LearnerService] Intelligence Profile Error: {str(e)}")
@@ -339,31 +367,95 @@ class LearnerService:
             # 2. Sync Error Profile from Analysis Logs
             err_prof_stmt = select(UserErrorProfile).where(UserErrorProfile.user_id == user_id)
             err_profile = (await self.db.execute(err_prof_stmt)).scalar_one_or_none()
+
+            analysis_stmt = select(UserErrorAnalysis.category).where(
+                UserErrorAnalysis.user_id == user_id,
+                UserErrorAnalysis.is_correct == False
+            )
+            error_results = (await self.db.execute(analysis_stmt)).scalars().all()
+            from collections import Counter
+            actual_counts = Counter(error_results)
             
-            if not err_profile or not err_profile.common_mistakes:
-                # Try to recover from UserErrorAnalysis
-                analysis_stmt = select(UserErrorAnalysis.category).where(
-                    UserErrorAnalysis.user_id == user_id,
-                    UserErrorAnalysis.is_correct == False
-                )
-                error_results = (await self.db.execute(analysis_stmt)).scalars().all()
-                
+            report_keys = set(err_profile.full_report.keys()) if err_profile and err_profile.full_report else set()
+            actual_keys = set(actual_counts.keys())
+            
+            if not err_profile or report_keys != actual_keys:
                 if error_results:
-                    from collections import Counter
                     counts = Counter(error_results)
                     # Any error appearing more than once is "chronic"
                     chronic = [category for category, count in counts.items() if count >= 1]
                     
+                    # Reconstruct full_report
+                    full_report = {}
+                    for category, count in counts.items():
+                        full_report[category] = {"count": count, "last_failed": datetime.now(timezone.utc).isoformat()}
+                    
                     if not err_profile:
-                        err_profile = UserErrorProfile(user_id=user_id, common_mistakes=chronic, full_report={})
+                        err_profile = UserErrorProfile(user_id=user_id, common_mistakes=chronic, full_report=full_report)
                         self.db.add(err_profile)
                     else:
                         err_profile.common_mistakes = chronic
+                        err_profile.full_report = full_report
                     needs_update = True
 
             if needs_update:
                 await self.db.commit()
                 logging.info(f"Successfully healed data for user {user_id}")
+
+            # 3. Heal LearnerProfile progression fields
+            prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+            profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
+            if profile:
+                profile_needs_update = False
+                if profile.xp_points is None:
+                    profile.xp_points = 0
+                    profile_needs_update = True
+                if profile.current_level_xp is None:
+                    profile.current_level_xp = 0
+                    profile_needs_update = True
+                if profile.is_gateway_unlocked is None:
+                    profile.is_gateway_unlocked = False
+                    profile_needs_update = True
+                if not profile.current_proficiency_level:
+                    profile.current_proficiency_level = profile.overall_level or "A1"
+                    profile_needs_update = True
+                
+                if profile_needs_update:
+                    await self.db.commit()
+                    logging.info(f"Successfully healed LearnerProfile for user {user_id}")
         except Exception as e:
             await self.db.rollback()
             logging.error(f"Consistency Error: {str(e)}")
+
+    async def update_daily_interaction(self, user_id: UUID, xp_reward: int = 10):
+        """
+        Increments streak if it's a new day of interaction.
+        Grants specified XP for daily engagement.
+        Streak follows a non-reset policy: it freezes if a day is missed and resumes on next interaction.
+        """
+        try:
+            prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
+            profile = (await self.db.execute(prof_stmt)).scalar_one_or_none()
+            if not profile:
+                logging.error(f"[LearnerService] Profile not found for streak update: {user_id}")
+                return
+
+            today = datetime.now(timezone.utc).date()
+            
+            # 1. Update Streak (Only once per day)
+            if profile.last_interaction_date != today:
+                profile.current_streak = (profile.current_streak or 0) + 1
+                if profile.current_streak > (profile.longest_streak or 0):
+                    profile.longest_streak = profile.current_streak
+                profile.last_interaction_date = today
+
+            # 2. Grant Engagement XP (Always grant if called, e.g. for card completion)
+            profile.xp_points = (profile.xp_points or 0) + xp_reward
+            profile.current_level_xp = (profile.current_level_xp or 0) + xp_reward
+            
+            await self.db.commit()
+            logging.info(f"[LearnerService] Updated streak for user {user_id}: {profile.current_streak}")
+            return True
+        except Exception as e:
+            logging.error(f"[LearnerService] Error updating streak: {str(e)}")
+            await self.db.rollback()

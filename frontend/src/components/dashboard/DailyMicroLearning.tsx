@@ -4,6 +4,7 @@ import {
     Zap, Sparkles, Repeat, Type, BookMarked, 
     CheckCircle2, XCircle, ArrowRight, Info, Volume2
 } from 'lucide-react';
+import { learnerService } from '../../services/learnerService';
 
 interface DailyBites {
     vocabulary?: {
@@ -30,16 +31,16 @@ interface DailyBites {
     };
 }
 
-const MOCK_BITES: DailyBites | null = null;
-
-
 interface DailyMicroLearningProps {
     bites?: DailyBites | null;
+    onInteraction?: () => void;
 }
 
-export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: propBites }) => {
+export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: propBites, onInteraction }) => {
     const [bites, setBites] = useState<DailyBites | null>(null);
     const [loading, setLoading] = useState(true);
+    const [completedBites, setCompletedBites] = useState<string[]>([]);
+    const [totalXP, setTotalXP] = useState(0);
 
     const handleSpeak = (text: string) => {
         if (!window.speechSynthesis) return;
@@ -48,6 +49,20 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
         utterance.lang = 'en-US';
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
+    };
+
+    const handleComplete = async (type: string) => {
+        if (completedBites.includes(type)) return;
+        
+        try {
+            setCompletedBites(prev => [...prev, type]);
+            setTotalXP(prev => prev + 5);
+            // Grant 5 XP per card
+            await learnerService.recordInteraction(5);
+            if (onInteraction) onInteraction();
+        } catch (err) {
+            console.error("Failed to complete bite", err);
+        }
     };
 
     useEffect(() => {
@@ -59,8 +74,9 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
 
         const fetchBites = async () => {
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch('/api/v1/daily/bites', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -76,18 +92,15 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
             } finally {
                 setLoading(false);
             }
-
         };
 
         fetchBites();
     }, [propBites]);
 
-
     if (loading) {
         return (
             <div className="space-y-6 mb-12 animate-pulse">
                 <div className="h-8 w-64 bg-slate-200 dark:bg-white/10 rounded-lg mb-8" />
-                <div className="h-64 w-full bg-slate-200 dark:bg-white/5 rounded-[32px]" />
                 <div className="h-64 w-full bg-slate-200 dark:bg-white/5 rounded-[32px]" />
             </div>
         );
@@ -100,18 +113,30 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                     <Sparkles className="text-indigo-400" size={32} />
                 </div>
                 <h3 className="text-xl font-black text-white">Neural Engine Generating...</h3>
-                <p className="text-slate-400 text-sm max-w-xs">We are architecting your synchronized daily learning bites. This takes about 10-15 seconds.</p>
+                <p className="text-slate-400 text-sm max-w-xs">We are architecting your synchronized daily learning bites.</p>
             </div>
         );
     }
 
     return (
-
         <div className="space-y-6 mb-12">
             <div className="flex items-center justify-between px-2">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                    Daily Micro-Learning Hub
-                </h2>
+                <div>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                        Daily Micro-Learning Hub
+                    </h2>
+                    <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Complete cards to earn +20 XP Daily</p>
+                </div>
+                {completedBites.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-3 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full"
+                    >
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                        <span className="text-sm font-black text-emerald-400">+{totalXP} XP EARNED</span>
+                    </motion.div>
+                )}
             </div>
 
             <div className="flex flex-col gap-6">
@@ -122,6 +147,8 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                         badge="AI Engineering"
                         icon={<Sparkles size={20} className="text-indigo-400" />}
                         gradient="from-indigo-900/40 to-blue-900/40"
+                        isCompleted={completedBites.includes('vocabulary')}
+                        onComplete={() => handleComplete('vocabulary')}
                     >
                         <div className="flex flex-col gap-6">
                             <div className="flex items-center justify-between max-w-lg mx-auto w-full px-4">
@@ -156,15 +183,17 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                 {/* 2. Grammar Remediation */}
                 {bites.grammar && (
                     <VerticalBiteCard 
-                        title={bites.grammar.type === 'Personalized Remediation' ? 'Personalized Grammar Check: Your Error Profile' : 'Common Grammar Pitfall'}
+                        title={bites.grammar.type === 'Personalized Remediation' ? 'Personalized Grammar Check' : 'Common Grammar Pitfall'}
                         icon={<Repeat size={20} className="text-rose-400" />}
                         gradient="from-rose-900/40 to-slate-900/40"
+                        isCompleted={completedBites.includes('grammar')}
+                        onComplete={() => handleComplete('grammar')}
                     >
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                        <XCircle size={12} className="text-rose-500" /> Your Mistake (Recently Detected)
+                                        <XCircle size={12} className="text-rose-500" /> Your Mistake
                                     </span>
                                     <p className="text-sm font-bold text-slate-300">
                                         {bites.grammar.incorrect}
@@ -190,9 +219,11 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                 {/* 3. Style Transformer */}
                 {bites.style && (
                     <VerticalBiteCard 
-                        title="Writing Style Transformer: Elevate Your Tone"
+                        title="Writing Style Transformer"
                         icon={<Type size={20} className="text-blue-400" />}
                         gradient="from-blue-900/40 to-indigo-900/40"
+                        isCompleted={completedBites.includes('style')}
+                        onComplete={() => handleComplete('style')}
                     >
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,6 +250,8 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                         title={`Punctuation Mechanic: ${bites.punctuation.focus}`}
                         icon={<BookMarked size={20} className="text-emerald-400" />}
                         gradient="from-emerald-900/40 to-slate-900/40"
+                        isCompleted={completedBites.includes('punctuation')}
+                        onComplete={() => handleComplete('punctuation')}
                     >
                         <div className="space-y-4">
                             <p className="text-sm text-slate-300 leading-relaxed font-medium">
@@ -242,32 +275,49 @@ interface VerticalBiteCardProps {
     icon: React.ReactNode;
     gradient: string;
     children: React.ReactNode;
+    isCompleted?: boolean;
+    onComplete?: () => void;
 }
 
-const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({ title, badge, icon, gradient, children }) => (
+const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({ 
+    title, badge, icon, gradient, children, isCompleted, onComplete 
+}) => (
     <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border border-white/10 shadow-2xl overflow-hidden group`}
+        className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border ${isCompleted ? 'border-emerald-500/50 shadow-emerald-500/10' : 'border-white/10'} shadow-2xl overflow-hidden group transition-all duration-500`}
     >
         <div className="flex items-start justify-between mb-8">
             <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-white/10 border border-white/10 shadow-lg">
-                    {icon}
+                <div className={`p-3 rounded-2xl ${isCompleted ? 'bg-emerald-500/20' : 'bg-white/10'} border border-white/10 shadow-lg transition-colors`}>
+                    {isCompleted ? <CheckCircle2 size={20} className="text-emerald-400" /> : icon}
                 </div>
                 <h3 className="text-lg font-black text-white tracking-tight leading-tight">{title}</h3>
             </div>
-            {badge && (
-                <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col">
-                    <span>AI</span>
-                    <span>ENGINEERING</span>
+            {!isCompleted ? (
+                <button 
+                    onClick={onComplete}
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all"
+                >
+                    I Understand
+                </button>
+            ) : (
+                <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle2 size={12} /> COMPLETED
                 </div>
             )}
         </div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 px-4">
             {children}
         </div>
+
+        {badge && (
+            <div className="absolute top-8 right-8 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col z-20">
+                <span>AI</span>
+                <span>ENGINEERING</span>
+            </div>
+        )}
 
         {/* Decorative background elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />

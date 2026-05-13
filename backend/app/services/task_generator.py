@@ -5,6 +5,7 @@ import logging
 
 from app.services.profile_aggregator import aggregator
 from app.integrations.groq_client import generate_architect_task
+from app.services.vocab_log_service import VocabLogService
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,9 @@ class TaskGenerator:
         last_errors = unified_profile.get("last_errors", [])
         legacy_data = unified_profile.get("legacy_data", [])
         
+        # 0. Fetch recent vocabulary to avoid repetition
+        recent_vocabulary = await VocabLogService.get_recent_user_vocabulary(db, uuid.UUID(user_id))
+        
         # Determine base difficulty
         difficulty_map = {"A1": 0.2, "A2": 0.3, "B1": 0.5, "B2": 0.7, "C1": 0.9, "C2": 1.0}
         base_difficulty = difficulty_map.get(user_level, 0.5)
@@ -105,8 +109,19 @@ class TaskGenerator:
                 user_domain=f"{user_domain} (Interests: {user_interests}, Goal: {user_goal})",
                 task_type=task_type,
                 focus_skill=focus_skill,
-                difficulty=difficulty
+                difficulty=difficulty,
+                recent_vocabulary=recent_vocabulary
             )
+            
+            # 3. Log the new target word if this is a vocabulary-focused task
+            target_word = result.get("content", {}).get("target_response") or result.get("content", {}).get("target")
+            if target_word and isinstance(target_word, str) and len(target_word.split()) <= 2:
+                await VocabLogService.log_vocabulary_exposure(
+                    db, 
+                    uuid.UUID(user_id), 
+                    target_word, 
+                    {"source": "dynamic_task", "task_type": task_type}
+                )
             
             # Add a fresh ID for the UI
             if "task_metadata" in result:

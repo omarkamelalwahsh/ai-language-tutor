@@ -268,6 +268,7 @@ You are an elite AI Pedagogical Architect specializing in teaching English to te
 - Skill Category: {skill_category} (SPEAKING, WRITING, LISTENING)
 - Specific Task Type: {task_type} 
 - Target Vocabulary / Recent Mistakes: {target_vocabulary}
+- Recently Exposed Vocabulary (DO NOT REPEAT): {recent_vocabulary}
 - Difficulty Score: {difficulty}
 
 # 1. CEFR LEVEL CONSTRAINTS & CONTENT EXCLUSION (STRICT)
@@ -280,7 +281,11 @@ You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {
 - For levels B2 and above: NEVER use infantile vocabulary (e.g., fruits, colors, basic animals, family members) unless they are part of a complex technical metaphor.
 - Failure to provide high-register, domain-relevant content for C-level users is a pedagogical failure. Use "{user_domain}" as the primary anchor for all complexity.
 
-# 2. VOCABULARY INJECTION & DIFFICULTY SCALING
+# 2. REPETITION CONTROL (CRITICAL)
+- **Recently Exposed Vocabulary**: {recent_vocabulary}
+- **Rule**: NEVER use any word from the "Recently Exposed Vocabulary" list as the main target word or core focus of the task. Your goal is to provide fresh linguistic input to expand the learner's lexicon.
+
+# 3. VOCABULARY INJECTION & DIFFICULTY SCALING
 - Integrate {target_vocabulary} naturally.
 - Difficulty {difficulty}: 0.0 is the absolute floor of {user_level}, 1.0 is the ceiling (transitioning to next level).
 
@@ -340,7 +345,8 @@ async def generate_architect_task(
     user_domain: str,
     task_type: str,
     focus_skill: str = "Technical Communication",
-    difficulty: float = 0.5
+    difficulty: float = 0.5,
+    recent_vocabulary: list = None
 ) -> Tuple[Dict[str, Any], str]:
     """
     Elite Pedagogical Engine: Generates hyper-targeted tasks.
@@ -366,10 +372,11 @@ async def generate_architect_task(
         skill_category=skill_category,
         task_type=task_type,
         target_vocabulary=target_vocabulary,
+        recent_vocabulary=", ".join(recent_vocabulary) if recent_vocabulary else "None",
         difficulty=difficulty
     )
     
-    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} {user_domain} professional. Target vocabulary: {target_vocabulary}. Complexity level: {difficulty}."
+    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} {user_domain} professional. Target vocabulary: {target_vocabulary}. Avoid repeating: {recent_vocabulary}. Complexity level: {difficulty}."
     
     result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)
     return result, MODEL_TASK
