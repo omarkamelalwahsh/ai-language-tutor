@@ -101,3 +101,28 @@ async def record_interaction(
         return {"status": "success", "message": f"Interaction recorded. {xp} XP granted."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from pydantic import BaseModel
+class BiteCompletionRequest(BaseModel):
+    bite_type: str
+
+@router.post("/bites/complete")
+async def complete_daily_bite(
+    req: BiteCompletionRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Records that the user completed a specific daily bite type.
+    """
+    try:
+        daily_service = DailyService(db)
+        await daily_service.record_bite_completion(UUID(current_user_id), req.bite_type)
+        
+        # Also grant XP
+        learner_service = LearnerService(db)
+        await learner_service.update_daily_interaction(UUID(current_user_id), xp_reward=5)
+        
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

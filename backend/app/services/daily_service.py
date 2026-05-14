@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from uuid import UUID
 
-from app.models.domain import DailyContent, UserErrorAnalysis, WeeklyVocabulary
+from app.models.domain import DailyContent, UserErrorAnalysis, WeeklyVocabulary, UserDailyBiteCompletion
 from app.integrations.groq_client import _call_groq_json, MODEL_TASK
 from app.services.vocab_log_service import VocabLogService
 
@@ -197,12 +197,45 @@ class DailyService:
                     "rule": user_err.ai_interpretation or user_err.deep_insight or "Focus on structural accuracy."
                 }
             
+            # 4. Fetch Completed Bites for Today
+            comp_stmt = select(UserDailyBiteCompletion.bite_type).where(
+                UserDailyBiteCompletion.user_id == user_id,
+                UserDailyBiteCompletion.completed_date == today
+            )
+            comp_result = await self.db.execute(comp_stmt)
+            completed_bites = comp_result.scalars().all()
+            final_content["completed_bites"] = list(completed_bites)
+
             return final_content
 
             
         except Exception as e:
             logger.error(f"DailyService Error: {str(e)}")
             return None
+
+    async def record_bite_completion(self, user_id: UUID, bite_type: str):
+        try:
+            today = datetime.now(timezone.utc).date()
+            # Check if already completed
+            stmt = select(UserDailyBiteCompletion).where(
+                UserDailyBiteCompletion.user_id == user_id,
+                UserDailyBiteCompletion.bite_type == bite_type,
+                UserDailyBiteCompletion.completed_date == today
+            )
+            result = await self.db.execute(stmt)
+            if result.scalars().first():
+                return
+            
+            completion = UserDailyBiteCompletion(
+                user_id=user_id,
+                bite_type=bite_type,
+                completed_date=today
+            )
+            self.db.add(completion)
+            await self.db.commit()
+        except Exception as e:
+            logger.error(f"record_bite_completion Error: {str(e)}")
+            await self.db.rollback()
 
     async def _generate_new_daily_bites(self, target_level: str, field: str, learning_goal: str):
         prompt = _DAILY_BITES_SYSTEM_PROMPT.format(

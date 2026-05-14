@@ -232,7 +232,11 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                             </div>
                                 ) : (
                                     <div className="w-full h-full p-4 overflow-y-auto custom-scrollbar max-h-[700px]">
-                                        <DailyMicroLearning bites={dailyBites} onInteraction={onInteraction} />
+                                        <DailyMicroLearning 
+                                            bites={dailyBites?.bites} 
+                                            initialCompleted={dailyBites?.completed} 
+                                            onInteraction={onInteraction} 
+                                        />
                                     </div>
                                 )}
 

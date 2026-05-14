@@ -335,6 +335,18 @@ class DailyContent(Base):
     day_date = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class UserDailyBiteCompletion(Base):
+    __tablename__ = "user_daily_bite_completion"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    bite_type = Column(String, nullable=False) # 'vocabulary', 'grammar', etc.
+    completed_date = Column(Date, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'bite_type', 'completed_date', name='uq_user_bite_date'),
+    )
+
 class UserVocabularyLog(Base):
     __tablename__ = "user_vocabulary_log"
     __table_args__ = (

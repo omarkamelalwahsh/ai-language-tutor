@@ -174,7 +174,21 @@ class LearnerService {
     const response = await fetch(`${this.baseUrl}/api/v1/daily/bites`, { headers });
     if (!response.ok) throw new Error('Failed to fetch daily bites');
     const data = await response.json();
-    return data.daily_bites || null;
+    // Return both daily_bites and completed_bites if available
+    return { bites: data.daily_bites || null, completed: data.completed_bites || [] };
+  }
+
+  async completeDailyBite(biteType: string): Promise<void> {
+    const headers = await this.getAuthHeader();
+    try {
+      await fetch(`${this.baseUrl}/api/v1/daily/bites/complete`, { 
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bite_type: biteType })
+      });
+    } catch (err) {
+      console.error("Failed to mark daily bite as complete", err);
+    }
   }
 
   async recordInteraction(xp: number = 10): Promise<void> {

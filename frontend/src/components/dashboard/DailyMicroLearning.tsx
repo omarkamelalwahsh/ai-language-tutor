@@ -33,10 +33,11 @@ interface DailyBites {
 
 interface DailyMicroLearningProps {
     bites?: DailyBites | null;
+    initialCompleted?: string[];
     onInteraction?: () => void;
 }
 
-export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: propBites, onInteraction }) => {
+export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: propBites, initialCompleted, onInteraction }) => {
     const [bites, setBites] = useState<DailyBites | null>(null);
     const [loading, setLoading] = useState(true);
     const [completedBites, setCompletedBites] = useState<string[]>([]);
@@ -57,8 +58,10 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
         try {
             setCompletedBites(prev => [...prev, type]);
             setTotalXP(prev => prev + 5);
-            // Grant 5 XP per card
-            await learnerService.recordInteraction(5);
+            
+            // Mark in backend
+            await learnerService.completeDailyBite(type);
+            
             if (onInteraction) onInteraction();
         } catch (err) {
             console.error("Failed to complete bite", err);
@@ -68,21 +71,17 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
     useEffect(() => {
         if (propBites) {
             setBites(propBites);
+            if (initialCompleted) setCompletedBites(initialCompleted);
             setLoading(false);
             return;
         }
 
         const fetchBites = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/v1/daily/bites', {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.daily_bites) {
-                        setBites(data.daily_bites);
-                    }
+                const data = await learnerService.getDailyBites();
+                if (data.bites) {
+                    setBites(data.bites);
+                    setCompletedBites(data.completed || []);
                 } else {
                     setBites(null);
                 }
@@ -95,7 +94,7 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
         };
 
         fetchBites();
-    }, [propBites]);
+    }, [propBites, initialCompleted]);
 
     if (loading) {
         return (
