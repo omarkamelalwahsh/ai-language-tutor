@@ -287,37 +287,38 @@ const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({
         animate={{ opacity: 1, y: 0 }}
         className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border ${isCompleted ? 'border-emerald-500/50 shadow-emerald-500/10' : 'border-white/10'} shadow-2xl overflow-hidden group transition-all duration-500`}
     >
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-8 relative z-20">
             <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-2xl ${isCompleted ? 'bg-emerald-500/20' : 'bg-white/10'} border border-white/10 shadow-lg transition-colors`}>
                     {isCompleted ? <CheckCircle2 size={20} className="text-emerald-400" /> : icon}
                 </div>
                 <h3 className="text-lg font-black text-white tracking-tight leading-tight">{title}</h3>
             </div>
-            {!isCompleted ? (
-                <button 
-                    onClick={onComplete}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all"
-                >
-                    I Understand
-                </button>
-            ) : (
-                <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                    <CheckCircle2 size={12} /> COMPLETED
-                </div>
-            )}
+            <div className="flex items-center gap-3">
+                {badge && (
+                    <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col">
+                        <span>{badge.split(' ')[0]}</span>
+                        <span>{badge.split(' ')[1]}</span>
+                    </div>
+                )}
+                {!isCompleted ? (
+                    <button 
+                        onClick={onComplete}
+                        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all"
+                    >
+                        I Understand
+                    </button>
+                ) : (
+                    <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                        <CheckCircle2 size={12} /> COMPLETED
+                    </div>
+                )}
+            </div>
         </div>
         
         <div className="relative z-10 px-4">
             {children}
         </div>
-
-        {badge && (
-            <div className="absolute top-8 right-8 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col z-20">
-                <span>AI</span>
-                <span>ENGINEERING</span>
-            </div>
-        )}
 
         {/* Decorative background elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />

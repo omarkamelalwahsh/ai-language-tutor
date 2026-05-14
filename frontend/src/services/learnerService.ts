@@ -201,6 +201,16 @@ class LearnerService {
       console.error("Failed to update FCM token", err);
     }
   }
+
+  async updateProfile(settings: any): Promise<void> {
+    const headers = await this.getAuthHeader();
+    const response = await fetch(`${this.baseUrl}/api/v1/profile`, {
+      method: 'PATCH',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
+    if (!response.ok) throw new Error('Failed to update profile');
+  }
 }
 
 

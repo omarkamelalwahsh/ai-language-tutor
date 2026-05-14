@@ -514,13 +514,13 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
                             <div key={key} className="flex flex-col flex-1">
                               <div className="flex justify-between items-center mb-1">
                                 <span className="text-[8px] font-black uppercase tracking-widest opacity-50">{key}</span>
-                                <span className="text-[9px] font-bold text-white/40">{Math.round(val * 100)}%</span>
+                                <span className="text-[9px] font-bold text-white/40">{Math.round((val as number) * 100)}%</span>
                               </div>
                               <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
                                 <motion.div 
                                   initial={{ width: 0 }}
-                                  animate={{ width: `${val * 100}%` }}
-                                  className={`h-full shadow-[0_0_8px_rgba(255,255,255,0.2)] ${val > 0.7 ? 'bg-emerald-400' : val > 0.4 ? 'bg-amber-400' : 'bg-rose-400'}`}
+                                  animate={{ width: `${(val as number) * 100}%` }}
+                                  className={`h-full shadow-[0_0_8px_rgba(255,255,255,0.2)] ${(val as number) > 0.7 ? 'bg-emerald-400' : (val as number) > 0.4 ? 'bg-amber-400' : 'bg-rose-400'}`}
                                 />
                               </div>
                             </div>

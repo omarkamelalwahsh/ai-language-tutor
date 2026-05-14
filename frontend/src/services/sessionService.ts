@@ -27,6 +27,8 @@ export interface SessionTaskContent {
   masked_sentence?: string;
   vocabulary_used?: string[];
   explanation?: string;
+  audio_url?: string;
+  image_url?: string;
 }
 
 export interface SessionTask {

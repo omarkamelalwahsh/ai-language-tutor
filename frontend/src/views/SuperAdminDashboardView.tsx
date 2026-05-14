@@ -723,7 +723,7 @@ const StatCard = ({ label, value, icon, trend }: { label: string; value: string;
   </div>
 );
 
-const TaskRow = ({ task }: { task: TaskWithProfiles }) => (
+const TaskRow: React.FC<{ task: TaskWithProfiles }> = ({ task }) => (
   <motion.div
     layout
     initial={{ opacity: 0, x: -20 }}
@@ -768,7 +768,7 @@ const TaskRow = ({ task }: { task: TaskWithProfiles }) => (
   </motion.div>
 );
 
-const TeamPerformanceRow = ({ team, rank }: { team: TeamWithAdmin; rank: number }) => (
+const TeamPerformanceRow: React.FC<{ team: TeamWithAdmin; rank: number }> = ({ team, rank }) => (
   <div className="group">
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-3">
@@ -794,7 +794,7 @@ const TeamPerformanceRow = ({ team, rank }: { team: TeamWithAdmin; rank: number 
   </div>
 );
 
-const SafetyLogCard = ({ log }: { log: SafetyLogEntry }) => (
+const SafetyLogCard: React.FC<{ log: SafetyLogEntry }> = ({ log }) => (
   <div className="bg-white/[0.02] border border-white/[0.05] p-5 rounded-3xl hover:bg-white/[0.04] transition-all flex flex-col gap-3 group relative overflow-hidden">
     <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/[0.01] group-hover:bg-red-500/[0.03] rounded-bl-full transition-colors pointer-events-none" />
     <div className="flex items-center justify-between relative z-10">

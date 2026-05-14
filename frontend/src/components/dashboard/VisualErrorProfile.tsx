@@ -27,11 +27,12 @@ export const VisualErrorProfile = () => {
         // Actually let's show "Skill Mastery" but styled as error profile for diagnostic feel
         return {
           subject: s.charAt(0).toUpperCase() + s.slice(1),
-          A: Math.min(100, xp // 10),
+          A: Math.min(100, xp / 10),
           fullMark: 100,
           mistakesCount: errorProfile?.chronic_errors?.length || 0,
         };
       });
+
       setData(formatted);
       setLoading(false);
     } else if (!dataLoading) {
@@ -88,7 +89,7 @@ export const VisualErrorProfile = () => {
               Visual Error Profile
             </h3>
             <p className="text-slate-400 text-xs mt-1">
-              Based on {data.reduce((acc, curr) => acc + curr.totalCount, 0)} assessments
+              Based on {data.reduce((acc, curr) => acc + curr.mistakesCount, 0)} assessments
             </p>
             <p className="text-sm text-slate-500 font-medium mt-1">Diagnostic view of error density across skills.</p>
           </div>
