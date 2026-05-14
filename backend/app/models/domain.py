@@ -374,3 +374,12 @@ class WeeklyVocabulary(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class ChatHistory(Base):
+    """Stores tutor conversation messages for context persistence."""
+    __tablename__ = "chat_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False, index=True)
+    role = Column(String, nullable=False)        # 'user' or 'assistant'
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

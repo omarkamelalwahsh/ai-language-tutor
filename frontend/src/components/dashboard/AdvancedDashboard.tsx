@@ -140,42 +140,6 @@ const ConnectedSkillCard = ({ skillId, name, icon, desc }: any) => {
     );
 };
 
-const GamificationHeader = ({ streak, xp, level }: { streak: number, xp: number, level: string }) => (
-    <div className="flex items-center gap-4 mb-10 overflow-x-auto pb-4 scrollbar-hide">
-        
-        {/* Animated Flame Integration */}
-        <div className="flex-shrink-0">
-            <AnimatedFlame streak={streak} state={streak > 0 ? 'active' : 'broken'} />
-        </div>
-
-        <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-[2rem] shadow-premium group transition-all hover:border-blue-500/30">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                <Trophy size={24} className="text-white" />
-            </div>
-            <div className="whitespace-nowrap">
-                <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Cognitive XP</p>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{xp}</span>
-                    <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Total</span>
-                </div>
-            </div>
-        </div>
-
-        <div className="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 rounded-[2rem] shadow-premium group transition-all hover:border-emerald-500/30">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                <Award size={24} className="text-white" />
-            </div>
-            <div className="whitespace-nowrap">
-                <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Mastery Rank</p>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{level}</span>
-                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Rank</span>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
 const DailyRoadmapNode = ({ idx, title, subtitle, icon, content, color, align = 'left' }: any) => {
     const isRight = align === 'right';
     const isPlaceholder = !content;
@@ -302,7 +266,7 @@ const itemVariants = {
     visible: { y: 0, opacity: 1 }
 };
 
-const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked, total_xp = 0 }: any) => {
+const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked, total_xp = 0, streak = 0 }: any) => {
     const percentage = Math.min(100, (current_xp / required_xp) * 100);
     
     // Determine target level
@@ -330,6 +294,7 @@ const LevelProgress = ({ current_xp, required_xp, level, is_gateway_unlocked, to
                 levelTitle={level} 
                 targetLevel={targetLevel} 
                 xpPoints={total_xp || current_xp} 
+                streak={streak}
             />
         </div>
     );
@@ -666,11 +631,6 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
             animate="visible"
             className="w-full max-w-7xl mx-auto px-4 md:px-0 space-y-10 pb-40"
         >
-            <GamificationHeader 
-                streak={profileData?.profile?.streak || dashboardData?.profile?.streak || supabaseData?.profile?.streak || 0} 
-                xp={profileData?.profile?.xp_points || dashboardData?.profile?.xp_points || supabaseData?.profile?.points || 0} 
-                level={profileData?.profile?.current_level || dashboardData?.profile?.current_level || supabaseData?.profile?.overall_level || 'A1'} 
-            />
 
             {/* 1. MISSION CONTROL ROADMAP (The only primary card) */}
             <motion.div variants={itemVariants}>
@@ -832,7 +792,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
 
                                                         <div className="text-center">
                                                             <p className={`text-[13px] font-black tracking-tight mb-1 ${isToday ? 'text-white' : 'text-slate-900 dark:text-white/80'}`}>
-                                                                {isLocked ? '••••••' : item.word}
+                                                                {isLocked ? '••••••' : (item.data?.word_c1 || '———')}
                                                             </p>
                                                             <div className={`h-1 w-8 rounded-full mx-auto ${isToday ? 'bg-white/40' : 'bg-slate-200 dark:bg-white/10'}`} />
                                                         </div>
@@ -1578,6 +1538,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                     required_xp={mergedDashboardData?.profile?.required_xp || 1000}
                                     level={mergedDashboardData?.profile?.current_level || 'A1'}
                                     is_gateway_unlocked={mergedDashboardData?.profile?.is_gateway_unlocked}
+                                    streak={mergedDashboardData?.profile?.streak || supabaseData?.profile?.streak || 0}
                                 />
                             </motion.div>
 

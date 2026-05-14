@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Trophy, Award } from 'lucide-react';
+import { AnimatedFlame } from './AnimatedFlame';
 
 interface LiquidProgressBarProps {
     progress: number; // 0 to 100
     levelTitle: string;
     targetLevel: string;
     xpPoints: number;
+    streak: number;
 }
 
-export const LiquidProgressBar: React.FC<LiquidProgressBarProps> = ({ progress, levelTitle, targetLevel, xpPoints }) => {
+export const LiquidProgressBar: React.FC<LiquidProgressBarProps> = ({ progress, levelTitle, targetLevel, xpPoints, streak }) => {
     
     const [prevXP, setPrevXP] = useState(xpPoints);
     const [showBonus, setShowBonus] = useState(false);
@@ -88,6 +90,40 @@ export const LiquidProgressBar: React.FC<LiquidProgressBarProps> = ({ progress, 
                             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                         />
                     </motion.div>
+                </div>
+
+                {/* Sub-Badges row */}
+                <div className="flex flex-wrap items-center gap-4 mt-2">
+                    {/* Flame Integration */}
+                    <div className="flex-shrink-0">
+                        <AnimatedFlame streak={streak} state={streak > 0 ? 'active' : 'broken'} />
+                    </div>
+
+                    <div className="flex items-center gap-4 px-6 py-3 bg-white/5 border border-white/5 rounded-[1.5rem] shadow-inner group transition-all hover:border-blue-500/30">
+                        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] group-hover:scale-110 transition-transform">
+                            <Trophy size={20} className="text-white" />
+                        </div>
+                        <div className="whitespace-nowrap">
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] leading-none mb-1">Cognitive XP</p>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-black text-white tracking-tighter">{xpPoints}</span>
+                                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Total</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 px-6 py-3 bg-white/5 border border-white/5 rounded-[1.5rem] shadow-inner group transition-all hover:border-emerald-500/30">
+                        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
+                            <Award size={20} className="text-white" />
+                        </div>
+                        <div className="whitespace-nowrap">
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] leading-none mb-1">Mastery Rank</p>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-black text-white tracking-tighter">{levelTitle}</span>
+                                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Rank</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

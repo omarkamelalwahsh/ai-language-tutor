@@ -184,7 +184,8 @@ class DailyService:
             
             # 3. Personalization Swap (Grammar)
             err_stmt = select(UserErrorAnalysis).where(
-                UserErrorAnalysis.user_id == user_id
+                UserErrorAnalysis.user_id == user_id,
+                UserErrorAnalysis.user_answer != '[SKIPPED]'
             ).order_by(desc(UserErrorAnalysis.created_at))
             err_result = await self.db.execute(err_stmt)
             user_err = err_result.scalars().first()

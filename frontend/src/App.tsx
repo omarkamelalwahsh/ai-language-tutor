@@ -20,6 +20,7 @@ import { Code, X, ShieldCheck } from 'lucide-react';
 // Views - Migrated to Lazy Loading
 const AuthView = lazy(() => import('./views/AuthView'));
 import LandingView from './views/LandingView';
+import { VirtualTutorWidget } from './components/tutor/VirtualTutorWidget';
 const OnboardingView = lazy(() => import('./views/OnboardingView'));
 const AdaptiveAssessmentView = lazy(() => import('./views/AdaptiveAssessmentView'));
 const DiagnosticView = lazy(() => import('./views/DiagnosticView'));
@@ -464,6 +465,9 @@ function AppRoutes() {
           />
         </Routes>
         </Suspense>
+        {user && !location.pathname.includes('/diagnostic') && !location.pathname.includes('/onboarding') && !location.pathname.includes('/auth') && (
+          <VirtualTutorWidget />
+        )}
       </PrestigeErrorBoundary>
     </div>
   );

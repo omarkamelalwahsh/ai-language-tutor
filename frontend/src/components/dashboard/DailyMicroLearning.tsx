@@ -281,72 +281,55 @@ interface VerticalBiteCardProps {
 const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({ 
     title, badge, icon, gradient, children, isCompleted, onComplete 
 }) => (
-    <div style={{ perspective: 1500 }} className="relative w-full group mb-6">
+    <div className="relative w-full group mb-6">
         <motion.div 
-            initial={false}
-            animate={{ rotateY: isCompleted ? 180 : 0 }}
-            transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 20 }}
-            style={{ transformStyle: "preserve-3d" }}
-            className="relative w-full h-full"
+            className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border ${isCompleted ? 'border-emerald-500/30' : 'border-white/10'} shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] overflow-hidden transition-colors duration-500`}
         >
-            {/* FRONT FACE */}
-            <div 
-                style={{ backfaceVisibility: "hidden" }}
-                className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border border-white/10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] overflow-hidden`}
-            >
-                <div className="flex items-start justify-between mb-8 relative z-20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-white/10 border border-white/10 shadow-lg transition-colors">
-                            {icon}
-                        </div>
+            <div className="flex items-start justify-between mb-8 relative z-20">
+                <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-2xl ${isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white'} border border-white/10 shadow-lg transition-all duration-500`}>
+                        {isCompleted ? <CheckCircle2 size={20} /> : icon}
+                    </div>
+                    <div>
                         <h3 className="text-lg font-black text-white tracking-tight leading-tight">{title}</h3>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {badge && (
-                            <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col">
-                                <span>{badge.split(' ')[0]}</span>
-                                <span>{badge.split(' ')[1]}</span>
-                            </div>
-                        )}
-                        {!isCompleted && (
-                            <button 
-                                onClick={onComplete}
-                                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                            >
-                                I Understand
-                            </button>
+                        {isCompleted && (
+                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1 animate-pulse">Mastered • +5 XP</p>
                         )}
                     </div>
                 </div>
-                
-                <div className="relative z-10 px-4">
-                    {children}
+                <div className="flex items-center gap-3">
+                    {badge && !isCompleted && (
+                        <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col">
+                            <span>{badge.split(' ')[0]}</span>
+                            <span>{badge.split(' ')[1]}</span>
+                        </div>
+                    )}
+                    {isCompleted ? (
+                        <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                            Completed
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={onComplete}
+                            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                        >
+                            I Understand
+                        </button>
+                    )}
                 </div>
-
-                {/* Decorative background elements */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+            </div>
+            
+            <div className={`relative z-10 px-4 transition-all duration-500 ${isCompleted ? 'opacity-90' : 'opacity-100'}`}>
+                {children}
             </div>
 
-            {/* BACK FACE */}
-            <div 
-                style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                className="absolute inset-0 w-full h-full p-8 rounded-[32px] bg-gradient-to-br from-emerald-900/80 to-slate-900/90 border border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.15)] flex flex-col items-center justify-center overflow-hidden backdrop-blur-xl"
-            >
-                <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: isCompleted ? 1 : 0, opacity: isCompleted ? 1 : 0 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
-                    className="p-5 rounded-full bg-emerald-500/20 mb-4 shadow-[0_0_40px_rgba(16,185,129,0.5)] border border-emerald-400/30"
-                >
-                    <CheckCircle2 size={48} className="text-emerald-400" />
-                </motion.div>
-                <h3 className="text-2xl font-black text-white tracking-widest uppercase drop-shadow-md">Mastered</h3>
-                <p className="text-emerald-400 mt-2 font-bold text-sm tracking-widest">+5 XP Earned</p>
-                
-                {/* Decorative background elements for back */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
-            </div>
+            {/* Decorative background elements */}
+            <div className={`absolute top-0 right-0 w-64 h-64 ${isCompleted ? 'bg-emerald-500/10' : 'bg-white/5'} rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-colors duration-500`} />
+            
+            {/* Completion subtle overlay */}
+            {isCompleted && (
+                <div className="absolute inset-0 bg-emerald-500/[0.03] pointer-events-none" />
+            )}
         </motion.div>
     </div>
 );
