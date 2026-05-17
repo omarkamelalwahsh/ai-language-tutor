@@ -717,7 +717,7 @@ class SessionManager:
                 # Use difficulty from task if available, else default 0.5
                 difficulty = float(r.get("difficulty", 0.5))
                 accuracy = 1.0 if r.get("is_correct") else 0.0
-                total_xp_gain += PedagogyService.calculate_xp_reward(difficulty, accuracy, profile.streak)
+                total_xp_gain += PedagogyService.calculate_xp_reward(difficulty, accuracy, profile.current_streak)
 
             # Sync to Reservoir (This also updates profile object)
             await PedagogyService.sync_xp_progress(user_id, total_xp_gain, db)

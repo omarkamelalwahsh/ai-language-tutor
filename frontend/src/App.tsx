@@ -465,7 +465,12 @@ function AppRoutes() {
           />
         </Routes>
         </Suspense>
-        {user && !location.pathname.includes('/diagnostic') && !location.pathname.includes('/onboarding') && !location.pathname.includes('/auth') && (
+        {user && (
+          location.pathname.startsWith('/dashboard') || 
+          location.pathname.startsWith('/journey') || 
+          location.pathname.startsWith('/practice') || 
+          location.pathname.startsWith('/runtime')
+        ) && (
           <VirtualTutorWidget />
         )}
       </PrestigeErrorBoundary>

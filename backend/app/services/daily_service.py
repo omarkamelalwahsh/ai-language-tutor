@@ -313,6 +313,15 @@ class DailyService:
             result = await self.db.execute(stmt)
             existing_words = {w.day_index: w for w in result.scalars().all()}
             
+            from app.models.domain import UserDailyBiteCompletion
+            comp_stmt = select(UserDailyBiteCompletion.completed_date).where(
+                UserDailyBiteCompletion.user_id == user_id,
+                UserDailyBiteCompletion.bite_type == "vocabulary",
+                UserDailyBiteCompletion.completed_date >= last_saturday
+            )
+            comp_res = await self.db.execute(comp_stmt)
+            completed_dates = {d for d in comp_res.scalars().all()}
+            
             day_names = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             current_day_index = self.get_custom_day_index()
             
@@ -326,10 +335,12 @@ class DailyService:
                 # New User Guard: If the word's date is before user registration, hide it.
                 word_date = last_saturday + timedelta(days=i)
                 is_visible_to_user = word_date >= user_created_date
+                is_completed = word_date in completed_dates
                 
                 full_log.append({
                     "day": day_names[i],
                     "day_index": i,
+                    "is_completed": is_completed,
                     "data": {
                         "word_c1": w.word_c1,
                         "word_a1": w.word_a1,

@@ -93,7 +93,7 @@ export const VirtualTutorWidget: React.FC = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(true)}
-                className={`fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_0_30px_rgba(99,102,241,0.5)] flex items-center justify-center z-50 border border-white/20 transition-all ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                className={`fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center justify-center z-50 border border-cyan-400/30 transition-all ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'} neon-glow-primary`}
             >
                 <Mic size={24} className="text-white" />
             </motion.button>
@@ -107,7 +107,7 @@ export const VirtualTutorWidget: React.FC = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: isListening ? 1 : 0 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 pointer-events-none transition-all duration-500"
+                            className="fixed inset-0 bg-[#0a0f14]/70 backdrop-blur-sm z-40 pointer-events-none transition-all duration-500"
                         />
 
                         <motion.div
@@ -115,14 +115,14 @@ export const VirtualTutorWidget: React.FC = () => {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 50, scale: 0.95 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed bottom-8 right-8 w-[400px] h-[600px] max-h-[80vh] bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-2xl z-50 flex flex-col overflow-hidden"
+                            className="fixed bottom-8 right-8 w-[400px] h-[600px] max-h-[80vh] bg-[#0a0f14]/85 backdrop-blur-2xl border border-cyan-500/20 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 flex flex-col overflow-hidden"
                         >
                             {/* Header */}
-                            <div className="flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+                            <div className="flex items-center justify-between p-6 border-b border-white/5 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                                            <MessageSquare size={20} className="text-indigo-400" />
+                                        <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                                            <MessageSquare size={20} className="text-cyan-400" />
                                         </div>
                                         {isSpeaking && (
                                             <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full animate-pulse" />
@@ -130,7 +130,7 @@ export const VirtualTutorWidget: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-black text-white tracking-tight">AI Tutor</h3>
-                                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{isSpeaking ? 'Speaking...' : 'Online'}</p>
+                                        <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">{isSpeaking ? 'Speaking...' : 'Online'}</p>
                                     </div>
                                 </div>
                                 <button 
@@ -173,18 +173,18 @@ export const VirtualTutorWidget: React.FC = () => {
                             {/* Waveform Visualizer (CSS Simulated) */}
                             <div className="h-12 w-full flex items-center justify-center gap-1 px-8 opacity-60">
                                 {Array.from({ length: 20 }).map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        animate={{
-                                            height: (isListening || isSpeaking) 
-                                                ? [10, Math.random() * 30 + 10, 10] 
-                                                : 4,
-                                            backgroundColor: isListening ? '#10b981' : isSpeaking ? '#6366f1' : '#475569'
-                                        }}
-                                        transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05 }}
-                                        className="w-1 rounded-full shadow-[0_0_10px_currentColor]"
-                                    />
-                                ))}
+                                     <motion.div
+                                         key={i}
+                                         animate={{
+                                             height: (isListening || isSpeaking) 
+                                                 ? [10, Math.random() * 30 + 10, 10] 
+                                                 : 4,
+                                             backgroundColor: isListening ? '#10b981' : isSpeaking ? '#22d3ee' : '#475569'
+                                         }}
+                                         transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05 }}
+                                         className="w-1 rounded-full shadow-[0_0_10px_currentColor]"
+                                     />
+                                 ))}
                             </div>
 
                             {/* Input Area */}
@@ -198,15 +198,15 @@ export const VirtualTutorWidget: React.FC = () => {
                                             if (e.key === 'Enter') handleSend(inputText);
                                         }}
                                         placeholder="Type or speak..."
-                                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                                     />
                                     
                                     {inputText.trim() ? (
                                         <button 
                                             onClick={() => handleSend(inputText)}
-                                            className="w-12 h-12 rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 flex items-center justify-center transition-colors"
+                                            className="w-12 h-12 rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/30 flex items-center justify-center transition-colors"
                                         >
-                                            <Send size={18} className="text-indigo-400" />
+                                            <Send size={18} className="text-cyan-400" />
                                         </button>
                                     ) : (
                                         <button 

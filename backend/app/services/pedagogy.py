@@ -169,23 +169,22 @@ class PedagogyService:
         profile = (await db.execute(stmt)).scalar_one_or_none()
         if not profile: return
 
-        now = datetime.now(timezone.utc)
-        last_active = profile.last_active_at
+        today = datetime.now(timezone.utc).date()
         
-        if last_active:
-            if last_active.tzinfo is None:
-                last_active = last_active.replace(tzinfo=timezone.utc)
-            
-            delta = now - last_active
-            # If active within the last 24-48 hours, increment or maintain streak
-            if delta.days == 1:
-                profile.streak += 1
-            elif delta.days > 1:
-                profile.streak = 1
-        else:
-            profile.streak = 1
+        if profile.last_interaction_date != today:
+            # Check if they missed a day (not consecutive)
+            if profile.last_interaction_date:
+                days_since_last = (today - profile.last_interaction_date).days
+                if days_since_last > 1:
+                    profile.current_streak = 0
+                    logger.info(f"[PedagogyService] Reset streak to 0 for user {user_id} due to missed day.")
+
+            profile.current_streak = (profile.current_streak or 0) + 1
+            if profile.current_streak > (profile.longest_streak or 0):
+                profile.longest_streak = profile.current_streak
+            profile.last_interaction_date = today
         
-        profile.last_active_at = now
+        profile.last_active_at = datetime.now(timezone.utc)
         await db.flush()
 
     # --- Task 3.1: Node Unlocking Logic ---

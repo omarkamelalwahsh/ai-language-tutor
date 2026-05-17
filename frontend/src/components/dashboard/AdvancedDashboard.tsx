@@ -767,38 +767,39 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                                                 const isToday = cycleDay === i;
                                                 const isPast = i < cycleDay;
                                                 const isLocked = i > cycleDay;
+                                                const isCompleted = item.is_completed;
                                                 
                                                 return (
                                                     <div 
                                                         key={item.day} 
                                                         className={`flex-1 min-w-[140px] p-6 rounded-[2.5rem] border transition-all duration-500 flex flex-col items-center justify-between min-h-[220px] relative group/word
                                                             ${isToday 
-                                                                ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 z-10' 
-                                                                : isPast 
+                                                                ? 'bg-cyan-500/10 border-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.25)] scale-105 z-10 neon-glow-primary' 
+                                                                : isCompleted 
                                                                     ? 'bg-emerald-500/10 border-emerald-500/20 opacity-80' 
-                                                                    : 'bg-white dark:bg-white/[0.02] border-slate-200 dark:border-white/5 opacity-40 grayscale'}
+                                                                    : 'bg-white dark:bg-white/[0.02] border-slate-200 dark:border-white/5 opacity-60'}
                                                         `}
                                                     >
                                                         <div className="flex flex-col items-center gap-1">
-                                                            <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-blue-100' : 'text-slate-400'}`}>Day {i + 1}</span>
-                                                            <h4 className={`text-sm font-black tracking-tight ${isToday ? 'text-white' : 'text-slate-900 dark:text-white/60'}`}>{item.day}</h4>
+                                                            <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-cyan-300' : 'text-slate-400'}`}>Day {i + 1}</span>
+                                                            <h4 className={`text-sm font-black tracking-tight ${isToday ? 'text-cyan-100' : 'text-slate-900 dark:text-white/60'}`}>{item.day}</h4>
                                                         </div>
 
                                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover/word:scale-110
-                                                            ${isToday ? 'bg-white shadow-xl text-blue-600' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}
+                                                            ${isToday ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}
                                                         `}>
-                                                            {isPast ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Sparkles size={20} />}
+                                                            {isCompleted ? <CheckCircle2 size={20} className="text-emerald-500" /> : (isPast ? <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-700" /> : <Sparkles size={20} />)}
                                                         </div>
 
                                                         <div className="text-center">
-                                                            <p className={`text-[13px] font-black tracking-tight mb-1 ${isToday ? 'text-white' : 'text-slate-900 dark:text-white/80'}`}>
+                                                            <p className={`text-[13px] font-black tracking-tight mb-1 ${isToday ? 'text-white' : (isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white/80')}`}>
                                                                 {isLocked ? '••••••' : (item.data?.word_c1 || '———')}
                                                             </p>
-                                                            <div className={`h-1 w-8 rounded-full mx-auto ${isToday ? 'bg-white/40' : 'bg-slate-200 dark:bg-white/10'}`} />
+                                                            <div className={`h-1 w-8 rounded-full mx-auto ${isToday ? 'bg-cyan-400/50' : 'bg-slate-200 dark:bg-white/10'}`} />
                                                         </div>
 
                                                         {isToday && (
-                                                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce">
+                                                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-cyan-400 rounded-full flex items-center justify-center shadow-lg border border-white/20 animate-bounce neon-glow-primary">
                                                                 <Zap size={14} className="text-white fill-white" />
                                                             </div>
                                                         )}

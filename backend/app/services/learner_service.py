@@ -412,13 +412,17 @@ class LearnerService:
                     profile_needs_update = True
                 if profile.current_level_xp is None:
                     profile.current_level_xp = 0
-                    profile_needs_update = True
-                if profile.is_gateway_unlocked is None:
-                    profile.is_gateway_unlocked = False
-                    profile_needs_update = True
-                if not profile.current_proficiency_level:
                     profile.current_proficiency_level = profile.overall_level or "A1"
                     profile_needs_update = True
+                
+                # 4. Strict Streak Reset Check (Dynamic healing)
+                if profile.last_interaction_date:
+                    today = datetime.now(timezone.utc).date()
+                    days_since_last = (today - profile.last_interaction_date).days
+                    if days_since_last > 1:
+                        profile.current_streak = 0
+                        profile_needs_update = True
+                        logging.info(f"[LearnerService] Reset streak to 0 for user {user_id} due to {days_since_last} days of inactivity.")
                 
                 if profile_needs_update:
                     await self.db.commit()
@@ -431,7 +435,7 @@ class LearnerService:
         """
         Increments streak if it's a new day of interaction.
         Grants specified XP for daily engagement.
-        Streak follows a non-reset policy: it freezes if a day is missed and resumes on next interaction.
+        Streak follows a strict reset policy: if a calendar day is missed, it resets to 0.
         """
         try:
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
@@ -444,6 +448,14 @@ class LearnerService:
             
             # 1. Update Streak (Only once per day)
             if profile.last_interaction_date != today:
+                # Check if they missed a day (not consecutive)
+                if profile.last_interaction_date:
+                    days_since_last = (today - profile.last_interaction_date).days
+                    if days_since_last > 1:
+                        # Reset streak to 0 before starting a new one
+                        profile.current_streak = 0
+                        logging.info(f"[LearnerService] Reset streak to 0 for user {user_id} in update_daily_interaction due to missed day.")
+
                 profile.current_streak = (profile.current_streak or 0) + 1
                 if profile.current_streak > (profile.longest_streak or 0):
                     profile.longest_streak = profile.current_streak

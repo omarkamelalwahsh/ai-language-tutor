@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from app.db.database import get_db
 from app.models.domain import LearnerProfile
 from typing import List
@@ -15,7 +15,7 @@ async def get_leaderboard(db: AsyncSession = Depends(get_db)):
             LearnerProfile.onboarding_complete == True
         ).order_by(
             desc(LearnerProfile.xp_points),
-            desc(LearnerProfile.streak)
+            desc(LearnerProfile.current_streak)
         ).limit(50)
         
         result = await db.execute(stmt)
@@ -28,7 +28,7 @@ async def get_leaderboard(db: AsyncSession = Depends(get_db)):
                 "displayName": profile.full_name or "Anonymous Learner",
                 "rank": index + 1,
                 "score": profile.xp_points or 0,
-                "streak": profile.streak or 0,
+                "streak": profile.current_streak or 0,
                 "completedModules": profile.total_questions_answered or 0,
                 "level": profile.overall_level or "A1",
                 "lastActivityAt": "Active" if profile.last_active_at else "Member",
