@@ -1421,12 +1421,301 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     if (isInitialLoading) return <NeuralPulseLoader status="Synchronizing AI Profile..." />;
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-x-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
-            {/* 🌌 Dynamic Atmospheric Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <>
+            {/* 📱 Pixel-Perfect Lumina AI Mobile Dashboard (md:hidden) */}
+            <div className="md:hidden min-h-screen bg-[#0a0f14] text-slate-100 flex flex-col pb-24 overflow-x-hidden relative select-none">
+                {/* Mobile Background Neon Aura */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-15%] w-[60%] h-[40%] bg-cyan-500/10 rounded-full blur-[100px] animate-pulse" />
+                    <div className="absolute bottom-[20%] right-[-15%] w-[60%] h-[40%] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2.5s' }} />
+                </div>
+
+                {/* 1. Mobile Header */}
+                <header className="flex items-center justify-between px-6 py-4 bg-[#0a0f14]/80 backdrop-blur-xl sticky top-0 z-[40] border-b border-white/[0.03]">
+                    <div className="flex items-center gap-3">
+                        <div 
+                            onClick={() => handleTabChange('settings')}
+                            className="w-10 h-10 rounded-full bg-slate-800 border-2 border-white/10 overflow-hidden shadow-md active:scale-95 transition-all"
+                        >
+                            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-base font-black text-white tracking-wide">Lumina AI</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]">
+                        <span className="text-xs">🔥</span>
+                        <span className="text-xs font-black text-white tracking-widest">{mergedDashboardData?.profile?.streak || supabaseData?.profile?.streak || 0}</span>
+                    </div>
+                </header>
+
+                {activeTab === 'home' ? (
+                    <div className="flex-grow flex flex-col pt-4">
+                        {/* 2. Main Practice Card (Chat with Aria) */}
+                        <div className="mx-6 p-6 rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-[#0e141b] to-slate-950 border border-white/[0.05] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                            {/* Card Ambient Glow */}
+                            <div className="absolute -top-12 -right-12 w-28 h-28 bg-cyan-400/10 rounded-full blur-2xl pointer-events-none" />
+                            
+                            <div className="flex items-start gap-4">
+                                <div className="relative shrink-0">
+                                    <div className="w-16 h-16 rounded-2xl border border-cyan-400/40 overflow-hidden bg-slate-950 relative shadow-inner">
+                                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aria&backgroundColor=transparent" alt="Aria" className="w-full h-full object-cover scale-110" />
+                                    </div>
+                                    <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#0e141b] shadow-md animate-pulse" />
+                                </div>
+                                <div className="flex-grow">
+                                    <h4 className="text-base font-black text-white leading-tight">Chat with Aria</h4>
+                                    <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Practice speaking</p>
+                                    <p className="text-[13px] font-black text-white/95 mt-1 leading-snug">"Ordering at a Cafe"</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    window.dispatchEvent(new CustomEvent('open-virtual-tutor'));
+                                }}
+                                className="w-full mt-5 py-4 rounded-[1.5rem] bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-400 text-slate-950 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all duration-300 shadow-[0_4px_25px_rgba(34,211,238,0.3)] hover:brightness-110"
+                            >
+                                <Mic size={14} className="fill-current text-slate-950" />
+                                <span>Start Practice</span>
+                            </button>
+                        </div>
+
+                        {/* 3. Skill Progress Section */}
+                        <div className="mt-8 px-6">
+                            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4">Skill Progress</h3>
+                            
+                            {/* Circular Skills Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                                {(() => {
+                                    const getSkillStats = (id: string) => {
+                                        const s = (supabaseData.skills || []).find((item: any) => (item.skillId || item.skill || '').toLowerCase() === id.toLowerCase());
+                                        const raw = s ? (s.current_score !== undefined ? s.current_score : s.masteryScore || 0) : 0;
+                                        const score = Math.round(raw < 1 && raw > 0 ? raw * 100 : raw);
+                                        return {
+                                            score: score || 0,
+                                            level: s?.level || s?.currentLevel || s?.current_level || 'A1'
+                                        };
+                                    };
+                                    const reading = getSkillStats('reading');
+                                    const writing = getSkillStats('writing');
+                                    const listening = getSkillStats('listening');
+                                    const speaking = getSkillStats('speaking');
+                                    
+                                    const skillConfigs = [
+                                        { id: 'reading', label: 'Reading', stats: reading, color: '#10b981', xp: '+5% XP' },
+                                        { id: 'writing', label: 'Writing', stats: writing, color: '#22d3ee', xp: '+2% XP' },
+                                        { id: 'listening', label: 'Listening', stats: listening, color: '#a855f7', xp: '+8% XP' },
+                                        { id: 'speaking', label: 'Speaking', stats: speaking, color: '#f59e0b', xp: '+12% XP' }
+                                    ];
+                                    
+                                    return skillConfigs.map(s => {
+                                        const radius = 22;
+                                        const strokeWidth = 3.5;
+                                        const circumference = 2 * Math.PI * radius;
+                                        const strokeDashoffset = circumference - (Math.max(5, Math.min(100, s.stats.score)) / 100) * circumference;
+                                        
+                                        return (
+                                            <div 
+                                                key={s.id}
+                                                onClick={() => handleTabChange('analytics')}
+                                                className="bg-[#11161d]/60 border border-white/[0.04] p-5 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-lg hover:border-white/10 active:scale-97 transition-all duration-300"
+                                            >
+                                                <div className="relative w-14 h-14 flex items-center justify-center mb-3">
+                                                    <svg className="w-full h-full transform -rotate-90">
+                                                        <circle cx="28" cy="28" r={radius} stroke="rgba(255,255,255,0.04)" strokeWidth={strokeWidth} fill="transparent" />
+                                                        <circle 
+                                                            cx="28" 
+                                                            cy="28" 
+                                                            r={radius} 
+                                                            stroke={s.color} 
+                                                            strokeWidth={strokeWidth} 
+                                                            fill="transparent" 
+                                                            strokeDasharray={circumference}
+                                                            strokeDashoffset={strokeDashoffset}
+                                                            strokeLinecap="round"
+                                                            style={{ filter: `drop-shadow(0px 0px 5px ${s.color}60)` }}
+                                                        />
+                                                    </svg>
+                                                    <span className="absolute text-[10px] font-black text-white">{s.stats.level}</span>
+                                                </div>
+                                                <span className="text-[13px] font-black text-white/90">{s.label}</span>
+                                                <span className="text-[10px] font-black text-emerald-400 mt-1 uppercase tracking-widest">{s.xp}</span>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                              </div>
+                          </div>
+
+                        {/* 4. Daily Boost Horizontal Scroll */}
+                        <div className="mt-8">
+                            <div className="flex items-center justify-between px-6 mb-4">
+                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em]">Daily Boost</h3>
+                                <button 
+                                    onClick={() => handleTabChange('daily')}
+                                    className="text-[10px] font-black text-cyan-400 uppercase tracking-widest active:scale-95 transition-all"
+                                >
+                                    View All
+                                </button>
+                            </div>
+                            
+                            <div className="flex gap-4 overflow-x-auto px-6 py-2 scrollbar-hide">
+                                {(() => {
+                                    const vocabWord = dailyBites?.vocabulary?.steps?.[2]?.word || dailyBites?.vocabulary?.word_c1 || 'Éphémère';
+                                    const vocabContext = dailyBites?.vocabulary?.context_note || 'adj. Short-lived';
+                                    
+                                    const grammarTopic = dailyBites?.grammar?.pattern || 'Subjunctive';
+                                    const grammarContext = dailyBites?.grammar?.correction || 'Expressing desire.';
+                                    
+                                    const styleTopic = dailyBites?.style?.focus || 'Passive Voice';
+                                    const styleContext = dailyBites?.style?.rewrite_tip || 'Formal clarity.';
+                                    
+                                    const boostCards = [
+                                        { title: vocabWord, subtitle: vocabContext, color: '#22d3ee', icon: '文' },
+                                        { title: grammarTopic, subtitle: grammarContext, color: '#a855f7', icon: '⚡' },
+                                        { title: styleTopic, subtitle: styleContext, color: '#3b82f6', icon: '✎' }
+                                    ];
+                                    
+                                    return boostCards.map((b, i) => (
+                                        <div 
+                                            key={i}
+                                            onClick={() => handleTabChange('daily')}
+                                            className="min-w-[160px] max-w-[180px] bg-[#11161d]/60 border border-white/[0.04] p-5 rounded-[2rem] flex flex-col justify-between min-h-[140px] relative shadow-lg overflow-hidden active:scale-95 transition-all"
+                                        >
+                                            {/* Accent Left Bar */}
+                                            <div className="absolute left-0 top-6 bottom-6 w-1 rounded-r-md" style={{ backgroundColor: b.color }} />
+                                            
+                                            <div className="flex flex-col gap-2">
+                                                <div 
+                                                    className="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black" 
+                                                    style={{ backgroundColor: `${b.color}15`, color: b.color }}
+                                                >
+                                                    {b.icon}
+                                                </div>
+                                                <h4 className="text-[14px] font-black text-white leading-tight mt-1 line-clamp-1">{b.title}</h4>
+                                                <p className="text-[10px] font-bold text-slate-400 line-clamp-2 leading-relaxed">{b.subtitle}</p>
+                                            </div>
+                                            
+                                            {/* Small Bottom Progress Strip */}
+                                            <div className="w-full h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
+                                                <div className="h-full w-2/3 rounded-full" style={{ backgroundColor: b.color }} />
+                                            </div>
+                                        </div>
+                                    ));
+                                })()}
+                            </div>
+                        </div>
+
+                        {/* 5. Statistics Banner Card */}
+                        <div className="mt-8 mx-6">
+                            <div className="bg-[#11161d]/60 border border-white/[0.04] p-6 rounded-[2.5rem] grid grid-cols-2 divide-x divide-white/[0.04] shadow-lg">
+                                <div className="flex flex-col pr-4">
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Hours</span>
+                                    <span className="text-2xl font-black text-cyan-400 tracking-tight">128</span>
+                                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-1">
+                                        📈 12.4%
+                                    </span>
+                                </div>
+                                <div className="flex flex-col pl-6">
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">XP Earned</span>
+                                    <span className="text-2xl font-black text-purple-400 tracking-tight">24.5k</span>
+                                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-1">
+                                        ⚡ Level {mergedDashboardData?.profile?.current_level || 14}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    // Tabs render directly in a matching dark container
+                    <div className="flex-1 overflow-y-auto px-4 py-4 pb-28 min-h-0 bg-[#0a0f14]">
+                        {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
+                        {activeTab === 'daily' && (
+                            <div className="w-full min-h-screen pb-20 relative">
+                                <div className="px-4 mb-10">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Neural Linguistic Roadmap</span>
+                                    <h2 className="text-3xl font-black text-white mt-1">Proficiency Journey</h2>
+                                </div>
+                                {dailyBites ? (
+                                    <div className="space-y-12 px-4">
+                                        <DailyRoadmapNode idx={0} title="Linguistic Seed" subtitle="Vocabulary Sync" icon={<Sparkles size={20} />} content={dailyBites?.vocabulary} color="indigo" />
+                                        <DailyRoadmapNode idx={1} title="Neural Repair" subtitle="Grammar Remediation" icon={<Zap size={20} />} content={dailyBites?.grammar} color="rose" />
+                                        <DailyRoadmapNode idx={2} title="Stylistic Shift" subtitle="Tone Transformer" icon={<PenTool size={20} />} content={dailyBites?.style} color="blue" />
+                                        <DailyRoadmapNode idx={3} title="Structural Logic" subtitle="Punctuation Mechanic" icon={<Layers size={20} />} content={dailyBites?.punctuation} color="emerald" />
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-center py-20">
+                                        <NeuralPulseLoader status="Synthesizing..." />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {activeTab === 'analytics' && (
+                            <AnalyticsTab 
+                                supabaseData={supabaseData} 
+                                dashboardData={mergedDashboardData}
+                                weaknesses={Array.isArray(supabaseData.errorProfile?.weakness_areas) ? supabaseData.errorProfile.weakness_areas : []}
+                                mistakes={Array.isArray(supabaseData.errorProfile?.common_mistakes) ? supabaseData.errorProfile.common_mistakes : []}
+                                actionPlan={mergedDashboardData?.intelligence_feed?.action_plan || supabaseData.errorProfile?.action_plan || ""}
+                            />
+                        )}
+                        {activeTab === 'settings' && <SettingsTab {...props} supabaseData={supabaseData} refresh={fetchAllData} />}
+                    </div>
+                )}
+
+                {/* 6. Fixed Bottom Navigation Bar */}
+                <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0f14]/90 backdrop-blur-2xl border-t border-white/[0.03] grid grid-cols-5 items-center justify-center px-4 z-[45]">
+                    {[
+                        { id: 'home', label: 'Home', icon: <Home size={18} /> },
+                        { id: 'journey', label: 'Lessons', icon: <BookOpen size={18} /> },
+                        { id: 'tutor', label: 'AI Tutor', icon: <Brain size={18} /> },
+                        { id: 'analytics', label: 'Progress', icon: <BarChart3 size={18} /> },
+                        { id: 'settings', label: 'Profile', icon: <Settings size={18} /> }
+                    ].map(tab => {
+                        const isActive = activeTab === tab.id || (tab.id === 'home' && activeTab === 'daily');
+                        
+                        if (tab.id === 'tutor') {
+                            return (
+                                <button 
+                                    key={tab.id}
+                                    onClick={() => {
+                                        window.dispatchEvent(new CustomEvent('open-virtual-tutor'));
+                                    }}
+                                    className="flex flex-col items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-all duration-300"
+                                >
+                                    {tab.icon}
+                                    <span className="mt-1">{tab.label}</span>
+                                </button>
+                            );
+                        }
+                        
+                        return (
+                            <button 
+                                key={tab.id}
+                                onClick={() => handleTabChange(tab.id)}
+                                className={`flex flex-col items-center justify-center transition-all duration-300 ${
+                                    isActive 
+                                        ? 'text-cyan-400' 
+                                        : 'text-slate-500 hover:text-slate-300'
+                                }`}
+                            >
+                                <div className={`flex flex-col items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wider ${
+                                    isActive ? 'bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-2xl' : ''
+                                }`}>
+                                    {tab.icon}
+                                    <span className="mt-0.5">{tab.label}</span>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </nav>
             </div>
+
+            {/* --- ORIGINAL RESPONSIVE DESKTOP LAYOUT (hidden md:flex) --- */}
+            <div className="hidden md:flex h-screen w-full bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-slate-50 font-sans overflow-x-hidden relative selection:bg-blue-500/30 transition-colors duration-300">
+                {/* 🌌 Dynamic Atmospheric Background */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                </div>
 
             {/* Auto-Sync Banner */}
             <AnimatePresence>
@@ -1622,6 +1911,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                 </div>
             </main>
         </div>
-    );
+    </>
+);
 };
 export default AdvancedDashboard;

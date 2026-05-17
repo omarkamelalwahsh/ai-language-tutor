@@ -23,6 +23,12 @@ export const VirtualTutorWidget: React.FC = () => {
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        const handleOpen = () => setIsOpen(true);
+        window.addEventListener('open-virtual-tutor', handleOpen);
+        return () => window.removeEventListener('open-virtual-tutor', handleOpen);
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
