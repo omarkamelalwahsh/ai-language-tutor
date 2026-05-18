@@ -107,12 +107,12 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
 
     if (!bites) {
         return (
-            <div className="p-12 rounded-[40px] bg-slate-900/50 border border-white/5 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="p-12 rounded-[40px] bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center text-center space-y-4 shadow-sm dark:shadow-none transition-all duration-300">
                 <div className="p-4 rounded-full bg-indigo-500/10 animate-pulse">
-                    <Sparkles className="text-indigo-400" size={32} />
+                    <Sparkles className="text-indigo-600 dark:text-indigo-400" size={32} />
                 </div>
-                <h3 className="text-xl font-black text-white">Neural Engine Generating...</h3>
-                <p className="text-slate-400 text-sm max-w-xs">We are architecting your synchronized daily learning bites.</p>
+                <h3 className="text-xl font-black text-slate-800 dark:text-white">Neural Engine Generating...</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs">We are architecting your synchronized daily learning bites.</p>
             </div>
         );
     }
@@ -132,8 +132,8 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-3 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full"
                     >
-                        <CheckCircle2 size={16} className="text-emerald-400" />
-                        <span className="text-sm font-black text-emerald-400">+{totalXP} XP EARNED</span>
+                        <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">+{totalXP} XP EARNED</span>
                     </motion.div>
                 )}
             </div>
@@ -144,8 +144,9 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                     <VerticalBiteCard 
                         title="Level Up Your Vocabulary"
                         badge="AI Engineering"
-                        icon={<Sparkles size={20} className="text-indigo-400" />}
-                        gradient="from-indigo-900/40 to-blue-900/40"
+                        icon={<Sparkles size={20} className="text-indigo-600 dark:text-indigo-400" />}
+                        gradient="from-indigo-50 to-blue-50/50 dark:from-indigo-950/20 dark:to-blue-950/20"
+                        borderColor="border-indigo-100/80 dark:border-white/5"
                         isCompleted={completedBites.includes('vocabulary')}
                         onComplete={() => handleComplete('vocabulary')}
                     >
@@ -154,25 +155,25 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                                 {bites.vocabulary.steps.map((step, i) => (
                                     <React.Fragment key={i}>
                                         <div className="flex flex-col items-center gap-2 group/word">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{step.level}</span>
+                                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{step.level}</span>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-xl font-black ${i === 2 ? 'text-white scale-125' : 'text-slate-500 opacity-60'}`}>
+                                                <span className={`text-xl font-black ${i === 2 ? 'text-slate-900 dark:text-white scale-125' : 'text-slate-400 dark:text-slate-500 opacity-60'}`}>
                                                     {step.word}
                                                 </span>
                                                 <button 
                                                     onClick={() => handleSpeak(step.word)}
-                                                    className="p-1 rounded-lg bg-white/5 hover:bg-white/20 text-slate-400 hover:text-white transition-all opacity-0 group-hover/word:opacity-100"
+                                                    className="p-1 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all opacity-0 group-hover/word:opacity-100"
                                                     title="Listen"
                                                 >
                                                     <Volume2 size={12} />
                                                 </button>
                                             </div>
                                         </div>
-                                        {i < 2 && <ArrowRight size={20} className="text-slate-700 mt-4" />}
+                                        {i < 2 && <ArrowRight size={20} className="text-slate-300 dark:text-slate-700 mt-4" />}
                                     </React.Fragment>
                                 ))}
                             </div>
-                            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-slate-300 italic leading-relaxed">
+                            <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 text-sm text-slate-600 dark:text-slate-300 italic leading-relaxed shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
                                 {bites.vocabulary.context_note}
                             </div>
                         </div>
@@ -183,32 +184,33 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                 {bites.grammar && (
                     <VerticalBiteCard 
                         title={bites.grammar.type === 'Personalized Remediation' ? 'Personalized Grammar Check' : 'Common Grammar Pitfall'}
-                        icon={<Repeat size={20} className="text-rose-400" />}
-                        gradient="from-rose-900/40 to-slate-900/40"
+                        icon={<Repeat size={20} className="text-rose-600 dark:text-rose-400" />}
+                        gradient="from-rose-50 to-slate-50/50 dark:from-rose-950/20 dark:to-slate-950/20"
+                        borderColor="border-rose-100/80 dark:border-white/5"
                         isCompleted={completedBites.includes('grammar')}
                         onComplete={() => handleComplete('grammar')}
                     >
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 space-y-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                    <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
                                         <XCircle size={12} className="text-rose-500" /> Your Mistake
                                     </span>
-                                    <p className="text-sm font-bold text-slate-300">
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                                         {bites.grammar.incorrect}
                                     </p>
                                 </div>
-                                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
-                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                                <div className="p-5 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                                         <CheckCircle2 size={12} className="text-emerald-500" /> AI Correction
                                     </span>
-                                    <p className="text-sm font-bold text-white">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
                                         {bites.grammar.correct}
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-900/50 text-xs text-slate-400 font-medium">
-                                <Info size={14} className="text-indigo-400 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-950/50 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                <Info size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
                                 {bites.grammar.rule}
                             </div>
                         </div>
@@ -219,24 +221,25 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                 {bites.style && (
                     <VerticalBiteCard 
                         title="Writing Style Transformer"
-                        icon={<Type size={20} className="text-blue-400" />}
-                        gradient="from-blue-900/40 to-indigo-900/40"
+                        icon={<Type size={20} className="text-blue-600 dark:text-blue-400" />}
+                        gradient="from-blue-50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+                        borderColor="border-blue-100/80 dark:border-white/5"
                         isCompleted={completedBites.includes('style')}
                         onComplete={() => handleComplete('style')}
                     >
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Basic (B1)</span>
-                                    <p className="text-sm font-bold text-slate-300 italic">"{bites.style.basic_b1}"</p>
+                                <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 space-y-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Basic (B1)</span>
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 italic">"{bites.style.basic_b1}"</p>
                                 </div>
-                                <div className="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Academic (C1)</span>
-                                    <p className="text-sm font-bold text-white">"{bites.style.advanced_c1_academic}"</p>
+                                <div className="p-5 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 space-y-2">
+                                    <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Academic (C1)</span>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">"{bites.style.advanced_c1_academic}"</p>
                                 </div>
                             </div>
-                            <div className="p-4 rounded-xl bg-slate-900/50 text-xs text-slate-400 italic">
-                                <span className="font-black text-indigo-400 uppercase mr-2">Style Note:</span>
+                            <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-950/50 text-xs text-slate-600 dark:text-slate-400 italic">
+                                <span className="font-black text-indigo-600 dark:text-indigo-400 uppercase mr-2">Style Note:</span>
                                 {bites.style.style_note}
                             </div>
                         </div>
@@ -247,18 +250,19 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                 {bites.punctuation && (
                     <VerticalBiteCard 
                         title={`Punctuation Mechanic: ${bites.punctuation.focus}`}
-                        icon={<BookMarked size={20} className="text-emerald-400" />}
-                        gradient="from-emerald-900/40 to-slate-900/40"
+                        icon={<BookMarked size={20} className="text-emerald-600 dark:text-emerald-400" />}
+                        gradient="from-emerald-50 to-slate-50/50 dark:from-emerald-950/20 dark:to-slate-950/20"
+                        borderColor="border-emerald-100/80 dark:border-white/5"
                         isCompleted={completedBites.includes('punctuation')}
                         onComplete={() => handleComplete('punctuation')}
                     >
                         <div className="space-y-4">
-                            <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                                 {bites.punctuation.rule}
                             </p>
-                            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Example</span>
-                                <p className="text-sm font-bold text-white italic">"{bites.punctuation.example}"</p>
+                            <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 space-y-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Example</span>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white italic">"{bites.punctuation.example}"</p>
                             </div>
                         </div>
                     </VerticalBiteCard>
@@ -273,45 +277,46 @@ interface VerticalBiteCardProps {
     badge?: string;
     icon: React.ReactNode;
     gradient: string;
+    borderColor: string;
     children: React.ReactNode;
     isCompleted?: boolean;
     onComplete?: () => void;
 }
 
 const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({ 
-    title, badge, icon, gradient, children, isCompleted, onComplete 
+    title, badge, icon, gradient, borderColor, children, isCompleted, onComplete 
 }) => (
     <div className="relative w-full group mb-6">
         <motion.div 
-            className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border ${isCompleted ? 'border-emerald-500/30' : 'border-white/10'} shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] overflow-hidden transition-colors duration-500`}
+            className={`relative w-full p-8 rounded-[32px] bg-gradient-to-br ${gradient} border ${isCompleted ? 'border-emerald-500/30' : borderColor} shadow-[0_15px_30px_-15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300`}
         >
             <div className="flex items-start justify-between mb-8 relative z-20">
                 <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-2xl ${isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white'} border border-white/10 shadow-lg transition-all duration-500`}>
+                    <div className={`p-3 rounded-2xl ${isCompleted ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-white/10 text-slate-800 dark:text-white'} border border-slate-200/50 dark:border-white/10 shadow-sm transition-all duration-500`}>
                         {isCompleted ? <CheckCircle2 size={20} /> : icon}
                     </div>
                     <div>
-                        <h3 className="text-lg font-black text-white tracking-tight leading-tight">{title}</h3>
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">{title}</h3>
                         {isCompleted && (
-                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1 animate-pulse">Mastered • +5 XP</p>
+                            <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-1 animate-pulse">Mastered • +5 XP</p>
                         )}
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {badge && !isCompleted && (
-                        <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[8px] font-black text-white uppercase tracking-widest text-center flex flex-col">
+                        <div className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[8px] font-black text-slate-600 dark:text-white uppercase tracking-widest text-center flex flex-col leading-tight">
                             <span>{badge.split(' ')[0]}</span>
                             <span>{badge.split(' ')[1]}</span>
                         </div>
                     )}
                     {isCompleted ? (
-                        <div className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                        <div className="px-4 py-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 dark:border-emerald-500/30 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                             Completed
                         </div>
                     ) : (
                         <button 
                             onClick={onComplete}
-                            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-[10px] font-black text-white uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white/15 dark:hover:bg-white/25 border border-slate-800 dark:border-white/10 text-[10px] font-black text-white dark:text-white uppercase tracking-widest transition-all shadow-[0_4px_10px_rgba(0,0,0,0.05)] active:scale-95"
                         >
                             I Understand
                         </button>
@@ -328,7 +333,7 @@ const VerticalBiteCard: React.FC<VerticalBiteCardProps> = ({
             
             {/* Completion subtle overlay */}
             {isCompleted && (
-                <div className="absolute inset-0 bg-emerald-500/[0.03] pointer-events-none" />
+                <div className="absolute inset-0 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03] pointer-events-none" />
             )}
         </motion.div>
     </div>

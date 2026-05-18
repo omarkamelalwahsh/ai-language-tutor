@@ -1423,55 +1423,58 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
     return (
         <>
             {/* 📱 Pixel-Perfect Lumina AI Mobile Dashboard (md:hidden) */}
-            <div className="md:hidden min-h-screen bg-[#0a0f14] text-slate-100 flex flex-col pb-24 overflow-x-hidden relative select-none">
+            <div className="md:hidden min-h-screen bg-slate-50 dark:bg-[#0a0f14] text-slate-900 dark:text-slate-100 flex flex-col pb-24 overflow-x-hidden relative select-none transition-colors duration-300">
                 {/* Mobile Background Neon Aura */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-[-10%] left-[-15%] w-[60%] h-[40%] bg-cyan-500/10 rounded-full blur-[100px] animate-pulse" />
-                    <div className="absolute bottom-[20%] right-[-15%] w-[60%] h-[40%] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2.5s' }} />
+                    <div className="absolute top-[-10%] left-[-15%] w-[60%] h-[40%] bg-cyan-500/5 dark:bg-cyan-500/10 rounded-full blur-[100px] animate-pulse" />
+                    <div className="absolute bottom-[20%] right-[-15%] w-[60%] h-[40%] bg-purple-500/[0.03] dark:bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2.5s' }} />
                 </div>
 
                 {/* 1. Mobile Header */}
-                <header className="flex items-center justify-between px-6 py-4 bg-[#0a0f14]/80 backdrop-blur-xl sticky top-0 z-[40] border-b border-white/[0.03]">
+                <header className="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-[#0a0f14]/80 backdrop-blur-xl sticky top-0 z-[40] border-b border-slate-200/50 dark:border-white/[0.03] transition-colors duration-300">
                     <div className="flex items-center gap-3">
                         <div 
                             onClick={() => handleTabChange('settings')}
-                            className="w-10 h-10 rounded-full bg-slate-800 border-2 border-white/10 overflow-hidden shadow-md active:scale-95 transition-all"
+                            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10 overflow-hidden shadow-md active:scale-95 transition-all"
                         >
                             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${displayName}&backgroundColor=transparent`} alt="Profile" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-base font-black text-white tracking-wide">Lumina AI</span>
+                        <span className="text-base font-black text-slate-900 dark:text-white tracking-wide">{displayName}</span>
                     </div>
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]">
-                        <span className="text-xs">🔥</span>
-                        <span className="text-xs font-black text-white tracking-widest">{mergedDashboardData?.profile?.streak || supabaseData?.profile?.streak || 0}</span>
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]">
+                            <span className="text-xs">🔥</span>
+                            <span className="text-xs font-black text-slate-800 dark:text-white tracking-widest">{mergedDashboardData?.profile?.streak || supabaseData?.profile?.streak || 0}</span>
+                        </div>
                     </div>
                 </header>
 
                 {activeTab === 'home' ? (
                     <div className="flex-grow flex flex-col pt-4">
                         {/* 2. Main Practice Card (Chat with Aria) */}
-                        <div className="mx-6 p-6 rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-[#0e141b] to-slate-950 border border-white/[0.05] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                        <div className="mx-6 p-6 rounded-[2.5rem] bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-[#0e141b] dark:to-slate-950 border border-slate-200/60 dark:border-white/[0.05] shadow-[0_15px_35px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden group transition-all duration-300">
                             {/* Card Ambient Glow */}
-                            <div className="absolute -top-12 -right-12 w-28 h-28 bg-cyan-400/10 rounded-full blur-2xl pointer-events-none" />
+                            <div className="absolute -top-12 -right-12 w-28 h-28 bg-cyan-400/[0.08] dark:bg-cyan-400/10 rounded-full blur-2xl pointer-events-none" />
                             
                             <div className="flex items-start gap-4">
                                 <div className="relative shrink-0">
-                                    <div className="w-16 h-16 rounded-2xl border border-cyan-400/40 overflow-hidden bg-slate-950 relative shadow-inner">
+                                    <div className="w-16 h-16 rounded-2xl border border-cyan-400/20 dark:border-cyan-400/40 overflow-hidden bg-slate-50 dark:bg-slate-950 relative shadow-inner">
                                         <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aria&backgroundColor=transparent" alt="Aria" className="w-full h-full object-cover scale-110" />
                                     </div>
-                                    <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#0e141b] shadow-md animate-pulse" />
+                                    <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0e141b] shadow-md animate-pulse" />
                                 </div>
                                 <div className="flex-grow">
-                                    <h4 className="text-base font-black text-white leading-tight">Chat with Aria</h4>
-                                    <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Practice speaking</p>
-                                    <p className="text-[13px] font-black text-white/95 mt-1 leading-snug">"Ordering at a Cafe"</p>
+                                    <h4 className="text-base font-black text-slate-900 dark:text-white leading-tight">Chat with Aria</h4>
+                                    <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest">Practice speaking</p>
+                                    <p className="text-[13px] font-black text-slate-800 dark:text-white/95 mt-1 leading-snug">"Ordering at a Cafe"</p>
                                 </div>
                             </div>
                             <button 
                                 onClick={() => {
                                     window.dispatchEvent(new CustomEvent('open-virtual-tutor'));
                                 }}
-                                className="w-full mt-5 py-4 rounded-[1.5rem] bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-400 text-slate-950 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all duration-300 shadow-[0_4px_25px_rgba(34,211,238,0.3)] hover:brightness-110"
+                                className="w-full mt-5 py-4 rounded-[1.5rem] bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-400 text-slate-950 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all duration-300 shadow-[0_4px_25px_rgba(34,211,238,0.25)] hover:brightness-110"
                             >
                                 <Mic size={14} className="fill-current text-slate-950" />
                                 <span>Start Practice</span>
@@ -1480,7 +1483,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                         {/* 3. Skill Progress Section */}
                         <div className="mt-8 px-6">
-                            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4">Skill Progress</h3>
+                            <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mb-4">Skill Progress</h3>
                             
                             {/* Circular Skills Grid */}
                             <div className="grid grid-cols-2 gap-4">
@@ -1516,11 +1519,11 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                             <div 
                                                 key={s.id}
                                                 onClick={() => handleTabChange('analytics')}
-                                                className="bg-[#11161d]/60 border border-white/[0.04] p-5 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-lg hover:border-white/10 active:scale-97 transition-all duration-300"
+                                                className="bg-white dark:bg-[#11161d]/60 border border-slate-200/60 dark:border-white/[0.04] p-5 rounded-[2rem] flex flex-col items-center justify-center text-center shadow-[0_8px_20px_-6px_rgba(0,0,0,0.02)] dark:shadow-lg hover:border-slate-300 dark:hover:border-white/10 active:scale-97 transition-all duration-300"
                                             >
                                                 <div className="relative w-14 h-14 flex items-center justify-center mb-3">
                                                     <svg className="w-full h-full transform -rotate-90">
-                                                        <circle cx="28" cy="28" r={radius} stroke="rgba(255,255,255,0.04)" strokeWidth={strokeWidth} fill="transparent" />
+                                                        <circle cx="28" cy="28" r={radius} stroke="rgba(0,0,0,0.04)" strokeWidth={strokeWidth} fill="transparent" className="stroke-slate-100 dark:stroke-white/[0.04]" />
                                                         <circle 
                                                             cx="28" 
                                                             cy="28" 
@@ -1534,10 +1537,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                                             style={{ filter: `drop-shadow(0px 0px 5px ${s.color}60)` }}
                                                         />
                                                     </svg>
-                                                    <span className="absolute text-[10px] font-black text-white">{s.stats.level}</span>
+                                                    <span className="absolute text-[10px] font-black text-slate-800 dark:text-white">{s.stats.level}</span>
                                                 </div>
-                                                <span className="text-[13px] font-black text-white/90">{s.label}</span>
-                                                <span className="text-[10px] font-black text-emerald-400 mt-1 uppercase tracking-widest">{s.xp}</span>
+                                                <span className="text-[13px] font-black text-slate-900 dark:text-white/90">{s.label}</span>
+                                                <span className="text-[10px] font-black text-emerald-500 dark:text-emerald-400 mt-1 uppercase tracking-widest">{s.xp}</span>
                                             </div>
                                         );
                                     });
@@ -1548,10 +1551,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         {/* 4. Daily Boost Horizontal Scroll */}
                         <div className="mt-8">
                             <div className="flex items-center justify-between px-6 mb-4">
-                                <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em]">Daily Boost</h3>
+                                <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em]">Daily Boost</h3>
                                 <button 
                                     onClick={() => handleTabChange('daily')}
-                                    className="text-[10px] font-black text-cyan-400 uppercase tracking-widest active:scale-95 transition-all"
+                                    className="text-[10px] font-black text-cyan-500 dark:text-cyan-400 uppercase tracking-widest active:scale-95 transition-all"
                                 >
                                     View All
                                 </button>
@@ -1559,14 +1562,14 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                             
                             <div className="flex gap-4 overflow-x-auto px-6 py-2 scrollbar-hide">
                                 {(() => {
-                                    const vocabWord = dailyBites?.vocabulary?.steps?.[2]?.word || dailyBites?.vocabulary?.word_c1 || 'Éphémère';
-                                    const vocabContext = dailyBites?.vocabulary?.context_note || 'adj. Short-lived';
+                                    const vocabWord = dailyBites?.bites?.vocabulary?.steps?.[2]?.word || dailyBites?.bites?.vocabulary?.word_c1 || 'Éphémère';
+                                    const vocabContext = dailyBites?.bites?.vocabulary?.context_note || 'adj. Short-lived';
                                     
-                                    const grammarTopic = dailyBites?.grammar?.pattern || 'Subjunctive';
-                                    const grammarContext = dailyBites?.grammar?.correction || 'Expressing desire.';
+                                    const grammarTopic = dailyBites?.bites?.grammar?.pattern || 'Subjunctive';
+                                    const grammarContext = dailyBites?.bites?.grammar?.correction || 'Expressing desire.';
                                     
-                                    const styleTopic = dailyBites?.style?.focus || 'Passive Voice';
-                                    const styleContext = dailyBites?.style?.rewrite_tip || 'Formal clarity.';
+                                    const styleTopic = dailyBites?.bites?.style?.focus || 'Passive Voice';
+                                    const styleContext = dailyBites?.bites?.style?.rewrite_tip || 'Formal clarity.';
                                     
                                     const boostCards = [
                                         { title: vocabWord, subtitle: vocabContext, color: '#22d3ee', icon: '文' },
@@ -1578,7 +1581,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                         <div 
                                             key={i}
                                             onClick={() => handleTabChange('daily')}
-                                            className="min-w-[160px] max-w-[180px] bg-[#11161d]/60 border border-white/[0.04] p-5 rounded-[2rem] flex flex-col justify-between min-h-[140px] relative shadow-lg overflow-hidden active:scale-95 transition-all"
+                                            className="min-w-[160px] max-w-[180px] bg-white dark:bg-[#11161d]/60 border border-slate-200/60 dark:border-white/[0.04] p-5 rounded-[2rem] flex flex-col justify-between min-h-[140px] relative shadow-[0_8px_20px_-6px_rgba(0,0,0,0.02)] dark:shadow-lg overflow-hidden active:scale-95 transition-all"
                                         >
                                             {/* Accent Left Bar */}
                                             <div className="absolute left-0 top-6 bottom-6 w-1 rounded-r-md" style={{ backgroundColor: b.color }} />
@@ -1590,12 +1593,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                                 >
                                                     {b.icon}
                                                 </div>
-                                                <h4 className="text-[14px] font-black text-white leading-tight mt-1 line-clamp-1">{b.title}</h4>
-                                                <p className="text-[10px] font-bold text-slate-400 line-clamp-2 leading-relaxed">{b.subtitle}</p>
+                                                <h4 className="text-[14px] font-black text-slate-900 dark:text-white leading-tight mt-1 line-clamp-1">{b.title}</h4>
+                                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 line-clamp-2 leading-relaxed">{b.subtitle}</p>
                                             </div>
                                             
                                             {/* Small Bottom Progress Strip */}
-                                            <div className="w-full h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
+                                            <div className="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full mt-4 overflow-hidden">
                                                 <div className="h-full w-2/3 rounded-full" style={{ backgroundColor: b.color }} />
                                             </div>
                                         </div>
@@ -1606,41 +1609,48 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                         {/* 5. Statistics Banner Card */}
                         <div className="mt-8 mx-6">
-                            <div className="bg-[#11161d]/60 border border-white/[0.04] p-6 rounded-[2.5rem] grid grid-cols-2 divide-x divide-white/[0.04] shadow-lg">
-                                <div className="flex flex-col pr-4">
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Hours</span>
-                                    <span className="text-2xl font-black text-cyan-400 tracking-tight">128</span>
-                                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-1">
-                                        📈 12.4%
-                                    </span>
-                                </div>
-                                <div className="flex flex-col pl-6">
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">XP Earned</span>
-                                    <span className="text-2xl font-black text-purple-400 tracking-tight">24.5k</span>
-                                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-1">
-                                        ⚡ Level {mergedDashboardData?.profile?.current_level || 14}
-                                    </span>
-                                </div>
-                            </div>
+                            {(() => {
+                                const totalQuestions = supabaseData.profile?.totalQuestionsAnswered ?? 0;
+                                const avgTime = supabaseData.profile?.averageResponseTime ?? 0;
+                                const activeHours = Math.round(((totalQuestions * avgTime) / 3600) * 10) / 10 || 0;
+                                const points = supabaseData.profile?.points ?? 0;
+                                const formattedPoints = points >= 1000 ? `${(points / 1000).toFixed(1)}k` : points.toString();
+                                const accuracy = supabaseData.profile?.accuracyRate ?? 0;
+                                const formattedAccuracy = accuracy > 0 ? `${Math.round(accuracy * 100)}% Accuracy` : '0% Accuracy';
+                                
+                                return (
+                                    <div className="bg-white dark:bg-[#11161d]/60 border border-slate-200/60 dark:border-white/[0.04] p-6 rounded-[2.5rem] grid grid-cols-2 divide-x divide-slate-100 dark:divide-white/[0.04] shadow-[0_8px_20px_-6px_rgba(0,0,0,0.02)] dark:shadow-lg transition-all">
+                                        <div className="flex flex-col pr-4">
+                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Total Hours</span>
+                                            <span className="text-2xl font-black text-cyan-500 dark:text-cyan-400 tracking-tight">{activeHours}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-1">
+                                                🎯 {formattedAccuracy}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col pl-6">
+                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">XP Earned</span>
+                                            <span className="text-2xl font-black text-purple-600 dark:text-purple-400 tracking-tight">{formattedPoints}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-1">
+                                                ⚡ Level {supabaseData.profile?.overall_level || 'A1'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </div>
                 ) : (
                     // Tabs render directly in a matching dark container
-                    <div className="flex-1 overflow-y-auto px-4 py-4 pb-28 min-h-0 bg-[#0a0f14]">
+                    <div className="flex-1 overflow-y-auto px-4 py-4 pb-28 min-h-0 bg-slate-50 dark:bg-[#0a0f14] transition-colors duration-300">
                         {activeTab === 'journey' && <JourneyTab {...props} supabaseData={supabaseData} />}
                         {activeTab === 'daily' && (
-                            <div className="w-full min-h-screen pb-20 relative">
-                                <div className="px-4 mb-10">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Neural Linguistic Roadmap</span>
-                                    <h2 className="text-3xl font-black text-white mt-1">Proficiency Journey</h2>
-                                </div>
+                            <div className="w-full min-h-screen pb-20 relative px-2">
                                 {dailyBites ? (
-                                    <div className="space-y-12 px-4">
-                                        <DailyRoadmapNode idx={0} title="Linguistic Seed" subtitle="Vocabulary Sync" icon={<Sparkles size={20} />} content={dailyBites?.vocabulary} color="indigo" />
-                                        <DailyRoadmapNode idx={1} title="Neural Repair" subtitle="Grammar Remediation" icon={<Zap size={20} />} content={dailyBites?.grammar} color="rose" />
-                                        <DailyRoadmapNode idx={2} title="Stylistic Shift" subtitle="Tone Transformer" icon={<PenTool size={20} />} content={dailyBites?.style} color="blue" />
-                                        <DailyRoadmapNode idx={3} title="Structural Logic" subtitle="Punctuation Mechanic" icon={<Layers size={20} />} content={dailyBites?.punctuation} color="emerald" />
-                                    </div>
+                                    <DailyMicroLearning 
+                                        bites={dailyBites?.bites} 
+                                        initialCompleted={dailyBites?.completed} 
+                                        onInteraction={fetchAllData} 
+                                    />
                                 ) : (
                                     <div className="flex justify-center py-20">
                                         <NeuralPulseLoader status="Synthesizing..." />
@@ -1662,7 +1672,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                 )}
 
                 {/* 6. Fixed Bottom Navigation Bar */}
-                <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0f14]/90 backdrop-blur-2xl border-t border-white/[0.03] grid grid-cols-5 items-center justify-center px-4 z-[45]">
+                <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white/90 dark:bg-[#0a0f14]/90 backdrop-blur-2xl border-t border-slate-200/50 dark:border-white/[0.03] grid grid-cols-5 items-center justify-center px-4 z-[45] transition-colors duration-300">
                     {[
                         { id: 'home', label: 'Home', icon: <Home size={18} /> },
                         { id: 'journey', label: 'Lessons', icon: <BookOpen size={18} /> },
@@ -1679,7 +1689,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                     onClick={() => {
                                         window.dispatchEvent(new CustomEvent('open-virtual-tutor'));
                                     }}
-                                    className="flex flex-col items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-all duration-300"
+                                    className="flex flex-col items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-all duration-300"
                                 >
                                     {tab.icon}
                                     <span className="mt-1">{tab.label}</span>
@@ -1693,12 +1703,12 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 onClick={() => handleTabChange(tab.id)}
                                 className={`flex flex-col items-center justify-center transition-all duration-300 ${
                                     isActive 
-                                        ? 'text-cyan-400' 
-                                        : 'text-slate-500 hover:text-slate-300'
+                                        ? 'text-cyan-600 dark:text-cyan-400' 
+                                        : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                                 }`}
                             >
                                 <div className={`flex flex-col items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wider ${
-                                    isActive ? 'bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-2xl' : ''
+                                    isActive ? 'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-4 py-2 rounded-2xl' : ''
                                 }`}>
                                     {tab.icon}
                                     <span className="mt-0.5">{tab.label}</span>
@@ -1848,42 +1858,16 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                 )
                             )}
                             {activeTab === 'daily' && (
-                                <div className="w-full max-w-6xl mx-auto min-h-screen pb-20 relative">
-                                    {/* Roadmap Header */}
-                                    <div className="px-8 mb-16 relative z-10">
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Neural Linguistic Roadmap</span>
-                                            </div>
-                                        </div>
-                                        <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">Proficiency Journey</h2>
-                                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl">Your 24-hour cognitive cycle, architected for maximum retention and error repair.</p>
-                                    </div>
-
-                                    {!dailyBites ? (
-                                        <div className="flex flex-col items-center justify-center py-20">
-                                            <div className="w-20 h-20 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin mb-8" />
-                                            <h3 className="text-xl font-black text-white animate-pulse uppercase tracking-widest text-center">
-                                                Architecting Daily Roadmap...<br/>
-                                                <span className="text-[10px] text-slate-500 font-medium">Synchronizing with Neural Engine</span>
-                                            </h3>
-                                        </div>
+                                <div className="w-full max-w-5xl mx-auto min-h-screen pb-20 relative px-6">
+                                    {dailyBites ? (
+                                        <DailyMicroLearning 
+                                            bites={dailyBites?.bites} 
+                                            initialCompleted={dailyBites?.completed} 
+                                            onInteraction={fetchAllData} 
+                                        />
                                     ) : (
-                                        <div className="relative">
-                                            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ zIndex: 0 }}>
-                                                <path 
-                                                    d="M 50% 0 C 70% 200, 30% 400, 50% 600" 
-                                                    fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="12 12" 
-                                                    className="text-indigo-500"
-                                                />
-                                            </svg>
-
-                                            <div className="space-y-24 relative z-10 px-8">
-                                                <DailyRoadmapNode idx={0} title="Linguistic Seed" subtitle="Vocabulary Sync" icon={<Sparkles size={24} />} content={dailyBites?.vocabulary} color="indigo" />
-                                                <DailyRoadmapNode idx={1} title="Neural Repair" subtitle="Grammar Remediation" icon={<Zap size={24} />} content={dailyBites?.grammar} color="rose" align="right" />
-                                                <DailyRoadmapNode idx={2} title="Stylistic Shift" subtitle="Tone Transformer" icon={<PenTool size={24} />} content={dailyBites?.style} color="blue" />
-                                                <DailyRoadmapNode idx={3} title="Structural Logic" subtitle="Punctuation Mechanic" icon={<Layers size={24} />} content={dailyBites?.punctuation} color="emerald" align="right" />
-                                            </div>
+                                        <div className="flex justify-center py-20">
+                                            <NeuralPulseLoader status="Synthesizing..." />
                                         </div>
                                     )}
                                 </div>

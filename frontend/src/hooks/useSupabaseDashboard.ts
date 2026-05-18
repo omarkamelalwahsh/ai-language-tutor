@@ -26,6 +26,8 @@ export interface DashboardSupabaseData {
     sessionIntensity: string | null;
     nativeLanguage: string;
     targetLanguage: string;
+    averageResponseTime?: number;
+    totalQuestionsAnswered?: number;
   } | null;
   skills: {
     id: string;
@@ -130,7 +132,9 @@ export const useSupabaseDashboard = () => {
             session_intensity,
             native_language,
             target_language,
-            full_name
+            full_name,
+            average_response_time,
+            total_questions_answered
           `)
           .eq('id', user.id)
           .single(),
@@ -197,6 +201,8 @@ export const useSupabaseDashboard = () => {
               sessionIntensity: profileData.session_intensity || null,
               nativeLanguage: profileData.native_language || 'English',
               targetLanguage: profileData.target_language || 'English',
+              averageResponseTime: profileData.average_response_time || 0,
+              totalQuestionsAnswered: profileData.total_questions_answered || 0,
             }
           : null,
         skills: (skillsData || []).map((s: any) => {
