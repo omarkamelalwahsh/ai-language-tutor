@@ -100,11 +100,19 @@ venv\Scripts\python -m uvicorn app.main:app --reload
 > القاعدة الأساسية في الوضع المحلي هي: `http://localhost:8000/api/v1`.
 
 ## إعداد CORS والإنتاج
-المسار الخلفي الآن يقرأ `BACKEND_CORS_ORIGINS` من `backend/.env`. استخدم هذا المتغير لإدراج أصول الإنتاج مثل:
+المسار الخلفي الآن يقرأ `BACKEND_CORS_ORIGINS` من `backend/.env` أو من متغيرات البيئة في منصات النشر مثل Railway.
 
 ```env
 BACKEND_CORS_ORIGINS="https://your-frontend-domain.com,http://localhost:3000"
 ```
+
+إذا كان واجهتك منشورة على Vercel، فضع عنوان Vercel الكامل مع `https://` هنا. مثال:
+
+```env
+BACKEND_CORS_ORIGINS="https://ai-language-tutor-j0lh5mfs3-omar-kamels-projects-2d079e4d.vercel.app"
+```
+
+> لاحظ: `VITE_API_URL` في `frontend/.env` يجب أن يكون عنوانًا كاملاً ويشمل البروتوكول، مثل `https://ai-language-tutor-production-ec00.up.railway.app`.
 
 إذا كنت تنشر الواجهة على Vercel أو Netlify، أضف القيم التالية إلى إعدادات المشروع:
 - `VITE_SUPABASE_URL`
