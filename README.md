@@ -39,6 +39,7 @@ BACKEND_CORS_ORIGINS="http://localhost:3000,https://your-production-url.com"
 ```env
 GEMINI_API_KEY="your_gemini_api_key"
 APP_URL="http://localhost:3000"
+VITE_API_URL="http://localhost:8000"
 VITE_GROQ_API_KEY="your_groq_api_key"
 VITE_SUPABASE_URL="https://your-project.supabase.co"
 VITE_SUPABASE_ANON_KEY="your_supabase_anon_key"
@@ -54,6 +55,8 @@ VITE_FIREBASE_VAPID_KEY="your_firebase_web_push_vapid_key"
 SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 GROQ_TASK_ENGINE_API_KEY="your_optional_groq_task_engine_api_key"
 ```
+
+> إذا كان `frontend` منشورًا منفصلًا عن `backend`، فتأكد من أن `VITE_API_URL` يشير إلى عنوان خادم الخلفية الخاص بك.
 
 > ملاحظة: يوجد ملف `.gitignore` بالفعل لاستبعاد `.env` من Git.
 

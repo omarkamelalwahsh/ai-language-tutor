@@ -120,7 +120,11 @@ class LearnerService {
   }
 
   private get baseUrl() {
-    return (import.meta as any).env.VITE_API_URL || '';
+    const apiUrl = (import.meta as any).env.VITE_API_URL;
+    if (!apiUrl) {
+      console.warn('VITE_API_URL is not set. Frontend API calls will use the current origin.');
+    }
+    return apiUrl || '';
   }
 
   async getDashboard(): Promise<DashboardData> {
