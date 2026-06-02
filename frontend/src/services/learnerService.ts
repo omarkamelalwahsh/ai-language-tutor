@@ -124,61 +124,70 @@ class LearnerService {
     if (!apiUrl) {
       console.warn('VITE_API_URL is not set. Frontend API calls will use the current origin.');
     }
-    return apiUrl || '';
+    return apiUrl || window.location.origin;
+  }
+
+  private async requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    const response = await fetch(url, init);
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!response.ok) {
+      const bodyText = await response.text();
+      throw new Error(`Request failed ${response.status} ${url}: ${bodyText.substring(0, 200)}`);
+    }
+
+    if (!contentType.includes('application/json')) {
+      const bodyText = await response.text();
+      const snippet = bodyText.substring(0, 200);
+      throw new Error(`Expected JSON response from ${url}, got ${contentType}. Response body: ${snippet}`);
+    }
+
+    try {
+      return await response.json();
+    } catch (error: any) {
+      const bodyText = await response.text();
+      throw new Error(`Failed to parse JSON from ${url}: ${error.message}. Response body starts with: ${bodyText.substring(0, 200)}`);
+    }
   }
 
   async getDashboard(): Promise<DashboardData> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/dashboard`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch dashboard');
-    return await response.json();
+    return await this.requestJson<DashboardData>('/api/v1/dashboard', { headers });
   }
 
   async getJourney(): Promise<JourneyData> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/journey`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch journey');
-    return await response.json();
+    return await this.requestJson<JourneyData>('/api/v1/journey', { headers });
   }
 
   async getProfile(): Promise<IntelligenceProfile> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/profile`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch intelligence profile');
-    return await response.json();
+    return await this.requestJson<IntelligenceProfile>('/api/v1/profile', { headers });
   }
 
   async getPracticeTasks(skill: string): Promise<{ skill: string; tasks: any[] }> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/practice/skills/${skill}/tasks`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch practice tasks');
-    return await response.json();
+    return await this.requestJson<{ skill: string; tasks: any[] }>(`/api/v1/practice/skills/${skill}/tasks`, { headers });
   }
 
   async startPracticeSession(skill: string, taskType: string, difficulty: string): Promise<{ session_id: string, message: string }> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/practice/start`, { 
+    return await this.requestJson<{ session_id: string, message: string }>('/api/v1/practice/start', {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ skill, task_type: taskType, difficulty })
     });
-    if (!response.ok) throw new Error('Failed to start practice session');
-    return await response.json();
   }
 
   async getWeeklyVocab(): Promise<any> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/daily/weekly-vocab`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch weekly vocab');
-    return await response.json();
+    return await this.requestJson<any>('/api/v1/daily/weekly-vocab', { headers });
   }
 
   async getDailyBites(): Promise<any> {
     const headers = await this.getAuthHeader();
-    const response = await fetch(`${this.baseUrl}/api/v1/daily/bites`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch daily bites');
-    const data = await response.json();
-    // Return both daily_bites and completed_bites if available
+    const data = await this.requestJson<any>('/api/v1/daily/bites', { headers });
     return { bites: data.daily_bites || null, completed: data.completed_bites || [] };
   }
 
