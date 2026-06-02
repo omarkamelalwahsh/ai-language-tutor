@@ -120,11 +120,19 @@ class LearnerService {
   }
 
   private get baseUrl() {
-    const apiUrl = (import.meta as any).env.VITE_API_URL;
+    let apiUrl = (import.meta as any).env.VITE_API_URL;
     if (!apiUrl) {
       console.warn('VITE_API_URL is not set. Frontend API calls will use the current origin.');
+      return window.location.origin;
     }
-    return apiUrl || window.location.origin;
+
+    apiUrl = apiUrl.trim();
+    if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+      console.warn(`VITE_API_URL=${apiUrl} does not include a protocol. Prepending https:// for API calls.`);
+      apiUrl = `https://${apiUrl}`;
+    }
+
+    return apiUrl.replace(/\/$/, '');
   }
 
   private async requestJson<T>(path: string, init?: RequestInit): Promise<T> {
