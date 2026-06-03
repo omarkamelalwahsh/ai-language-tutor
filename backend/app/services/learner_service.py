@@ -471,3 +471,4 @@ class LearnerService:
         except Exception as e:
             logging.error(f"[LearnerService] Error updating streak: {str(e)}")
             await self.db.rollback()
+            raise e

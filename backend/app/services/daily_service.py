@@ -237,6 +237,7 @@ class DailyService:
         except Exception as e:
             logger.error(f"record_bite_completion Error: {str(e)}")
             await self.db.rollback()
+            raise e
 
     async def _generate_new_daily_bites(self, target_level: str, field: str, learning_goal: str):
         prompt = _DAILY_BITES_SYSTEM_PROMPT.format(

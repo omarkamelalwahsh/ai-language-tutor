@@ -534,7 +534,7 @@ const ProfileErrorCard = ({ error, onSelect }: { error: any, onSelect: (err: any
 
 
 
-const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData, dailyBites }: any) => {
+const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTabChange, supabaseData, dailyBites, onInteraction }: any) => {
     const navigate = useNavigate();
     const { data: profileData, refresh: refreshProfile } = useLearnerProfile();
     const [selectedError, setSelectedError] = React.useState<ErrorItem | null>(null);
@@ -670,7 +670,7 @@ const HomeTab = ({ onStartSession, displayName, dashboardData, journeyData, onTa
                             skillsMatrix={matrixData}
                             dashData={dashboardData}
                             dailyBites={dailyBites}
-                            onInteraction={() => refreshProfile()}
+                            onInteraction={onInteraction}
                         />
 
                     );
@@ -1854,6 +1854,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                                         onTabChange={handleTabChange}
                                         supabaseData={supabaseData}
                                         dailyBites={dailyBites}
+                                        onInteraction={fetchAllData}
                                     />
                                 )
                             )}

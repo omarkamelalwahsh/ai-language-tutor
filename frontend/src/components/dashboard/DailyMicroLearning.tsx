@@ -65,6 +65,9 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
             if (onInteraction) onInteraction();
         } catch (err) {
             console.error("Failed to complete bite", err);
+            // Revert state on error
+            setCompletedBites(prev => prev.filter(t => t !== type));
+            setTotalXP(prev => prev - 5);
         }
     };
 

@@ -201,15 +201,11 @@ class LearnerService {
 
   async completeDailyBite(biteType: string): Promise<void> {
     const headers = await this.getAuthHeader();
-    try {
-      await fetch(`${this.baseUrl}/api/v1/daily/bites/complete`, { 
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bite_type: biteType })
-      });
-    } catch (err) {
-      console.error("Failed to mark daily bite as complete", err);
-    }
+    await this.requestJson<any>('/api/v1/daily/bites/complete', { 
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bite_type: biteType })
+    });
   }
 
   async recordInteraction(xp: number = 10): Promise<void> {
