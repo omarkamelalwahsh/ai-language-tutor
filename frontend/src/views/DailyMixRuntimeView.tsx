@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
@@ -64,6 +65,7 @@ function evaluateLocally(task: SessionTask, userAnswer: string): { score: number
 
 const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily_mix', skill }) => {
   const navigate = useNavigate();
+  const { refreshData } = useData() as any;
 
   const [batch, setBatch] = useState<SessionBatch | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -264,6 +266,7 @@ const DailyMixRuntimeView: React.FC<DailyMixRuntimeViewProps> = ({ mode = 'daily
       });
       setCompletionResult(response);
       localStorage.removeItem(PERSIST_KEY);
+      await refreshData();
       setShowModal(true);
     } catch (err) {
       console.error('[DailyMix] session-complete failed:', err);

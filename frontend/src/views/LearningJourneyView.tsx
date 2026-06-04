@@ -379,14 +379,15 @@ export const LearningJourneyView: React.FC<LearningJourneyViewProps> = ({ result
                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-8 flex items-center gap-2">
                    <Target size={16} className="text-blue-600 dark:text-indigo-400" /> Readiness Matrix
                  </h4>
-                 <div className="grid grid-cols-3 gap-y-8 gap-x-4">
-                    {dashboardData?.skills?.slice(0, 3).map((s: any, idx: number) => (
+                 <div className="grid grid-cols-2 md:grid-cols-2 gap-y-8 gap-x-4">
+                    {dashboardData?.skills?.map((s: any, idx: number) => (
                       <SkillRing key={idx} skill={s.skillId || s.name || s.subject} percentage={s.currentScore || s.score} color={(s.currentScore || s.score) > 70 ? "#10B981" : (s.currentScore || s.score) > 40 ? "#F59E0B" : "#EF4444"} />
                     )) || (
                       <>
                         <SkillRing skill="Speaking" percentage={0} color="#10B981" />
                         <SkillRing skill="Writing" percentage={0} color="#F59E0B" />
                         <SkillRing skill="Listening" percentage={0} color="#EF4444" />
+                        <SkillRing skill="Reading" percentage={0} color="#EF4444" />
                       </>
                     )}
                  </div>

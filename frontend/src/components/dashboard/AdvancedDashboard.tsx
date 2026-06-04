@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import NotificationDropdown from './NotificationDropdown';
 import {
     Map as MapIcon,
     BarChart3,
@@ -1361,54 +1362,10 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
     const isLoading = (supabaseData.isLoading || isLearnerLoading) && !result;
 
-    // --- Hybrid Recovery: Fallback KPI Calculation ---
-    const calculateFallbackKPIs = React.useCallback((sData: any) => {
-        const skills = sData?.skills || [];
-        const profile = sData?.profile || {};
-        const history = sData?.history || [];
-        
-        // 1. Momentum (Based on streak)
-        const momentum = Math.min(100, (profile.streak || 0) * 10);
-        
-        // 2. Weekly Minutes (Sum of recent sessions)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const weeklyMinutes = history
-            .filter((h: any) => new Date(h.createdAt || h.created_at) >= sevenDaysAgo)
-            .reduce((acc: number, h: any) => acc + (h.durationMs || 0), 0) / 60000;
-
-        // 3. Active Errors
-        const activeErrors = (Array.isArray(sData?.errorProfile?.weakness_areas) ? sData.errorProfile.weakness_areas : []).length;
-
-        // 4. Due Reviews
-        const dueReviews = skills.filter((s: any) => 
-            (s.proficiency_confidence || s.confidence || 0) < 0.5
-        ).length;
-
-        return {
-            momentum: Math.round(momentum),
-            weekly_minutes: Math.round(weeklyMinutes),
-            active_errors: activeErrors,
-            due_reviews: dueReviews
-        };
-    }, []);
-
     const mergedDashboardData = useMemo(() => {
         if (!realtimeData) return null;
-        
-        const apiKPIs = realtimeData.kpis || { momentum: 0, weekly_minutes: 0, active_errors: 0, due_reviews: 0 };
-        // If API returns all zeros, it might be a sync delay on live. Recover from Supabase.
-        const needsRecovery = apiKPIs.momentum === 0 && apiKPIs.weekly_minutes === 0 && apiKPIs.active_errors === 0;
-
-        if (needsRecovery && supabaseData.profile) {
-            console.log('[Dashboard] Entering Hybrid Recovery Mode: Using Supabase data for KPIs');
-            return {
-                ...realtimeData,
-                kpis: calculateFallbackKPIs(supabaseData)
-            };
-        }
         return realtimeData;
-    }, [realtimeData, supabaseData, calculateFallbackKPIs]);
+    }, [realtimeData]);
 
     // 🎯 Dynamic Name Selection: API Data > Profile Data > Auth Data > Fallback
     const displayName = mergedDashboardData?.profile?.full_name || realtimeData?.profile?.full_name || supabaseData?.profile?.full_name || supabaseData?.user?.fullName || 'Learner';
@@ -1551,7 +1508,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
                         {/* 4. Daily Boost Horizontal Scroll */}
                         <div className="mt-8">
                             <div className="flex items-center justify-between px-6 mb-4">
-                                <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em]">Daily Boost</h3>
+                                <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mb-4">Daily Boost</h3>
                                 <button 
                                     onClick={() => handleTabChange('daily')}
                                     className="text-[10px] font-black text-cyan-500 dark:text-cyan-400 uppercase tracking-widest active:scale-95 transition-all"
@@ -1795,10 +1752,7 @@ export const AdvancedDashboard: React.FC<AdvancedDashboardProps> = (props) => {
 
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
-                        <button className="relative p-2 bg-slate-50 dark:bg-gray-800 rounded-full border border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition shadow-premium hover:shadow-md active:scale-95">
-                            <Bell size={18} />
-                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-gray-900"></span>
-                        </button>
+                        <NotificationDropdown />
 
                         <div className="hidden md:block text-right">
                             <p className="text-sm font-bold text-slate-900 dark:text-slate-50 leading-none">{displayName}</p>

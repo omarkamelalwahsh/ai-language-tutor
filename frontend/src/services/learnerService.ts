@@ -113,7 +113,7 @@ export interface IntelligenceProfile {
   best_next_move: string;
 }
 
-class LearnerService {
+export class LearnerService {
   private async getAuthHeader() {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {};
@@ -174,11 +174,22 @@ class LearnerService {
     return await this.requestJson<IntelligenceProfile>('/api/v1/profile', { headers });
   }
 
-  async getPracticeTasks(skill: string): Promise<{ skill: string; tasks: any[] }> {
+  async getNotifications(limit: number = 20, offset: number = 0): Promise<any[]> {
     const headers = await this.getAuthHeader();
-    return await this.requestJson<{ skill: string; tasks: any[] }>(`/api/v1/practice/skills/${skill}/tasks`, { headers });
+    return await this.requestJson<any[]>('/api/v1/notifications', {
+      headers,
+      method: 'GET',
+    });
   }
 
+  async markNotificationsRead(notificationIds?: string[]): Promise<any> {
+    const headers = await this.getAuthHeader();
+    return await this.requestJson<any>('/api/v1/notifications/read', {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notification_ids: notificationIds || null }),
+    });
+  }
   async startPracticeSession(skill: string, taskType: string, difficulty: string): Promise<{ session_id: string, message: string }> {
     const headers = await this.getAuthHeader();
     return await this.requestJson<{ session_id: string, message: string }>('/api/v1/practice/start', {
@@ -242,7 +253,13 @@ class LearnerService {
     });
     if (!response.ok) throw new Error('Failed to update profile');
   }
+  // Fetch available practice tasks for a skill
+  async getPracticeTasks(skillId: string): Promise<any> {
+    const headers = await this.getAuthHeader();
+    return await this.requestJson<any>(`/api/v1/practice/skills/${encodeURIComponent(skillId)}/tasks`, { headers });
+  }
 }
 
+export default LearnerService;
 
 export const learnerService = new LearnerService();

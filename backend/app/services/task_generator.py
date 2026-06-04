@@ -93,11 +93,22 @@ class TaskGenerator:
             if weakness_areas:
                 focus_skill = weakness_areas[0]
 
+        # Construct user context and CQ idiom mandate
+        user_context = f"Domain: {user_domain}, Interests: {user_interests}, Goal: {user_goal}"
+        
+        # 🧠 CQ Idiom Mandate (The "Piece of Cake" Mandate)
+        cq_idiom_instruction = "None"
+        if task_type.upper() in ["SPEAKING", "LISTENING", "READING"] or "ROLEPLAY" in task_type.upper():
+            cq_idiom_instruction = (
+                "You MUST weave in culturally relevant idioms and expressions appropriate for the learner's "
+                f"CEFR level ({user_level}). Ensure the idiomatic expressions fit naturally within the {user_domain} context."
+            )
+
         # 🎯 DEBUG PLAN: Log the exact context being sent to AI
         logger.info(f"🔍 DEBUG: Sending Task Request for User {user_id}")
         logger.info(f"   |-- Level: {user_level}")
         logger.info(f"   |-- Difficulty: {difficulty}")
-        logger.info(f"   |-- Domain: {user_domain}")
+        logger.info(f"   |-- Context: {user_context}")
         logger.info(f"   |-- Task Type: {task_type}")
 
         # 2. Call the AI Task Architect
@@ -106,11 +117,12 @@ class TaskGenerator:
                 user_level=user_level,
                 weakness_areas=weakness_areas,
                 last_errors=last_errors,
-                user_domain=f"{user_domain} (Interests: {user_interests}, Goal: {user_goal})",
+                user_context=user_context,
                 task_type=task_type,
                 focus_skill=focus_skill,
                 difficulty=difficulty,
-                recent_vocabulary=recent_vocabulary
+                recent_vocabulary=recent_vocabulary,
+                cq_idiom_instruction=cq_idiom_instruction
             )
             
             # 3. Log the new target word if this is a vocabulary-focused task

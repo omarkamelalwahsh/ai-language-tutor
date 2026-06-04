@@ -268,6 +268,9 @@ class UserSkill(Base):
     confidence = Column(Float, default=0.0)
     category = Column(String)  # e.g., Grammar, Vocabulary
     last_tested = Column(DateTime(timezone=True), server_default=func.now())
+    # Cultural Intelligence (CQ) metrics
+    cq_score = Column(Float, default=0.0)  # 0-100 idiom mastery
+    cq_confidence = Column(Float, default=0.0)  # confidence in CQ assessment
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 class UserAchievement(Base):
@@ -282,7 +285,9 @@ class UserNotificationLog(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
     notification_type = Column(String, nullable=False)
-    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+    title = Column(String, nullable=False)
+    body = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_read = Column(Boolean, default=False)
 
 
@@ -383,3 +388,138 @@ class ChatHistory(Base):
     role = Column(String, nullable=False)        # 'user' or 'assistant'
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# ============================================================================
+# INVISIBLE JUDGE CORE MODELS
+# ============================================================================
+
+class JourneyMap(Base):
+    __tablename__ = "journey_maps"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    total_nodes = Column(Integer, default=20)
+    current_node_index = Column(Integer, default=0)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # cascade deleting map drops nodes
+    nodes = relationship("JourneyNode", back_populates="journey_map", cascade="all, delete-orphan")
+
+class JourneyNode(Base):
+    __tablename__ = "nodes"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    journey_map_id = Column(UUID(as_uuid=True), ForeignKey("journey_maps.id", ondelete="CASCADE"), nullable=False)
+    node_index = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    target_cando = Column(String, nullable=False)
+    is_locked = Column(Boolean, default=True)
+    type = Column(String, nullable=False) # "core", "catch_up"
+    
+    journey_map = relationship("JourneyMap", back_populates="nodes")
+    tasks = relationship("JourneyTask", back_populates="node", cascade="all, delete-orphan")
+
+class JourneyTask(Base):
+    __tablename__ = "journey_tasks"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    node_id = Column(UUID(as_uuid=True), ForeignKey("nodes.id", ondelete="CASCADE"), nullable=False)
+    task_index = Column(Integer, nullable=False)
+    skill_type = Column(String, nullable=False) # "listening", "reading", "writing", "speaking", "integrated"
+    status = Column(String, default="locked") # "locked", "active", "completed", "failed"
+    alternative_attempts = Column(Integer, default=0)
+    
+    node = relationship("JourneyNode", back_populates="tasks")
+
+class ErrorProfile(Base):
+    __tablename__ = "error_profile"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    skill_type = Column(String, nullable=False)
+    error_type = Column(String, nullable=False)
+    raw_input = Column(Text, nullable=False)
+    frequency = Column(Integer, default=1)
+    is_fixed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UserVocabularyState(Base):
+    __tablename__ = "user_vocabulary_state"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False)
+    word = Column(String, nullable=False)
+    status = Column(String, nullable=False) # "recognized", "activated"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# ============================================================================
+# CEFR MASTER CURRICULUM MODELS
+# ============================================================================
+
+class CurriculumStage(Base):
+    __tablename__ = "curriculum_stage"
+    stage_id = Column(String, primary_key=True)
+    public_level = Column(String)
+    stage_title = Column(String)
+    order_index = Column(Integer)
+    cefr_band = Column(String)
+    stage_group = Column(String)
+    descriptor_summary = Column(Text)
+    learner_profile = Column(Text)
+    exit_outcome = Column(Text)
+    next_stage_id = Column(String, ForeignKey("curriculum_stage.stage_id", ondelete="SET NULL"), nullable=True)
+    active_flag = Column(Boolean, default=True)
+
+class CurriculumModule(Base):
+    __tablename__ = "curriculum_module"
+    module_id = Column(String, primary_key=True)
+    stage_id = Column(String, ForeignKey("curriculum_stage.stage_id", ondelete="CASCADE"))
+    module_order = Column(Integer)
+    module_title = Column(String)
+    primary_domain = Column(String)
+    communicative_focus = Column(Text)
+    descriptor_family_focus = Column(String)
+    grammar_tags = Column(JSONB)
+    function_tags = Column(JSONB)
+    vocabulary_domain_tags = Column(JSONB)
+    scenario_family_tags = Column(JSONB)
+    module_exit_summary = Column(Text)
+
+class CanDoOutcome(Base):
+    __tablename__ = "can_do_outcome"
+    cando_id = Column(String, primary_key=True)
+    stage_id = Column(String, ForeignKey("curriculum_stage.stage_id", ondelete="CASCADE"))
+    descriptor_family = Column(String)
+    skill_area = Column(String)
+    can_do_statement = Column(Text)
+    critical_flag = Column(Boolean, default=False)
+    support_tolerance = Column(String)
+    mastery_threshold = Column(Float)
+    transfer_required = Column(Boolean, default=False)
+    grammar_tags = Column(JSONB)
+    function_tags = Column(JSONB)
+    vocabulary_domain_tags = Column(JSONB)
+
+class GrammarTag(Base):
+    __tablename__ = "grammar_tag"
+    grammar_tag = Column(String, primary_key=True)
+    title = Column(String)
+    progression_hint = Column(Text)
+
+class FunctionTag(Base):
+    __tablename__ = "function_tag"
+    function_tag = Column(String, primary_key=True)
+    title = Column(String)
+
+class VocabularyDomainTag(Base):
+    __tablename__ = "vocabulary_domain_tag"
+    vocab_domain_tag = Column(String, primary_key=True)
+    title = Column(String)
+
+class PromotionGate(Base):
+    __tablename__ = "promotion_gate"
+    gate_id = Column(String, primary_key=True)
+    stage_id = Column(String, ForeignKey("curriculum_stage.stage_id", ondelete="CASCADE"))
+    next_stage_id = Column(String)
+    required_critical_mastery_pct = Column(Float)
+    required_review_stability_pct = Column(Float)
+    required_transfer_pass = Column(Boolean, default=True)
+    max_unresolved_blockers = Column(Integer)
+    support_dependence_rule = Column(String)
+    gate_notes = Column(Text)

@@ -3,7 +3,7 @@ import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites, tasks, practice, daily, notifications, tutor
+from app.api.routes import assessments, chat, media, questions, leaderboard, learner, auth, audit, invites, tasks, practice, daily, notifications, tutor, journey
 from app.api.v1.endpoints import analytics
 from app.core.config import settings
 
@@ -58,6 +58,7 @@ app.include_router(practice.router, prefix=f"{settings.API_V1_STR}/practice", ta
 app.include_router(daily.router, prefix=f"{settings.API_V1_STR}/daily", tags=["Daily Bites"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
 app.include_router(tutor.router, prefix=f"{settings.API_V1_STR}/tutor", tags=["Virtual Tutor"])
+app.include_router(journey.router, prefix=f"{settings.API_V1_STR}", tags=["Journey Execution"])
 
 if __name__ == "__main__":
     import uvicorn

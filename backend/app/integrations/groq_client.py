@@ -261,25 +261,34 @@ JSON OUTPUT FORMAT (STRICT):
 
 
 _MASTER_TASK_ENGINE_PROMPT = """# ROLE
-You are an elite AI Pedagogical Architect specializing in teaching English to technical professionals in the domain of {user_domain} (e.g., Machine Learning, RAG, Computer Vision). Your objective is to generate hyper-targeted, CEFR-aligned learning tasks based on dynamic inputs.
+You are an elite AI Pedagogical Architect specializing in teaching English. Your objective is to generate hyper-targeted, CEFR-aligned learning tasks based on dynamic inputs.
 
 # INPUT VARIABLES
 - CEFR Level: {user_level} (A1, A2, B1, B2, C1, C2)
-- Skill Category: {skill_category} (SPEAKING, WRITING, LISTENING)
+- Skill Category: {skill_category} (SPEAKING, WRITING, LISTENING, READING)
 - Specific Task Type: {task_type} 
 - Target Vocabulary / Recent Mistakes: {target_vocabulary}
 - Recently Exposed Vocabulary (DO NOT REPEAT): {recent_vocabulary}
 - Difficulty Score: {difficulty}
+- CEFR Can-Do Milestone: {target_cando}
+
+# PERSONALIZATION & CULTURAL INTELLIGENCE (CQ)
+- **User Context (Interests & Domain):** {user_context}
+- **Instruction:** Tailor the scenario, context, and situational environment of this task strictly to match the learner's background and interests: {user_context}. If they are in tech/software, the roleplays and emails must utilize real-world technical or corporate situations.
+- **CQ / Idiomatic Mandate:** {cq_idiom_instruction}
+
+# 0. CAN-DO OUTCOME ALIGNMENT (MANDATORY)
+[ACADEMIC GRADING STANDARD] The task you generate MUST be specifically designed so that completing it successfully demonstrates the learner's ability to fulfill the following CEFR Can-Do Milestone: "{target_cando}". The scenario, stimulus, and expected response must all be architected around proving this communicative competence. If the Can-Do milestone is empty, fall back to general CEFR level descriptors.
 
 # 1. CEFR LEVEL CONSTRAINTS & CONTENT EXCLUSION (STRICT)
 You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {user_level}:
 - A1/A2 (Foundational): Maximum 7 words per sentence. Use Present Simple, Past Simple. SVO structure. Context: Daily life, basic needs. 
-- B1/B2 (Professional): Compound sentences (10-15 words). Use Present Perfect, Modals, Passive Voice. Context: Workplace scenarios, bug reports, project updates.
-- C1/C2 (Expert): Complex, multi-clause sentences (20+ words). Use Inversions, Mixed Conditionals, Phrasal Verbs. Context: Architecture optimization, ethical AI, inference latency, systemic analysis.
+- B1/B2 (Professional): Compound sentences (10-15 words). Use Present Perfect, Modals, Passive Voice. Context: Workplace scenarios, project updates.
+- C1/C2 (Expert): Complex, multi-clause sentences (20+ words). Use Inversions, Mixed Conditionals, Phrasal Verbs. Context: Advanced analytics, ethical discussions, systemic analysis.
 
 ## ⛔ CONTENT EXCLUSION RULE:
 - For levels B2 and above: NEVER use infantile vocabulary (e.g., fruits, colors, basic animals, family members) unless they are part of a complex technical metaphor.
-- Failure to provide high-register, domain-relevant content for C-level users is a pedagogical failure. Use "{user_domain}" as the primary anchor for all complexity.
+- Failure to provide high-register, domain-relevant content for C-level users is a pedagogical failure. Use the provided User Context as the primary anchor for all complexity.
 
 # 2. REPETITION CONTROL (CRITICAL)
 - **Recently Exposed Vocabulary**: {recent_vocabulary}
@@ -321,7 +330,8 @@ Output your response as a parseable JSON object matching this schema. DO NOT inc
     "category": "{skill_category}",
     "type": "{task_type}",
     "level": "{user_level}",
-    "skill_tag": "{skill_category}"
+    "skill_tag": "{skill_category}",
+    "cando_target": "{target_cando}"
   }},
   "content": {{
     "instruction": "Clear Arabic instruction for the user (e.g., 'أعد صياغة هذه الرسالة لتكون رسمية')",
@@ -342,14 +352,17 @@ async def generate_architect_task(
     user_level: str,
     weakness_areas: list,
     last_errors: list,
-    user_domain: str,
+    user_context: str,
     task_type: str,
     focus_skill: str = "Technical Communication",
     difficulty: float = 0.5,
-    recent_vocabulary: list = None
+    recent_vocabulary: list = None,
+    target_cando: str = "",
+    cq_idiom_instruction: str = ""
 ) -> Tuple[Dict[str, Any], str]:
     """
     Elite Pedagogical Engine: Generates hyper-targeted tasks.
+    Now accepts target_cando for CEFR Can-Do Outcome alignment.
     """
     # Map the task type to its skill category
     listening_types = ['LISTEN', 'AUDIO', 'COMPREHENSION']
@@ -367,16 +380,18 @@ async def generate_architect_task(
     target_vocabulary = ", ".join(weakness_areas + last_errors) if (weakness_areas or last_errors) else "technical professional terminology"
 
     system_prompt = _MASTER_TASK_ENGINE_PROMPT.format(
-        user_domain=user_domain,
+        user_context=user_context,
         user_level=user_level,
         skill_category=skill_category,
         task_type=task_type,
         target_vocabulary=target_vocabulary,
         recent_vocabulary=", ".join(recent_vocabulary) if recent_vocabulary else "None",
-        difficulty=difficulty
+        difficulty=difficulty,
+        target_cando=target_cando or "General CEFR proficiency at this level",
+        cq_idiom_instruction=cq_idiom_instruction or "None"
     )
     
-    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} {user_domain} professional. Target vocabulary: {target_vocabulary}. Avoid repeating: {recent_vocabulary}. Complexity level: {difficulty}."
+    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} learner with context: {user_context}. Can-Do target: {target_cando or 'General'}. Target vocabulary: {target_vocabulary}. Avoid repeating: {recent_vocabulary}. Complexity level: {difficulty}."
     
     result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)
     return result, MODEL_TASK
@@ -583,6 +598,13 @@ You are an elite pedagogical architect. Your goal is NOT just to correct, but to
 - Reference Response: {target_response}
 - Pedagogical Anchor: {explanation}
 - Learner's Response: {user_response}
+- CEFR Can-Do Milestone: {target_cando}
+
+# CULTURAL INTELLIGENCE (CQ) & IDIOMS
+- If the task required or if the user attempted to use idiomatic expressions or culturally relevant phrasing, evaluate its appropriateness, naturalness, and CEFR alignment. Provide a `cq_score` (0.0-1.0) and brief `cq_feedback`. If not applicable, set `cq_score` to 0.0 and leave `cq_feedback` empty.
+
+# CAN-DO OUTCOME VALIDATION (ACADEMIC GRADING STANDARD)
+[ACADEMIC GRADING STANDARD] Do not evaluate the user's input solely based on grammatical/lexical accuracy. You must strictly verify if the user's response fulfills the specific CEFR Can-Do Milestone: "{target_cando}". If the grammar is perfect but the communicative objective of the Can-Do statement is missed, the 'cefr_match' must be downgraded, and the evaluation must return a failure status. If the Can-Do milestone is empty or generic, fall back to standard CEFR level descriptors.
 
 # EVALUATION MODE
 - **CLOSED**: (MCQ, Fill-blank, Scrambled) Score is binary/objective. Use Target Response as ground truth.
@@ -602,6 +624,9 @@ You are an elite pedagogical architect. Your goal is NOT just to correct, but to
   "is_correct": boolean,
   "evaluation_mode": "closed|open",
   "detected_level": "A1|A2|B1|B2|C1|C2",
+  "cefr_match": float,                 // 0.0–1.0: How well the response fulfills the Can-Do milestone
+  "cando_met": boolean,                // true if the communicative objective was achieved
+  "cando_feedback": "string (Brief explanation of why the Can-Do constraint was met or missed)",
   "detailed_feedback": "string (SOCRATIC: Praise + Thought-Provoking Question)",
   "reasoning_summary": "1 sentence justifying the score with evidence",
   "dimensions": {{
@@ -609,8 +634,10 @@ You are an elite pedagogical architect. Your goal is NOT just to correct, but to
     "vocabulary": float,               // 0.0–1.0
     "coherence": float,                // 0.0–1.0
     "fluency": float,                  // ONLY for SPEAKING (Voice mode)
-    "pronunciation": float             // ONLY for SPEAKING (Voice mode)
+    "pronunciation": float,            // ONLY for SPEAKING (Voice mode)
+    "cq_score": float                  // 0.0-1.0 Cultural Intelligence / Idiom usage
   }},
+  "cq_feedback": "string (Feedback specifically on idiom use and cultural naturalness, if any)",
   "error_analysis": {{
     "detected_errors": ["quoted snippets"],
     "corrected_version": "string (The ideal version)",
@@ -631,11 +658,13 @@ async def evaluate_dynamic_task(
     stimulus: str = "",
     target_response: str = "",
     explanation: str = "",
+    target_cando: str = "",
 ) -> Tuple[Dict[str, Any], str]:
     """
     CEFR-aware Evaluator Engine: grades a single learner response.
     Backwards-compatible: callers passing only (prompt, rubric, user_response)
     still work — extra context just sharpens the grading.
+    Now accepts target_cando for Can-Do Outcome anchored evaluation.
     """
     # If a rubric dict was passed, mine it for any missing context fields
     if isinstance(rubric, dict):
@@ -653,6 +682,7 @@ async def evaluate_dynamic_task(
         target_response=target_response or "(open-ended — no single correct answer)",
         explanation=explanation or "(none)",
         user_response=user_response,
+        target_cando=target_cando or "General CEFR proficiency at this level",
     )
 
     user_message = json.dumps({
@@ -662,6 +692,7 @@ async def evaluate_dynamic_task(
         "prompt": prompt,
         "target_response": target_response,
         "user_response": user_response,
+        "cando_milestone": target_cando,
     })
 
     result = await _call_groq_json(MODEL_DEEP, system_prompt, user_message)

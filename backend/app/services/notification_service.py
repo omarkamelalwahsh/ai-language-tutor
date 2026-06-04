@@ -75,17 +75,40 @@ class NotificationService:
         }
         
         msg = messages.get(n_type, messages["Spark"])
-        
-        # 1. Logic to send via Firebase (Mocked for now)
-        # In a real app: firebase_admin.messaging.send(...)
         logging.info(f"[FCM MOCK] Sending {n_type} to {user.id} ({user.fcm_token}): {msg['title']} - {msg['body']}")
-        
-        # 2. Log in DB
         log = UserNotificationLog(
             user_id=user.id,
-            notification_type=n_type
+            notification_type=n_type,
+            title=msg['title'],
+            body=msg['body'],
+            created_at=datetime.now(timezone.utc)
         )
         self.db.add(log)
+
+    async def get_user_notifications(self, user_id: UUID, limit: int = 20, offset: int = 0):
+        stmt = (
+            select(UserNotificationLog)
+            .where(UserNotificationLog.user_id == user_id)
+            .order_by(UserNotificationLog.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
+    async def mark_notifications_as_read(self, user_id: UUID, notification_ids: list[UUID] | None = None):
+        if notification_ids:
+            stmt = (
+                select(UserNotificationLog)
+                .where(UserNotificationLog.user_id == user_id, UserNotificationLog.id.in_(notification_ids))
+            )
+        else:
+            stmt = select(UserNotificationLog).where(UserNotificationLog.user_id == user_id)
+        result = await self.db.execute(stmt)
+        notifications = result.scalars().all()
+        for n in notifications:
+            n.is_read = True
+        await self.db.commit()
 
     async def update_fcm_token(self, user_id: UUID, token: str):
         prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)

@@ -247,8 +247,14 @@ export const RoadmapGridCard: React.FC<RoadmapGridCardProps> = ({
                 {/* 3. MILESTONE CARDS (Footer) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 p-6 md:p-10 bg-slate-50 dark:bg-black/40 border-t border-slate-200 dark:border-white/5">
                     {milestones.map((node, i) => {
-                        // Data Point Mapping: If index < current (Completed), if index === current (40%)
-                        const progress = node.status === 'completed' ? 100 : (node.status === 'active' || node.status === 'current') ? 40 : 0;
+                        // Data Point Mapping: dynamically calculate from tasks array if available
+                        let progress = 0;
+                        if (node.status === 'completed') {
+                            progress = 100;
+                        } else if ((node.status === 'active' || node.status === 'current') && node.tasks && Array.isArray(node.tasks) && node.tasks.length > 0) {
+                            const completedTasks = node.tasks.filter((t: any) => t.status === 'completed').length;
+                            progress = Math.round((completedTasks / node.tasks.length) * 100);
+                        }
                         
                         return (
                             <motion.div 

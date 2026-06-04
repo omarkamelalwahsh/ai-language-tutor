@@ -112,7 +112,7 @@ export const useSupabaseDashboard = () => {
       }
 
       // Fetch learner data in parallel (Joined Fetch for Profiles & Skills)
-      const [joinedRes, historyRes, achievementRes, journeyRes, stepsRes, skillsRes, errorProfileRes] = await Promise.all([
+      const [joinedRes, historyRes, achievementRes, journeyRes, skillsRes, errorProfileRes] = await Promise.all([
         supabase
           .from('learner_profiles')
           .select(`
@@ -154,10 +154,7 @@ export const useSupabaseDashboard = () => {
           .select('id, current_node_id, metadata, nodes, updated_at')
           .eq('user_id', user.id)
           .maybeSingle(),
-        supabase
-          .from('journey_steps')
-          .select('id, journey_id, title, description, status, order_index, icon_type, skill_focus')
-          .order('order_index', { ascending: true }),
+
         supabase
           .from(DB_SCHEMA.TABLES.SKILLS)
           .select(`id, skill, current_level, ${DB_SCHEMA.COLUMNS.SKILL_SCORE}, confidence, updated_at`)
@@ -175,7 +172,7 @@ export const useSupabaseDashboard = () => {
       const profileData = joinedRes.data;
       const skillsData = skillsRes.data || [];
       const journeyData = journeyRes.data;
-      const journeySteps = stepsRes.data?.filter(s => s.journey_id === journeyData?.id) || [];
+      const journeySteps = []; // Legacy fallback removed, rely on API endpoints
 
       setData({
         user: {

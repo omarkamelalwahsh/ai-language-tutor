@@ -178,6 +178,13 @@ class AssessmentService:
                 if score > 80:
                     user_skill.proficiency_confidence = min((user_skill.proficiency_confidence or 0.0) + 0.05, 1.0)
                 user_skill.last_tested = datetime.utcnow()
+                
+                # CQ extraction and update
+                cq_eval_score = evaluation_result.get("dimensions", {}).get("cq_score", 0.0)
+                if cq_eval_score > 0.0:
+                    current_cq = user_skill.cq_score or 0.0
+                    user_skill.cq_score = (current_cq * 0.8) + (cq_eval_score * 100.0 * 0.2)
+                    user_skill.cq_confidence = min((user_skill.cq_confidence or 0.0) + 0.05, 1.0)
             
             # Update Total Learner Profile XP
             prof_stmt = select(LearnerProfile).where(LearnerProfile.id == user_id)
@@ -188,13 +195,16 @@ class AssessmentService:
                 profile.last_active_at = datetime.utcnow()
             else:
                 # Create if missing
+                cq_eval_score = evaluation_result.get("dimensions", {}).get("cq_score", 0.0)
                 new_skill = UserSkill(
                     user_id=user_id,
                     skill=skill.lower(),
                     xp_points=xp_gain,
                     current_score=(score / 100.0),
                     proficiency_confidence=0.10 if score > 80 else 0.05,
-                    last_tested=datetime.utcnow()
+                    last_tested=datetime.utcnow(),
+                    cq_score=cq_eval_score * 100.0,
+                    cq_confidence=0.10 if cq_eval_score > 0.0 else 0.0
                 )
                 self.db.add(new_skill)
 
@@ -211,6 +221,11 @@ class AssessmentService:
                 explanation=evaluation_result.get("detailed_feedback", ""),
                 created_at=datetime.utcnow()
             )
+            # Add CQ feedback to explanation if present
+            cq_feedback = evaluation_result.get("cq_feedback")
+            if cq_feedback:
+                new_response.explanation = f"{new_response.explanation}\n\nCultural/Idiom Feedback: {cq_feedback}"
+            
             self.db.add(new_response)
             
             # Flatter log for dashboard trends
