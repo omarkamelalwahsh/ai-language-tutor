@@ -58,7 +58,12 @@ export class RuntimeService {
     }
 
     // Always resolve the backend base URL — never hit the Vercel edge with /api/v1/* directly
-    const BACKEND_URL = (import.meta as any).env?.VITE_API_URL || '';
+    let rawUrl = (import.meta as any).env?.VITE_API_URL || '';
+    // Guard: if set but missing protocol, prepend https:// (Vercel env vars often lack it)
+    if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+        rawUrl = `https://${rawUrl}`;
+    }
+    const BACKEND_URL = rawUrl.replace(/\/$/, ''); // strip trailing slash
 
     try {
         const endpoint = skillFilter
@@ -215,7 +220,11 @@ export class RuntimeService {
     const responseMode = responsePayload?.responseMode || 'text';
     const analysis = analyzeResponse(rawText);
 
-    const BACKEND_URL = (import.meta as any).env?.VITE_API_URL || '';
+    let rawEvalUrl = (import.meta as any).env?.VITE_API_URL || '';
+    if (rawEvalUrl && !rawEvalUrl.startsWith('http://') && !rawEvalUrl.startsWith('https://')) {
+        rawEvalUrl = `https://${rawEvalUrl}`;
+    }
+    const BACKEND_URL = rawEvalUrl.replace(/\/$/, '');
     try {
         const response = await fetch(`${BACKEND_URL}/api/v1/tasks/evaluate-task`, {
             method: 'POST',
