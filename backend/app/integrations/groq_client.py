@@ -283,11 +283,13 @@ CRITICAL REQUIREMENT: You must ONLY generate a task matching the requested 'skil
 
 # 0. CAN-DO OUTCOME ALIGNMENT (MANDATORY)
 [ACADEMIC GRADING STANDARD] The task you generate MUST be specifically designed so that completing it successfully demonstrates the learner's ability to fulfill the following CEFR Can-Do Milestone: "{target_cando}". The scenario, stimulus, and expected response must all be architected around proving this communicative competence. If the Can-Do milestone is empty, fall back to general CEFR level descriptors.
+The task CONTENT and TARGET_RESPONSE must strictly test the learner's ability to: {target_cando}. For a Speaking skill slot, you MUST return a speaking task prompt requiring audio/verbal response, NOT a reading comprehension text.
 
 # 0A. STRUCTURAL CONSTRAINT ENFORCEMENT (CRITICAL)
 - If `skill_type` is explicitly set to SPEAKING, WRITING, LISTENING, or READING, that skill is the absolute structural requirement for the output. Do NOT generate a different modality.
 - If `skill_type` says SPEAKING, you must produce a speaking-oriented task prompt, spoken stimulus, or oral response format. A reading comprehension task is invalid in this case.
 - If the generated task's modality conflicts with the requested `skill_type`, you must fix it before returning the JSON. This conflict is a hard error and must be penalized.
+- The returned `task_metadata.skill`, `task_metadata.skill_tag`, and `task_metadata.level` must exactly match the requested skill and CEFR level in this prompt.
 
 # 1. CEFR LEVEL CONSTRAINTS & CONTENT EXCLUSION (STRICT)
 You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {user_level}:
@@ -344,6 +346,7 @@ Output your response as a parseable JSON object matching this schema. DO NOT inc
     "category": "{skill_category}",
     "type": "{task_type}",
     "level": "{user_level}",
+    "skill": "{skill_category}",
     "skill_tag": "{skill_category}",
     "cando_target": "{target_cando}"
   }},
@@ -445,6 +448,17 @@ You receive the learner's profile and EXACTLY 5 tasks.
 You MUST use the specific CEFR level for each skill as provided in `skill_levels`:
 {skill_levels_json}
 
+# NODE-SPECIFIC HARD CONSTRAINTS (CRITICAL)
+Some slots are anchored to a remediation/catch-up Journey node. For those slots, the node constraint overrides the learner's global level.
+Use this exact per-slot plan as the binding contract:
+{plan_constraints_json}
+
+For every slot:
+- `task_metadata.skill` MUST equal that slot's `skill`.
+- `task_metadata.level` MUST equal that slot's `level`.
+- If `cando_target` is present, the task CONTENT and TARGET_RESPONSE must strictly test the learner's ability to: `cando_target`.
+- If the slot skill is `speaking`, the task MUST require audio/verbal spoken production. Do NOT return reading comprehension text for a speaking slot.
+
 # 🛠️ SKILL-SPECIFIC TEMPLATES
 1. **READING**: Must include a multi-paragraph text (stimulus) and 3-4 comprehension questions. Use academic/technical themes for C1/C2.
 2. **LISTENING**: Stimulus MUST be a script for a dialogue or monologue (min 100 words for C-level).
@@ -466,6 +480,7 @@ You MUST use the specific CEFR level for each skill as provided in `skill_levels
         "slot_role": "review|journey|maintenance",
         "skill": "writing|reading|listening|speaking",
         "level": "CEFR_LEVEL_FOR_THIS_SKILL",
+        "cando_target": "Can-Do statement if provided",
         "difficulty_score": 0.0
       }},
       "content": {{
@@ -491,12 +506,14 @@ async def generate_session_batch(
     journey_skill: str,
     difficulty: float = 0.5,
     plan: list = None,
-    skill_levels: dict = None
+    skill_levels: dict = None,
+    plan_constraints: list = None
 ) -> Tuple[Dict[str, Any], str]:
     """
     Single-call architect with per-skill level locking.
     """
     skill_levels_json = json.dumps(skill_levels or {}, indent=2)
+    plan_constraints_json = json.dumps(plan_constraints or [], indent=2)
     system_prompt = _SESSION_MASTER_PROMPT.format(
         user_level=user_level,
         user_domain=user_domain,
@@ -506,7 +523,8 @@ async def generate_session_batch(
         journey_title=journey_title or "Foundational consolidation",
         journey_skill=journey_skill or "writing",
         difficulty=difficulty,
-        skill_levels_json=skill_levels_json
+        skill_levels_json=skill_levels_json,
+        plan_constraints_json=plan_constraints_json
     )
 
     user_message = json.dumps({
@@ -517,7 +535,8 @@ async def generate_session_batch(
         "recent_errors": recent_errors,
         "journey": {"title": journey_title, "skill": journey_skill},
         "difficulty_anchor": difficulty,
-        "skill_levels": skill_levels
+        "skill_levels": skill_levels,
+        "plan_constraints": plan_constraints
     })
 
     result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)

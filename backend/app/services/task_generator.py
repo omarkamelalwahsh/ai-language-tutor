@@ -1,4 +1,5 @@
 import uuid
+import re
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 import logging
@@ -40,8 +41,32 @@ class TaskGenerator:
         }
         return aliases.get(raw, raw or "SPEAKING")
 
+    @staticmethod
+    def _extract_bridge_level(*values: Any) -> str:
+        """Find the lower remediation level in strings like 'Bridge A1->B2'."""
+        for value in values:
+            text = str(value or "")
+            bridge_match = re.search(r"\bBridge\s+(A1|A2|B1|B2|C1|C2)\s*(?:->|â†’|→|to)\s*(A1|A2|B1|B2|C1|C2)\b", text, re.IGNORECASE)
+            if bridge_match:
+                return bridge_match.group(1).upper()
+        return ""
+
+    @staticmethod
+    def _extract_cando(*values: Any) -> str:
+        """Extract a Can-Do/Outcome sentence from node context text."""
+        for value in values:
+            text = str(value or "").strip()
+            if not text:
+                continue
+            outcome_match = re.search(r"Outcome:\s*(.+)", text, re.IGNORECASE | re.DOTALL)
+            if outcome_match:
+                return outcome_match.group(1).strip()
+            if "can " in text.lower() or text.lower().startswith("can "):
+                return text
+        return ""
+
     @classmethod
-    def _build_contextual_fallback(cls, *, task_type: str, skill_type: str, target_level: str, chosen_domain: str, user_level: str) -> Dict[str, Any]:
+    def _build_contextual_fallback(cls, *, task_type: str, skill_type: str, target_level: str, chosen_domain: str, user_level: str, target_cando: str = "") -> Dict[str, Any]:
         """Build a skill/level-aware fallback instead of returning a blind static template."""
         requested_skill = cls._normalize_skill(skill_type or task_type)
         requested_level = cls._normalize_level(target_level or user_level)
@@ -83,6 +108,7 @@ class TaskGenerator:
                 "category": requested_skill,
                 "target_level": requested_level,
                 "chosen_domain": domain,
+                "cando_target": target_cando,
                 "is_fallback": True,
             },
             "content": {
@@ -90,7 +116,7 @@ class TaskGenerator:
                 "stimulus": stimulus,
                 "task_prompt": fallback_prompt,
                 "target_response": target_response,
-                "explanation": f"Fallback task adapted to requested skill '{requested_skill}' and CEFR level '{requested_level}' because the dynamic generator failed.",
+                "explanation": f"Fallback task adapted to requested skill '{requested_skill}' and CEFR level '{requested_level}' because the dynamic generator failed. Can-Do target: {target_cando or 'General CEFR proficiency'}.",
                 "task_type_label": task_type_label,
             },
         }
@@ -143,13 +169,24 @@ class TaskGenerator:
         user_goal = unified_profile.get("target_goal", "Professional Fluency")
         last_errors = unified_profile.get("last_errors", [])
         legacy_data = unified_profile.get("legacy_data", [])
+
+        bridge_level = cls._extract_bridge_level(target_level, task_type, chosen_domain)
+        target_cando = cls._extract_cando(chosen_domain, target_level, task_type)
+        effective_level = cls._normalize_level(bridge_level or target_level or user_level)
+        if bridge_level or target_cando:
+            logger.info(
+                "[NODE CONTEXT] Applying node-specific constraints: global_level=%s effective_level=%s cando=%s",
+                user_level,
+                effective_level,
+                target_cando or "General CEFR proficiency",
+            )
         
         # 0. Fetch recent vocabulary to avoid repetition
         recent_vocabulary = await VocabLogService.get_recent_user_vocabulary(db, uuid.UUID(user_id))
         
         # Determine base difficulty
         difficulty_map = {"A1": 0.2, "A2": 0.3, "B1": 0.5, "B2": 0.7, "C1": 0.9, "C2": 1.0}
-        base_difficulty = difficulty_map.get(user_level, 0.5)
+        base_difficulty = difficulty_map.get(effective_level, 0.5)
         
         # 📈 Adaptive Algorithm: Adjust difficulty based on recent performance
         performance_delta = 0
@@ -187,17 +224,18 @@ class TaskGenerator:
         if any(keyword in task_type.upper() for keyword in ["SPEAKING", "LISTENING", "READING", "ROLEPLAY", "IDIOM", "CULTURAL", "CQ", "NUANCE"]):
             cq_idiom_instruction = (
                 "You MUST weave in culturally relevant idioms and expressions appropriate for the learner's "
-                f"CEFR level ({user_level}). Ensure the idiomatic expressions fit naturally within the {user_domain} context. "
+                f"CEFR level ({effective_level}). Ensure the idiomatic expressions fit naturally within the {user_domain} context. "
             )
             if is_tech_bg:
                 cq_idiom_instruction += "Explicitly inject scenarios like code reviews, deployment failures, and these specific tech idioms: 'Bite the bullet', 'Piece of cake', 'Hit the wall', 'Spaghetti code', and 'Cutting corners'."
 
         # 🎯 DEBUG PLAN: Log the exact context being sent to AI
         logger.info(f"🔍 DEBUG: Sending Task Request for User {user_id}")
-        logger.info(f"   |-- Level: {user_level}")
+        logger.info(f"   |-- Level: {effective_level} (global={user_level})")
         logger.info(f"   |-- Difficulty: {difficulty}")
         logger.info(f"   |-- Context: {user_context}")
         logger.info(f"   |-- Task Type: {task_type}")
+        logger.info(f"   |-- Can-Do Target: {target_cando or 'General CEFR proficiency'}")
 
         # 2. Call the AI Task Architect with strict skill enforcement.
         enforced_skill = cls._normalize_skill(skill_type or task_type or focus_skill)
@@ -205,7 +243,7 @@ class TaskGenerator:
             logger.info("[STRICT SKILL ENFORCEMENT] validating request before Groq call: skill=%s task_type=%s", enforced_skill, task_type)
         try:
             result, _ = await generate_architect_task(
-                user_level=target_level or user_level,
+                user_level=effective_level,
                 weakness_areas=weakness_areas,
                 last_errors=last_errors,
                 user_context=user_context,
@@ -215,6 +253,7 @@ class TaskGenerator:
                 focus_skill=enforced_skill,
                 difficulty=difficulty,
                 recent_vocabulary=recent_vocabulary,
+                target_cando=target_cando,
                 cq_idiom_instruction=cq_idiom_instruction
             )
             
@@ -231,6 +270,11 @@ class TaskGenerator:
             # Add a fresh ID for the UI
             if "task_metadata" in result:
                 result["task_metadata"]["id"] = str(uuid.uuid4())
+                result["task_metadata"]["skill"] = enforced_skill
+                result["task_metadata"]["skill_tag"] = enforced_skill
+                result["task_metadata"]["level"] = effective_level
+                if target_cando:
+                    result["task_metadata"]["cando_target"] = target_cando
             
             # Simple validation
             if "task_metadata" in result and "content" in result:
@@ -248,9 +292,10 @@ class TaskGenerator:
             fallback = cls._build_contextual_fallback(
                 task_type=task_type,
                 skill_type=enforced_skill,
-                target_level=target_level or user_level,
+                target_level=effective_level,
                 chosen_domain=chosen_domain or user_domain,
                 user_level=user_level,
+                target_cando=target_cando,
             )
             return fallback
 

@@ -1,6 +1,7 @@
 import uuid
 import asyncio
 import logging
+import re
 from typing import Dict, Any, List, Tuple, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
@@ -48,6 +49,20 @@ class SessionManager:
     Task Architect once per task. After the session, it writes the deltas
     back into learner_profiles / skill_states / journey_steps / user_error_profiles.
     """
+
+    @staticmethod
+    def _extract_bridge_level(text_value: Any) -> Optional[str]:
+        text_value = str(text_value or "")
+        match = re.search(r"\bBridge\s+(A1|A2|B1|B2|C1|C2)\s*(?:->|â†’|→|to)\s*(A1|A2|B1|B2|C1|C2)\b", text_value, re.IGNORECASE)
+        return match.group(1).upper() if match else None
+
+    @staticmethod
+    def _clean_cando(text_value: Any) -> Optional[str]:
+        text_value = str(text_value or "").strip()
+        if not text_value:
+            return None
+        match = re.search(r"Outcome:\s*(.+)", text_value, re.IGNORECASE | re.DOTALL)
+        return (match.group(1) if match else text_value).strip()
 
     # ------------------------------------------------------------------
     # 1) "Start Practice" — Smart Daily Mix
@@ -100,6 +115,22 @@ class SessionManager:
                 logger.info(f"[SessionManager] Skill '{s}' locked at specialized level: {lvl}")
             skill_levels[s] = lvl
 
+        journey_level_override = journey_focus.get("level_override")
+        journey_cando = journey_focus.get("target_cando")
+        plan_constraints = []
+        for idx, (role, skill, difficulty) in enumerate(plan):
+            slot_level = journey_level_override if role == "journey" and journey_level_override else skill_levels.get(skill, user_level)
+            plan_constraints.append({
+                "index": idx,
+                "slot_role": role,
+                "skill": skill,
+                "level": slot_level,
+                "difficulty": difficulty,
+                "node_title": journey_focus.get("title") if role == "journey" else None,
+                "node_type": journey_focus.get("node_type") if role == "journey" else None,
+                "cando_target": journey_cando if role == "journey" else None,
+            })
+
         from app.integrations.groq_client import generate_session_batch
 
         # ── PRIMARY PATH: single batch call with granular skill levels ──
@@ -114,9 +145,20 @@ class SessionManager:
             journey_skill=journey_skill,
             difficulty=adapted_difficulty,
             plan=plan,
+            plan_constraints=plan_constraints,
             skill_levels=skill_levels # 🔑 Strict mapping
         )
         tasks_payload = batch_result.get("tasks", []) if isinstance(batch_result, dict) else []
+        for index, task in enumerate(tasks_payload[:len(plan_constraints)]):
+            constraint = plan_constraints[index]
+            metadata = task.setdefault("task_metadata", {})
+            metadata["slot_role"] = constraint["slot_role"]
+            metadata["skill"] = constraint["skill"]
+            metadata["skill_tag"] = constraint["skill"]
+            metadata["level"] = constraint["level"]
+            metadata["difficulty_score"] = constraint["difficulty"]
+            if constraint.get("cando_target"):
+                metadata["cando_target"] = constraint["cando_target"]
 
         # ── FALLBACK PATH: parallel per-slot generation if batch failed ──
         if not tasks_payload:
@@ -126,14 +168,15 @@ class SessionManager:
                     slot_role=role,
                     skill=skill,
                     difficulty=difficulty,
-                    user_level=user_level,
+                    user_level=plan_constraints[i]["level"],
                     user_domain=user_domain,
                     user_interests=user_interests,
                     user_goal=user_goal,
                     last_errors=last_errors,
                     journey_title=journey_focus.get("title"),
+                    target_cando=plan_constraints[i].get("cando_target") or "",
                 )
-                for role, skill, difficulty in plan
+                for i, (role, skill, difficulty) in enumerate(plan)
             ])
 
         return {
@@ -472,18 +515,28 @@ class SessionManager:
             if node:
                 current_task = None
                 for candidate in sorted(node.tasks, key=lambda t: (t.task_index, t.id)):
-                    if candidate.status in {"active", "failed", "completed"}:
+                    if candidate.status == "active":
                         current_task = candidate
                         break
+                if current_task is None:
+                    for candidate in sorted(node.tasks, key=lambda t: (t.task_index, t.id)):
+                        if candidate.status == "failed":
+                            current_task = candidate
+                            break
                 if current_task is None and node.tasks:
                     current_task = sorted(node.tasks, key=lambda t: t.task_index)[0]
 
                 skill_focus = (current_task.skill_type if current_task and current_task.skill_type else "integrated").lower()
+                bridge_level = SessionManager._extract_bridge_level(node.title)
+                target_cando = SessionManager._clean_cando(node.target_cando)
                 return {
                     "source": "journey_maps/nodes/journey_tasks",
                     "step_id": str(current_task.id) if current_task else None,
                     "node_id": str(node.id),
                     "title": node.title,
+                    "node_type": node.type,
+                    "target_cando": target_cando,
+                    "level_override": bridge_level if node.type in {"catch_up", "remediation"} else None,
                     "skill_focus": skill_focus,
                     "order_index": node.node_index,
                     "task_index": current_task.task_index if current_task else None,
@@ -497,6 +550,9 @@ class SessionManager:
             "step_id": None,
             "node_id": None,
             "title": None,
+            "node_type": None,
+            "target_cando": None,
+            "level_override": None,
             "skill_focus": None,
             "order_index": None,
             "task_index": None,
@@ -602,6 +658,7 @@ class SessionManager:
         user_goal: str,
         last_errors: List[str],
         journey_title: Optional[str],
+        target_cando: str = "",
     ) -> Dict[str, Any]:
         """Calls the Task Architect for one slot, with a static-fallback safety net."""
         task_type = SKILL_TO_TASK_TYPE.get((skill or "").lower(), "GUIDED_PARAGRAPH")
@@ -618,12 +675,17 @@ class SessionManager:
                 task_type=task_type,
                 focus_skill=skill,
                 difficulty=difficulty,
+                target_cando=target_cando,
             )
             if "task_metadata" in result and "content" in result:
                 result["task_metadata"]["id"] = str(uuid.uuid4())
                 result["task_metadata"]["slot_role"] = slot_role
                 result["task_metadata"]["skill"] = skill
+                result["task_metadata"]["skill_tag"] = skill
+                result["task_metadata"]["level"] = user_level
                 result["task_metadata"]["difficulty_score"] = difficulty
+                if target_cando:
+                    result["task_metadata"]["cando_target"] = target_cando
                 return result
             logger.warning(f"[SessionManager] AI returned malformed task for slot={slot_role} skill={skill}")
         except Exception as e:
@@ -637,6 +699,8 @@ class SessionManager:
                 "slot_role": slot_role,
                 "skill": skill,
                 "skill_tag": skill,
+                "level": user_level,
+                "cando_target": target_cando,
                 "difficulty_score": difficulty,
                 "is_fallback": True,
             },
