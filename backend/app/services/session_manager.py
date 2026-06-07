@@ -2,6 +2,7 @@ import uuid
 import asyncio
 import logging
 import re
+import copy
 from typing import Dict, Any, List, Tuple, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
@@ -128,6 +129,9 @@ class SessionManager:
                 "difficulty": difficulty,
                 "node_title": journey_focus.get("title") if role == "journey" else None,
                 "node_type": journey_focus.get("node_type") if role == "journey" else None,
+                "journey_task_id": journey_focus.get("step_id") if role == "journey" else None,
+                "journey_node_id": journey_focus.get("node_id") if role == "journey" else None,
+                "journey_task_index": journey_focus.get("task_index") if role == "journey" else None,
                 "cando_target": journey_cando if role == "journey" else None,
             })
 
@@ -149,6 +153,7 @@ class SessionManager:
             skill_levels=skill_levels # 🔑 Strict mapping
         )
         tasks_payload = batch_result.get("tasks", []) if isinstance(batch_result, dict) else []
+        raw_batch_tasks = copy.deepcopy(tasks_payload)
         for index, task in enumerate(tasks_payload[:len(plan_constraints)]):
             constraint = plan_constraints[index]
             metadata = task.setdefault("task_metadata", {})
@@ -178,6 +183,45 @@ class SessionManager:
                 )
                 for i, (role, skill, difficulty) in enumerate(plan)
             ])
+
+        used_batch_indices: set[int] = set()
+        invariant_tasks_payload: List[Dict[str, Any]] = []
+        for index, (role, skill, difficulty) in enumerate(plan):
+            constraint = plan_constraints[index]
+            if role == "journey":
+                invariant_tasks_payload.append(await cls._build_locked_journey_task(
+                    constraint=constraint,
+                    journey_focus=journey_focus,
+                    user_domain=user_domain,
+                    user_interests=user_interests,
+                    user_goal=user_goal,
+                    last_errors=last_errors,
+                ))
+                continue
+
+            matched_task = cls._pop_matching_batch_task(raw_batch_tasks, used_batch_indices, constraint)
+            if matched_task is None:
+                logger.warning(
+                    "[SessionManager] daily-mix slot mismatch index=%s role=%s skill=%s; regenerating slot",
+                    index,
+                    role,
+                    skill,
+                )
+                matched_task = await cls._architect_one(
+                    slot_role=role,
+                    skill=skill,
+                    difficulty=difficulty,
+                    user_level=constraint["level"],
+                    user_domain=user_domain,
+                    user_interests=user_interests,
+                    user_goal=user_goal,
+                    last_errors=last_errors,
+                    journey_title=journey_focus.get("title"),
+                    target_cando=constraint.get("cando_target") or "",
+                )
+            invariant_tasks_payload.append(cls._enforce_slot_metadata(matched_task, constraint, journey_focus))
+
+        tasks_payload = invariant_tasks_payload
 
         return {
             "session_type": "daily_mix",
@@ -583,6 +627,68 @@ class SessionManager:
         except Exception as e:
             logger.warning(f"[SessionManager] skill level lookup failed for {skill}: {e}")
         return None
+
+    @staticmethod
+    def _enforce_slot_metadata(task: Dict[str, Any], constraint: Dict[str, Any], journey_focus: Dict[str, Any]) -> Dict[str, Any]:
+        metadata = task.setdefault("task_metadata", {})
+        metadata["slot_role"] = constraint["slot_role"]
+        metadata["skill"] = constraint["skill"]
+        metadata["skill_tag"] = constraint["skill"]
+        metadata["level"] = constraint["level"]
+        metadata["difficulty_score"] = constraint["difficulty"]
+        if constraint.get("cando_target"):
+            metadata["cando_target"] = constraint["cando_target"]
+        if constraint["slot_role"] == "journey":
+            metadata["journey_task_id"] = constraint.get("journey_task_id") or journey_focus.get("step_id")
+            metadata["journey_node_id"] = constraint.get("journey_node_id") or journey_focus.get("node_id")
+            metadata["journey_task_index"] = constraint.get("journey_task_index") or journey_focus.get("task_index")
+            metadata["context_lock"] = "canonical_journey_task"
+        return task
+
+    @staticmethod
+    def _pop_matching_batch_task(
+        tasks: List[Dict[str, Any]],
+        used_indices: set[int],
+        constraint: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        for idx, task in enumerate(tasks):
+            if idx in used_indices:
+                continue
+            metadata = task.get("task_metadata", {}) if isinstance(task, dict) else {}
+            role = str(metadata.get("slot_role") or "").lower()
+            skill = str(metadata.get("skill") or metadata.get("skill_tag") or "").lower()
+            if role == constraint["slot_role"] and skill == constraint["skill"]:
+                used_indices.add(idx)
+                return task
+        return None
+
+    @classmethod
+    async def _build_locked_journey_task(
+        cls,
+        constraint: Dict[str, Any],
+        journey_focus: Dict[str, Any],
+        user_domain: str,
+        user_interests: str,
+        user_goal: str,
+        last_errors: List[str],
+    ) -> Dict[str, Any]:
+        task = await cls._architect_one(
+            slot_role="journey",
+            skill=constraint["skill"],
+            difficulty=constraint["difficulty"],
+            user_level=constraint["level"],
+            user_domain=user_domain,
+            user_interests=user_interests,
+            user_goal=user_goal,
+            last_errors=last_errors,
+            journey_title=journey_focus.get("title"),
+            target_cando=constraint.get("cando_target") or "",
+        )
+        content = task.setdefault("content", {})
+        if constraint.get("cando_target"):
+            content.setdefault("learning_objective", constraint["cando_target"])
+            content.setdefault("evaluation_focus", f"Strictly test: {constraint['cando_target']}")
+        return cls._enforce_slot_metadata(task, constraint, journey_focus)
 
     @classmethod
     async def _architect_batch(
