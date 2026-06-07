@@ -57,8 +57,13 @@ export class RuntimeService {
       return [];
     }
 
+    // Always resolve the backend base URL — never hit the Vercel edge with /api/v1/* directly
+    const BACKEND_URL = (import.meta as any).env?.VITE_API_URL || '';
+
     try {
-        const endpoint = skillFilter ? '/api/v1/tasks/skill-practice' : '/api/v1/tasks/daily-mix';
+        const endpoint = skillFilter
+            ? `${BACKEND_URL}/api/v1/tasks/skill-practice`
+            : `${BACKEND_URL}/api/v1/tasks/daily-mix`;
         const body: any = skillFilter ? { skill: skillFilter, count: 5 } : {};
         if (taskType) body.task_type = taskType;
 
@@ -83,22 +88,71 @@ export class RuntimeService {
         console.error('[RuntimeService] Failed to fetch batch dynamic tasks, using fallbacks:', err);
     }
 
-    // Fallback if everything fails
+    // ── SMART SKILL-AWARE FALLBACK ──
+    const activeSkill = (skillFilter || result.overall?.weakestSkill || 'writing').toLowerCase();
+    const activeLevel = result.overall?.estimatedLevel || 'B1';
+
+    // Skill-specific fallback task schemas
+    const SKILL_FALLBACKS: Record<string, { taskType: any; prompt: string; stimulus: string; target: string; completion: string }> = {
+      speaking: {
+        taskType: 'speaking',
+        prompt: `Record yourself introducing your technical role and one key challenge you solved recently. Target: ${activeLevel} fluency.`,
+        stimulus: 'Speak naturally for 30–60 seconds. Focus on clarity and professional vocabulary.',
+        target: 'A clear, structured spoken introduction with professional vocabulary.',
+        completion: 'Minimum 3 coherent sentences spoken clearly.',
+      },
+      listening: {
+        taskType: 'listening',
+        prompt: 'Listen to the passage and answer: What is the main idea being communicated?',
+        stimulus: 'A software engineer explains a deployment failure and how the team resolved it under pressure.',
+        target: 'Identifying the core problem and the resolution strategy.',
+        completion: 'One accurate sentence capturing the main idea.',
+      },
+      reading: {
+        taskType: 'writing',
+        prompt: `Read the excerpt and summarize it in your own words. Keep it at ${activeLevel} register.`,
+        stimulus: 'The microservices architecture splits a monolithic application into independent, deployable services that communicate via APIs.',
+        target: 'A concise paraphrase identifying the key concept.',
+        completion: 'One or two complete sentences.',
+      },
+      grammar: {
+        taskType: 'writing',
+        prompt: 'Correct the grammatical errors in the sentence below and explain what was wrong.',
+        stimulus: 'The team have been work on this feature since three months and still not finished yet.',
+        target: 'The team has been working on this feature for three months and has still not finished.',
+        completion: 'Corrected sentence with a brief explanation.',
+      },
+      vocabulary: {
+        taskType: 'vocabulary',
+        prompt: `Use the word 'deployment' correctly in a professional sentence that reflects a ${activeLevel} level of English.`,
+        stimulus: 'Context: A software engineer describing their release process.',
+        target: 'A grammatically correct sentence using "deployment" in a professional context.',
+        completion: 'One complete, contextually appropriate sentence.',
+      },
+      writing: {
+        taskType: 'writing',
+        prompt: `Write two sentences describing your professional background and your main area of expertise. Target register: ${activeLevel}.`,
+        stimulus: 'Focus on clarity and professional vocabulary.',
+        target: 'I am a software engineer with experience in cloud architecture. I specialize in designing scalable microservices.',
+        completion: 'Two complete, professional sentences.',
+      },
+    };
+
+    const fallback = SKILL_FALLBACKS[activeSkill] ?? SKILL_FALLBACKS['writing'];
+
     return [{
         taskId: `fallback_${Date.now()}`,
-        taskType: skillFilter === 'speaking' ? 'speaking' : skillFilter === 'listening' ? 'listening' : 'writing',
-        targetSkill: skillFilter || 'writing',
-        learningObjective: 'Syntactic consistency',
-        prompt: skillFilter === 'listening' 
-            ? "Listen carefully to the audio and summarize what you understood." 
-            : `The system is temporarily using a fallback task for ${skillFilter || 'general practice'}. Please describe your professional background in two sentences.`,
+        taskType: fallback.taskType,
+        targetSkill: activeSkill,
+        learningObjective: `${activeSkill.charAt(0).toUpperCase() + activeSkill.slice(1)} practice at ${activeLevel}`,
+        prompt: fallback.prompt,
         supportSettings: { allowHints: true, allowReplay: true, allowSlowAudio: true, maxRetries: 3 },
-        difficultyTarget: result.overall.estimatedLevel,
-        completionCondition: 'Two complete sentences',
+        difficultyTarget: activeLevel,
+        completionCondition: fallback.completion,
         payload: {
-            stimulus: 'Please describe your professional background in two sentences.',
-            instruction: 'Practice your output clarity.',
-            target_response: 'I am a software engineer with ten years of experience. I specialize in cloud architecture.'
+            stimulus: fallback.stimulus,
+            instruction: fallback.prompt,
+            target_response: fallback.target,
         }
     }];
   }
@@ -161,8 +215,9 @@ export class RuntimeService {
     const responseMode = responsePayload?.responseMode || 'text';
     const analysis = analyzeResponse(rawText);
 
+    const BACKEND_URL = (import.meta as any).env?.VITE_API_URL || '';
     try {
-        const response = await fetch('/api/v1/tasks/evaluate-task', {
+        const response = await fetch(`${BACKEND_URL}/api/v1/tasks/evaluate-task`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
