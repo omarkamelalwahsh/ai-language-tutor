@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
+import { resolveApiBase } from '../lib/apiBase';
 
-const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = resolveApiBase((import.meta as any).env.VITE_API_URL || 'http://localhost:8000');
 const API_PREFIX = `${API_URL}/api/v1/tasks`;
 
 // ---------------------------------------------------------------------------

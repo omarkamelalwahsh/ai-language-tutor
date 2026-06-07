@@ -2,6 +2,7 @@ import { SessionTask, TaskEvaluationResult, TaskFeedbackPayload } from '../types
 import { AssessmentSessionResult, SkillName } from '../types/assessment';
 import { SemanticEvaluator } from './SemanticEvaluator';
 import { ReviewExplanationBuilder } from '../engine/review/ReviewExplanationBuilder';
+import { resolveApiBase } from '../lib/apiBase';
 function analyzeResponse(text: string): {
   wordCount: number;
   sentenceCount: number;
@@ -57,13 +58,7 @@ export class RuntimeService {
       return [];
     }
 
-    // Always resolve the backend base URL — never hit the Vercel edge with /api/v1/* directly
-    let rawUrl = (import.meta as any).env?.VITE_API_URL || '';
-    // Guard: if set but missing protocol, prepend https:// (Vercel env vars often lack it)
-    if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-        rawUrl = `https://${rawUrl}`;
-    }
-    const BACKEND_URL = rawUrl.replace(/\/$/, ''); // strip trailing slash
+    const BACKEND_URL = resolveApiBase((import.meta as any).env?.VITE_API_URL).replace(/\/$/, '');
 
     try {
         const endpoint = skillFilter
@@ -220,11 +215,7 @@ export class RuntimeService {
     const responseMode = responsePayload?.responseMode || 'text';
     const analysis = analyzeResponse(rawText);
 
-    let rawEvalUrl = (import.meta as any).env?.VITE_API_URL || '';
-    if (rawEvalUrl && !rawEvalUrl.startsWith('http://') && !rawEvalUrl.startsWith('https://')) {
-        rawEvalUrl = `https://${rawEvalUrl}`;
-    }
-    const BACKEND_URL = rawEvalUrl.replace(/\/$/, '');
+    const BACKEND_URL = resolveApiBase((import.meta as any).env?.VITE_API_URL).replace(/\/$/, '');
     try {
         const response = await fetch(`${BACKEND_URL}/api/v1/tasks/evaluate-task`, {
             method: 'POST',
