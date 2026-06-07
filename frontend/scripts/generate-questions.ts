@@ -1,12 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../../backend/.env') });
 
 // Configuration
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY || !GROQ_API_KEY) {
   console.error("❌ ERROR: Missing credentials in .env (Supabase or Groq)");

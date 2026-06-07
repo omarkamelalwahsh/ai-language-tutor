@@ -4,7 +4,10 @@ import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../../backend/.env') });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,9 +18,9 @@ if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 if (!GROQ_API_KEY) {
-  console.error("❌ ERROR: GROQ_API_KEY is not set in your .env file!");
+  console.error("❌ ERROR: GROQ_API_KEY is not set in backend/.env!");
   process.exit(1);
 }
 

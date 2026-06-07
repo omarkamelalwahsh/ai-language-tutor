@@ -13,7 +13,7 @@ AI Language Tutor is an English learning application with a React + Vite fronten
 - Python 3.11+
 - PostgreSQL or Supabase database
 - Supabase keys: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- Groq API key: `GROQ_API_KEY`
+- Groq API key: `GROQ_API_KEY` (stored in `backend/.env`)
 - (Optional) Firebase Cloud Messaging for notifications
 
 ## Environment Setup
@@ -39,7 +39,6 @@ Copy `frontend/.env.example` to `frontend/.env` and update the values:
 GEMINI_API_KEY="your_gemini_api_key"
 APP_URL="http://localhost:3000"
 VITE_API_URL="http://localhost:8000"
-VITE_GROQ_API_KEY="your_groq_api_key"
 VITE_SUPABASE_URL="https://your-project.supabase.co"
 VITE_SUPABASE_ANON_KEY="your_supabase_anon_key"
 VITE_FIREBASE_API_KEY="your_firebase_api_key"
@@ -60,6 +59,8 @@ GROQ_TASK_ENGINE_API_KEY="your_optional_groq_task_engine_api_key"
 > Note: `.env` files are ignored by Git via `.gitignore`.
 
 ## Local Development
+
+> Internal admin seeding now lives in `tools/internal/seed-admin.ts` and reads `ADMIN_PASSWORD` / `ADMIN_EMAIL` from `backend/.env`, not from the deployable frontend bundle.
 
 ### 1. Install dependencies
 ```bash
@@ -116,7 +117,7 @@ BACKEND_CORS_ORIGINS="https://ai-language-tutor-j0lh5mfs3-omar-kamels-projects-2
 If deploying on Vercel or Netlify, add these environment variables to the frontend project settings:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_GROQ_API_KEY`
+- `GROQ_API_KEY` in backend/.env for backend-only LLM operations
 - Firebase values if you want notifications
 
 ## Notifications (Firebase FCM)

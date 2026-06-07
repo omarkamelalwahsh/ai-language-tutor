@@ -111,14 +111,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (error) console.warn('[DataContext] last_seen_at bump failed:', error.message);
           });
 
-        const localOnboardingComplete = localStorage.getItem('onboarding_complete') === 'true';
-        const localAssessmentComplete = localStorage.getItem('has_completed_assessment') === 'true';
-
         const mergedProfile = {
           ...learnerData,
-          ...rbacProfile, // rbacProfile takes precedence for shared fields like full_name
-          onboarding_complete: isStaff || learnerData?.onboarding_complete || localOnboardingComplete,
-          has_completed_assessment: isStaff || learnerData?.has_completed_assessment || localAssessmentComplete
+          ...rbacProfile,
+          onboarding_complete: Boolean(isStaff || learnerData?.onboarding_complete === true),
+          has_completed_assessment: Boolean(isStaff || learnerData?.has_completed_assessment === true),
         };
 
         // 🧹 CLEANUP: If the DB has confirmed, clear local cache to prevent stale overrides

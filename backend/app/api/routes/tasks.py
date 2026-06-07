@@ -58,13 +58,17 @@ async def build_daily_mix(
 ):
     """
     Builds the Smart Daily Mix for the current user.
-    Pulls weakest skills + active journey node + recent errors,
-    then asks the AI architect to generate 5 hyper-personalized tasks.
+    Uses the canonical JourneyMap → JourneyNode → JourneyTask runtime tables
+    as the sole source of truth for the active journey context, then asks the
+    AI architect to generate 5 hyper-personalized tasks.
     """
     try:
         user_id = current_user["sub"]
         mix = await SessionManager.build_daily_mix(user_id=user_id, db=db)
-        return JSONResponse(content=mix, headers={
+        return JSONResponse(content={
+            **mix,
+            "runtime_source": "journey_maps/nodes/journey_tasks",
+        }, headers={
             "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
             "Pragma": "no-cache",
             "Expires": "0",

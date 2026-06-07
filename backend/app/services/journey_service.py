@@ -99,8 +99,16 @@ class JourneyService:
             if node.is_locked:
                 node_status = "locked"
             else:
-                # If any task is active/failed, it's active. If all are completed, it's completed.
-                all_completed = len(tasks) > 0 and all(t["status"] == "completed" for t in tasks)
+                # A node is complete when every task index has at least one successful completion,
+                # even if older failed attempts exist for the same task index.
+                has_success_for_task = {}
+                for t in tasks:
+                    if t["status"] == "completed":
+                        has_success_for_task[t["task_index"]] = True
+
+                all_completed = len(tasks) > 0 and all(
+                    has_success_for_task.get(t["task_index"], False) for t in tasks
+                )
                 node_status = "completed" if all_completed else "active"
                 
             # Infer skill focus from title or default to integrated

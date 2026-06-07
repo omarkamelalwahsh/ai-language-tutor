@@ -1,6 +1,6 @@
 import { AssessmentSessionResult, SkillName, CefrLevel } from '../types/assessment';
 import { getNextBand } from '../lib/cefr-utils';
-import { LearnerJourneyPayload, JourneyNode } from '../types/dashboard';
+import { CanonicalLanguageSkill, LearnerJourneyPayload, JourneyNode, NodePurpose } from '../types/dashboard';
 import { CEFR_CATALOG, CefrDescriptor, getDescriptorById } from '../data/cefr-catalog';
 import { InferenceGateway, LLMJourneyNode } from './InferenceGateway';
 import { supabase } from '../lib/supabaseClient';
@@ -60,16 +60,22 @@ export class JourneyService {
     }
 
     // 3. Map LLM nodes to UI structure
-    const nodes: JourneyNode[] = response.nodes.map((node: LLMJourneyNode, index: number) => ({
-      id: toValidUUID(node.id || `node_${index}`),
-      type: node.type === 'CHECKPOINT' ? 'checkpoint' : 'task',
-      status: index === 0 ? 'current' : 'locked',
-      title: node.title,
-      description: node.description,
-      iconType: this.mapIconType(node.icon, node.skills?.[0]),
-      estimatedDuration: `${(node.difficulty || 2) * 15} mins`,
-      skillFocus: node.type === 'REMEDIATION' ? 'remediation' : 'progression'
-    }));
+    const nodes: JourneyNode[] = response.nodes.map((node: LLMJourneyNode, index: number) => {
+      const canonicalSkills = this.normalizeLanguageSkills(node.skills);
+      const nodePurpose = this.mapNodePurpose(node.type);
+
+      return {
+        id: toValidUUID(node.id || `node_${index}`),
+        type: node.type === 'CHECKPOINT' ? 'checkpoint' : 'task',
+        status: index === 0 ? 'current' : 'locked',
+        title: node.title,
+        description: node.description,
+        iconType: this.mapIconType(node.icon, canonicalSkills[0] || node.skills?.[0]),
+        estimatedDuration: `${(node.difficulty || 2) * 15} mins`,
+        skillFocus: canonicalSkills[0] || 'integrated',
+        nodePurpose
+      };
+    });
 
     const resultPayload: LearnerJourneyPayload = {
       currentStage: currentLevel,
@@ -127,7 +133,8 @@ export class JourneyService {
         order_index: i,
         status: node.status || 'locked',
         icon_type: node.iconType || 'map-pin',
-        skill_focus: node.skillFocus || (node.id.includes('gap') ? 'remediation' : 'progression'),
+        skill_focus: node.skillFocus || 'integrated',
+        node_purpose: (node as any).nodePurpose || 'progression',
         is_locked: node.status === 'locked' || node.status === undefined,
         content_payload: (node as any).payload || {}
       }));
@@ -143,6 +150,20 @@ export class JourneyService {
   }
 
   // ---- Private Helpers ----
+
+  private static normalizeLanguageSkills(skills?: string[]): CanonicalLanguageSkill[] {
+    const canonicalSkills: CanonicalLanguageSkill[] = ['speaking', 'writing', 'reading', 'listening', 'grammar', 'vocabulary', 'integrated'];
+
+    return (skills || [])
+      .map(skill => skill.toLowerCase())
+      .filter((skill): skill is CanonicalLanguageSkill => canonicalSkills.includes(skill as CanonicalLanguageSkill));
+  }
+
+  private static mapNodePurpose(type: LLMJourneyNode['type']): NodePurpose {
+    if (type === 'REMEDIATION') return 'remediation';
+    if (type === 'CHECKPOINT') return 'checkpoint';
+    return 'progression';
+  }
 
   private static mapIconType(iconHint: string, skillHint?: string): JourneyNode['iconType'] {
     const normalized = (iconHint || skillHint || '').toLowerCase();

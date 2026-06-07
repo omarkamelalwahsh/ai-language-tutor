@@ -79,12 +79,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <NeuralPulseLoader status="Restoring Your AI Protocol..." />;
   if (!user) return <Navigate to="/auth" replace />;
 
-  const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
-  const isOnboardingCompleteCache = localStorage.getItem('onboarding_complete') === 'true';
-  
-  const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
-  const isOnboardingComplete = profile?.onboarding_complete === true || isOnboardingCompleteCache;
-  const hasStartedOnboarding = !!profile?.learning_goal; 
+  const hasCompletedAssessment = profile?.has_completed_assessment === true;
+  const isOnboardingComplete = profile?.onboarding_complete === true;
+  const hasStartedOnboarding = Boolean(profile?.learning_goal || profile?.goal_context);
   
   if (!isOnboardingComplete && !hasCompletedAssessment) {
     const isAtAssessment = location.includes('diagnostic') || location.includes('onboarding') || location.includes('results');
@@ -116,11 +113,12 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing) return <NeuralPulseLoader status="Authenticating Session..." />;
   
   if (user && !hasToken) {
-    const hasCompletedAssessmentCache = localStorage.getItem('has_completed_assessment') === 'true';
-    const hasCompletedAssessment = profile?.has_completed_assessment === true || hasCompletedAssessmentCache;
+    const hasCompletedAssessment = profile?.has_completed_assessment === true;
 
     if (hasCompletedAssessment) return <Navigate to="/dashboard" replace />;
-    if (profile?.onboarding_complete === true || !!profile?.learning_goal) return <Navigate to="/diagnostic/intro" replace />;
+    if (profile?.onboarding_complete === true || Boolean(profile?.learning_goal || profile?.goal_context)) {
+      return <Navigate to="/diagnostic/intro" replace />;
+    }
     return <Navigate to="/onboarding" replace />;
   }
   
@@ -137,7 +135,7 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
-    user, assessmentResult, assessmentOutcome, taskResults, 
+    user, profile, assessmentResult, assessmentOutcome, taskResults, 
     onboardingState, setSessionResult, setOnboarding,
     isArchitecting, logout, refreshData, clearAllData,
     updateProfileLocally
@@ -151,7 +149,8 @@ function AppRoutes() {
         await AssessmentSaveService.warmupAuth();
         
         // 🔄 Session Persistence Check
-        if (!localStorage.getItem('has_completed_assessment')) {
+        const hasCompletedAssessment = profile?.has_completed_assessment === true;
+        if (!hasCompletedAssessment) {
           try {
             const remoteState = await AssessmentSaveService.getLatestAssessmentState(user.id);
             if (remoteState && remoteState.battery && remoteState.currentIndex > 0 && remoteState.currentIndex < remoteState.battery.length) {
@@ -168,7 +167,7 @@ function AppRoutes() {
         }
       })();
     }
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
 
   const handleLogout = async () => {

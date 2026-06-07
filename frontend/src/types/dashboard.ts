@@ -1,3 +1,6 @@
+export type CanonicalLanguageSkill = 'speaking' | 'writing' | 'reading' | 'listening' | 'grammar' | 'vocabulary' | 'integrated';
+export type NodePurpose = 'remediation' | 'progression' | 'checkpoint';
+
 export interface JourneyNode {
   id: string;
   type: 'task' | 'checkpoint' | 'milestone';
@@ -6,7 +9,8 @@ export interface JourneyNode {
   description: string;
   iconType: 'speaking' | 'writing' | 'listening' | 'vocabulary' | 'assessment' | 'grammar';
   estimatedDuration?: string;
-  skillFocus?: 'remediation' | 'progression';
+  skillFocus?: CanonicalLanguageSkill;
+  nodePurpose?: NodePurpose;
 }
 
 export interface LearnerJourneyPayload {

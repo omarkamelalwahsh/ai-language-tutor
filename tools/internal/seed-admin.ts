@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../backend/.env') });
 
 const { Pool } = pg;
 const pool = new Pool({
@@ -15,9 +15,13 @@ const pool = new Pool({
 });
 
 async function seedAdmin() {
-  const name = 'Admin User';
-  const email = 'admin@example.com';
-  const password = 'adminpassword123';
+  const name = process.env.ADMIN_NAME || 'Admin User';
+  const email = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!password) {
+    throw new Error('ADMIN_PASSWORD is required in backend/.env for internal admin seeding.');
+  }
 
   try {
     const password_hash = await bcrypt.hash(password, 10);
@@ -35,8 +39,8 @@ async function seedAdmin() {
     );
 
     console.log('🚀 Admin user created successfully!');
-    console.log('📧 Email: admin@example.com');
-    console.log('🔑 Password: adminpassword123');
+    console.log(`📧 Email: ${email}`);
+    console.log('🔑 Password was loaded from backend/.env (not hardcoded).');
     
   } catch (err) {
     console.error('❌ Failed to seed admin:', err);

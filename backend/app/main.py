@@ -31,11 +31,10 @@ app.add_middleware(
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"GLOBAL ERROR: {str(exc)}")
-    logger.error(traceback.format_exc())
+    logger.exception("Unhandled exception while serving %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Critical Internal Server Error", "error": str(exc)},
+        content={"detail": "An internal server error occurred."},
     )
 
 @app.get("/health", tags=["System"])

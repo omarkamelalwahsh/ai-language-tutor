@@ -226,7 +226,8 @@ class JourneyStep(Base):
     order_index = Column(Integer, default=0)
     status = Column(String, default="locked") 
     icon_type = Column(String)
-    skill_focus = Column(String)
+    skill_focus = Column(String, default="integrated")
+    node_purpose = Column(String, default="progression")
     is_locked = Column(Boolean, default=True)
     
     # --- New Progression Logic ---

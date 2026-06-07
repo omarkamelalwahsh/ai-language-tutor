@@ -4,6 +4,7 @@ import logging
 from typing import Dict, Any, List, Tuple, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
+from sqlalchemy.orm import selectinload
 
 from app.services.profile_aggregator import aggregator
 from app.integrations.groq_client import generate_architect_task, generate_session_batch
@@ -13,6 +14,9 @@ from app.models.domain import (
     UserSkill,
     LearningJourney,
     JourneyStep,
+    JourneyMap,
+    JourneyNode,
+    JourneyTask,
     QuestionBankItem,
 )
 from app.services.pedagogy import PedagogyService
@@ -452,27 +456,52 @@ class SessionManager:
 
     @staticmethod
     async def _get_active_journey_focus(user_id: str, db: AsyncSession) -> Dict[str, Any]:
-        """Returns the currently-active Journey step (status='active')."""
+        """Returns the runtime journey focus from canonical JourneyMap → JourneyNode → JourneyTask tables."""
         try:
             stmt = (
-                select(JourneyStep)
-                .join(LearningJourney, JourneyStep.journey_id == LearningJourney.id)
-                .where(LearningJourney.user_id == user_id)
-                .where(JourneyStep.status == "active")
-                .order_by(JourneyStep.order_index.asc())
+                select(JourneyNode)
+                .join(JourneyMap, JourneyNode.journey_map_id == JourneyMap.id)
+                .options(selectinload(JourneyNode.tasks))
+                .where(JourneyMap.user_id == user_id)
+                .where(JourneyMap.is_completed == False)
+                .where(JourneyNode.node_index == JourneyMap.current_node_index)
+                .order_by(JourneyNode.node_index.asc())
                 .limit(1)
             )
-            step = (await db.execute(stmt)).scalar_one_or_none()
-            if step:
+            node = (await db.execute(stmt)).scalar_one_or_none()
+            if node:
+                current_task = None
+                for candidate in sorted(node.tasks, key=lambda t: (t.task_index, t.id)):
+                    if candidate.status in {"active", "failed", "completed"}:
+                        current_task = candidate
+                        break
+                if current_task is None and node.tasks:
+                    current_task = sorted(node.tasks, key=lambda t: t.task_index)[0]
+
+                skill_focus = (current_task.skill_type if current_task and current_task.skill_type else "integrated").lower()
                 return {
-                    "step_id": str(step.id),
-                    "title": step.title,
-                    "skill_focus": (step.skill_focus or "").lower() or None,
-                    "order_index": step.order_index,
+                    "source": "journey_maps/nodes/journey_tasks",
+                    "step_id": str(current_task.id) if current_task else None,
+                    "node_id": str(node.id),
+                    "title": node.title,
+                    "skill_focus": skill_focus,
+                    "order_index": node.node_index,
+                    "task_index": current_task.task_index if current_task else None,
+                    "task_status": current_task.status if current_task else None,
                 }
-        except Exception as e:
-            logger.warning(f"[SessionManager] active journey lookup failed: {e}")
-        return {"step_id": None, "title": None, "skill_focus": None, "order_index": None}
+        except Exception as exc:
+            logger.warning("[SessionManager] canonical journey focus lookup failed: %s", exc)
+
+        return {
+            "source": "journey_maps/nodes/journey_tasks",
+            "step_id": None,
+            "node_id": None,
+            "title": None,
+            "skill_focus": None,
+            "order_index": None,
+            "task_index": None,
+            "task_status": None,
+        }
 
     @staticmethod
     async def _get_skill_level(user_id: str, skill: str, db: AsyncSession) -> Optional[str]:
@@ -800,30 +829,30 @@ class SessionManager:
     @staticmethod
     async def _advance_journey(
         user_id: str, completed_step_id: str, results: List[Dict[str, Any]], db: AsyncSession
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """
         If the session passed (≥60% accuracy), mark the step completed and
-        unlock the next ordered step. Returns metadata about the unlocked step.
+        unlock the next ordered step. Returns structured status metadata.
         """
         try:
             correct = sum(1 for r in results if r.get("is_correct"))
             passed = (correct / len(results)) >= 0.6 if results else False
             if not passed:
-                logger.info(f"[SessionManager] journey step NOT advanced (accuracy below threshold)")
-                return None
-
-            # [NEW] Phase 3: Gateway Logic Integration
-            await PedagogyService.check_gateway_unlock(user_id, completed_step_id, correct/len(results), db)
-            
-            # [NEW] Phase 3: Level-Up Logic if it's a Final Exam
-            is_final = "final" in (step.title or "").lower()
-            if is_final:
-                await PedagogyService.handle_level_up(user_id, correct/len(results), db)
+                logger.info("[SessionManager] journey step NOT advanced (accuracy below threshold)")
+                return {"status": "not_passed", "reason": "accuracy below threshold"}
 
             stmt = select(JourneyStep).where(JourneyStep.id == completed_step_id)
             step = (await db.execute(stmt)).scalar_one_or_none()
             if not step:
-                return None
+                return {"status": "error", "reason": "journey step not found"}
+
+            # [NEW] Phase 3: Gateway Logic Integration
+            await PedagogyService.check_gateway_unlock(user_id, completed_step_id, correct / len(results), db)
+
+            # [NEW] Phase 3: Level-Up Logic if it's a Final Exam
+            is_final = "final" in (step.title or "").lower()
+            if is_final:
+                await PedagogyService.handle_level_up(user_id, correct / len(results), db)
 
             step.status = "completed"
             step.is_locked = False
@@ -839,14 +868,17 @@ class SessionManager:
                 next_step.status = "active"
                 next_step.is_locked = False
                 return {
+                    "status": "ok",
                     "id": str(next_step.id),
                     "title": next_step.title,
                     "skill_focus": next_step.skill_focus,
                     "order_index": next_step.order_index,
                 }
-        except Exception as e:
-            logger.warning(f"[SessionManager] _advance_journey failed: {e}")
-        return None
+
+            return {"status": "ok", "reason": "no next step available"}
+        except Exception as exc:
+            logger.exception("[SessionManager] _advance_journey failed")
+            return {"status": "error", "reason": "journey advancement failed", "details": str(exc)}
 
 
 def _to_jsonb_str(value: Any) -> str:
