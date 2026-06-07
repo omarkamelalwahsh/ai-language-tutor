@@ -148,7 +148,11 @@ export const sessionService = {
   /** Smart Daily Mix — 5 tasks (review × 2, journey × 2, maintenance × 1). */
   async buildDailyMix(): Promise<SessionBatch> {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_PREFIX}/daily-mix`, { method: 'POST', headers });
+    const res = await fetch(`${API_PREFIX}/daily-mix`, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { ...headers, 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0', 'Pragma': 'no-cache' },
+    });
     if (!res.ok) throw new Error(`Daily mix failed: ${res.status} ${await res.text()}`);
     return res.json();
   },
@@ -158,7 +162,8 @@ export const sessionService = {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_PREFIX}/skill-practice`, {
       method: 'POST',
-      headers,
+      cache: 'no-store',
+      headers: { ...headers, 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0', 'Pragma': 'no-cache' },
       body: JSON.stringify({ skill, count }),
     });
     if (!res.ok) throw new Error(`Skill practice failed: ${res.status} ${await res.text()}`);

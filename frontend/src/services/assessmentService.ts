@@ -29,7 +29,12 @@ export const assessmentService = {
   // 🎯 NEW: Generate a highly personalized task using AI Task Architect
   generateDynamicTask: async (type: string = 'WORD_BUILDER') => {
     // Assuming the user_id is handled by the backend from the token
-    const response = await axios.post(`${API_URL}/tasks/generate?type=${type}`);
+    const response = await axios.post(`${API_URL}/tasks/generate?type=${type}`, null, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
+    });
     return response.data;
   },
 

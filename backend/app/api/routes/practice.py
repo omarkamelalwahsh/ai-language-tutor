@@ -13,6 +13,15 @@ from app.schemas.practice import PracticeTasksResponse, TaskOptionDTO, PracticeS
 
 router = APIRouter()
 
+
+def require_user_uuid(user_id: str) -> UUID:
+    """Validate the authenticated user id before using it in DB queries."""
+    try:
+        return UUID(str(user_id))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise HTTPException(status_code=401, detail="Invalid authenticated user id") from exc
+
+
 # Helper to format task titles nicely
 def format_task_title(task_type: str) -> str:
     # Example: 'reading_comprehension' -> 'Reading Comprehension'
@@ -57,6 +66,7 @@ async def get_practice_tasks(
     """
     Fetch available task types for a skill and compute 'Review Needed' or 'New' badges.
     """
+    user_uuid = require_user_uuid(user_id)
     skill_key = skill.lower()
     tasks_list = PREDEFINED_TASKS.get(skill_key, [])
     
@@ -75,7 +85,7 @@ async def get_practice_tasks(
             select(AssessmentResponse.is_correct)
             .join(QuestionBankItem, AssessmentResponse.question_id == QuestionBankItem.id)
             .where(
-                AssessmentResponse.user_id == UUID(user_id),
+                AssessmentResponse.user_id == user_uuid,
                 QuestionBankItem.skill == skill_key,
                 QuestionBankItem.task_type == t_type
             )
@@ -103,7 +113,7 @@ async def get_practice_tasks(
             select(AssessmentResponse.id)
             .join(QuestionBankItem, AssessmentResponse.question_id == QuestionBankItem.id)
             .where(
-                AssessmentResponse.user_id == UUID(user_id),
+                AssessmentResponse.user_id == user_uuid,
                 QuestionBankItem.skill == skill_key,
                 QuestionBankItem.task_type == t_type,
                 AssessmentResponse.created_at >= today_start
@@ -137,6 +147,8 @@ async def start_practice_session(
     - Hard: C1-C2
     Within those levels, order by float difficulty.
     """
+    user_uuid = require_user_uuid(user_id)
+
     level_mapping = {
         "easy": ["A1", "A2"],
         "medium": ["B1", "B2"],
@@ -182,7 +194,7 @@ async def start_practice_session(
 
     # Create Assessment Session
     new_assessment = Assessment(
-        user_id=UUID(user_id),
+        user_id=user_uuid,
         status=AssessmentStatus.in_progress.value,
         total_questions=len(questions),
         evaluation_metadata={"type": "practice", "difficulty_bracket": request.difficulty}
@@ -194,7 +206,7 @@ async def start_practice_session(
     for q in questions:
         resp = AssessmentResponse(
             assessment_id=new_assessment.id,
-            user_id=UUID(user_id),
+            user_id=user_uuid,
             question_id=q.id,
             status="pending",
             skill=q.skill,

@@ -14,7 +14,87 @@ class TaskGenerator:
     TaskFactory Maestro: Responsible for fetching unified context,
     formatting it, and generating highly personalized language tasks.
     """
-    
+
+    @staticmethod
+    def _normalize_level(level: Any) -> str:
+        level_value = str(level or "").strip().upper()
+        return level_value if level_value in {"A1", "A2", "B1", "B2", "C1", "C2"} else "B1"
+
+    @staticmethod
+    def _normalize_skill(skill: Any) -> str:
+        raw = str(skill or "").strip().upper()
+        aliases = {
+            "READ": "READING",
+            "READING": "READING",
+            "LISTEN": "LISTENING",
+            "LISTENING": "LISTENING",
+            "WRITE": "WRITING",
+            "WRITING": "WRITING",
+            "SPEAK": "SPEAKING",
+            "SPEAKING": "SPEAKING",
+            "ORAL": "SPEAKING",
+            "PRONUNCIATION": "SPEAKING",
+            "FLUENCY": "SPEAKING",
+            "GRAMMAR": "WRITING",
+            "VOCABULARY": "READING",
+        }
+        return aliases.get(raw, raw or "SPEAKING")
+
+    @classmethod
+    def _build_contextual_fallback(cls, *, task_type: str, skill_type: str, target_level: str, chosen_domain: str, user_level: str) -> Dict[str, Any]:
+        """Build a skill/level-aware fallback instead of returning a blind static template."""
+        requested_skill = cls._normalize_skill(skill_type or task_type)
+        requested_level = cls._normalize_level(target_level or user_level)
+        domain = (chosen_domain or "Professional English").strip() or "Professional English"
+        if requested_skill in {"SPEAKING", "WRITING", "READING", "LISTENING"}:
+            logger.info("[STRICT SKILL ENFORCEMENT] forced skill=%s level=%s domain=%s", requested_skill, requested_level, domain)
+
+        fallback_prompt = "Practice the requested skill with a short, level-appropriate prompt."
+        stimulus = "Use the current node context and CEFR level to guide the task."
+        target_response = "A clear, concise answer appropriate for the learner's level."
+
+        if requested_skill in {"SPEAKING", "ORAL", "PRONUNCIATION", "FLUENCY"}:
+            fallback_prompt = f"Record a short speaking response about a {domain} situation. Use {requested_level} vocabulary and grammar."
+            stimulus = f"Describe a recent {domain} experience in 3-4 sentences suitable for a {requested_level} learner."
+            target_response = f"A short spoken answer about a {domain} experience, written at CEFR {requested_level}."
+            task_type_label = "SPEAKING_PROMPT"
+            task_metadata_type = "SPEAKING_PROMPT"
+        elif requested_skill in {"READING", "READ"}:
+            fallback_prompt = f"Read the short passage and answer one comprehension question about a {domain} scenario at CEFR {requested_level}."
+            stimulus = f"A compact reading passage about {domain}, written with {requested_level} complexity and one clear main idea."
+            target_response = f"One short answer identifying the main idea of the {domain} passage."
+            task_type_label = "READING_COMPREHENSION"
+            task_metadata_type = "READING_COMPREHENSION"
+        else:
+            fallback_prompt = f"Complete a short {requested_skill} activity for a {requested_level} learner in the {domain} domain."
+            stimulus = f"A concise {requested_skill} prompt tailored to {domain} and CEFR {requested_level}."
+            target_response = "A short answer that fits the requested skill and level."
+            task_type_label = (task_type or requested_skill).upper()
+            task_metadata_type = (task_type or requested_skill).upper()
+
+        return {
+            "task_metadata": {
+                "id": str(uuid.uuid4()),
+                "type": task_metadata_type,
+                "skill": requested_skill,
+                "skill_tag": requested_skill,
+                "level": requested_level,
+                "difficulty_score": 0.45,
+                "category": requested_skill,
+                "target_level": requested_level,
+                "chosen_domain": domain,
+                "is_fallback": True,
+            },
+            "content": {
+                "instruction": fallback_prompt,
+                "stimulus": stimulus,
+                "task_prompt": fallback_prompt,
+                "target_response": target_response,
+                "explanation": f"Fallback task adapted to requested skill '{requested_skill}' and CEFR level '{requested_level}' because the dynamic generator failed.",
+                "task_type_label": task_type_label,
+            },
+        }
+
     # Static fallbacks to ensure the UI never breaks
     STATIC_FALLBACKS = {
         "WORD_BUILDER": {
@@ -48,7 +128,7 @@ class TaskGenerator:
     }
 
     @classmethod
-    async def generate_task(cls, user_id: str, task_type: str, db: Session) -> Dict[str, Any]:
+    async def generate_task(cls, user_id: str, task_type: str, db: Session, skill_type: str = "", target_level: str = "", chosen_domain: str = "") -> Dict[str, Any]:
         """
         Generates a task using the Profile Aggregator and the AI Task Architect.
         """
@@ -119,15 +199,20 @@ class TaskGenerator:
         logger.info(f"   |-- Context: {user_context}")
         logger.info(f"   |-- Task Type: {task_type}")
 
-        # 2. Call the AI Task Architect
+        # 2. Call the AI Task Architect with strict skill enforcement.
+        enforced_skill = cls._normalize_skill(skill_type or task_type or focus_skill)
+        if enforced_skill in {"SPEAKING", "WRITING", "READING", "LISTENING"}:
+            logger.info("[STRICT SKILL ENFORCEMENT] validating request before Groq call: skill=%s task_type=%s", enforced_skill, task_type)
         try:
             result, _ = await generate_architect_task(
-                user_level=user_level,
+                user_level=target_level or user_level,
                 weakness_areas=weakness_areas,
                 last_errors=last_errors,
                 user_context=user_context,
                 task_type=task_type,
-                focus_skill=focus_skill,
+                skill_type=enforced_skill,
+                chosen_domain=chosen_domain or user_domain,
+                focus_skill=enforced_skill,
                 difficulty=difficulty,
                 recent_vocabulary=recent_vocabulary,
                 cq_idiom_instruction=cq_idiom_instruction
@@ -159,9 +244,14 @@ class TaskGenerator:
             import traceback
             logger.error(traceback.format_exc())
             
-            # Use Fallback if AI fails
-            fallback = cls.STATIC_FALLBACKS.get(task_type, cls.STATIC_FALLBACKS["SCRAMBLED_SENTENCE"])
-            fallback["task_metadata"]["id"] = str(uuid.uuid4())
+            # Use a context-aware fallback if AI fails or the request params are missing.
+            fallback = cls._build_contextual_fallback(
+                task_type=task_type,
+                skill_type=enforced_skill,
+                target_level=target_level or user_level,
+                chosen_domain=chosen_domain or user_domain,
+                user_level=user_level,
+            )
             return fallback
 
     @classmethod

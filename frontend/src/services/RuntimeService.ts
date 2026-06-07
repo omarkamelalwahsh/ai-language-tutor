@@ -71,9 +71,12 @@ export class RuntimeService {
 
         const response = await fetch(endpoint, {
             method: 'POST',
+            cache: 'no-store',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+                'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma': 'no-cache'
             },
             body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined
         });

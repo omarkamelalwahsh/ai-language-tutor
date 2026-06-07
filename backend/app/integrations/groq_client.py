@@ -263,10 +263,14 @@ JSON OUTPUT FORMAT (STRICT):
 _MASTER_TASK_ENGINE_PROMPT = """# ROLE
 You are an elite AI Pedagogical Architect specializing in teaching English. Your objective is to generate hyper-targeted, CEFR-aligned learning tasks based on dynamic inputs.
 
+CRITICAL REQUIREMENT: You must ONLY generate a task matching the requested 'skill_type'. If the 'skill_type' parameter is 'Speaking', it is a critical failure to return text-based reading comprehension or writing assignments. You must return a spoken production/interaction prompt.
+
 # INPUT VARIABLES
 - CEFR Level: {user_level} (A1, A2, B1, B2, C1, C2)
-- Skill Category: {skill_category} (SPEAKING, WRITING, LISTENING, READING)
-- Specific Task Type: {task_type} 
+- Requested Skill Type: {skill_type} (must be treated as the structural constraint for the task)
+- Requested Domain / Context: {chosen_domain}
+- Inferred Skill Category: {skill_category} (SPEAKING, WRITING, LISTENING, READING)
+- Specific Task Type: {task_type}
 - Target Vocabulary / Recent Mistakes: {target_vocabulary}
 - Recently Exposed Vocabulary (DO NOT REPEAT): {recent_vocabulary}
 - Difficulty Score: {difficulty}
@@ -279,6 +283,11 @@ You are an elite AI Pedagogical Architect specializing in teaching English. Your
 
 # 0. CAN-DO OUTCOME ALIGNMENT (MANDATORY)
 [ACADEMIC GRADING STANDARD] The task you generate MUST be specifically designed so that completing it successfully demonstrates the learner's ability to fulfill the following CEFR Can-Do Milestone: "{target_cando}". The scenario, stimulus, and expected response must all be architected around proving this communicative competence. If the Can-Do milestone is empty, fall back to general CEFR level descriptors.
+
+# 0A. STRUCTURAL CONSTRAINT ENFORCEMENT (CRITICAL)
+- If `skill_type` is explicitly set to SPEAKING, WRITING, LISTENING, or READING, that skill is the absolute structural requirement for the output. Do NOT generate a different modality.
+- If `skill_type` says SPEAKING, you must produce a speaking-oriented task prompt, spoken stimulus, or oral response format. A reading comprehension task is invalid in this case.
+- If the generated task's modality conflicts with the requested `skill_type`, you must fix it before returning the JSON. This conflict is a hard error and must be penalized.
 
 # 1. CEFR LEVEL CONSTRAINTS & CONTENT EXCLUSION (STRICT)
 You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {user_level}:
@@ -365,7 +374,9 @@ async def generate_architect_task(
     difficulty: float = 0.5,
     recent_vocabulary: list = None,
     target_cando: str = "",
-    cq_idiom_instruction: str = ""
+    cq_idiom_instruction: str = "",
+    skill_type: str = "",
+    chosen_domain: str = "",
 ) -> Tuple[Dict[str, Any], str]:
     """
     Elite Pedagogical Engine: Generates hyper-targeted tasks.
@@ -377,10 +388,19 @@ async def generate_architect_task(
     writing_types = ['WRITE', 'RESPONSE', 'EMAIL', 'SENTENCE', 'PARAGRAPH', 'EMAIL DRAFTING', 'ESSAY STRUCTURING', 'GRAMMAR DRILLS']
     reading_types = ['READ', 'SKIMMING', 'DEEP ANALYSIS', 'VOCABULARY QUIZ', 'IMAGE-WORD MATCH']
     cq_types = ['IDIOM CHALLENGE', 'CONTEXTUAL NUANCE', 'CQ', 'CULTURAL INTELLIGENCE']
-    
+
+    requested_skill = (skill_type or focus_skill or task_type or "").strip().upper()
     skill_category = "READING" # Default
     task_upper = task_type.upper()
-    if any(t in task_upper for t in listening_types):
+    if any(t in requested_skill for t in ['SPEAKING', 'ORAL', 'PRONUNCIATION', 'FLUENCY']):
+        skill_category = "SPEAKING"
+    elif any(t in requested_skill for t in ['LISTENING', 'AUDIO']):
+        skill_category = "LISTENING"
+    elif any(t in requested_skill for t in ['WRITING', 'ESSAY', 'EMAIL', 'GRAMMAR']):
+        skill_category = "WRITING"
+    elif any(t in requested_skill for t in ['READING', 'READ', 'VOCABULARY', 'IMAGE']):
+        skill_category = "READING"
+    elif any(t in task_upper for t in listening_types):
         skill_category = "LISTENING"
     elif any(t in task_upper for t in speaking_types):
         skill_category = "SPEAKING"
@@ -394,6 +414,8 @@ async def generate_architect_task(
     system_prompt = _MASTER_TASK_ENGINE_PROMPT.format(
         user_context=user_context,
         user_level=user_level,
+        skill_type=requested_skill or skill_category,
+        chosen_domain=chosen_domain or user_context,
         skill_category=skill_category,
         task_type=task_type,
         target_vocabulary=target_vocabulary,
@@ -403,7 +425,7 @@ async def generate_architect_task(
         cq_idiom_instruction=cq_idiom_instruction or "None"
     )
     
-    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} learner with context: {user_context}. Can-Do target: {target_cando or 'General'}. Target vocabulary: {target_vocabulary}. Avoid repeating: {recent_vocabulary}. Complexity level: {difficulty}."
+    user_message = f"Architect a {task_type} ({skill_category}) task for a {user_level} learner with context: {user_context}. Requested skill_type={requested_skill or skill_category}, chosen_domain={chosen_domain or user_context}. Can-Do target: {target_cando or 'General'}. Target vocabulary: {target_vocabulary}. Avoid repeating: {recent_vocabulary}. Complexity level: {difficulty}. If the requested skill_type conflicts with the modality, fix it before returning the JSON."
     
     result = await _call_groq_json(MODEL_TASK, system_prompt, user_message, use_task_client=True)
     return result, MODEL_TASK

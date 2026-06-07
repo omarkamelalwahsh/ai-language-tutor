@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List, Optional, Union
 from pydantic import BaseModel, Field
@@ -19,6 +20,9 @@ router = APIRouter()
 @router.post("/generate", response_model=Dict[str, Any])
 async def generate_task(
     type: str = Body(..., embed=True),
+    skill_type: Optional[str] = Body(None, embed=True),
+    target_level: Optional[str] = Body(None, embed=True),
+    chosen_domain: Optional[str] = Body(None, embed=True),
     db: AsyncSession = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
@@ -27,8 +31,19 @@ async def generate_task(
         raise HTTPException(status_code=400, detail="Task type is required")
     try:
         user_id = current_user["sub"]
-        task = await TaskGenerator.generate_task(user_id=user_id, task_type=type, db=db)
-        return task
+        task = await TaskGenerator.generate_task(
+            user_id=user_id,
+            task_type=type,
+            db=db,
+            skill_type=skill_type,
+            target_level=target_level,
+            chosen_domain=chosen_domain,
+        )
+        return JSONResponse(content=task, headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate task: {str(e)}")
 
@@ -48,7 +63,12 @@ async def build_daily_mix(
     """
     try:
         user_id = current_user["sub"]
-        return await SessionManager.build_daily_mix(user_id=user_id, db=db)
+        mix = await SessionManager.build_daily_mix(user_id=user_id, db=db)
+        return JSONResponse(content=mix, headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to build daily mix: {str(e)}")
 
