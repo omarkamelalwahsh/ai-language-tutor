@@ -315,12 +315,17 @@ You MUST adhere to the syntax, grammar, and cognitive load appropriate for the {
 
 ## SPEAKING MODULE (Fluency & Clarity)
 - Goals: Confident oral production.
-- Execution: Use Voice/Text toggle. Evaluate [Content, Fluency, Pronunciation].
+- Execution: Use Voice/Text toggle. Evaluate [Content, Fluency, Pronunciation]. For 'Pronunciation Check', YOU MUST output a `technical_transcript_string` in the content payload representing the production-grade phrasing the user must read.
 
-## VISUAL VOCABULARY MODULE (Image-Word AI)
+## VISUAL VOCABULARY MODULE (Image-Word Match)
 - Goals: Recognition and recall of technical terminology using visual stimuli.
-- Execution: Provide a highly descriptive "image_description" in the stimulus. The user will be asked to identify the term or match words to the scene.
+- Execution: Provide a highly descriptive "image_description" in the stimulus. The user will be asked to identify the term or match words to the scene. YOU MUST include an `image_prompt` field in the content payload describing the visual scene to be rendered.
 - Task Logic: Use 4 "options" where one is the correct term for the described image.
+
+## CULTURAL INTELLIGENCE (CQ) MODULE
+- Goals: Mastery of idiomatic expressions, cultural nuances, and context-specific phrasing.
+- Execution: Evaluate the learner's ability to interpret and appropriately use idioms or context-specific phrasing in realistic technical/corporate scenarios.
+- Task Logic: 'Idiom Challenge' (e.g., explain or use an idiom like 'bite the bullet') or 'Contextual Nuance' (e.g., choosing the right tone for a code review).
 
 # OUTPUT SCHEMA (STRICT JSON ONLY)
 Output your response as a parseable JSON object matching this schema. DO NOT include markdown formatting outside the JSON or conversational filler.
@@ -342,7 +347,9 @@ Output your response as a parseable JSON object matching this schema. DO NOT inc
     "options": ["Target option", "Distractor 1", "Distractor 2", "Distractor 3"],
     "learning_objective": "e.g., Ask for directions politely",
     "evaluation_focus": "e.g., Task completion + phrase accuracy + clarity",
-    "target_length": "e.g., 2-4 spoken turns or 1-2 sentences"
+    "target_length": "e.g., 2-4 spoken turns or 1-2 sentences",
+    "image_prompt": "e.g., 'A modern server room with glowing blue racks and messy spaghetti cables' (Only for Image-Word Match)",
+    "technical_transcript_string": "e.g., 'The deployment failed due to a missing environment variable.' (Only for Pronunciation Check)"
   }}
 }}
 """
@@ -365,17 +372,22 @@ async def generate_architect_task(
     Now accepts target_cando for CEFR Can-Do Outcome alignment.
     """
     # Map the task type to its skill category
-    listening_types = ['LISTEN', 'AUDIO', 'COMPREHENSION']
-    speaking_types = ['SPEAK', 'REPEAT', 'ALOUD', 'ROLEPLAY', 'ORAL', 'PROMPT']
-    writing_types = ['WRITE', 'RESPONSE', 'EMAIL', 'SENTENCE', 'PARAGRAPH']
+    listening_types = ['LISTEN', 'AUDIO', 'COMPREHENSION', 'MAIN IDEA EXTRACTION', 'DETAIL RECOGNITION', 'TONE ANALYSIS']
+    speaking_types = ['SPEAK', 'REPEAT', 'ALOUD', 'ROLEPLAY', 'ORAL', 'PROMPT', 'PRONUNCIATION CHECK', 'FLUENCY PRACTICE', 'ROLEPLAY SCENARIO']
+    writing_types = ['WRITE', 'RESPONSE', 'EMAIL', 'SENTENCE', 'PARAGRAPH', 'EMAIL DRAFTING', 'ESSAY STRUCTURING', 'GRAMMAR DRILLS']
+    reading_types = ['READ', 'SKIMMING', 'DEEP ANALYSIS', 'VOCABULARY QUIZ', 'IMAGE-WORD MATCH']
+    cq_types = ['IDIOM CHALLENGE', 'CONTEXTUAL NUANCE', 'CQ', 'CULTURAL INTELLIGENCE']
     
     skill_category = "READING" # Default
-    if any(t in task_type.upper() for t in listening_types):
+    task_upper = task_type.upper()
+    if any(t in task_upper for t in listening_types):
         skill_category = "LISTENING"
-    elif any(t in task_type.upper() for t in speaking_types):
+    elif any(t in task_upper for t in speaking_types):
         skill_category = "SPEAKING"
-    elif any(t in task_type.upper() for t in writing_types):
+    elif any(t in task_upper for t in writing_types):
         skill_category = "WRITING"
+    elif any(t in task_upper for t in cq_types):
+        skill_category = "CULTURAL INTELLIGENCE (CQ)"
 
     target_vocabulary = ", ".join(weakness_areas + last_errors) if (weakness_areas or last_errors) else "technical professional terminology"
 

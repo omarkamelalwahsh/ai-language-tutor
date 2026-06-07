@@ -29,6 +29,12 @@ interface DailyBites {
         rule: string;
         example: string;
     };
+    cq?: {
+        idiom: string;
+        literal_trap: string;
+        contextual_meaning: string;
+        scenario: string;
+    };
 }
 
 interface DailyMicroLearningProps {
@@ -266,6 +272,40 @@ export const DailyMicroLearning: React.FC<DailyMicroLearningProps> = ({ bites: p
                             <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 space-y-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
                                 <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Example</span>
                                 <p className="text-sm font-bold text-slate-900 dark:text-white italic">"{bites.punctuation.example}"</p>
+                            </div>
+                        </div>
+                    </VerticalBiteCard>
+                )}
+
+                {/* 5. Cultural Intelligence (CQ) */}
+                {bites.cq && (
+                    <VerticalBiteCard 
+                        title="Cultural Intelligence (CQ)"
+                        badge="Idiom Challenge"
+                        icon={<Zap size={20} className="text-amber-600 dark:text-amber-400" />}
+                        gradient="from-amber-50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20"
+                        borderColor="border-amber-100/80 dark:border-white/5"
+                        isCompleted={completedBites.includes('cq')}
+                        onComplete={() => handleComplete('cq')}
+                    >
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-150 dark:border-white/5 space-y-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                    <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2">
+                                        <XCircle size={12} className="text-rose-500" /> Literal Trap
+                                    </span>
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 italic">"{bites.cq.literal_trap}"</p>
+                                </div>
+                                <div className="p-5 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 space-y-2">
+                                    <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                        <CheckCircle2 size={12} className="text-amber-500" /> True Meaning
+                                    </span>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">"{bites.cq.contextual_meaning}"</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-100 dark:bg-slate-950/50 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                <Info size={14} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                <span><span className="font-bold text-amber-700 dark:text-amber-500">"{bites.cq.idiom}":</span> {bites.cq.scenario}</span>
                             </div>
                         </div>
                     </VerticalBiteCard>

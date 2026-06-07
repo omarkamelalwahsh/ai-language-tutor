@@ -27,7 +27,8 @@ Generate one complete set of 5 daily learning items. The content must be brief, 
 2. grammar_remediation: Provide a common ESL grammar mistake (incorrect, correct, 1-sentence rule).
 3. style_transformer: Transform a basic sentence (B1) into an advanced/academic sentence (C1/C2).
 4. punctuation_mechanics: Explain a single punctuation rule with a clear, short example.
-5. daily_reminder_review: A quick Active Recall question based on general past concepts.
+5. cq_idiom: Provide a professional idiom/expression related to the field, showing its literal trap and contextual meaning.
+6. daily_reminder_review: A quick Active Recall question based on general past concepts.
 
 # VARIETY
 Ensure the content is fresh and unique for {date_generated}. Avoid repeating common examples.
@@ -61,6 +62,12 @@ Ensure the content is fresh and unique for {date_generated}. Avoid repeating com
       "focus": "string",
       "rule": "string",
       "example": "string"
+    }},
+    "cq": {{
+      "idiom": "string",
+      "literal_trap": "string",
+      "contextual_meaning": "string",
+      "scenario": "string"
     }},
     "reminder_review": {{
       "skill": "string",

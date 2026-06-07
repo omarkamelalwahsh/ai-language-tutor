@@ -48,6 +48,7 @@ export const SidebarContent = ({ activeTab, onTabChange, onLogout }: SidebarProp
     <nav className="space-y-1.5 flex-1">
       <NavItem icon={<Home size={18} />} label="Home" active={activeTab === 'home'} onClick={() => onTabChange('home')} />
       <NavItem icon={<MapIcon size={18} />} label="My Journey" active={activeTab === 'journey'} onClick={() => onTabChange('journey')} />
+      <NavItem icon={<Trophy size={18} />} label="Daily Boost" active={activeTab === 'daily'} onClick={() => onTabChange('daily')} />
       <NavItem icon={<BarChart3 size={18} />} label="Analytics" active={activeTab === 'analytics'} onClick={() => onTabChange('analytics')} />
       <NavItem icon={<History size={18} />} label="History" active={activeTab === 'history'} onClick={() => onTabChange('history')} />
       <NavItem icon={<BookOpen size={18} />} label="Practice" active={activeTab === 'practice'} onClick={() => onTabChange('practice')} />

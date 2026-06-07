@@ -93,16 +93,24 @@ class TaskGenerator:
             if weakness_areas:
                 focus_skill = weakness_areas[0]
 
-        # Construct user context and CQ idiom mandate
-        user_context = f"Domain: {user_domain}, Interests: {user_interests}, Goal: {user_goal}"
+        # Evaluate technical background for context injection
+        is_tech_bg = any(keyword in str(user_domain).lower() + " " + str(user_interests).lower() 
+                         for keyword in ["software", "engineering", "ai", "developer", "tech", "computer"])
+                         
+        if is_tech_bg:
+            user_context = f"Domain: {user_domain}, Interests: {user_interests}, Goal: {user_goal}. Professional Context: Software Engineering/AI. IMPORTANT: Inject relevant professional contexts directly into the task (e.g., code reviews, deployment failures, tech idioms, debugging sessions). No generic placeholders."
+        else:
+            user_context = f"Domain: {user_domain}, Interests: {user_interests}, Goal: {user_goal}"
         
-        # 🧠 CQ Idiom Mandate (The "Piece of Cake" Mandate)
+        # 🧠 CQ Idiom Mandate
         cq_idiom_instruction = "None"
-        if task_type.upper() in ["SPEAKING", "LISTENING", "READING"] or "ROLEPLAY" in task_type.upper():
+        if any(keyword in task_type.upper() for keyword in ["SPEAKING", "LISTENING", "READING", "ROLEPLAY", "IDIOM", "CULTURAL", "CQ", "NUANCE"]):
             cq_idiom_instruction = (
                 "You MUST weave in culturally relevant idioms and expressions appropriate for the learner's "
-                f"CEFR level ({user_level}). Ensure the idiomatic expressions fit naturally within the {user_domain} context."
+                f"CEFR level ({user_level}). Ensure the idiomatic expressions fit naturally within the {user_domain} context. "
             )
+            if is_tech_bg:
+                cq_idiom_instruction += "Explicitly inject scenarios like code reviews, deployment failures, and these specific tech idioms: 'Bite the bullet', 'Piece of cake', 'Hit the wall', 'Spaghetti code', and 'Cutting corners'."
 
         # 🎯 DEBUG PLAN: Log the exact context being sent to AI
         logger.info(f"🔍 DEBUG: Sending Task Request for User {user_id}")
